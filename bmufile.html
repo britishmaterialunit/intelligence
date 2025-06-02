@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SVG Animation with Typewriter Text Trigger</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Helvetica, sans-serif;
+    }
+    .container {
+      position: relative;
+      width: 600px;
+      height: 600px;
+    }
+    .svg-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      transition: opacity 1s ease;
+    }
+    .animated-path {
+      fill: none;
+      stroke: #222222;
+      stroke-width: 3;
+      stroke-dasharray: 9999;
+      stroke-dashoffset: 9999;
+      animation: trace 7s ease-in-out forwards;
+    }
+    .filled-path {
+      fill: #222222;
+      stroke: none;
+      opacity: 0;
+      transition: opacity 1s ease;
+      pointer-events: none;
+    }
+    .filled-path.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .svg-faded {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .typewriter-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 12pt;
+      color: #222;
+      white-space: pre-wrap;
+      opacity: 0;
+      transition: opacity 1s ease;
+      pointer-events: none;
+    }
+    .show-text {
+      opacity: 1;
+    }
+    @keyframes trace {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="svg-wrapper">
+      <svg id="animatedSvg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+        <!-- Stroke animation -->
+        <path id="animatedPath" class="animated-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
+        <!-- Fill becomes clickable -->
+        <path id="filledPath" class="filled-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
+      </svg>
+    </div>
+    <div id="textOutput" class="typewriter-text"></div>
+  </div>
+
+  <script>
+    const animatedPath = document.getElementById('animatedPath');
+    const filledPath = document.getElementById('filledPath');
+    const svg = document.getElementById('animatedSvg');
+    const textOutput = document.getElementById('textOutput');
+    const content = `British Material Unit (BMU) a distribution company reutilising surplus material waste, uniting the intelligence of garments and wearers via open-source design repositories, tools and systems.
+    
+    hello@britishmaterialunit.com / @britishmaterialunit`;
+
+    // Set initial stroke dash values
+    const length = animatedPath.getTotalLength();
+    animatedPath.style.strokeDasharray = length;
+    animatedPath.style.strokeDashoffset = length;
+
+    // Typewriter function
+    function typeWriter(text, element, delay = 20) {
+      let i = 0;
+      element.textContent = ''; // Clear any existing text
+      function type() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, delay);
+        }
+      }
+      type();
+    }
+
+    // When stroke animation ends, reveal fill
+    animatedPath.addEventListener('animationend', () => {
+      filledPath.classList.add('visible');
+    });
+
+    // Click on filled SVG to fade SVG and show typewriter text
+    filledPath.addEventListener('click', () => {
+      svg.classList.add('svg-faded');
+      textOutput.classList.add('show-text');
+      typeWriter(content, textOutput);
+    });
+  </script>
+</body>
+</html>
