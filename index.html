@@ -130,9 +130,9 @@
     <div id="textOutput" class="typewriter-text">
       <div id="textContent"></div>
       <div id="buttonsContainer">
-        <a href="https://britishmaterialunit.com/repository" class="bm-button">Repository</a>
-        <a href="https://britishmaterialunit.com/earlyaccess" class="bm-button">Early Access</a>
         <a href="https://britishmaterialunit.com/join" class="bm-button">Join</a>
+        <a href="https://britishmaterialunit.com/earlyaccess" class="bm-button">Early Access</a>
+        <a href="https://britishmaterialunit.com/repository" class="bm-button">Repository</a>
       </div>
     </div>
   </div>
@@ -145,9 +145,8 @@
     const textContent = document.getElementById('textContent');
     const buttonsContainer = document.getElementById('buttonsContainer');
 
-    const mainText = "British Material Unit (BMU) a distribution company reutilising surplus material waste, uniting the intelligence of garments and wearers via open-source design tools, repositories and systems. 
-
-British Material Unit ◎ 2025";
+    // Combine main text with final line including a line break
+    const mainText = `British Material Unit (BMU) a distribution company reutilising surplus material waste, uniting the intelligence of garments and wearers via open-source design tools, repositories and systems.\n\nBritish Material Unit ◎ 2025`;
 
     buttonsContainer.classList.remove('visible');
 
@@ -178,7 +177,6 @@ British Material Unit ◎ 2025";
       svg.classList.add('svg-faded');
       textOutput.classList.add('show-text');
       typeWriter(mainText, textContent, 20, () => {
-        textContent.textContent += finalLine;
         buttonsContainer.classList.add('visible');
       });
     });
