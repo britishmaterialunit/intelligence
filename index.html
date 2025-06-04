@@ -138,50 +138,49 @@
   </div>
 
   <script>
-  const animatedPath = document.getElementById('animatedPath');
-  const filledPath = document.getElementById('filledPath');
-  const svg = document.getElementById('animatedSvg');
-  const textOutput = document.getElementById('textOutput');
-  const textContent = document.getElementById('textContent');
-  const buttonsContainer = document.getElementById('buttonsContainer');
+    const animatedPath = document.getElementById('animatedPath');
+    const filledPath = document.getElementById('filledPath');
+    const svg = document.getElementById('animatedSvg');
+    const textOutput = document.getElementById('textOutput');
+    const textContent = document.getElementById('textContent');
+    const buttonsContainer = document.getElementById('buttonsContainer');
 
-  const mainText = "British Material Unit (BMU) a distribution company reutilising surplus material waste, uniting the intelligence of garments and wearers via open-source design tools, repositories and systems.\n\n";
-  const finalLine = "British Material Unit ◎ 2025";
+    const mainText = "British Material Unit (BMU) a distribution company reutilising surplus material waste, uniting the intelligence of garments and wearers via open-source design tools, repositories and systems.\n\n";
+    const finalLine = "British Material Unit ◎ 2025";
 
-  buttonsContainer.classList.remove('visible');
+    buttonsContainer.classList.remove('visible');
 
-  const length = animatedPath.getTotalLength();
-  animatedPath.style.strokeDasharray = length;
-  animatedPath.style.strokeDashoffset = length;
+    const length = animatedPath.getTotalLength();
+    animatedPath.style.strokeDasharray = length;
+    animatedPath.style.strokeDashoffset = length;
 
-  function typeWriter(text, element, delay = 20, callback, append = false) {
-    let i = 0;
-    if (!append) element.textContent = '';
-    function type() {
-      if (i < text.length) {
-        element.textContent += text.charAt(i);
-        i++;
-        setTimeout(type, delay);
-      } else if (callback) {
-        callback();
+    function typeWriter(text, element, delay = 20, callback) {
+      let i = 0;
+      element.textContent = '';
+      function type() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, delay);
+        } else if (callback) {
+          callback();
+        }
       }
+      type();
     }
-    type();
-  }
 
-  animatedPath.addEventListener('animationend', () => {
-    filledPath.classList.add('visible');
-  });
-
-  filledPath.addEventListener('click', () => {
-    svg.classList.add('svg-faded');
-    textOutput.classList.add('show-text');
-    typeWriter(mainText, textContent, 20, () => {
-      typeWriter(finalLine, textContent, 50, () => {
-        buttonsContainer.classList.add('visible');
-      }, true);
+    animatedPath.addEventListener('animationend', () => {
+      filledPath.classList.add('visible');
     });
-  });
-</script>
+
+    filledPath.addEventListener('click', () => {
+      svg.classList.add('svg-faded');
+      textOutput.classList.add('show-text');
+      typeWriter(mainText, textContent, 20, () => {
+        textContent.textContent += finalLine;
+        buttonsContainer.classList.add('visible');
+      });
+    });
+  </script>
 </body>
 </html>
