@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>British Material Unit (BMU)</title>
   <style>
     body {
@@ -12,6 +12,7 @@
       align-items: center;
       height: 100vh;
       font-family: Helvetica, sans-serif;
+      color: #222;
     }
     .container {
       position: relative;
@@ -61,6 +62,7 @@
       width: 100%;
       height: 100%;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
@@ -70,14 +72,50 @@
       opacity: 0;
       transition: opacity 1s ease;
       pointer-events: none;
+      padding: 20px;
+      box-sizing: border-box;
     }
     .show-text {
       opacity: 1;
+      pointer-events: auto;
     }
     @keyframes trace {
       to {
         stroke-dashoffset: 0;
       }
+    }
+
+    #buttonsContainer {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    #buttonsContainer.visible {
+      opacity: 1;
+    }
+    .bm-button {
+      display: inline-block;
+      width: 150px;
+      height: 40px;
+      line-height: 40px;
+      font-family: Helvetica, sans-serif;
+      font-size: 14px;
+      color: #000000;
+      text-decoration: none;
+      border: 1.5px solid #000000;
+      background-color: transparent;
+      cursor: pointer;
+      user-select: none;
+      text-align: center;
+      box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .bm-button:hover {
+      background-color: #f0f0f0;
+      color: #444444;
     }
   </style>
 </head>
@@ -85,54 +123,65 @@
   <div class="container">
     <div class="svg-wrapper">
       <svg id="animatedSvg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
-        <!-- Stroke animation -->
         <path id="animatedPath" class="animated-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
-        <!-- Fill becomes clickable -->
         <path id="filledPath" class="filled-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
       </svg>
     </div>
-    <div id="textOutput" class="typewriter-text"></div>
+    <div id="textOutput" class="typewriter-text">
+      <div id="textContent"></div>
+      <div id="buttonsContainer">
+        <a href="https://britishmaterialunit.com/join" class="bm-button">Join</a>
+        <a href="https://britishmaterialunit.com/earlyaccess" class="bm-button">Early Access</a>
+        <a href="https://britishmaterialunit.com/repository" class="bm-button">Repository</a>
+      </div>
+    </div>
   </div>
 
   <script>
-    const animatedPath = document.getElementById('animatedPath');
-    const filledPath = document.getElementById('filledPath');
-    const svg = document.getElementById('animatedSvg');
-    const textOutput = document.getElementById('textOutput');
-    const content = British Material Unit (BMU) a distribution company reutilising surplus material waste, uniting the intelligence of garments and wearers via open-source design tools, repositories and systems.
-    
-    British Material Unit ◎ 2025 ;
+  const animatedPath = document.getElementById('animatedPath');
+  const filledPath = document.getElementById('filledPath');
+  const svg = document.getElementById('animatedSvg');
+  const textOutput = document.getElementById('textOutput');
+  const textContent = document.getElementById('textContent');
+  const buttonsContainer = document.getElementById('buttonsContainer');
 
-    // Set initial stroke dash values
-    const length = animatedPath.getTotalLength();
-    animatedPath.style.strokeDasharray = length;
-    animatedPath.style.strokeDashoffset = length;
+  const mainText = "British Material Unit (BMU) a distribution company reutilising surplus material waste, uniting the intelligence of garments and wearers via open-source design tools, repositories and systems.\n\n";
+  const finalLine = "British Material Unit ◎ 2025";
 
-    // Typewriter function
-    function typeWriter(text, element, delay = 20) {
-      let i = 0;
-      element.textContent = ''; // Clear any existing text
-      function type() {
-        if (i < text.length) {
-          element.textContent += text.charAt(i);
-          i++;
-          setTimeout(type, delay);
-        }
+  buttonsContainer.classList.remove('visible');
+
+  const length = animatedPath.getTotalLength();
+  animatedPath.style.strokeDasharray = length;
+  animatedPath.style.strokeDashoffset = length;
+
+  function typeWriter(text, element, delay = 20, callback, append = false) {
+    let i = 0;
+    if (!append) element.textContent = '';
+    function type() {
+      if (i < text.length) {
+        element.textContent += text.charAt(i);
+        i++;
+        setTimeout(type, delay);
+      } else if (callback) {
+        callback();
       }
-      type();
     }
+    type();
+  }
 
-    // When stroke animation ends, reveal fill
-    animatedPath.addEventListener('animationend', () => {
-      filledPath.classList.add('visible');
-    });
+  animatedPath.addEventListener('animationend', () => {
+    filledPath.classList.add('visible');
+  });
 
-    // Click on filled SVG to fade SVG and show typewriter text
-    filledPath.addEventListener('click', () => {
-      svg.classList.add('svg-faded');
-      textOutput.classList.add('show-text');
-      typeWriter(content, textOutput);
+  filledPath.addEventListener('click', () => {
+    svg.classList.add('svg-faded');
+    textOutput.classList.add('show-text');
+    typeWriter(mainText, textContent, 20, () => {
+      typeWriter(finalLine, textContent, 50, () => {
+        buttonsContainer.classList.add('visible');
+      }, true);
     });
-  </script>
+  });
+</script>
 </body>
 </html>
