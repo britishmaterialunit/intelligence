@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>British Army Hoods</title>
+    <style>
+        body {
+            background-color: #333333;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .hood-item, .info-text {
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .square-container {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .square-box {
+            width: 100%;
+            height: 100%;
+            border: 2px solid white;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: none;
+            cursor: pointer;
+        }
+
+        .percentage {
+            display: none;
+            color: #bbbbbb;
+            font-size: 20px;
+        }
+
+        .square-box:hover .percentage {
+            display: block;
+        }
+
+        .svg-container {
+            width: 600px;
+            height: 450px;
+            max-height: 95vh;
+            max-width: 50vw;
+            margin-left: 20px; /* Adds spacing between list and SVG */
+        }
+
+        path {
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            transition: fill 0.3s ease;
+        }
+
+        .svg-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .svg-list li {
+            margin: 2px 0;
+            font-size: 16px;
+            color: #bbbbbb;
+            cursor: pointer;
+        }
+
+        .svg-list li:hover {
+            color: #ffffff;
+        }
+
+        .hist-text, .mat-text {
+            color: #bbbbbb;
+        }
+
+        .svg-no-data {
+            color: #ffffff;
+            margin-left: 20px; /* Matches SVG spacing */
+        }
+
+        /* Flexbox for side-by-side layout */
+        .svg-section {
+            display: flex;
+            align-items: flex-start; /* Aligns items at the top */
+        }
+    </style>
+</head>
+<body>
+    <!-- Hood Items -->
+    <div class="hood-item" id="hood1">2000s SAS British Army Immersion Suit Hood</div>
+    <div class="hood-item" id="hood2">1950s Korean War British Army Parka Hood</div>
+    <div class="hood-item" id="hood3">1960s Pre-Falkland War DPM British Army Cold Weather Smock Combat Hood</div>
+
+    <!-- Historical Intelligence -->
+    <div class="info-text hist-text hidden" id="hist1">
+        <div>Contractor: Typhoon International Limited</div>
+        <div>Date of Manufacture: 2000s</div>
+        <div>Nationality: British; Modular Hood (Linked to Multiple NSNs) ∴ possibly non-exclusive to British Military</div>
+        <div>Era of War: N/A (SAS 21st Century Operations; used in Royal Air Force (RAF) United Kingdom Special Forces (UKSF) Special Air Service (SAS) “Amphibious Operations”)</div>
+        <div>Pattern Pieces: 27</div>
+        <div>Additional Components: Zippers (2) Velcro (2) Wire (1) Cords w/ Stoppers (2) Fasteners (2)</div>
+        <div>Additional Provenance: Purchased from RicAndre42 selling via eBay (June, 2024)</div>
+        <div>Status: Discontinued/Surplus</div>
+    </div>
+    <div class="info-text hist-text hidden" id="hist2">
+        <div>Contractor: Cookson & Clegg Limited</div>
+        <div>Date of Manufacture: 1953</div>
+        <div>Nationality: British</div>
+        <div>Era of War: Korean War (1950-1954)</div>
+        <div>Pattern Pieces: ___ </div>
+        <div>Additional Components: Wire (1) Wooden Spherical Tie Cords (2) Coated Plastic Buttons (10)</div>
+        <div>Additional Provenance: Detachable from British Army “Middle Parkas” Purchased from Silvermans in Bethnal Green selling in-store</div>
+        <div>Status: Discontinued/Surplus</div>
+    </div> 
+    <div class="info-text hist-text hidden" id="hist3">
+        <div>Contractor: Remploy Limited</div>
+        <div>Date of Manufacture: 1970s</div>
+        <div>Nationality: British</div>
+        <div>Era of War: Pre-Falklands</div> 
+        <div>Pattern Pieces: 2</div>
+        <div>Additional Components: Darts (2) Buttons (2) Coated Plastic Buttons (10)</div>
+        <div>Additional Provenance: Purchased from Silvermans in Bethnal Green selling in-store; Disruptive Pattern Material (DPM) camouflauge 1960 pattern</div>
+        <div>Status: Discontinued/Surplus</div>
+    </div>
+
+    <!-- Material Intelligence -->
+    <div class="info-text mat-text hidden" id="mat1">This is the material intelligence for 2000s SAS British Army Immersion Suit Hood</div>
+    <div class="info-text mat-text hidden" id="mat2">This is the material intelligence for 1950s Korean War British Army Parka Hood</div>
+    <div class="info-text mat-text hidden" id="mat3">This is material intelligence for 1960s Pre-Falkland War DPM British Army Cold Weather Smock Combat Hood</div>
+
+    <!-- Square Boxes -->
+    <div class="square-container hidden" id="square1">
+        <div class="square-box">
+            <span class="percentage">2%</span>
+        </div>
+    </div>
+    <div class="square-container hidden" id="square2">
+        <div class="square-box">
+            <span class="percentage">5%</span>
+        </div>
+    </div>
+    <div class="square-container hidden" id="square3">
+        <div class="square-box">
+            <span class="percentage">8%</span>
+        </div>
+    </div>
+
+    <!-- SVG and Lists -->
+    <div class="hidden svg-section" id="svg1">
+        <div class="svg-list">
+            <ul>
+                <li data-shape="shape1">BA00SASH01</li>
+                <li data-shape="shape2">BA00SASH02</li>
+                <li data-shape="shape3">BA00SASH03</li>
+                <li data-shape="shape4">BA00SASH04</li>
+                <li data-shape="shape5">BA00SASH05</li>
+                <li data-shape="shape6">BA00SASH06</li>
+                <li data-shape="shape7">BA00SASH07</li>
+                <li data-shape="shape8">BA00SASH08</li>
+                <li data-shape="shape9">BA00SASH09</li>
+                <li data-shape="shape10">BA00SASH10</li>
+                <li data-shape="shape11">BA00SASH11</li>
+                <li data-shape="shape12">BA00SASH12</li>
+                <li data-shape="shape13">BA00SASH13</li>
+                <li data-shape="shape14">BA00SASH14</li>
+                <li data-shape="shape15">BA00SASH15</li>
+                <li data-shape="shape16">BA00SASH16</li>
+                <li data-shape="shape17">BA00SASH17</li>
+                <li data-shape="shape18">BA00SASH18</li>
+                <li data-shape="shape19">BA00SASH19</li>
+                <li data-shape="shape20">BA00SASH20</li>
+                <li data-shape="shape21">BA00SASH21</li>
+                <li data-shape="shape22">BA00SASH22</li>
+                <li data-shape="shape23">BA00SASH23</li>
+                <li data-shape="shape24">BA00SASH24</li>
+                <li data-shape="shape25">BA00SASH25</li>
+                <li data-shape="shape26">BA00SASH26</li>
+                <li data-shape="shape27">BA00SASH27</li>
+            </ul>
+        </div>
+        <svg viewBox="0 0 2000 1500" preserveAspectRatio="xMidYMid meet" class="svg-container" id="svgShapes">
+            <path id="shape1" d="M 796,1137 L 796,1212 L 1265,1212 L 1265,1137 Z"/>
+            <path id="shape2" d="M 697,1105 L 684,1125 L 711,1143 L 725,1122 Z"/>
+            <path id="shape3" d="M 1362,1104 L 1335,1122 L 1348,1143 L 1375,1125 Z"/>
+            <path id="shape4" d="M 944,1057 L 944,1086 L 1098,1086 L 1098,1057 Z"/>
+            <path id="shape5" d="M 1078,965 L 1078,1034 L 1098,1034 L 1098,965 Z"/>
+            <path id="shape6" d="M 1052,965 L 1052,1034 L 1073,1034 L 1073,965 Z"/>
+            <path id="shape7" d="M 1027,965 L 1027,1034 L 1047,1034 L 1047,965 Z"/>
+            <path id="shape8" d="M 1000,965 L 1000,1034 L 1020,1034 L 1020,965 Z"/>
+            <path id="shape9" d="M 974,965 L 974,1034 L 994,1034 L 994,965 Z"/>
+            <path id="shape10" d="M 947,965 L 947,1034 L 968,1034 L 968,965 Z"/>
+            <path id="shape11" d="M 705,1091 L 735,1111 L 907,958 L 1046,928 L 1182,975 L 1324,1111 L 1354,1092 L 1214,947 L 1053,893 L 858,939 Z"/>
+            <path id="shape12" d="M 1656,715 L 1557,810 L 1511,813 L 1460,782 L 1346,928 L 1475,1071 L 1657,961 L 1706,907 L 1713,847 Z"/>
+            <path id="shape13" d="M 381,705 L 324,837 L 331,897 L 384,954 L 562,1061 L 691,918 L 577,772 L 526,803 L 480,800 Z"/>
+            <path id="shape14" d="M 1006,644 L 969,657 L 935,687 L 916,727 L 914,769 L 929,811 L 955,840 L 994,860 L 1038,863 L 1079,849 L 1111,821 L 1129,787 L 1133,738 L 1118,696 L 1086,662 L 1046,645 Z"/>
+            <path id="shape15" d="M 670,662 L 744,737 L 773,752 L 801,755 L 781,710 L 704,630 Z"/>
+            <path id="shape16" d="M 1393,649 L 1358,616 L 1282,695 L 1261,741 L 1286,739 L 1321,721 Z"/>
+            <path id="shape17" d="M 1116,612 L 1106,645 L 1148,668 L 1167,709 L 1153,850 L 1190,850 L 1199,691 L 1160,635 Z"/>
+            <path id="shape18" d="M 920,612 L 871,640 L 836,696 L 846,850 L 883,850 L 870,706 L 885,672 L 930,645 Z"/>
+            <path id="shape19" d="M 753,586 L 726,613 L 759,646 L 786,620 Z"/>
+            <path id="shape20" d="M 1316,573 L 1283,608 L 1311,634 L 1344,599 Z"/>
+            <path id="shape21" d="M 490,534 L 500,628 L 709,839 L 807,851 L 679,737 Z"/>
+            <path id="shape22" d="M 1549,517 L 1395,686 L 1232,835 L 1329,823 L 1538,613 Z"/>
+            <path id="shape23" d="M 519,339 L 424,434 L 575,585 L 670,488 Z"/>
+            <path id="shape24" d="M 1508,329 L 1350,470 L 1440,572 L 1598,431 Z"/>
+            <path id="shape25" d="M 564,294 L 540,319 L 685,467 L 708,442 Z"/>
+            <path id="shape26" d="M 1468,291 L 1314,430 L 1336,456 L 1490,317 Z"/>
+            <path id="shape27" d="M 975,153 L 960,403 L 971,615 L 1069,616 L 1081,402 L 1066,153 Z"/>
+        </svg>
+    </div>
+    <div class="hidden svg-section" id="svg2">
+        <div class="svg-list">
+            <ul>
+                <li>BA50KWH01</li>
+                <li>BA50KWH02</li>
+                <li>BA50KWH03</li>
+                <li>BA50KWH04</li>
+                <li>BA50KWH05</li>
+                <li>BA50KWH06</li>
+                <li>BA50KWH07</li>
+                <li>BA50KWH08</li>
+                <li>BA50KWH09</li>
+                <li>BA50KWH10</li>
+                <li>BA50KWH11</li>
+                <li>BA50KWH12</li>
+                <li>BA50KWH13</li>
+                <li>BA50KWH14</li>
+                <li>BA50KWH15</li>
+                <li>BA50KWH16</li>
+                <li>BA50KWH17</li>
+                <li>BA50KWH18</li>
+            </ul>
+        </div>
+        <div class="svg-no-data">No SVG Shape data currently</div>
+    </div>
+    <div class="hidden svg-section" id="svg3">
+        <div class="svg-list">
+            <ul>
+                <li>BA60PFWH01</li>
+                <li>BA60PFWH02</li>
+            </ul>
+        </div>
+        <div class="svg-no-data">No SVG Shape data currently</div>
+    </div>
+
+    <script>
+        const elements = {
+            hoods: ['hood1', 'hood2', 'hood3'],
+            hists: ['hist1', 'hist2', 'hist3'],
+            mats: ['mat1', 'mat2', 'mat3'],
+            squares: ['square1', 'square2', 'square3'],
+            svgs: ['svg1', 'svg2', 'svg3']
+        };
+
+        function resetAllExcept(selectedHist) {
+            elements.hists.forEach(hist => {
+                const element = document.getElementById(hist);
+                if (hist !== selectedHist) {
+                    element.classList.add('hidden');
+                }
+            });
+            elements.mats.forEach(mat => {
+                document.getElementById(mat).classList.add('hidden');
+            });
+            elements.squares.forEach(square => {
+                document.getElementById(square).classList.add('hidden');
+            });
+            elements.svgs.forEach(svg => {
+                document.getElementById(svg).classList.add('hidden');
+            });
+        }
+
+        document.getElementById('hood1').addEventListener('click', () => {
+            resetAllExcept('hist1');
+            toggleVisibility('hist1');
+        });
+        document.getElementById('hood2').addEventListener('click', () => {
+            resetAllExcept('hist2');
+            toggleVisibility('hist2');
+        });
+        document.getElementById('hood3').addEventListener('click', () => {
+            resetAllExcept('hist3');
+            toggleVisibility('hist3');
+        });
+
+        document.getElementById('hist1').addEventListener('click', () => toggleVisibility('mat1'));
+        document.getElementById('hist2').addEventListener('click', () => toggleVisibility('mat2'));
+        document.getElementById('hist3').addEventListener('click', () => toggleVisibility('mat3'));
+
+        document.getElementById('mat1').addEventListener('click', () => toggleVisibility('square1'));
+        document.getElementById('mat2').addEventListener('click', () => toggleVisibility('square2'));
+        document.getElementById('mat3').addEventListener('click', () => toggleVisibility('square3'));
+
+        document.getElementById('square1').addEventListener('click', () => toggleVisibility('svg1'));
+        document.getElementById('square2').addEventListener('click', () => toggleVisibility('svg2'));
+        document.getElementById('square3').addEventListener('click', () => toggleVisibility('svg3'));
+
+        function toggleVisibility(elementId) {
+            const element = document.getElementById(elementId);
+            element.classList.toggle('hidden');
+        }
+
+        const listItems = document.querySelectorAll('#svg1 .svg-list li');
+        listItems.forEach(item => {
+            item.addEventListener('mouseover', () => {
+                const shapeId = item.getAttribute('data-shape');
+                const shape = document.getElementById(shapeId);
+                if (shape) {
+                    shape.style.fill = 'white';
+                }
+            });
+
+            item.addEventListener('mouseout', () => {
+                const shapeId = item.getAttribute('data-shape');
+                const shape = document.getElementById(shapeId);
+                if (shape) {
+                    shape.style.fill = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
