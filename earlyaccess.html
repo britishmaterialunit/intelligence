@@ -1,337 +1,416 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>British Army Hoods</title>
-    <style>
-        body {
-            background-color: #333333;
-            color: white;
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-
-        .hood-item, .info-text {
-            cursor: pointer;
-            margin: 10px 0;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .square-container {
-            width: 100px;
-            height: 100px;
-            position: relative;
-            margin: 20px 0;
-        }
-
-        .square-box {
-            width: 100%;
-            height: 100%;
-            border: 2px solid white;
-            position: absolute;
-            top: 0;
-            left: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: none;
-            cursor: pointer;
-        }
-
-        .percentage {
-            display: none;
-            color: #bbbbbb;
-            font-size: 20px;
-        }
-
-        .square-box:hover .percentage {
-            display: block;
-        }
-
-        .svg-container {
-            width: 600px;
-            height: 450px;
-            max-height: 95vh;
-            max-width: 50vw;
-            margin-left: 20px; /* Adds spacing between list and SVG */
-        }
-
-        path {
-            fill: none;
-            stroke: white;
-            stroke-width: 2;
-            transition: fill 0.3s ease;
-        }
-
-        .svg-list ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .svg-list li {
-            margin: 2px 0;
-            font-size: 16px;
-            color: #bbbbbb;
-            cursor: pointer;
-        }
-
-        .svg-list li:hover {
-            color: #ffffff;
-        }
-
-        .hist-text, .mat-text {
-            color: #bbbbbb;
-        }
-
-        .svg-no-data {
-            color: #ffffff;
-            margin-left: 20px; /* Matches SVG spacing */
-        }
-
-        /* Flexbox for side-by-side layout */
-        .svg-section {
-            display: flex;
-            align-items: flex-start; /* Aligns items at the top */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Early Access</title>
+  <style>
+    body {
+      background-color: #333333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      color: white;
+      font-family: sans-serif;
+    }
+    svg {
+      width: 70%;
+      height: auto;
+      stroke: white;
+      stroke-width: 1.5px;
+      transition: none;
+      cursor: pointer;
+      transform: scale(1.2);
+      transform-origin: center;
+      margin-bottom: 30px;
+    }
+    .clickable-shape {
+      fill: #333333; /* Default fill to match background */
+      transition: fill 0.3s ease; /* Smooth fill transition */
+    }
+    .selected {
+      fill: white !important; /* White fill when selected */
+      stroke: white !important;
+    }
+    .buttons {
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+    .buttons button {
+      background: white;
+      color: black;
+      border: none;
+      padding: 10px 20px;
+      margin: 0 10px;
+      cursor: pointer;
+    }
+    #infoText {
+      margin-top: 20px;
+      display: none;
+      color: white;
+      font-family: 'Helvetica'; /* Typewriter-like font */
+      font-size: 16px;
+      line-height: 1.5;
+      text-align: left;
+      max-width: 600px;
+      white-space: pre-wrap; /* Preserve line breaks */
+    }
+    #carouselContainer {
+      margin-top: 20px;
+      display: none;
+      text-align: center;
+    }
+    #carouselSvg {
+      width: 200px; /* Smaller size for carousel */
+      height: auto;
+      margin: 0 auto;
+    }
+    #carouselSvg .clickable-shape {
+      fill: white; /* Always white fill in carousel */
+      stroke: white;
+    }
+    #carouselLabel {
+      margin-top: 10px;
+      font-family: sans-serif;
+      font-size: 14px;
+      color: white;
+    }
+  </style>
 </head>
 <body>
-    <!-- Hood Items -->
-    <div class="hood-item" id="hood1">2000s SAS British Army Immersion Suit Hood</div>
-    <div class="hood-item" id="hood2">1950s Korean War British Army Parka Hood</div>
-    <div class="hood-item" id="hood3">1960s Pre-Falkland War DPM British Army Cold Weather Smock Combat Hood</div>
 
-    <!-- Historical Intelligence -->
-    <div class="info-text hist-text hidden" id="hist1">
-        <div>Contractor: Typhoon International Limited</div>
-        <div>Date of Manufacture: 2000s</div>
-        <div>Nationality: British; Modular Hood (Linked to Multiple NSNs) ∴ possibly non-exclusive to British Military</div>
-        <div>Era of War: N/A (SAS 21st Century Operations; used in Royal Air Force (RAF) United Kingdom Special Forces (UKSF) Special Air Service (SAS) “Amphibious Operations”)</div>
-        <div>Pattern Pieces: 27</div>
-        <div>Additional Components: Zippers (2) Velcro (2) Wire (1) Cords w/ Stoppers (2) Fasteners (2)</div>
-        <div>Additional Provenance: Purchased from RicAndre42 selling via eBay (June, 2024)</div>
-        <div>Status: Discontinued/Surplus</div>
-    </div>
-    <div class="info-text hist-text hidden" id="hist2">
-        <div>Contractor: Cookson & Clegg Limited</div>
-        <div>Date of Manufacture: 1953</div>
-        <div>Nationality: British</div>
-        <div>Era of War: Korean War (1950-1954)</div>
-        <div>Pattern Pieces: ___ </div>
-        <div>Additional Components: Wire (1) Wooden Spherical Tie Cords (2) Coated Plastic Buttons (10)</div>
-        <div>Additional Provenance: Detachable from British Army “Middle Parkas” Purchased from Silvermans in Bethnal Green selling in-store</div>
-        <div>Status: Discontinued/Surplus</div>
-    </div> 
-    <div class="info-text hist-text hidden" id="hist3">
-        <div>Contractor: Remploy Limited</div>
-        <div>Date of Manufacture: 1970s</div>
-        <div>Nationality: British</div>
-        <div>Era of War: Pre-Falklands</div> 
-        <div>Pattern Pieces: 2</div>
-        <div>Additional Components: Darts (2) Buttons (2) Coated Plastic Buttons (10)</div>
-        <div>Additional Provenance: Purchased from Silvermans in Bethnal Green selling in-store; Disruptive Pattern Material (DPM) camouflauge 1960 pattern</div>
-        <div>Status: Discontinued/Surplus</div>
-    </div>
-
-    <!-- Material Intelligence -->
-    <div class="info-text mat-text hidden" id="mat1">This is the material intelligence for 2000s SAS British Army Immersion Suit Hood</div>
-    <div class="info-text mat-text hidden" id="mat2">This is the material intelligence for 1950s Korean War British Army Parka Hood</div>
-    <div class="info-text mat-text hidden" id="mat3">This is material intelligence for 1960s Pre-Falkland War DPM British Army Cold Weather Smock Combat Hood</div>
-
-    <!-- Square Boxes -->
-    <div class="square-container hidden" id="square1">
-        <div class="square-box">
-            <span class="percentage">2%</span>
-        </div>
-    </div>
-    <div class="square-container hidden" id="square2">
-        <div class="square-box">
-            <span class="percentage">5%</span>
-        </div>
-    </div>
-    <div class="square-container hidden" id="square3">
-        <div class="square-box">
-            <span class="percentage">8%</span>
-        </div>
-    </div>
-
-    <!-- SVG and Lists -->
-    <div class="hidden svg-section" id="svg1">
-        <div class="svg-list">
-            <ul>
-                <li data-shape="shape1">BA00SASH01</li>
-                <li data-shape="shape2">BA00SASH02</li>
-                <li data-shape="shape3">BA00SASH03</li>
-                <li data-shape="shape4">BA00SASH04</li>
-                <li data-shape="shape5">BA00SASH05</li>
-                <li data-shape="shape6">BA00SASH06</li>
-                <li data-shape="shape7">BA00SASH07</li>
-                <li data-shape="shape8">BA00SASH08</li>
-                <li data-shape="shape9">BA00SASH09</li>
-                <li data-shape="shape10">BA00SASH10</li>
-                <li data-shape="shape11">BA00SASH11</li>
-                <li data-shape="shape12">BA00SASH12</li>
-                <li data-shape="shape13">BA00SASH13</li>
-                <li data-shape="shape14">BA00SASH14</li>
-                <li data-shape="shape15">BA00SASH15</li>
-                <li data-shape="shape16">BA00SASH16</li>
-                <li data-shape="shape17">BA00SASH17</li>
-                <li data-shape="shape18">BA00SASH18</li>
-                <li data-shape="shape19">BA00SASH19</li>
-                <li data-shape="shape20">BA00SASH20</li>
-                <li data-shape="shape21">BA00SASH21</li>
-                <li data-shape="shape22">BA00SASH22</li>
-                <li data-shape="shape23">BA00SASH23</li>
-                <li data-shape="shape24">BA00SASH24</li>
-                <li data-shape="shape25">BA00SASH25</li>
-                <li data-shape="shape26">BA00SASH26</li>
-                <li data-shape="shape27">BA00SASH27</li>
-            </ul>
-        </div>
-        <svg viewBox="0 0 2000 1500" preserveAspectRatio="xMidYMid meet" class="svg-container" id="svgShapes">
-            <path id="shape1" d="M 796,1137 L 796,1212 L 1265,1212 L 1265,1137 Z"/>
-            <path id="shape2" d="M 697,1105 L 684,1125 L 711,1143 L 725,1122 Z"/>
-            <path id="shape3" d="M 1362,1104 L 1335,1122 L 1348,1143 L 1375,1125 Z"/>
-            <path id="shape4" d="M 944,1057 L 944,1086 L 1098,1086 L 1098,1057 Z"/>
-            <path id="shape5" d="M 1078,965 L 1078,1034 L 1098,1034 L 1098,965 Z"/>
-            <path id="shape6" d="M 1052,965 L 1052,1034 L 1073,1034 L 1073,965 Z"/>
-            <path id="shape7" d="M 1027,965 L 1027,1034 L 1047,1034 L 1047,965 Z"/>
-            <path id="shape8" d="M 1000,965 L 1000,1034 L 1020,1034 L 1020,965 Z"/>
-            <path id="shape9" d="M 974,965 L 974,1034 L 994,1034 L 994,965 Z"/>
-            <path id="shape10" d="M 947,965 L 947,1034 L 968,1034 L 968,965 Z"/>
-            <path id="shape11" d="M 705,1091 L 735,1111 L 907,958 L 1046,928 L 1182,975 L 1324,1111 L 1354,1092 L 1214,947 L 1053,893 L 858,939 Z"/>
-            <path id="shape12" d="M 1656,715 L 1557,810 L 1511,813 L 1460,782 L 1346,928 L 1475,1071 L 1657,961 L 1706,907 L 1713,847 Z"/>
-            <path id="shape13" d="M 381,705 L 324,837 L 331,897 L 384,954 L 562,1061 L 691,918 L 577,772 L 526,803 L 480,800 Z"/>
-            <path id="shape14" d="M 1006,644 L 969,657 L 935,687 L 916,727 L 914,769 L 929,811 L 955,840 L 994,860 L 1038,863 L 1079,849 L 1111,821 L 1129,787 L 1133,738 L 1118,696 L 1086,662 L 1046,645 Z"/>
-            <path id="shape15" d="M 670,662 L 744,737 L 773,752 L 801,755 L 781,710 L 704,630 Z"/>
-            <path id="shape16" d="M 1393,649 L 1358,616 L 1282,695 L 1261,741 L 1286,739 L 1321,721 Z"/>
-            <path id="shape17" d="M 1116,612 L 1106,645 L 1148,668 L 1167,709 L 1153,850 L 1190,850 L 1199,691 L 1160,635 Z"/>
-            <path id="shape18" d="M 920,612 L 871,640 L 836,696 L 846,850 L 883,850 L 870,706 L 885,672 L 930,645 Z"/>
-            <path id="shape19" d="M 753,586 L 726,613 L 759,646 L 786,620 Z"/>
-            <path id="shape20" d="M 1316,573 L 1283,608 L 1311,634 L 1344,599 Z"/>
-            <path id="shape21" d="M 490,534 L 500,628 L 709,839 L 807,851 L 679,737 Z"/>
-            <path id="shape22" d="M 1549,517 L 1395,686 L 1232,835 L 1329,823 L 1538,613 Z"/>
-            <path id="shape23" d="M 519,339 L 424,434 L 575,585 L 670,488 Z"/>
-            <path id="shape24" d="M 1508,329 L 1350,470 L 1440,572 L 1598,431 Z"/>
-            <path id="shape25" d="M 564,294 L 540,319 L 685,467 L 708,442 Z"/>
-            <path id="shape26" d="M 1468,291 L 1314,430 L 1336,456 L 1490,317 Z"/>
-            <path id="shape27" d="M 975,153 L 960,403 L 971,615 L 1069,616 L 1081,402 L 1066,153 Z"/>
-        </svg>
-    </div>
-    <div class="hidden svg-section" id="svg2">
-        <div class="svg-list">
-            <ul>
-                <li>BA50KWH01</li>
-                <li>BA50KWH02</li>
-                <li>BA50KWH03</li>
-                <li>BA50KWH04</li>
-                <li>BA50KWH05</li>
-                <li>BA50KWH06</li>
-                <li>BA50KWH07</li>
-                <li>BA50KWH08</li>
-                <li>BA50KWH09</li>
-                <li>BA50KWH10</li>
-                <li>BA50KWH11</li>
-                <li>BA50KWH12</li>
-                <li>BA50KWH13</li>
-                <li>BA50KWH14</li>
-                <li>BA50KWH15</li>
-                <li>BA50KWH16</li>
-                <li>BA50KWH17</li>
-                <li>BA50KWH18</li>
-            </ul>
-        </div>
-        <div class="svg-no-data">No SVG Shape data currently</div>
-    </div>
-    <div class="hidden svg-section" id="svg3">
-        <div class="svg-list">
-            <ul>
-                <li>BA60PFWH01</li>
-                <li>BA60PFWH02</li>
-            </ul>
-        </div>
-        <div class="svg-no-data">No SVG Shape data currently</div>
-    </div>
-
-    <script>
-        const elements = {
-            hoods: ['hood1', 'hood2', 'hood3'],
-            hists: ['hist1', 'hist2', 'hist3'],
-            mats: ['mat1', 'mat2', 'mat3'],
-            squares: ['square1', 'square2', 'square3'],
-            svgs: ['svg1', 'svg2', 'svg3']
-        };
-
-        function resetAllExcept(selectedHist) {
-            elements.hists.forEach(hist => {
-                const element = document.getElementById(hist);
-                if (hist !== selectedHist) {
-                    element.classList.add('hidden');
-                }
-            });
-            elements.mats.forEach(mat => {
-                document.getElementById(mat).classList.add('hidden');
-            });
-            elements.squares.forEach(square => {
-                document.getElementById(square).classList.add('hidden');
-            });
-            elements.svgs.forEach(svg => {
-                document.getElementById(svg).classList.add('hidden');
-            });
+  <!-- Custom SVG with your shapes labeled from BA2000AOH01 to BA2000AOH28 -->
+  <svg id="shapeContainer" viewBox="0 0 1920 1080">
+    <defs>
+      <style>
+        .st0 {
+          stroke: inherit;
+          stroke-miterlimit: 10;
         }
+      </style>
+    </defs>
+    
+    <!-- Shape 1 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH01" x="701.65" y="316.02" width="22.31" height="133.86" transform="translate(-62.01 616.19) rotate(-45)"/>
+    
+    <!-- Shape 2 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH02" x="619.21" y="365.57" width="86.05" height="133.86" transform="translate(-111.86 594.95) rotate(-45)"/>
+    
+    <!-- Shape 3 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH03" x="740.18" y="315.05" width="19.12" height="105.18" transform="translate(-40.37 637.83) rotate(-45)"/>
+    
+    <!-- Shape 4 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH04" x="792.24" y="362.4" width="12.75" height="25.5" transform="translate(1628.6 75.71) rotate(135)"/>
+    
+    <!-- Shape 5 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH05" x="1108.42" y="355.88" width="12.75" height="25.5" transform="translate(587.18 -680.31) rotate(45)"/>
+    
+    <!-- Shape 6 -->
+    <path class="st0 clickable-shape" id="BA2000AOH06" d="M776.41,595.15s-4.2-22.23-14.68-32.71l-48.42-48.42-9.01,9.01-9.01,9.01,48.42,48.42c10.48,10.48,32.71,14.68,32.71,14.68Z"/>
+    
+    <!-- Shape 7 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH07" x="912.71" y="816.77" width="54.18" height="5.1" transform="translate(1759.12 -120.48) rotate(90)"/>
+    
+    <!-- Shape 8 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH08" x="926.77" y="816.77" width="54.18" height="5.1" transform="translate(1773.18 -134.55) rotate(90)"/>
+    
+    <!-- Shape 9 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH09" x="954.91" y="816.77" width="54.18" height="5.1" transform="translate(1801.32 -162.68) rotate(90)"/>
+    
+    <!-- Shape 10 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH10" x="940.84" y="816.77" width="54.18" height="5.1" transform="translate(1787.25 -148.61) rotate(90)"/>
+    
+    <!-- Shape 11 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH11" x="968.98" y="816.77" width="54.18" height="5.1" transform="translate(1815.39 -176.75) rotate(90)"/>
+    
+    <!-- Shape 12 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH12" x="898.64" y="816.77" width="54.18" height="5.1" transform="translate(1745.05 -106.41) rotate(90)"/>
+    
+    <!-- Shape 13 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH13" x="772.49" y="898.41" width="379.28" height="63.74"/>
+    
+    <!-- Shape 14 -->
+    <path class="st0 clickable-shape" id="BA2000AOH14" d="M727.97,651.46c11.88,11.88,32.06,13.2,32.06,13.2l29.89,3.68-200.58-200.58,3.68,29.89s1.32,20.18,13.2,32.06l121.75,121.75Z"/>
+    
+   <!-- Shape 15 -->
+  <rect class="st0 clickable-shape" id="BA2000AOH15" x="1206.96" y="365.89" width="105.18" height="133.86" transform="translate(674.96 -763.87) rotate(45)"/>
 
-        document.getElementById('hood1').addEventListener('click', () => {
-            resetAllExcept('hist1');
-            toggleVisibility('hist1');
-        });
-        document.getElementById('hood2').addEventListener('click', () => {
-            resetAllExcept('hist2');
-            toggleVisibility('hist2');
-        });
-        document.getElementById('hood3').addEventListener('click', () => {
-            resetAllExcept('hist3');
-            toggleVisibility('hist3');
-        });
+    <!-- Shape 16 -->
+    <path class="st0 clickable-shape" id="BA2000AOH16" d="M727.32,712.81l-99.84-99.83c-18.7,21.02-46.61,36.05-96.3,4.22-6.09-4.14-20.66-15.82-52.08-48.27-.59-.61-1.19-1.23-1.79-1.85-.37.72-.74,1.43-1.1,2.14-97.49,189.85,19.14,181.82,166.46,253.51,12.96-19.13,25.47-39.46,38.73-58.45,13.42-18.7,29.96-35.05,45.92-51.46Z"/>
+    
+    <!-- Shape 17 -->
+    <path class="st0 clickable-shape" id="BA2000AOH17" d="M358,666.09s0,0,0,0h0Z"/>
+    
+    <!-- Shape 18 -->
+    <path class="st0 clickable-shape" id="BA2000AOH18" d="M1001.65,463.42l3.13-22.49c9.19-55.16,7.23-136.26,7.23-136.26,0-51.22-9.19-103.75-9.19-103.75-5.58-29.88-5.25-92.92-5.25-92.92h-73.31s.33,63.04-5.25,92.92c0,0-9.19,52.53-9.19,103.75,0,0-1.97,81.1,7.23,136.26l3.13,22.49s9.89,1.55,40.75,1.55,40.75-1.55,40.75-1.55Z"/>
+    
+    <!-- Shape 19 -->
+    <path class="st0 clickable-shape" id="BA2000AOH19" d="M1090.46,610.42c-.06-.92-.34-5.5-.37-5.96-1.47-28.08-17.69-69.13-19.9-84.37s-2.33-32.13-2.33-32.29h-28.65s.13,19.44,2.59,36.41c2.71,18.71,18.38,57.7,19.64,81.74.05,1.01.26,4.12.38,6.19.75,12.51-.36,57.59-53.3,71.72l7.4,27.72c75.74-20.22,75.3-88.51,74.54-101.16Z"/>
+    
+    <!-- Shape 20 -->
+    <path class="st0 clickable-shape" id="BA2000AOH20" d="M831.34,610.42c.06-.92.34-5.5.37-5.96,1.47-28.08,17.69-69.13,19.9-84.37,2.29-15.78,2.33-32.13,2.33-32.29h28.65s-.13,19.44-2.59,36.41c-2.71,18.71-18.38,57.7-19.64,81.74-.05,1.01-.26,4.12-.38,6.19-.75,12.51.36,57.59,53.3,71.72l-7.4,27.72c-75.74-20.22-75.3-88.51-74.54-101.16Z"/>
+    
+    <!-- Shape 21 -->
+    <path class="st0 clickable-shape" id="BA2000AOH21" d="M962.11,517.11c-44.89,0-81.27,36.39-81.27,81.27s36.39,81.27,81.27,81.27,81.27-36.39,81.27-81.27-36.39-81.27-81.27-81.27ZM962.11,660.53c-34.33,0-62.15-27.83-62.15-62.15s27.83-62.15,62.15-62.15,62.15,27.83,62.15,62.15-27.83,62.15-62.15,62.15Z"/>
+    
+    <!-- Shape 22 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH22" x="728.1" y="500.14" width="51" height="25.5" transform="translate(583.39 -382.65) rotate(45)"/>
+    
+    <!-- Shape 23 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH23" x="1188.08" y="308.41" width="22.31" height="133.86" transform="translate(1781.82 1488.75) rotate(-135)"/>
+    
+    <!-- Shape 24 -->
+    <rect class="st0 clickable-shape" id="BA2000AOH24" x="1152.74" y="307.45" width="19.12" height="105.18" transform="translate(1729.58 1436.5) rotate(-135)"/>
+    
+    <!-- Shape 25 -->
+    <path class="st0 clickable-shape" id="BA2000AOH25" d="M1151.83,602.5s4.2-22.23,14.68-32.71l48.42-48.42,9.01,9.01,9.01,9.01-48.42,48.42c-10.48,10.48-32.71,14.68-32.71,14.68Z"/>
+    
+    <!-- Shape 26 -->
+    <path class="st0 clickable-shape" id="BA2000AOH26" d="M1200.27,658.81c-11.88,11.88-32.06,13.2-32.06,13.2l-29.89,3.68,200.58-200.58-3.68,29.89s-1.32,20.18-13.2,32.06l-121.75,121.75Z"/>
+    
+    <!-- Shape 27 -->
+    <path class="st0 clickable-shape" id="BA2000AOH27" d="M1200.92,720.16l99.84-99.83c18.7,21.02,46.61,36.05,96.3,4.22,6.09-4.14,20.66-15.82,52.08-48.27.59-.61,1.19-1.23,1.79-1.85.37.72.74,1.43,1.1,2.14,97.49,189.85-19.14,181.82-166.46,253.51-12.96-19.13-25.47-39.46-38.73-58.45-13.42-18.7-29.96-35.05-45.92-51.46Z"/>
+    
+    <!-- Shape 28 -->
+    <path class="st0 clickable-shape" id="BA2000AOH28" d="M961.61,725.42c-2.54,0-5.07.05-7.61.16-28.6,1.17-57.42,8.95-85.64,23.12-22.32,11.21-44.31,26.42-65.37,45.21-35.69,31.85-56.25,62.76-57.11,64.06l9.2,6.07,9.15,6.05c.2-.3,20.14-30.2,53.85-60.17,19.59-17.42,39.95-31.46,60.5-41.74,25.33-12.67,51.05-19.61,76.42-20.63,69.47-2.8,137.97,38.24,203.62,121.97l17.31-13.57c-19.06-24.31-38.69-45.52-58.36-63.04-18.63-16.6-37.78-30.32-56.91-40.79-32.4-17.73-65.69-26.7-99.05-26.7Z"/>
+  </svg>
 
-        document.getElementById('hist1').addEventListener('click', () => toggleVisibility('mat1'));
-        document.getElementById('hist2').addEventListener('click', () => toggleVisibility('mat2'));
-        document.getElementById('hist3').addEventListener('click', () => toggleVisibility('mat3'));
+ <div class="buttons">
+  <button onclick="toggleInfo()">!</button>
+  <button onclick="resetShapes()">-</button>
+  <button onclick="randomFill()">?</button>
+  <button onclick="setAllShapes()">+</button>
+  <button onclick="downloadSelectedSVGs()">▼</button>
+  
+</div>
 
-        document.getElementById('mat1').addEventListener('click', () => toggleVisibility('square1'));
-        document.getElementById('mat2').addEventListener('click', () => toggleVisibility('square2'));
-        document.getElementById('mat3').addEventListener('click', () => toggleVisibility('square3'));
+  <div id="infoText"></div>
+  <div id="carouselContainer">
+    <svg id="carouselSvg"></svg>
+    <div id="carouselLabel"></div>
+  </div>
 
-        document.getElementById('square1').addEventListener('click', () => toggleVisibility('svg1'));
-        document.getElementById('square2').addEventListener('click', () => toggleVisibility('svg2'));
-        document.getElementById('square3').addEventListener('click', () => toggleVisibility('svg3'));
+  <script>
+  const totalShapes = 28;
+  const selectedShapes = new Set();
+  const infoText = document.getElementById('infoText');
+  const carouselContainer = document.getElementById('carouselContainer');
+  const carouselSvg = document.getElementById('carouselSvg');
+  const carouselLabel = document.getElementById('carouselLabel');
+  const infoContent = `Contractor: Typhoon International Limited
+Date of Manufacture: 2000s
+Nationality: British; Modular Hood (Linked to Multiple NSNs) ∴ possibly non-exclusive to British Military
+Era of War: N/A (SAS 21st Century Operations; used in Royal Air Force (RAF) United Kingdom Special Forces (UKSF) Special Air Service (SAS) “Amphibious Operations”)
+Pattern Pieces: 27
+Additional Components: Zippers (2) Velcro (2) Wire (1) Cords w/ Stoppers (2) Fasteners (2)
+Additional Provenance: Purchased from RicAndre42 selling via eBay (June, 2024)
+Status: Discontinued/Surplus`;
+  let isTyping = false;
+  let typewriterInterval = null;
+  let carouselInterval = null;
+  let currentCarouselIndex = -1;
+  let lastSelectedShape = null;
 
-        function toggleVisibility(elementId) {
-            const element = document.getElementById(elementId);
-            element.classList.toggle('hidden');
-        }
+  // Add click listeners to all shapes
+  for (let i = 1; i <= totalShapes; i++) {
+    const id = `BA2000AOH${String(i).padStart(2, '0')}`;
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => toggleShape(el));
+    }
+  }
 
-        const listItems = document.querySelectorAll('#svg1 .svg-list li');
-        listItems.forEach(item => {
-            item.addEventListener('mouseover', () => {
-                const shapeId = item.getAttribute('data-shape');
-                const shape = document.getElementById(shapeId);
-                if (shape) {
-                    shape.style.fill = 'white';
-                }
-            });
+  function toggleShape(el) {
+    el.classList.toggle('selected');
+    const id = el.id;
+    if (el.classList.contains('selected')) {
+      selectedShapes.add(id);
+      lastSelectedShape = id; // Track the last selected shape
+    } else {
+      selectedShapes.delete(id);
+      if (lastSelectedShape === id) lastSelectedShape = null; // Clear if deselected
+    }
+    updateCarousel();
+  }
 
-            item.addEventListener('mouseout', () => {
-                const shapeId = item.getAttribute('data-shape');
-                const shape = document.getElementById(shapeId);
-                if (shape) {
-                    shape.style.fill = 'none';
-                }
-            });
-        });
-    </script>
+  function resetShapes() {
+    // Deselect all shapes
+    document.querySelectorAll('.clickable-shape').forEach(shape => {
+      shape.classList.remove('selected');
+      shape.style.fill = '#333333'; // Reset to original fill
+    });
+    selectedShapes.clear();
+    lastSelectedShape = null;
+    updateCarousel(); // Update carousel to hide if no shapes are selected
+  }
+
+  function setAllShapes() {
+    // Select and animate all shapes
+    document.querySelectorAll('.clickable-shape').forEach(shape => {
+      if (!shape.classList.contains('selected')) {
+        shape.classList.add('selected');
+        selectedShapes.add(shape.id);
+        // Trigger reflow to restart CSS animation
+        shape.style.transition = 'none';
+        shape.style.fill = '#333333';
+        shape.offsetHeight; // Force reflow
+        shape.style.transition = 'fill 0.3s ease';
+        shape.style.fill = 'white';
+      }
+    });
+    lastSelectedShape = `BA2000AOH${String(totalShapes).padStart(2, '0')}`; // Set last shape for carousel
+    updateCarousel();
+  }
+
+  function toggleInfo() {
+    if (infoText.style.display === 'block') {
+      // Stop typing and carousel, hide elements
+      clearInterval(typewriterInterval);
+      clearInterval(carouselInterval);
+      infoText.style.display = 'none';
+      carouselContainer.style.display = 'none';
+      infoText.textContent = '';
+      carouselSvg.innerHTML = '';
+      carouselLabel.textContent = '';
+      isTyping = false;
+      currentCarouselIndex = -1;
+      return;
+    }
+
+    // Start typewriter effect
+    infoText.style.display = 'block';
+    infoText.textContent = '';
+    let index = 0;
+    isTyping = true;
+
+    typewriterInterval = setInterval(() => {
+      if (index < infoContent.length) {
+        infoText.textContent += infoContent[index];
+        index++;
+      } else {
+        clearInterval(typewriterInterval);
+        isTyping = false;
+      }
+    }, 10); // Faster typewriter effect (10ms per character)
+
+    // Start carousel if there are selected shapes
+    if (selectedShapes.size > 0) {
+      carouselContainer.style.display = 'block';
+      updateCarousel();
+      startCarousel();
+    }
+  }
+
+  function updateCarousel() {
+    if (selectedShapes.size === 0) {
+      carouselContainer.style.display = 'none';
+      carouselSvg.innerHTML = '';
+      carouselLabel.textContent = '';
+      clearInterval(carouselInterval);
+      return;
+    }
+
+    // If a shape was just selected, show it immediately on the next cycle
+    if (lastSelectedShape && selectedShapes.has(lastSelectedShape)) {
+      currentCarouselIndex = [...selectedShapes].indexOf(lastSelectedShape) - 1; // Adjust to show it next
+    }
+
+    // Ensure carousel is running if infoText is visible
+    if (infoText.style.display === 'block') {
+      carouselContainer.style.display = 'block';
+      if (!carouselInterval) startCarousel();
+    }
+  }
+
+  function startCarousel() {
+    clearInterval(carouselInterval); // Clear existing interval to prevent duplicates
+    carouselInterval = setInterval(() => {
+      if (selectedShapes.size === 0) {
+        carouselContainer.style.display = 'none';
+        carouselSvg.innerHTML = '';
+        carouselLabel.textContent = '';
+        clearInterval(carouselInterval);
+        return;
+      }
+
+      // Move to next shape
+      currentCarouselIndex = (currentCarouselIndex + 1) % selectedShapes.size;
+      const shapeIds = [...selectedShapes];
+      const currentId = shapeIds[currentCarouselIndex];
+      const shape = document.getElementById(currentId);
+
+      if (shape) {
+        // Clone the shape and display it
+        carouselSvg.innerHTML = '';
+        const clonedShape = shape.cloneNode(true);
+        clonedShape.classList.add('clickable-shape');
+        carouselSvg.appendChild(clonedShape);
+        carouselLabel.textContent = currentId;
+      }
+    }, 1000); // 1-second interval
+  }
+
+  function randomFill() {
+    // Clear all selections
+    document.querySelectorAll('.clickable-shape').forEach(shape => {
+      shape.classList.remove('selected');
+      shape.style.fill = '#333333'; // Reset fill
+    });
+    selectedShapes.clear();
+    lastSelectedShape = null;
+
+    // Get random count using weighted distribution
+    const count = weightedRandom([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24], [1, 2, 4, 6, 8, 10, 8, 6, 4, 2, 1]);
+
+    // Randomly select shapes
+    const indices = [...Array(totalShapes).keys()].sort(() => 0.5 - Math.random()).slice(0, count);
+    for (const i of indices) {
+      const id = `BA2000AOH${String(i + 1).padStart(2, '0')}`;
+      const el = document.getElementById(id);
+      if (el) {
+        toggleShape(el);
+        lastSelectedShape = id; // Set last selected for immediate display
+      }
+    }
+    updateCarousel();
+  }
+
+  function weightedRandom(values, weights) {
+    let total = weights.reduce((a, b) => a + b);
+    let rand = Math.random() * total;
+    for (let i = 0; i < values.length; ++i) {
+      if (rand < weights[i]) return values[i];
+      rand -= weights[i];
+    }
+  }
+
+  function downloadSelectedSVGs() {
+    if (selectedShapes.size === 0) {
+      alert('No shapes selected for download.');
+      return;
+    }
+
+    const svg = document.getElementById('shapeContainer').cloneNode(true);
+
+    // Remove unselected shapes
+    svg.querySelectorAll('.clickable-shape').forEach(el => {
+      if (!selectedShapes.has(el.id)) {
+        el.remove();
+      }
+    });
+
+    // Create downloadable SVG
+    const svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svg.outerHTML;
+    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'selected_shapes.svg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
 </body>
 </html>
