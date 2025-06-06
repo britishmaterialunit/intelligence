@@ -42,20 +42,25 @@
     margin-top: 50px; /* Increased spacing */
     margin-bottom: 30px;
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+    flex-wrap: nowrap; /* Prevent wrapping to keep buttons in one line */
     justify-content: center;
-    gap: 10px; /* More spacing between buttons */
+    gap: 8px; /* Reduced spacing between buttons */
+    overflow-x: auto; /* Allow horizontal scrolling on small screens */
+    width: 100%; /* Full width to accommodate buttons */
+    padding: 0 10px; /* Prevent clipping on edges */
+    box-sizing: border-box; /* Ensure padding doesn’t affect width */
   }
   .buttons button {
     background: #333333;
     color: white;
-    border: none; /* Removed border */
-    padding: 15px 30px; /* Larger padding */
+    border: none; /* No border */
+    padding: 12px 24px; /* Smaller padding */
     margin: 5px; /* Consistent spacing */
     cursor: pointer;
-    font-size: 1.4rem; /* Larger font size */
-    border-radius: 8px; /* More rounded corners */
+    font-size: 1.2rem; /* Smaller font size */
+    border-radius: 8px; /* Rounded corners */
     touch-action: manipulation; /* Improve touch responsiveness */
+    flex-shrink: 0; /* Prevent buttons from shrinking */
   }
   #infoText {
     margin-top: 30px;
@@ -98,14 +103,20 @@
       margin-bottom: 30px; /* Adjusted margin */
       stroke-width: 2px; /* Thicker stroke for visibility */
     }
+    .buttons {
+      flex-wrap: nowrap; /* Ensure single line */
+      gap: 10px; /* Slightly larger gap for touch */
+      padding: 0 15px; /* More padding for edges */
+      overflow-x: auto; /* Allow scrolling if buttons overflow */
+    }
     .buttons button {
-      padding: 20px 40px; /* Much larger buttons for touch */
-      margin: 10px; /* More spacing for touch */
-      font-size: 1.8rem; /* Larger font for readability */
+      padding: 15px 30px; /* Slightly smaller but touch-friendly */
+      margin: 8px; /* More spacing for touch */
+      font-size: 1.4rem; /* Smaller font for mobile */
       border-radius: 10px; /* More rounded for touch */
     }
     #infoText {
-      font-size: 1.8rem; /* Much larger text for mobile */
+      font-size: 1.8rem; /* Larger text for mobile */
       max-width: 95%; /* Nearly full width */
       margin: 20px; /* Increased margin */
       line-height: 1.7; /* Better readability */
