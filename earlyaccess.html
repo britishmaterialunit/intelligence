@@ -4,135 +4,119 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
   <title>Early Access</title>
-
-<style>
-  body {
-    background-color: #333333;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    color: white;
-    font-family: sans-serif;
-    padding: 15px; /* Slight padding for desktop */
-  }
-  svg {
-    width: 85%; /* Larger default size */
-    max-width: 900px; /* Increased cap for larger screens */
-    height: auto;
-    stroke: white;
-    stroke-width: 1.8px; /* Slightly thicker stroke */
-    transition: none;
-    cursor: pointer;
-    transform: scale(1.3); /* Slightly larger scale */
-    transform-origin: center;
-    margin-bottom: 40px; /* Increased margin */
-  }
-  .clickable-shape {
-    fill: #333333; /* Default fill to match background */
-    transition: fill 0.3s ease; /* Smooth fill transition */
-  }
-  .selected {
-    fill: white !important; /* White fill when selected */
-    stroke: white !important;
-  }
-  .buttons {
-    margin-top: 50px; /* Increased spacing */
-    margin-bottom: 30px;
-    display: flex;
-    flex-wrap: nowrap; /* Prevent wrapping to keep buttons in one line */
-    justify-content: center;
-    gap: 8px; /* Reduced spacing between buttons */
-    overflow-x: auto; /* Allow horizontal scrolling on small screens */
-    width: 100%; /* Full width to accommodate buttons */
-    padding: 0 10px; /* Prevent clipping on edges */
-    box-sizing: border-box; /* Ensure padding doesn’t affect width */
-  }
-  .buttons button {
-    background: #333333;
-    color: white;
-    border: none; /* No border */
-    padding: 12px 24px; /* Smaller padding */
-    margin: 5px; /* Consistent spacing */
-    cursor: pointer;
-    font-size: 1.2rem; /* Smaller font size */
-    border-radius: 8px; /* Rounded corners */
-    touch-action: manipulation; /* Improve touch responsiveness */
-    flex-shrink: 0; /* Prevent buttons from shrinking */
-  }
-  #infoText {
-    margin-top: 30px;
-    display: none;
-    color: white;
-    font-family: 'Helvetica'; /* Typewriter-like font */
-    font-size: 1.4rem; /* Larger font size */
-    line-height: 1.6; /* Better readability */
-    text-align: left;
-    max-width: 85%; /* Slightly wider */
-    white-space: pre-wrap; /* Preserve line breaks */
-  }
-  #carouselContainer {
-    margin-top: 30px;
-    display: none;
-    text-align: center;
-  }
-  #carouselSvg {
-    width: 300px; /* Larger carousel SVG */
-    height: auto;
-    margin: 0 auto;
-  }
-  #carouselSvg .clickable-shape {
-    fill: white; /* Always white fill in carousel */
-    stroke: white;
-  }
-  #carouselLabel {
-    margin-top: 15px;
-    font-family: sans-serif;
-    font-size: 1.3rem; /* Larger font size */
-    color: white;
-  }
-
-  /* Mobile-specific styles */
-  @media only screen and (max-width: 768px) {
+  <style>
+    body {
+      background-color: #333333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      color: white;
+      font-family: sans-serif;
+    }
     svg {
-      width: 95%; /* Almost full width for mobile */
-      max-width: none; /* Remove max-width cap */
-      transform: scale(1.6); /* Larger scale for mobile */
-      margin-bottom: 30px; /* Adjusted margin */
-      stroke-width: 2px; /* Thicker stroke for visibility */
+      width: 80%; /* Slightly larger default size */
+      max-width: 800px; /* Cap for larger screens */
+      height: auto;
+      stroke: white;
+      stroke-width: 1.5px;
+      transition: none;
+      cursor: pointer;
+      transform: scale(1.2);
+      transform-origin: center;
+      margin-bottom: 30px;
+    }
+    .clickable-shape {
+      fill: #333333; /* Default fill to match background */
+      transition: fill 0.3s ease; /* Smooth fill transition */
+    }
+    .selected {
+      fill: white !important; /* White fill when selected */
+      stroke: white !important;
     }
     .buttons {
-      flex-wrap: nowrap; /* Ensure single line */
-      gap: 10px; /* Slightly larger gap for touch */
-      padding: 0 15px; /* More padding for edges */
-      overflow-x: auto; /* Allow scrolling if buttons overflow */
+      margin-top: 40px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+      justify-content: center;
     }
     .buttons button {
-      padding: 15px 30px; /* Slightly smaller but touch-friendly */
-      margin: 8px; /* More spacing for touch */
-      font-size: 1.4rem; /* Smaller font for mobile */
-      border-radius: 10px; /* More rounded for touch */
+  background: #333333;
+  color: white;
+  padding: 12px 24px;
+  margin: 5px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
     }
     #infoText {
-      font-size: 1.8rem; /* Larger text for mobile */
-      max-width: 95%; /* Nearly full width */
-      margin: 20px; /* Increased margin */
-      line-height: 1.7; /* Better readability */
+      margin-top: 20px;
+      display: none;
+      color: white;
+      font-family: 'Helvetica'; /* Typewriter-like font */
+      font-size: 1.2rem; /* Larger font size */
+      line-height: 1.5;
+      text-align: left;
+      max-width: 80%; /* Responsive width */
+      white-space: pre-wrap; /* Preserve line breaks */
+    }
+    #carouselContainer {
+      margin-top: 20px;
+      display: none;
+      text-align: center;
     }
     #carouselSvg {
-      width: 350px; /* Larger carousel SVG for mobile */
+      width: 250px; /* Larger carousel SVG */
+      height: auto;
+      margin: 0 auto;
+    }
+    #carouselSvg .clickable-shape {
+      fill: white; /* Always white fill in carousel */
+      stroke: white;
     }
     #carouselLabel {
-      font-size: 1.6rem; /* Larger label for mobile */
-      margin-top: 20px; /* More spacing */
+      margin-top: 10px;
+      font-family: sans-serif;
+      font-size: 1.1rem; /* Larger font size */
+      color: white;
     }
-    body {
-      padding: 20px; /* More padding for mobile */
+
+    /* Mobile-specific styles */
+    @media only screen and (max-width: 750px) {
+      svg {
+        width: 100%; /* Larger SVG for mobile */
+        max-width: none; /* Remove max-width cap */
+        transform: scale(1.4); /* Slightly larger scale */
+        margin-bottom: 20px; /* Reduced margin for mobile */
+      }
+      
+      }
+      #infoText {
+        font-size: 1.4rem; /* Larger text for mobile */
+        max-width: 90%; /* Slightly wider for small screens */
+        margin: 15px; /* Adjusted margin */
+      }
+      #carouselSvg {
+        width: 300px; /* Larger carousel SVG for mobile */
+      }
+      #carouselLabel {
+        font-size: 1.3rem; /* Larger label for mobile */
+      }
+      body {
+        padding: 10px; /* Add padding to prevent edge clipping */
+      }
     }
-  }
-</style>
+  </style>
+</head>
 <body>
 
   <!-- Custom SVG with your shapes labeled from BA2000AOH01 to BA2000AOH28 -->
@@ -463,7 +447,7 @@ Status: Discontinued/Surplus`;
     const blob = new Blob([svgString], { type: 'image/svg+xml' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'selected_shapes.svg';
+    a.download = 'BA2000AOHXX.svg';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
