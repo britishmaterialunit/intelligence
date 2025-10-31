@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MTP</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #424831;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    svg {
+      width: 90vw;
+      height: 90vh;
+      max-width: 1200px;
+      max-height: 950px;
+    }
+    .shape {
+      fill: none;
+      stroke: #5f6854;
+      stroke-width: 10;
+      cursor: pointer;
+      transition: fill 0.4s ease, stroke 0.4s ease, transform 0.4s ease;
+      pointer-events: fill;
+    }
+    .shape.state-1 {
+      fill: #5f6854;
+      stroke: #5f6854;
+    }
+    .shape.state-2 {
+      fill: #d8e5a5;
+      stroke: #d8e5a5;
+    }
+    .logo {
+      fill: #5f6854;
+      stroke: #5f6854;
+      stroke-width: 10;
+      pointer-events: none;
+    }
+    .button-shape {
+  fill: #5f6854;
+  stroke: #5f6854;
+  stroke-width: 10;
+  transition: fill 0.4s ease, stroke 0.4s ease, transform 0.6s ease;
+  transform-box: fill-box;     /* keeps rotation local to shape */
+  transform-origin: center;    /* rotate in place */
+}
+
+.button-shape.state-2 {
+  fill: #d8e5a5;
+  stroke: #d8e5a5;
+  transform: rotate(180deg);   /* flip down in place */
+}
+
+#infoBox {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "Courier New", monospace;
+  font-size: 1rem;
+  color: #d9fda8;
+  white-space: pre-line;
+  overflow: hidden;
+  border-right: 1px solid #d9fda8;
+  width: 0;
+  animation: typing 6s steps(50, end) forwards;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 40em; } /* adjust width based on text length */
+}
+
+#infoBox.visible {
+  opacity: 1;
+}
+
+  </style>
+</head>
+<body>
+  <svg viewBox="0 0 8192 6497" preserveAspectRatio="xMidYMid meet">
+
+    <!-- Main shapes -->
+    <g id="interactive-shapes">
+      <path class="shape" d="M6138.44,4912.72l-394.61,13.84c-3.45-31.54-1.8-63.52-3.48-95.12-47.92-900.66-59.7-1804.94-45.1-2709.03l25.88-769.83c6.38-9.18,44.18.04,55.46.36,44.92,1.28,90.44,2.32,134.99,3.46,67.55,1.73,135.58.06,202.84,4.83,6.08,4.23,2.65,35.62,3.28,45.16,28.21,430.39,59.35,860.41,76.25,1290.32,25.29,643.2-7.23,1282.89-41.64,1923.7-5.23,97.4-8.58,194.96-13.86,292.32Z"/>
+      <path class="shape" d="M4382.89,2540.45c275.73-18.86,484.82,27.72,545.96,327.52,41.77,204.82,30.17,602.97-114.3,768.18-95.15,108.81-284.53,108.02-418.81,100.25-304.25-17.59-382.78-238.89-396.3-510.29-15.06-302.28,5.1-659.8,383.44-685.67Z"/>
+      <path class="shape" d="M3289.85,4290c-3.74-55.8-4.14-111.9-6.94-167.77-32.42-646.6-32.6-1315,0-1961.65,2.82-55.87,3.19-111.98,6.94-167.77,165.89-8.2,389.96,63.22,424.8,248.32,25.9,137.62-50.71,378.53-77.58,522.53-44.28,237.4-51,457.78-10.38,696.66,26.65,156.71,121.55,457.81,82.96,600.57-46.64,172.54-260.83,233.19-419.8,229.1Z"/>
+      <path class="shape" d="M6481.06,4289.99l-17.44-323.34c-1.51-58.87-1.5-117.88-3.18-176.72-15.63-549.45-13.33-1105.25,13.84-1653.39,2.43-49.03,1.52-98.45,6.78-147.2,70.41,3.83,138.4,8.26,205.99,31.1,358.07,121,187.06,487.37,137.75,757.06-33.37,182.5-48.02,362.83-28.34,548.56,19.27,181.95,75.72,358.12,102.83,537.24,21.26,140.44,19.4,251.73-104.22,340.96-90.87,65.59-203.68,84.25-314.01,85.74Z"/>
+      <path class="shape" d="M2081.92,4930l-17.16-593.46c-.25-8.18-3.42-15.74-3.75-23.93-17.51-442.87-44.67-880.72-37.79-1325.02,7.64-492.8,41.12-984.74,55.38-1477.24,1.56-53.73-1.83-107.44,3.3-161.03l86.56-3.46-6.8,538.12c-.15,8.18-3.58,15.75-3.75,23.93-5.12,246.22-27.72,493.23,80.24,722.71,60.19,127.95,164.73,232.63,288.71,299.55l5.17,12.13-.11,400.77c-237.19,126.8-349.06,351.27-373.85,613.07-10.54,111.29-2.38,217.87.13,328.5,4.87,214.99,6.94,430.24,10.24,645.35h-86.53Z"/>
+      <path class="shape" d="M5075.82,3795.28c-18.88,197.43-13.97,416.92-139,582.35-176.73,233.82-583.52,259.34-816.72,101.36-227.09-153.85-229.12-435.81-245.25-683.72,150.74,102.54,287.18,282.59,469.97,327.64,274,67.54,445.17-81.44,632.46-251.45l98.54-76.18Z"/>
+      <path class="shape" d="M5075.8,2487.54c-90.47-67.61-172.36-149.07-261.43-217.81-126.52-97.64-240.63-142.87-404.79-124.66-223.38,24.77-362.38,218.72-534.74,339.01,6.22-94.87,10.49-190.8,24.77-284.84,27.67-182.32,96.71-333.3,263.61-424.97,222.08-121.97,578.31-95.64,751.72,100.87,146.86,166.43,141.85,403.57,160.86,612.39Z"/>
+      <path class="shape" d="M2818.98,1207.68l21.08,312.76c1.26,43.84,1.42,87.94,3.18,131.75,6.16,153.9,12.27,308.97,14.15,463.28,2.75,225.53-.53,451.5-5.39,676.55-217.39-109.47-332.66-319.71-364.62-555.79-15.71-116.08-9.48-229.2-7.27-345.32,4.29-226.52,10.89-453.2,10.22-679.97l328.66-3.26Z"/>
+      <path class="shape" d="M2819.12,5096.03l-328.8-3.41c-.87-74.36,1.17-148.91.16-223.3-1.66-122.7-8.39-247.23-10.67-369.89-4.04-217.29-19.97-432.57,59.85-639.3,59.1-153.08,169.26-275.38,314.07-352.01.88,50.13-1,100.47-.11,150.63,5.75,322.99,3.06,646.25-6.64,968.68l-27.86,468.6Z"/>
+
+      <!-- Rectangles -->
+      <rect class="shape rect-main" x="5158.91" y="2878.47" width="294.2" height="522.4"/>
+      <rect class="shape" x="2860.69" y="3068.75" width="148.83" height="141.84"/>
+    </g>
+
+    <!-- Button (circle + arrow) -->
+    <g id="button1" class="button-shape state-1">
+      <polygon points="7456.44 3042.63 7487.23 3042.63 7580.31 3130.23 7580.31 3195.94 7494.08 3115.18 7494.08 3289.01 7447.54 3289.01 7447.54 3115.18 7363.7 3199.02 7363.7 3135.02 7456.44 3042.63"/>
+      <path d="M7471.83,3380.38c118.5,0,214.56-96.06,214.56-214.56s-96.06-214.56-214.56-214.56-214.56,96.06-214.56,214.56,96.06,214.56,214.56,214.56ZM7472.52,2996.74c93.55,0,169.39,75.84,169.39,169.39s-75.84,169.39-169.39,169.39-169.39-75.84-169.39-169.39,75.84-169.39,169.39-169.39Z"/>
+    </g>
+
+    <!-- Logo -->
+    <path class="logo" d="M1032.72,3093.75v-152.14l1.3-1.3h60.28v153.44c1.5.23,2.52-.31,3.78-.99,7.3-4,17.14-12.22,24.25-17.37,60.86-44.09,120.47-89.96,180.55-135.08h98.44l-240.24,182.05h343.01l1.3,1.3v58.08l-344.31.44c-.48,1.85,1.77,2.55,3.06,3.41,11.62,7.74,23,15.57,34.15,23.97,32.4,24.41,109,93.99,147.95,93.99h157.85l1.3,1.3v59.38h-160.01c-57.48-4.75-101.74-42.39-146.05-75.08-34.71-25.61-68.49-52.5-103.31-77.94l-1.72.88v152.14h-60.28l-1.3-1.3v-149.54l-172.14,123.12c-23.26,14.71-49.8,24.2-77.17,27.76l-272.8-.04v-60.25l1.3-1.3h270.59c15.53-10.26,36-16.78,51.35-26.66.86-.55,1.54.1,1.12-1.94h-324.36v-62.42h412.39c11.43-9.15,26.81-17.05,37.66-26.51,1-.87,2.13-1.34,1.8-2.97h-450.55l-1.3-1.3v-59.38h452.72c.39-1.67-.61-1.67-1.46-2.44-10.51-9.6-26.24-17.33-37.14-27.03h-414.13v-60.25l333.03-.44c.51-2-1.84-2.45-3.21-3.26-7.7-4.56-45.97-27.07-51.86-27.07h-276.66l-1.3-1.3v-60.25h268.42c16.7,0,59.08,19.12,75.04,27.29,50.5,25.85,100.45,63.48,144.36,99.3,9.78,7.98,20.43,18.94,30.39,25.97,1.18.83,2.27,1.94,3.89,1.75Z"/>
+  </svg>
+
+  <script>
+    const shapes = document.querySelectorAll('.shape');
+    const states = new Map();
+    const button1 = document.getElementById('button1');
+    const mainRect = document.querySelector('.rect-main');
+
+    // Initialize
+    shapes.forEach(shape => states.set(shape, 0));
+
+    shapes.forEach(shape => {
+      shape.addEventListener('click', () => {
+        let currentState = states.get(shape);
+        currentState = (currentState + 1) % 3;
+        states.set(shape, currentState);
+        shape.classList.remove('state-1', 'state-2');
+
+        if (currentState === 1) shape.classList.add('state-1');
+        else if (currentState === 2) shape.classList.add('state-2');
+
+        const infoBox = document.getElementById('infoBox');
+
+if (shape === mainRect) {
+  if (currentState === 2) {
+    button1.classList.add('state-2');
+    infoBox.classList.add('visible');
+    infoBox.style.animation = 'none';
+    infoBox.offsetHeight; // restart animation
+    infoBox.style.animation = null;
+  } else {
+    button1.classList.remove('state-2');
+    infoBox.classList.remove('visible');
+  }
+}
+      });
+    });
+
+    // Touch support
+    shapes.forEach(shape => {
+      shape.addEventListener('touchstart', e => {
+        e.preventDefault();
+        shape.dispatchEvent(new Event('click'));
+      });
+    });
+  </script>
+  
+  <div id="infoBox">
+British Material Unit (BMU) [OSPMTPCC9158325]
+
+Contractor: LSL/DC/0073
+Date of Manufacture: 2000s
+Nationality: British
+Era of War: 
+Pattern Pieces: 9
+Additional Components: Labels (2) Metallic Vents (2) String (1)
+Potential Reuse: MTP Mittens, MTP Cover 
+Additional Provenance: Ministry of Defence (MOD) Distributed by Ramco 
+Status: Overproduced 
+</div>
+
+</body>
+</html>
