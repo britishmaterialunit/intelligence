@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Archive</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Helvetica, sans-serif;
+      color: #222;
+    }
+    .typewriter {
+      max-width: 90%;
+      font-size: 14pt;
+      text-align: center;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="typewriter" id="text"></div>
+
+  <script>
+    const textElement = document.getElementById('text');
+    const fullText = `51°34′07″N , 000°25′14″E`;
+
+    let i = 0;
+    function type() {
+      if (i < fullText.length) {
+        textElement.textContent += fullText.charAt(i);
+        i++;
+        setTimeout(type, 30);
+      }
+    }
+    type();
+  </script>
+</body>
+</html>
