@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Test</title>
+  <title>1</title>
   <style>
     body, html {
       margin: 0;
@@ -87,13 +87,11 @@
       <rect class="shape" x="2860.69" y="3068.75" width="148.83" height="141.84"/>
     </g>
 
-    <!-- Button (circle + arrow) – now clickable when in state-2 -->
     <g id="button1" class="button-shape state-1">
       <polygon points="7456.44 3042.63 7487.23 3042.63 7580.31 3130.23 7580.31 3195.94 7494.08 3115.18 7494.08 3289.01 7447.54 3289.01 7447.54 3115.18 7363.7 3199.02 7363.7 3135.02 7456.44 3042.63"/>
       <path d="M7471.83,3380.38c118.5,0,214.56-96.06,214.56-214.56s-96.06-214.56-214.56-214.56-214.56,96.06-214.56,214.56,96.06,214.56,214.56,214.56ZM7472.52,2996.74c93.55,0,169.39,75.84,169.39,169.39s-75.84,169.39-169.39,169.39-169.39-75.84-169.39-169.39,75.84-169.39,169.39-169.39Z"/>
     </g>
 
-    <!-- Logo -->
     <path class="logo" d="M1032.72,3093.75v-152.14l1.3-1.3h60.28v153.44c1.5.23,2.52-.31,3.78-.99,7.3-4,17.14-12.22,24.25-17.37,60.86-44.09,120.47-89.96,180.55-135.08h98.44l-240.24,182.05h343.01l1.3,1.3v58.08l-344.31.44c-.48,1.85,1.77,2.55,3.06,3.41,11.62,7.74,23,15.57,34.15,23.97,32.4,24.41,109,93.99,147.95,93.99h157.85l1.3,1.3v59.38h-160.01c-57.48-4.75-101.74-42.39-146.05-75.08-34.71-25.61-68.49-52.5-103.31-77.94l-1.72.88v152.14h-60.28l-1.3-1.3v-149.54l-172.14,123.12c-23.26,14.71-49.8,24.2-77.17,27.76l-272.8-.04v-60.25l1.3-1.3h270.59c15.53-10.26,36-16.78,51.35-26.66.86-.55,1.54.1,1.12-1.94h-324.36v-62.42h412.39c11.43-9.15,26.81-17.05,37.66-26.51,1-.87,2.13-1.34,1.8-2.97h-450.55l-1.3-1.3v-59.38h452.72c.39-1.67-.61-1.67-1.46-2.44-10.51-9.6-26.24-17.33-37.14-27.03h-414.13v-60.25l333.03-.44c.51-2-1.84-2.45-3.21-3.26-7.7-4.56-45.97-27.07-51.86-27.07h-276.66l-1.3-1.3v-60.25h268.42c16.7,0,59.08,19.12,75.04,27.29,50.5,25.85,100.45,63.48,144.36,99.3,9.78,7.98,20.43,18.94,30.39,25.97,1.18.83,2.27,1.94,3.89,1.75Z"/>
   </svg>
 
@@ -103,7 +101,6 @@
     const buttonGroup = document.getElementById('button1');
     const mainRect = document.querySelector('.rect-main');
 
-    // Initialize states (0 = outline, 1 = dark fill, 2 = light fill)
     shapes.forEach(shape => states.set(shape, 0));
 
     shapes.forEach(shape => {
@@ -116,7 +113,6 @@
         if (currentState === 1) shape.classList.add('state-1');
         if (currentState === 2) shape.classList.add('state-2');
 
-        // Sync button appearance & interactivity with main rectangle only
         if (shape === mainRect) {
           if (currentState === 2) {
             buttonGroup.classList.add('state-2');
@@ -126,29 +122,20 @@
         }
       });
 
-      // Touch support
       shape.addEventListener('touchstart', e => {
         e.preventDefault();
         shape.dispatchEvent(new Event('click'));
       });
     });
 
-    // ────────────────────────────────────────────────
-    // PDF DOWNLOAD when clicking the activated button
-    // ────────────────────────────────────────────────
     buttonGroup.addEventListener('click', (e) => {
-      // Only allow download when button is in active state
       if (!buttonGroup.classList.contains('state-2')) return;
 
-      // Prevent clicking children from bubbling unnecessarily
       e.stopPropagation();
 
-      // Replace this URL with your real GitHub raw PDF link later
-      const pdfUrl = "https://raw.githubusercontent.com/britishmaterialunit/intelligence/main/test.pdf";
-      const fileName = "test.pdf";
+      const pdfUrl = "https://raw.githubusercontent.com/britishmaterialunit/intelligence/main/MTPCP.pdf";
+      const fileName = "MTPCP.pdf";
 
-
-      // Simple browser download
       const link = document.createElement('a');
       link.href = pdfUrl;
       link.download = fileName;
