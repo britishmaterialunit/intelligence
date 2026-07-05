@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="BMU Repository — an open catalogue of genuine-issue British military surplus: DPM and MTP smocks, trousers, bergens, webbing, headwear and equipment sourced from UK surplus dealers for upcycling and reuse." />
+  <meta name="keywords" content="British army surplus, military surplus UK, DPM smock, MTP smock, PLCE bergen, British surplus trousers, surplus webbing, upcycled military clothing, genuine issue, BMU repository, surplus catalogue" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="canonical" href="https://britishmaterialunit.com/repository" />
+  <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://britishmaterialunit.com/repository" />
+  <meta property="og:site_name" content="British Material Unit (BMU)" />
+  <meta property="og:title" content="BMU Repository — British Military Surplus Catalogue" />
+  <meta property="og:description" content="An open catalogue of genuine-issue British military surplus, sourced from UK dealers for upcycling and reuse." />
+  <meta property="og:locale" content="en_GB" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="BMU Repository — British Military Surplus Catalogue" />
+  <meta name="twitter:description" content="DPM, MTP and OG stock — smocks, trousers, bergens, webbing and equipment catalogued by British Material Unit." />
+
+  <title>Repository — British Military Surplus Catalogue | BMU</title>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": "https://britishmaterialunit.com/repository#catalogue",
+    "name": "BMU Repository",
+    "url": "https://britishmaterialunit.com/repository",
+    "description": "Open catalogue of genuine-issue British military surplus maintained by British Material Unit.",
+    "isPartOf": { "@id": "https://britishmaterialunit.com/#website" }
+  }
+  </script>
+
+  <style>
+    :root{
+      --ink:#222222;
+      --line:#000000;
+      --bg:#ffffff;
+      --faint:#f0f0f0;
+      --font:Helvetica, Arial, sans-serif;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:var(--font);
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:40px 16px 70px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap{ width:min(94vw, 880px); }
+
+    header{ text-align:center; margin-bottom:36px; }
+    .kicker{
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#888;
+    }
+    h1{
+      margin:12px 0 8px;
+      font-size:clamp(19px, 4.5vw, 26px);
+      font-weight:bold;
+      letter-spacing:.02em;
+    }
+    #introType{
+      margin:0 auto;
+      max-width:560px;
+      font-size:12pt;
+      line-height:1.6;
+      white-space:pre-wrap;
+      min-height:3em;
+    }
+
+    .section-label{
+      margin:38px 0 14px;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:bold;
+      border-bottom:1.5px solid var(--line);
+      padding-bottom:7px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+      gap:14px;
+    }
+    .item{
+      border:1.5px solid var(--line);
+      background:var(--bg);
+      display:flex;
+      flex-direction:column;
+      transition:background-color .3s ease;
+    }
+    .item:hover{ background:var(--faint); }
+    .item .slot{
+      aspect-ratio:1 / 1;
+      border-bottom:1.5px solid var(--line);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      overflow:hidden;
+    }
+    .item .slot img{
+      width:100%; height:100%;
+      object-fit:cover; display:block;
+    }
+    .item .slot .pending{
+      padding:8px;
+      font-size:9.5px;
+      letter-spacing:.06em;
+      color:#aaa;
+      text-align:center;
+      word-break:break-all;
+    }
+    .item .meta{ padding:10px 12px 12px; }
+    .item .name{
+      font-size:12px;
+      font-weight:bold;
+      line-height:1.4;
+    }
+    .item .tag{
+      display:block;
+      margin-top:4px;
+      font-size:10px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:#888;
+    }
+
+    .note{
+      margin-top:40px;
+      border:1.5px solid var(--line);
+      padding:16px 18px;
+      font-size:11.5px;
+      line-height:1.6;
+      color:#555;
+    }
+    .note b{ color:var(--ink); }
+
+    nav.back{ margin-top:36px; text-align:center; }
+    .bm-button{
+      display:inline-block;
+      width:150px; height:40px; line-height:37px;
+      font-family:var(--font); font-size:14px;
+      color:#000; text-decoration:none;
+      border:1.5px solid var(--line);
+      background:transparent;
+      cursor:pointer; text-align:center;
+      transition:background-color .3s ease, color .3s ease;
+    }
+    .bm-button:hover{ background:var(--faint); color:#444; }
+
+    footer{
+      margin-top:30px;
+      font-size:10.5px;
+      color:#999;
+      text-align:center;
+      letter-spacing:.06em;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="kicker">British Material Unit ◎ Repository</div>
+      <h1>British Surplus Catalogue</h1>
+      <div id="introType"></div>
+    </header>
+
+    <main id="catalogue" aria-label="British military surplus catalogue"></main>
+
+    <div class="note">
+      <b>Adding items:</b> every product below expects an image named exactly as shown in its slot
+      (e.g. <b>british-dpm-windproof-smock.png</b>) uploaded to this folder. To add a new product,
+      copy one line in the <b>PRODUCTS</b> array in this file's script — the page renders itself.
+    </div>
+
+    <nav class="back" aria-label="Return">
+      <a href="https://britishmaterialunit.com/" class="bm-button">◎ BMU</a>
+    </nav>
+    <footer>British Material Unit ◎ 2026 — Repository, genuine-issue British stock</footer>
+  </div>
+
+  <script>
+    /* ============================================================
+       PRODUCTS — { name, cat }
+       Image filename is auto-generated from the name (slugified),
+       e.g. "British '95 DPM Shirt" -> "british-95-dpm-shirt.png".
+       Upload each product photo to this folder under that name.
+       To override a filename, add img:"custom-name.png".
+       ============================================================ */
+    const PRODUCTS = [
+      /* Jackets / Shirts / Smocks */
+      { name:"British DPM Windproof Smock", cat:"Jackets / Shirts" },
+      { name:"British MTP Windproof Smock", cat:"Jackets / Shirts" },
+      { name:"British MTP Windproof Smock (Cadet Sizes)", cat:"Jackets / Shirts" },
+      { name:"British MTP Windproof Smock — Grade 2", cat:"Jackets / Shirts" },
+      { name:"British '95 DPM Shirt", cat:"Jackets / Shirts" },
+      { name:"British Desert DPM Shirt", cat:"Jackets / Shirts" },
+      { name:"British MTP PCS Shirt", cat:"Jackets / Shirts" },
+      { name:"British MTP PCS Shirt (Cadet Size 88)", cat:"Jackets / Shirts" },
+      { name:"British MTP Barrack Shirt", cat:"Jackets / Shirts" },
+      { name:"British Cold Weather Norwegian Shirt", cat:"Jackets / Shirts" },
+      { name:"British OG Fleece", cat:"Jackets / Shirts" },
+      { name:"British OG Jumper", cat:"Jackets / Shirts" },
+
+      /* Trousers / Coveralls */
+      { name:"British DPM Trousers (New)", cat:"Trousers / Coveralls" },
+      { name:"British MTP Trousers (Cadet Sizes)", cat:"Trousers / Coveralls" },
+      { name:"British DPM Goretex Trousers", cat:"Trousers / Coveralls" },
+      { name:"British DPM PVC Trousers", cat:"Trousers / Coveralls" },
+      { name:"British MK3 Aircrew Trousers", cat:"Trousers / Coveralls" },
+      { name:"British OG Coveralls", cat:"Trousers / Coveralls" },
+
+      /* Bags / Webbing / Vests */
+      { name:"British DPM PLCE Bergen (Grade 2)", cat:"Bags / Webbing" },
+      { name:"British DPM Other Arms Bergen", cat:"Bags / Webbing" },
+      { name:"British DPM PLCE Webbing Set", cat:"Bags / Webbing" },
+      { name:"British DPM Main Yoke (New)", cat:"Bags / Webbing" },
+      { name:"British DPM OPS Vest", cat:"Bags / Webbing" },
+      { name:"British Desert DPM MOLLE Vest", cat:"Bags / Webbing" },
+      { name:"British Desert DPM CBA Cover", cat:"Bags / Webbing" },
+      { name:"British DPM Grenade Bandolier", cat:"Bags / Webbing" },
+
+      /* Pouches / Cases */
+      { name:"British DPM 349 Radio Pouch", cat:"Pouches / Cases" },
+      { name:"British DPM Motorola Communications Pouch", cat:"Pouches / Cases" },
+      { name:"British Desert KDU Pouch", cat:"Pouches / Cases" },
+      { name:"British MTP Osprey Double Mag Pouch", cat:"Pouches / Cases" },
+      { name:"British DPM Respirator Case", cat:"Pouches / Cases" },
+      { name:"British MTP Respirator Case", cat:"Pouches / Cases" },
+
+      /* Headwear */
+      { name:"British DPM Crap Hat", cat:"Headwear" },
+      { name:"British MTP Crap Hat", cat:"Headwear" },
+      { name:"British MTP Boonie Hat", cat:"Headwear" },
+      { name:"British MTP MK6 Combat Helmet Cover", cat:"Headwear" },
+
+      /* Footwear */
+      { name:"British / US Jungle Boots", cat:"Footwear" },
+
+      /* Sleep / Shelter / Field */
+      { name:"British BASHA (Grade 2)", cat:"Sleep / Shelter / Field" },
+      { name:"British Camouflage Net (4 x 4m)", cat:"Sleep / Shelter / Field" },
+      { name:"British C95 Sleep System", cat:"Sleep / Shelter / Field" },
+      { name:"British Jungle Sleeping Bag", cat:"Sleep / Shelter / Field" },
+      { name:"British Mediumweight Modular Sleeping Bag", cat:"Sleep / Shelter / Field" },
+      { name:"British OG Bivvy Bag (Grade 2)", cat:"Sleep / Shelter / Field" },
+      { name:"British 58 Pattern Water Bottle", cat:"Sleep / Shelter / Field" },
+
+      /* Hardware / Misc */
+      { name:"British Dry Break Couplings Fuel Transfer Valve", cat:"Hardware / Misc" }
+    ];
+
+    function slug(name){
+      return name.toLowerCase()
+        .replace(/[’']/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') + '.png';
+    }
+
+    /* ---------- render grouped by category ---------- */
+    const order = ["Jackets / Shirts","Trousers / Coveralls","Bags / Webbing","Pouches / Cases","Headwear","Footwear","Sleep / Shelter / Field","Hardware / Misc"];
+    const cat = document.getElementById('catalogue');
+
+    order.forEach(section => {
+      const items = PRODUCTS.filter(p => p.cat === section);
+      if (!items.length) return;
+
+      const label = document.createElement('div');
+      label.className = 'section-label';
+      label.textContent = section;
+      cat.appendChild(label);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      items.forEach(p => {
+        const file = p.img || slug(p.name);
+        const el = document.createElement('article');
+        el.className = 'item';
+        el.innerHTML = `
+          <div class="slot">
+            <img src="${file}" alt="${p.name} — genuine-issue British military surplus" loading="lazy">
+            <span class="pending" hidden>${file}</span>
+          </div>
+          <div class="meta">
+            <div class="name">${p.name}</div>
+            <span class="tag">${section}</span>
+          </div>`;
+        const img = el.querySelector('img');
+        const pending = el.querySelector('.pending');
+        img.addEventListener('error', () => { img.remove(); pending.hidden = false; });
+        grid.appendChild(el);
+      });
+      cat.appendChild(grid);
+    });
+
+    /* ---------- intro typewriter ---------- */
+    const INTRO = "Genuine-issue British stock, catalogued for reuse. Sourced from surplus dealers across the UK.";
+    const introEl = document.getElementById('introType');
+    let i = 0;
+    (function type(){
+      if (i < INTRO.length){
+        introEl.textContent += INTRO.charAt(i++);
+        setTimeout(type, 18);
+      }
+    })();
+  </script>
+</body>
+</html>
