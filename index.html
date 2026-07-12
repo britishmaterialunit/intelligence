@@ -508,18 +508,24 @@
 
     /* ---------- MAP SECTION (below the fold) ---------- */
     #mapSection{
-      position:relative;
-      width:100vw;
-      height:100dvh;
-      opacity:0;
-      pointer-events:none;
-      transition:opacity 1.2s ease;
-      overflow:hidden;
-    }
-    #mapSection.show{
-      opacity:1;
-      pointer-events:auto;
-    }
+    position:relative;
+    width:100vw;
+    height:100dvh;
+
+    display:none;
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity 1.2s ease;
+    overflow:hidden;
+}
+
+#mapSection.show{
+    display:block;
+    opacity:1;
+    pointer-events:auto;
+}
 
     @media (prefers-reduced-motion: reduce){
       .animated-path{ animation-duration:.01s; }
