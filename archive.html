@@ -55,32 +55,184 @@
       padding:40px 16px 70px;
       -webkit-font-smoothing:antialiased;
     }
-    .wrap{ width:min(94vw, 880px); }
+    /* auto margins centre the archive in the viewport when it is short
+       (all tabs shut) and simply collapse once it outgrows the screen —
+       unlike justify-content:center, this never clips the top */
+    .wrap{ width:min(94vw, 880px); margin:auto 0; }
 
-    header{ text-align:center; margin-bottom:36px; }
-    .kicker{
+    /* ---------- search ---------- */
+    .search{
+      position:relative;
+      margin-bottom:8px;
+    }
+    .search input{
+      width:100%;
+      font-family:var(--font);
+      font-size:12px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:var(--ink);
+      background:transparent;
+      border:1.5px solid var(--line);
+      padding:13px 40px 13px 42px;
+      outline:none;
+      border-radius:0;
+      -webkit-appearance:none;
+      position:relative;
+      z-index:2;
+    }
+    /* the live suggestion sits behind the input, so the real placeholder
+       must stay invisible — the input itself is transparent */
+    .search input::placeholder{ color:transparent; }
+    /* kill the browser's own clear button so only our grey ✕ remains */
+    .search input::-webkit-search-cancel-button,
+    .search input::-webkit-search-decoration,
+    #dq::-webkit-search-cancel-button,
+    #dq::-webkit-search-decoration{
+      -webkit-appearance:none;
+              appearance:none;
+      display:none;
+    }
+    .search input:focus{ background:var(--faint); }
+
+    .search .icon{
+      position:absolute;
+      top:50%; left:14px;
+      transform:translateY(-50%);
+      width:16px; height:16px;
+      z-index:3;
+      pointer-events:none;
+      display:block;
+    }
+
+    /* typed suggestion — mirrors the input's metrics exactly so the
+       text lands on the same baseline as anything the user types */
+    .search .ghost{
+      position:absolute;
+      top:0; left:0; right:0; bottom:0;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      padding:13px 40px 13px 42px;
+      font-family:var(--font);
+      font-size:12px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:#aaa;
+      pointer-events:none;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+    .search .ghost[hidden]{ display:none; }
+    .search .ghost .caret{
+      display:inline-block;
+      width:1px;
+      height:1.05em;
+      margin-left:2px;
+      background:#aaa;
+      vertical-align:middle;
+    }
+    .search .ghost .caret.blink{ animation:caret 1s steps(1,end) infinite; }
+    @keyframes caret{ 0%,50%{ opacity:1; } 50.01%,100%{ opacity:0; } }
+    @media (prefers-reduced-motion:reduce){
+      .search .ghost .caret.blink{ animation:none; }
+    }
+    /* the ✕ and the navigate star share one slot and cross-fade:
+       star while the field is empty, ✕ once there is a term */
+    .search .clear,
+    .search .navtoggle{
+      position:absolute;
+      top:50%; right:6px;
+      transform:translateY(-50%);
+      width:28px; height:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:3;
+      font-family:var(--font); font-size:13px; line-height:1;
+      color:#888;
+      background:transparent;
+      border:none;
+      padding:0;
+      cursor:pointer;
+      transition:opacity .28s ease, color .2s ease;
+    }
+    .search .clear:hover,
+    .search .navtoggle:hover{ color:var(--ink); }
+    .search .clear{ opacity:0; pointer-events:none; }
+    .search.has-term .clear{ opacity:1; pointer-events:auto; }
+    .search.has-term .navtoggle{ opacity:0; pointer-events:none; }
+    .search .navtoggle img{ display:block; width:13px; height:13px; }
+    .search .navtoggle[aria-pressed="true"] img{ opacity:.45; }
+
+    .count{
       font-size:10px;
       letter-spacing:.18em;
       text-transform:uppercase;
       color:#888;
-    }
-    h1{
-      margin:12px 0 8px;
-      font-size:clamp(19px, 4.5vw, 26px);
-      font-weight:bold;
-      letter-spacing:.02em;
-    }
-    #introType{
-      margin:0 auto;
-      max-width:560px;
-      font-size:12pt;
-      line-height:1.6;
-      white-space:pre-wrap;
-      min-height:3em;
+      margin-bottom:26px;
+      min-height:1.2em;
     }
 
+    /* ---------- nation dropdowns ---------- */
+    .nation{
+      border:1.5px solid var(--line);
+      margin-bottom:10px;
+    }
+    .nation > summary{
+      list-style:none;
+      cursor:pointer;
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:bold;
+      transition:background-color .3s ease;
+    }
+    .nation > summary::-webkit-details-marker{ display:none; }
+    .nation > summary:hover{ background:var(--faint); }
+    /* flag sits left of the nation name. Height is fixed and width is
+       left to the image so each ensign keeps its true ratio — the UK's
+       3:5 and the USA's 1.9:1 are not the same shape. */
+    .nation > summary .flag{
+      flex:none;
+      height:13px;
+      width:auto;
+      max-width:26px;
+      display:block;
+    }
+    /* the one nation we can't name gets an empty dashed slot */
+    .nation > summary .flag.none{
+      width:20px;
+      height:13px;
+      border:1px dashed rgba(0,0,0,.35);
+      background:transparent;
+    }
+    .nation > summary .n{ flex:none; }
+    .nation > summary .qty{
+      flex:1;
+      margin-left:-6px;          /* sits just after the name, not adrift */
+      font-weight:normal;
+      letter-spacing:.14em;
+      color:#888;
+    }
+    .nation > summary .sign{
+      flex:none;
+      width:11px;
+      text-align:right;
+      color:#888;
+      font-weight:bold;
+    }
+    .nation[open] > summary .sign::after{ content:"–"; }
+    .nation:not([open]) > summary .sign::after{ content:"+"; }
+    .nation[open] > summary{ border-bottom:1.5px solid var(--line); }
+    .nbody{ padding:18px 16px 22px; }
+
     .section-label{
-      margin:38px 0 14px;
+      margin:26px 0 14px;
       font-size:10px;
       letter-spacing:.18em;
       text-transform:uppercase;
@@ -88,6 +240,7 @@
       border-bottom:1.5px solid var(--line);
       padding-bottom:7px;
     }
+    .group:first-child > .section-label{ margin-top:0; }
 
     .grid{
       display:grid;
@@ -102,6 +255,9 @@
       transition:background-color .3s ease;
     }
     .item:hover{ background:var(--faint); }
+    /* .item sets display:flex, which outranks the UA rule for [hidden] —
+       without this, filtered-out cards stay on screen */
+    .item[hidden], .group[hidden], .nation[hidden]{ display:none !important; }
     .item .slot{
       aspect-ratio:1 / 1;
       border-bottom:1.5px solid var(--line);
@@ -122,7 +278,14 @@
       text-align:center;
       word-break:break-all;
     }
-    .item .meta{ padding:10px 12px 12px; }
+    /* meta grows to fill the card so the action row can be pinned to the
+       bottom — titles vary in length, the buttons must not */
+    .item .meta{
+      padding:10px 12px 12px;
+      display:flex;
+      flex-direction:column;
+      flex:1;
+    }
     .item .name{
       font-size:12px;
       font-weight:bold;
@@ -136,6 +299,201 @@
       text-transform:uppercase;
       color:#888;
     }
+    .item .ref{
+      display:block;
+      margin-top:6px;
+      font-size:9.5px;
+      letter-spacing:.14em;
+      color:#aaa;
+    }
+
+    /* ---------- actions: always the last thing in the card ---------- */
+    .actions{
+      display:flex;
+      gap:8px;
+      margin-top:auto;          /* pins the row to the bottom of the card */
+      padding-top:12px;
+    }
+    .btn-line{
+      flex:1 1 0;
+      min-width:0;
+      padding:7px 0;
+      font-family:var(--font);
+      font-size:9.5px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink);
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      cursor:pointer;
+      transition:background-color .3s ease, color .3s ease;
+    }
+    .btn-line:hover{ background:var(--faint); }
+    .btn-line[hidden]{ display:none; }
+
+    /* ---------- request ---------- */
+    .req-panel, .info-panel{
+      display:none;
+      margin-top:12px;
+      border-top:1.5px solid var(--line);
+      padding-top:12px;
+    }
+    .req-panel.open, .info-panel.open{ display:block; }
+
+    .req-row label{
+      display:block;
+      margin-bottom:6px;
+      font-size:9px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:#888;
+    }
+    .req-qty{ display:flex; align-items:center; }
+    .req-qty input[type=range]{
+      flex:1;
+      min-width:0;
+      height:16px;
+      accent-color:var(--line);
+      cursor:pointer;
+    }
+    /* the value is plain text centred in the space between the end of
+       the slider and the right edge of the card — no input chrome */
+    .req-qty .qtyval{
+      flex:0 0 54px;
+      text-align:center;
+      font-size:12px;
+      font-weight:bold;
+      color:var(--ink);
+      font-variant-numeric:tabular-nums;
+    }
+    /* no heading above this one — the placeholder carries it */
+    .req-email{
+      display:block;
+      width:100%;
+      margin-top:12px;
+      font-family:var(--font);
+      font-size:11px;
+      color:var(--ink);
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      padding:7px 8px;
+      outline:none;
+      border-radius:0;
+      -webkit-appearance:none;
+    }
+    .req-email:focus{ background:var(--faint); }
+
+    .req-send{
+      display:block;
+      width:100%;
+      margin-top:12px;
+      padding:8px 0;
+      font-family:var(--font);
+      font-size:9.5px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--bg);
+      background:var(--line);
+      border:1.5px solid var(--line);
+      cursor:pointer;
+      transition:opacity .3s ease;
+    }
+    .req-send:hover{ opacity:.78; }
+    .req-msg{
+      margin-top:8px;
+      font-size:9.5px;
+      letter-spacing:.08em;
+      line-height:1.5;
+      color:#888;
+    }
+    .req-msg:empty{ display:none; }
+
+    .info-panel{
+      font-size:10.5px;
+      line-height:1.65;
+      color:#555;
+      white-space:pre-wrap;
+    }
+
+    /* ---------- empty state ---------- */
+    .empty{
+      border:1.5px solid var(--line);
+      padding:22px 18px;
+      text-align:center;
+      overflow:hidden;              /* the reel is clipped by the box */
+    }
+    .empty[hidden]{ display:none; }
+
+    .empty-line{
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#888;
+      min-height:1.2em;
+    }
+    /* the message falls away like a slot reel turning over */
+    .empty-line.drop{ animation:slotdrop .46s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes slotdrop{
+      to{ transform:translateY(30px); opacity:0; }
+    }
+
+    .flag-strip{
+      margin-top:-18px;             /* takes the space the message vacated */
+      opacity:0;
+      transform:translateY(-24px);
+    }
+    .flag-strip[hidden]{ display:none; }
+    .flag-strip.in{ animation:slotin .42s cubic-bezier(.3,0,.2,1) forwards; }
+    @keyframes slotin{
+      to{ opacity:1; transform:translateY(0); }
+    }
+
+    .flag-rail{
+      display:flex;
+      gap:22px;
+      justify-content:safe center;   /* stays centred until it overflows */
+      align-items:flex-start;
+      overflow-x:auto;
+      overscroll-behavior-x:contain; /* hard stop at each end, no chaining */
+      scroll-snap-type:x proximity;
+      padding:2px;
+      scrollbar-width:none;
+      -ms-overflow-style:none;
+    }
+    .flag-rail::-webkit-scrollbar{ display:none; }
+    /* only once it actually overflows do the ends dissolve round the corner */
+    .flag-rail.overflowing{
+      -webkit-mask-image:linear-gradient(to right, transparent 0, #000 52px, #000 calc(100% - 52px), transparent 100%);
+              mask-image:linear-gradient(to right, transparent 0, #000 52px, #000 calc(100% - 52px), transparent 100%);
+    }
+
+    .flag-pick{
+      flex:none;
+      scroll-snap-align:center;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:7px;
+      padding:6px 4px;
+      background:transparent;
+      border:none;
+      cursor:pointer;
+      font-family:var(--font);
+      opacity:.75;
+      transition:opacity .25s ease, transform .25s ease;
+    }
+    .flag-pick:hover{ opacity:1; transform:translateY(-2px); }
+    .flag-pick img{ height:20px; width:auto; display:block; }
+    .flag-pick span{
+      font-size:9px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#888;
+      white-space:nowrap;
+    }
+    /* closest match to what they mistyped */
+    .flag-pick.suggested{ opacity:1; }
+    .flag-pick.suggested span{ color:var(--ink); font-weight:bold; }
 
     .note{
       margin-top:40px;
@@ -148,14 +506,17 @@
     .note b{ color:var(--ink); }
 
     nav.back{ margin-top:36px; text-align:center; }
+    /* matches index.html's .bm-button metrics so the button that flies
+       across the transition is the same object at both ends */
     .bm-button{
       display:inline-block;
       width:150px; height:40px; line-height:37px;
-      font-family:var(--font); font-size:14px;
+      font-family:var(--font); font-size:13px;
       color:#000; text-decoration:none;
       border:1.5px solid var(--line);
-      background:transparent;
+      background:var(--bg);
       cursor:pointer; text-align:center;
+      white-space:nowrap;
       transition:background-color .3s ease, color .3s ease;
     }
     .bm-button:hover{ background:var(--faint); color:#444; }
@@ -167,148 +528,1015 @@
       text-align:center;
       letter-spacing:.06em;
     }
+
+    /* ============================================================
+       DOCK — floating navigation, only alive while the reader is
+       inside an open nation tab and the real search bar has gone
+       off screen. Collapsed it is two black squares; the left one
+       opens out into a white search bar with the arrow beside it.
+       ============================================================ */
+    #dock{
+      /* opened width sits between the nation tab's inner edge and the
+         garment boxes' inner edge, so the arrow never touches the tab */
+      --dock-w:calc(min(94vw, 880px) - 18px);
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%) translateY(14px);
+      z-index:80;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .28s ease, transform .28s ease;
+    }
+    #dock.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+      pointer-events:auto;
+    }
+
+    .dock-sq{
+      flex:none;
+      width:46px;
+      height:46px;
+      background:var(--line);
+      border:1.5px solid var(--line);
+      border-radius:0;              /* sharp edges */
+      padding:0;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    #dockSearch{
+      position:relative;
+      overflow:hidden;
+      justify-content:flex-start;
+      transition:width .42s cubic-bezier(.65,0,.35,1),
+                 background-color .34s ease;
+    }
+    /* opened: fills the bar width less the arrow square and its gap */
+    #dock.open #dockSearch{
+      width:calc(var(--dock-w) - 56px);
+      background:var(--bg);
+      cursor:text;
+    }
+
+    #dockSearch .ico{
+      position:absolute;
+      left:14px;
+      width:16px; height:16px;
+      display:block;
+      transition:opacity .3s ease;
+    }
+    #dockSearch .ico-b{ opacity:0; }
+    #dock.open #dockSearch .ico-w{ opacity:0; }
+    #dock.open #dockSearch .ico-b{ opacity:1; }
+
+    #dq{
+      width:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      font-family:var(--font);
+      font-size:12px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:var(--ink);
+      padding:0 40px 0 42px;
+      border-radius:0;
+      -webkit-appearance:none;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .26s ease;
+    }
+    #dq::placeholder{ color:#aaa; }
+    #dock.open #dq{ opacity:1; pointer-events:auto; }
+
+    #dockClear{
+      position:absolute;
+      right:8px; top:50%;
+      transform:translateY(-50%);
+      width:28px; height:28px;
+      border:none;
+      background:transparent;
+      color:#c4c4c4;               /* deliberately faded */
+      font-size:13px;
+      line-height:1;
+      cursor:pointer;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .26s ease, color .2s ease;
+    }
+    #dock.open #dockClear{ opacity:1; pointer-events:auto; }
+    #dockClear:hover{ color:var(--ink); }
+
+    #dockUp img{ width:16px; height:16px; display:block; }
+
+    @media (max-width:640px){
+      #dock{ bottom:16px; --dock-w:calc(94vw - 18px); }
+    }
+
+    /* ---------- OPERATIONS DEPARTURE ----------
+       Straight fade of the whole page, then hand over to index.html. */
+    body{ transition:opacity .3s ease; }
+    body.leaving{ opacity:0; pointer-events:none; }
+    @media (prefers-reduced-motion:reduce){
+      body{ transition:none; }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div class="kicker">British Material Unit (BMU)</div>
-      <h1>Archive</h1>
-      <div id="introType"></div>
-    </header>
+    <div id="shell">
+      <form class="search" role="search" onsubmit="return false;">
+        <label for="q" class="sr-only" hidden>Search the archive</label>
+        <img class="icon" src="/searchicon.svg" alt="" aria-hidden="true" width="16" height="16" />
+        <div class="ghost" id="ghost" aria-hidden="true"></div>
+        <input id="q" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Search the archive" aria-label="Search the archive" />
+        <button type="button" class="clear" id="clearQ" aria-label="Clear search">✕</button>
+        <button type="button" class="navtoggle" id="navBtn" aria-label="Show navigation" aria-pressed="false">
+          <img src="/navigate.svg" alt="" aria-hidden="true" width="13" height="13">
+        </button>
+      </form>
+      <div class="count" id="count"></div>
 
-    <main id="catalogue" aria-label="British military surplus catalogue"></main>
+      <main id="catalogue" aria-label="Military surplus archive"></main>
+      <div class="empty" id="empty" hidden>
+        <div class="empty-line" id="emptyLine"></div>
+        <div class="flag-strip" id="flagStrip" hidden>
+          <div class="flag-rail" id="flagRail"></div>
+        </div>
+      </div>
+    </div>
 
     <nav class="back" aria-label="Return">
-      <a href="https://britishmaterialunit.com/" class="bm-button">◎ BMU</a>
+      <a href="https://britishmaterialunit.com/" id="opsBtn" class="bm-button">Reset</a>
     </nav>
-    <footer>British Material Unit (BMU) — Archive</footer>
+    <footer id="foot">British Material Unit (BMU) — Archive</footer>
+  </div>
+
+  <div id="dock" aria-hidden="true">
+    <div id="dockSearch" class="dock-sq" role="button" tabindex="0" aria-label="Search the archive">
+      <img class="ico ico-w" src="/searchicon-white.svg" alt="" aria-hidden="true" width="16" height="16">
+      <img class="ico ico-b" src="/searchicon.svg" alt="" aria-hidden="true" width="16" height="16">
+      <input id="dq" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Search the archive" aria-label="Search the archive" tabindex="-1">
+      <button type="button" id="dockClear" aria-label="Close search" tabindex="-1">✕</button>
+    </div>
+    <button type="button" id="dockUp" class="dock-sq" aria-label="Back to top">
+      <img src="/arrowup-white.svg" alt="" aria-hidden="true" width="16" height="16">
+    </button>
   </div>
 
   <script>
     /* ============================================================
-       PRODUCTS — { name, cat }
-       Image filename is auto-generated from the name (slugified),
-       e.g. "British '95 DPM Shirt" -> "british-95-dpm-shirt.png".
-       Upload each product photo to this folder under that name.
-       To override a filename, add img:"custom-name.png".
+       NATIONS — display order of the dropdowns.
+       key   = folder name inside /archive/
+       label = heading shown on the page
+       open  = expanded on first load
        ============================================================ */
-    const PRODUCTS = [
-      /* Jackets / Shirts / Smocks */
-      { name:"British DPM Windproof Smock", cat:"Jackets / Shirts" },
-      { name:"British MTP Windproof Smock", cat:"Jackets / Shirts" },
-      { name:"British MTP Windproof Smock (Cadet Sizes)", cat:"Jackets / Shirts" },
-      { name:"British MTP Windproof Smock — Grade 2", cat:"Jackets / Shirts" },
-      { name:"British '95 DPM Shirt", cat:"Jackets / Shirts" },
-      { name:"British Desert DPM Shirt", cat:"Jackets / Shirts" },
-      { name:"British MTP PCS Shirt", cat:"Jackets / Shirts" },
-      { name:"British MTP PCS Shirt (Cadet Size 88)", cat:"Jackets / Shirts" },
-      { name:"British MTP Barrack Shirt", cat:"Jackets / Shirts" },
-      { name:"British Cold Weather Norwegian Shirt", cat:"Jackets / Shirts" },
-      { name:"British OG Fleece", cat:"Jackets / Shirts" },
-      { name:"British OG Jumper", cat:"Jackets / Shirts" },
-
-      /* Trousers / Coveralls */
-      { name:"British DPM Trousers (New)", cat:"Trousers / Coveralls" },
-      { name:"British MTP Trousers (Cadet Sizes)", cat:"Trousers / Coveralls" },
-      { name:"British DPM Goretex Trousers", cat:"Trousers / Coveralls" },
-      { name:"British DPM PVC Trousers", cat:"Trousers / Coveralls" },
-      { name:"British MK3 Aircrew Trousers", cat:"Trousers / Coveralls" },
-      { name:"British OG Coveralls", cat:"Trousers / Coveralls" },
-
-      /* Bags / Webbing / Vests */
-      { name:"British DPM PLCE Bergen (Grade 2)", cat:"Bags / Webbing" },
-      { name:"British DPM Other Arms Bergen", cat:"Bags / Webbing" },
-      { name:"British DPM PLCE Webbing Set", cat:"Bags / Webbing" },
-      { name:"British DPM Main Yoke (New)", cat:"Bags / Webbing" },
-      { name:"British DPM OPS Vest", cat:"Bags / Webbing" },
-      { name:"British Desert DPM MOLLE Vest", cat:"Bags / Webbing" },
-      { name:"British Desert DPM CBA Cover", cat:"Bags / Webbing" },
-      { name:"British DPM Grenade Bandolier", cat:"Bags / Webbing" },
-
-      /* Pouches / Cases */
-      { name:"British DPM 349 Radio Pouch", cat:"Pouches / Cases" },
-      { name:"British DPM Motorola Communications Pouch", cat:"Pouches / Cases" },
-      { name:"British Desert KDU Pouch", cat:"Pouches / Cases" },
-      { name:"British MTP Osprey Double Mag Pouch", cat:"Pouches / Cases" },
-      { name:"British DPM Respirator Case", cat:"Pouches / Cases" },
-      { name:"British MTP Respirator Case", cat:"Pouches / Cases" },
-
-      /* Headwear */
-      { name:"British DPM Crap Hat", cat:"Headwear" },
-      { name:"British MTP Crap Hat", cat:"Headwear" },
-      { name:"British MTP Boonie Hat", cat:"Headwear" },
-      { name:"British MTP MK6 Combat Helmet Cover", cat:"Headwear" },
-
-      /* Footwear */
-      { name:"British / US Jungle Boots", cat:"Footwear" },
-
-      /* Sleep / Shelter / Field */
-      { name:"British BASHA (Grade 2)", cat:"Sleep / Shelter / Field" },
-      { name:"British Camouflage Net (4 x 4m)", cat:"Sleep / Shelter / Field" },
-      { name:"British C95 Sleep System", cat:"Sleep / Shelter / Field" },
-      { name:"British Jungle Sleeping Bag", cat:"Sleep / Shelter / Field" },
-      { name:"British Mediumweight Modular Sleeping Bag", cat:"Sleep / Shelter / Field" },
-      { name:"British OG Bivvy Bag (Grade 2)", cat:"Sleep / Shelter / Field" },
-      { name:"British 58 Pattern Water Bottle", cat:"Sleep / Shelter / Field" },
-
-      /* Hardware / Misc */
-      { name:"British Dry Break Couplings Fuel Transfer Valve", cat:"Hardware / Misc" }
+    /* alias = every other way someone might name this nation — the
+       country, the native spelling, the abbreviation. Searching any of
+       them finds the nation's garments. */
+    const NATIONS = [
+      { key:"british", label:"British", abbr:"UK", flag:"ukflag.png", open:true,
+        alias:["british","britain","great britain","united kingdom","uk","gb","england","english","scotland","wales"] },
+      { key:"danish", label:"Danish", abbr:"DK", flag:"denmarkflag.png", open:false,
+        alias:["danish","denmark","danmark","dansk","dk"] },
+      { key:"italian", label:"Italian", abbr:"IT", flag:"italyflag.png", open:false,
+        alias:["italian","italy","italia","italiano","it"] },
+      { key:"russian", label:"Russian", abbr:"RU", flag:"russiaflag.png", open:false,
+        alias:["russian","russia","rossiya","rossiyskaya","soviet","ussr","ru"] },
+      { key:"united-states", label:"United States", abbr:"US", flag:"usaflag.png", open:false,
+        alias:["united states","united states of america","usa","us","america","american","stateside"] },
+      { key:"unattributed", label:"Unattributed", abbr:"UNA", flag:null, open:false,
+        alias:["unattributed","unknown","unidentified"] }
     ];
 
-    function slug(name){
+    /* ============================================================
+       ITEMS — { n, name, cat }  plus optional { img, ref, src }
+       n    = nation key above; the image is read from /archive/<n>/
+       img  = filename override. Without it the filename is generated
+              from the name (slugified), e.g.
+              "British '95 DPM Shirt" -> "british-95-dpm-shirt.png".
+       ref  = archive reference code, printed on the card
+       src  = provenance, printed on the card
+
+       TO ADD A NATION: make the folder in /archive/, add a line to
+       NATIONS, then add its items below. Nothing else to change.
+       ============================================================ */
+    const ITEMS = [
+      /* ---------------- BRITISH ---------------- */
+
+      /* Jackets / Shirts / Smocks */
+      { n:"british", name:"British Army 1980s Falklands DPM Jacket", cat:"Jackets / Shirts", img:"BA1980FWCJ.png", ref:"BA1980FWCJ" },
+      { n:"british", name:"British DPM Windproof Smock", cat:"Jackets / Shirts" },
+      { n:"british", name:"British MTP Windproof Smock", cat:"Jackets / Shirts" },
+      { n:"british", name:"British MTP Windproof Smock (Cadet Sizes)", cat:"Jackets / Shirts" },
+      { n:"british", name:"British MTP Windproof Smock — Grade 2", cat:"Jackets / Shirts" },
+      { n:"british", name:"British '95 DPM Shirt", cat:"Jackets / Shirts" },
+      { n:"british", name:"British Desert DPM Shirt", cat:"Jackets / Shirts" },
+      { n:"british", name:"British MTP PCS Shirt", cat:"Jackets / Shirts" },
+      { n:"british", name:"British MTP PCS Shirt (Cadet Size 88)", cat:"Jackets / Shirts" },
+      { n:"british", name:"British MTP Barrack Shirt", cat:"Jackets / Shirts" },
+      { n:"british", name:"British Cold Weather Norwegian Shirt", cat:"Jackets / Shirts" },
+      { n:"british", name:"British OG Fleece", cat:"Jackets / Shirts" },
+      { n:"british", name:"British OG Jumper", cat:"Jackets / Shirts" },
+
+      /* Trousers / Coveralls */
+      { n:"british", name:"British Army 1980s Foul Weather Trousers", cat:"Trousers / Coveralls", img:"BA80FWT.png", ref:"BA80FWT" },
+      { n:"british", name:"British DPM Trousers (New)", cat:"Trousers / Coveralls" },
+      { n:"british", name:"British MTP Trousers (Cadet Sizes)", cat:"Trousers / Coveralls" },
+      { n:"british", name:"British DPM Goretex Trousers", cat:"Trousers / Coveralls" },
+      { n:"british", name:"British DPM PVC Trousers", cat:"Trousers / Coveralls" },
+      { n:"british", name:"British MK3 Aircrew Trousers", cat:"Trousers / Coveralls" },
+      { n:"british", name:"British OG Coveralls", cat:"Trousers / Coveralls" },
+
+      /* Bags / Webbing / Vests */
+      { n:"british", name:"British DPM PLCE Bergen (Grade 2)", cat:"Bags / Webbing" },
+      { n:"british", name:"British DPM Other Arms Bergen", cat:"Bags / Webbing" },
+      { n:"british", name:"British DPM PLCE Webbing Set", cat:"Bags / Webbing" },
+      { n:"british", name:"British DPM Main Yoke (New)", cat:"Bags / Webbing" },
+      { n:"british", name:"British DPM OPS Vest", cat:"Bags / Webbing" },
+      { n:"british", name:"British Desert DPM MOLLE Vest", cat:"Bags / Webbing" },
+      { n:"british", name:"British Desert DPM CBA Cover", cat:"Bags / Webbing" },
+      { n:"british", name:"British DPM Grenade Bandolier", cat:"Bags / Webbing" },
+
+      /* Pouches / Cases */
+      { n:"british", name:"British DPM 349 Radio Pouch", cat:"Pouches / Cases" },
+      { n:"british", name:"British DPM Motorola Communications Pouch", cat:"Pouches / Cases" },
+      { n:"british", name:"British Desert KDU Pouch", cat:"Pouches / Cases" },
+      { n:"british", name:"British MTP Osprey Double Mag Pouch", cat:"Pouches / Cases" },
+      { n:"british", name:"British DPM Respirator Case", cat:"Pouches / Cases" },
+      { n:"british", name:"British MTP Respirator Case", cat:"Pouches / Cases" },
+
+      /* Headwear */
+      { n:"british", name:"British DPM Crap Hat", cat:"Headwear" },
+      { n:"british", name:"British MTP Crap Hat", cat:"Headwear" },
+      { n:"british", name:"British MTP Boonie Hat", cat:"Headwear" },
+      { n:"british", name:"British MTP MK6 Combat Helmet Cover", cat:"Headwear" },
+
+      /* Footwear */
+      { n:"british", name:"British / US Jungle Boots", cat:"Footwear" },
+
+      /* Sleep / Shelter / Field */
+      { n:"british", name:"British BASHA (Grade 2)", cat:"Sleep / Shelter / Field" },
+      { n:"british", name:"British Camouflage Net (4 x 4m)", cat:"Sleep / Shelter / Field" },
+      { n:"british", name:"British C95 Sleep System", cat:"Sleep / Shelter / Field" },
+      { n:"british", name:"British Jungle Sleeping Bag", cat:"Sleep / Shelter / Field" },
+      { n:"british", name:"British Mediumweight Modular Sleeping Bag", cat:"Sleep / Shelter / Field" },
+      { n:"british", name:"British OG Bivvy Bag (Grade 2)", cat:"Sleep / Shelter / Field" },
+      { n:"british", name:"British 58 Pattern Water Bottle", cat:"Sleep / Shelter / Field" },
+
+      /* Hardware / Misc */
+      { n:"british", name:"British Dry Break Couplings Fuel Transfer Valve", cat:"Hardware / Misc" },
+
+      /* ---------------- DANISH ---------------- */
+      { n:"danish", name:"Danish Army 1990s M/84 Camouflage HMAK Jacket", cat:"Jackets / Shirts",
+        img:"DA1990M84.png", ref:"DA1990M84", src:"Christopher Raeburn" },
+
+      /* ---------------- ITALIAN ---------------- */
+      { n:"italian", name:"Italian Army 1990s Camouflage Jacket", cat:"Jackets / Shirts",
+        img:"IA1990CJ.png", ref:"IA1990CJ" },
+      { n:"italian", name:"Italian Army 2000s ECWCS Vegetato Camouflage Jacket", cat:"Jackets / Shirts",
+        img:"IA2000VCJ.png", ref:"IA2000VCJ" },
+
+      /* ---------------- RUSSIAN ---------------- */
+      { n:"russian", name:"Russian Army 1990s Unidentified Jacket", cat:"Jackets / Shirts",
+        img:"RA1990UGJ.png", ref:"RA1990UGJ" },
+
+      /* ---------------- UNITED STATES ---------------- */
+      { n:"united-states", name:"United States Army 1990s Gulf Camouflage Jacket", cat:"Jackets / Shirts",
+        img:"USA1990GWC0.png", ref:"USA1990GWC0", src:"East West Trading" },
+
+      /* ---------------- UNATTRIBUTED ---------------- */
+      { n:"unattributed", name:"Unidentified Garment", cat:"Unclassified",
+        img:"UMG001.png", ref:"UMG001" },
+      { n:"unattributed", name:"Unidentified Coverall", cat:"Unclassified",
+        img:"SA1990KCCO.png", ref:"SA1990KCCO" },
+      { n:"unattributed", name:"Unidentified Aircrew Vest", cat:"Unclassified",
+        img:"SRBMUGC.png", ref:"SRBMUGC" }
+    ];
+
+    /* ---------- category order within each nation ---------- */
+    const CATS = ["Jackets / Shirts","Trousers / Coveralls","Bags / Webbing","Pouches / Cases","Headwear","Footwear","Sleep / Shelter / Field","Hardware / Misc","Unclassified"];
+
+    function slugBase(name){
       return name.toLowerCase()
         .replace(/[’']/g, '')
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') + '.png';
+        .replace(/^-+|-+$/g, '');
+    }
+    function slug(name){ return slugBase(name) + '.png'; }
+
+    /* every garment owns a folder:
+       /archive/<nation>/<garment-type>/<garment>/<file>.png + .txt   */
+    function assetDir(nationKey, cat, name){
+      return `/archive/${nationKey}/${slugBase(cat)}/${slugBase(name)}`;
+    }
+    function esc(s){
+      return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     }
 
-    /* ---------- render grouped by category ---------- */
-    const order = ["Jackets / Shirts","Trousers / Coveralls","Bags / Webbing","Pouches / Cases","Headwear","Footwear","Sleep / Shelter / Field","Hardware / Misc"];
-    const cat = document.getElementById('catalogue');
+    /* ---------- render: nation dropdown > category group > grid ---------- */
+    const catalogue = document.getElementById('catalogue');
+    const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    order.forEach(section => {
-      const items = PRODUCTS.filter(p => p.cat === section);
-      if (!items.length) return;
+    /* a little air above a tab when we scroll to it */
+    const TOP_GAP = 30;
 
-      const label = document.createElement('div');
-      label.className = 'section-label';
-      label.textContent = section;
-      cat.appendChild(label);
+    function scrollToNation(d){
+      const y = d.getBoundingClientRect().top + window.scrollY - TOP_GAP;
+      window.scrollTo({ top:Math.max(0, y), behavior:REDUCED ? 'auto' : 'smooth' });
+    }
 
-      const grid = document.createElement('div');
-      grid.className = 'grid';
-      items.forEach(p => {
-        const file = p.img || slug(p.name);
-        const el = document.createElement('article');
-        el.className = 'item';
-        el.innerHTML = `
-          <div class="slot">
-            <img src="${file}" alt="${p.name} — genuine-issue British military surplus" loading="lazy">
-            <span class="pending" hidden>${file}</span>
-          </div>
-          <div class="meta">
-            <div class="name">${p.name}</div>
-            <span class="tag">${section}</span>
-          </div>`;
-        const img = el.querySelector('img');
-        const pending = el.querySelector('.pending');
-        img.addEventListener('error', () => { img.remove(); pending.hidden = false; });
-        grid.appendChild(el);
+    /* <details> can't animate on its own — drive the body's height by
+       hand so tabs slide shut instead of snapping */
+    function setNationOpen(d, open){
+      if (open === d.open) return;
+      const body = d.querySelector('.nbody');
+
+      if (REDUCED || !body){ d.open = open; return; }
+
+      body.style.overflow = 'hidden';
+      const finish = () => {
+        body.style.transition = '';
+        body.style.height = '';
+        body.style.overflow = '';
+      };
+
+      if (open){
+        d.open = true;
+        const h = body.scrollHeight;
+        body.style.height = '0px';
+        requestAnimationFrame(() => {
+          body.style.transition = 'height .34s cubic-bezier(.4,0,.2,1)';
+          body.style.height = h + 'px';
+        });
+        setTimeout(finish, 380);
+      } else {
+        body.style.height = body.scrollHeight + 'px';
+        requestAnimationFrame(() => {
+          body.style.transition = 'height .3s cubic-bezier(.4,0,.2,1)';
+          body.style.height = '0px';
+        });
+        setTimeout(() => { d.open = false; finish(); }, 320);
+      }
+    }
+
+    NATIONS.forEach(nation => {
+      const mine = ITEMS.filter(p => p.n === nation.key);
+      if (!mine.length) return;
+
+      const cats = CATS.filter(c => mine.some(p => p.cat === c));
+      const showLabels = cats.length > 1;
+
+      const details = document.createElement('details');
+      details.className = 'nation';
+      details.dataset.nation = nation.key;
+      details.open = nation.open;
+      const flag = nation.flag
+        ? `<img class="flag" src="/flags/${esc(nation.flag)}" alt="" aria-hidden="true" loading="lazy">`
+        : `<span class="flag none" aria-hidden="true"></span>`;
+
+      details.innerHTML =
+        `<summary>${flag}` +
+        `<span class="n">${esc(nation.label)}</span>` +
+        `<span class="qty">${mine.length}</span>` +
+        `<span class="sign" aria-hidden="true"></span></summary>` +
+        `<div class="nbody"></div>`;
+      const body = details.querySelector('.nbody');
+
+      cats.forEach(section => {
+        const group = document.createElement('section');
+        group.className = 'group';
+        if (showLabels){
+          const label = document.createElement('div');
+          label.className = 'section-label';
+          label.textContent = section;
+          group.appendChild(label);
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+
+        mine.filter(p => p.cat === section).forEach(p => {
+          const fileName = p.img || slug(p.name);
+          const dir      = assetDir(nation.key, p.cat, p.name);
+          const file     = `${dir}/${fileName}`;
+          const txt      = `${dir}/${fileName.replace(/\.png$/, '.txt')}`;
+          const el = document.createElement('article');
+          el.className = 'item';
+          const blob = [p.name, nation.label, p.cat, p.ref, p.src].filter(Boolean).join(' ').toLowerCase();
+          el.dataset.search = blob;
+          el.dataset.words  = blob.split(/[^a-z0-9]+/).filter(Boolean).join('|');
+          el.dataset.alias  = (nation.alias || []).join('|');
+          el.innerHTML = `
+            <div class="slot">
+              <img src="${esc(file)}" alt="${esc(p.name)} — ${esc(nation.label)} military surplus" loading="lazy">
+              <span class="pending" hidden>${esc(fileName)}</span>
+            </div>
+            <div class="meta">
+              <div class="name">${esc(p.name)}</div>
+              <span class="tag">${esc(p.cat)}</span>
+              ${p.ref ? `<span class="ref">${esc(p.ref)}${p.src ? ` — ${esc(p.src)}` : ''}</span>` : ''}
+              <div class="req-panel">
+                <div class="req-row">
+                  <label>Quantity</label>
+                  <div class="req-qty">
+                    <input type="range" class="req-range" min="1" max="500" step="1" value="100" aria-label="Quantity">
+                    <span class="qtyval" aria-hidden="true">100</span>
+                  </div>
+                </div>
+                <input type="email" class="req-email" placeholder="you@example.com" autocomplete="email" aria-label="Your email">
+                <button type="button" class="req-send">Send request</button>
+                <div class="req-msg" role="status"></div>
+              </div>
+              <div class="info-panel"></div>
+              <div class="actions">
+                <button type="button" class="btn-line req-toggle" aria-expanded="false">Request</button>
+                <button type="button" class="btn-line info-toggle" aria-expanded="false">Info</button>
+              </div>
+            </div>`;
+          const img = el.querySelector('img');
+          const pending = el.querySelector('.pending');
+          img.addEventListener('error', () => { img.remove(); pending.hidden = false; });
+          wireCard(el, p.name, p.ref, txt);
+          grid.appendChild(el);
+        });
+
+        group.appendChild(grid);
+        body.appendChild(group);
       });
-      cat.appendChild(grid);
+
+      // take over the summary's own toggling so it can slide
+      details.querySelector('summary').addEventListener('click', e => {
+        e.preventDefault();
+        setNationOpen(details, !details.open);
+      });
+
+      catalogue.appendChild(details);
     });
 
-    /* ---------- intro typewriter ---------- */
-    const INTRO = "Sourced, Archived & Open British Surplus.";
-    const introEl = document.getElementById('introType');
-    let i = 0;
-    (function type(){
-      if (i < INTRO.length){
-        introEl.textContent += INTRO.charAt(i++);
-        setTimeout(type, 18);
+    /* ---------- search ---------- */
+    const q          = document.getElementById('q');
+    const clearQ     = document.getElementById('clearQ');
+    const navBtn     = document.getElementById('navBtn');
+    const searchForm = document.querySelector('.search');
+    const countEl = document.getElementById('count');
+    const emptyEl = document.getElementById('empty');
+    const emptyLine  = document.getElementById('emptyLine');
+    const flagStrip  = document.getElementById('flagStrip');
+    const flagRail   = document.getElementById('flagRail');
+    const allItems   = [...catalogue.querySelectorAll('.item')];
+    const allGroups  = [...catalogue.querySelectorAll('.group')];
+    const allNations = [...catalogue.querySelectorAll('.nation')];
+
+    /* ============================================================
+       EMPTY STATE
+       "No matching records" types out, drops away like a slot reel,
+       and the nation flags roll in behind it. Picking one clears the
+       search and opens that nation.
+       ============================================================ */
+    const NO_HITS = 'No matching records';
+
+    NATIONS.filter(n => n.flag).forEach(n => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'flag-pick';
+      b.dataset.nation = n.key;
+      b.title = n.label;
+      b.setAttribute('aria-label', n.label);
+      b.innerHTML = `<img src="/flags/${n.flag}" alt="" aria-hidden="true">` +
+                    `<span>${n.abbr || n.label}</span>`;
+      b.addEventListener('click', () => {
+        q.value = '';
+        filter();
+        syncGhost();
+        const d = allNations.find(x => x.dataset.nation === n.key);
+        if (d){
+          const others = allNations.filter(x => x !== d && x.open);
+          setNationOpen(d, true);
+          others.forEach(x => setNationOpen(x, false));
+          if (others.length && !REDUCED) setTimeout(() => scrollToNation(d), 340);
+          else scrollToNation(d);
+        }
+      });
+      flagRail.appendChild(b);
+    });
+
+    /* edit distance, so a near-miss spelling can be pointed at */
+    function editDistance(a, b){
+      const m = a.length, n = b.length;
+      let prev = Array.from({ length:n + 1 }, (_, j) => j);
+      for (let i = 1; i <= m; i++){
+        const cur = [i];
+        for (let j = 1; j <= n; j++){
+          cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1,
+                            prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        }
+        prev = cur;
       }
-    })();
+      return prev[n];
+    }
+
+    function closestNation(term){
+      let best = null, score = Infinity;
+      NATIONS.filter(n => n.flag).forEach(n => {
+        (n.alias || []).forEach(a => {
+          const d = editDistance(term, a);
+          if (d < score){ score = d; best = n.key; }
+        });
+      });
+      // only a genuine near-miss counts, not any old typo
+      return score <= Math.max(2, Math.floor(term.length / 3)) ? best : null;
+    }
+
+    let emptyTimers = [];
+    let emptyOpen = false;
+    let emptyDelay = null;
+
+    function hideEmpty(){
+      clearTimeout(emptyDelay);
+      emptyDelay = null;
+      emptyTimers.forEach(clearTimeout);
+      emptyTimers = [];
+      emptyOpen = false;
+      emptyEl.hidden = true;
+      emptyLine.classList.remove('drop');
+      emptyLine.textContent = '';
+      flagStrip.hidden = true;
+      flagStrip.classList.remove('in');
+    }
+
+    /* hold back the "no matching records" reel — a mistyped letter
+       should give the reader a moment to fix it first */
+    const EMPTY_DELAY_MS = 1600;
+
+    function queueEmpty(term){
+      if (emptyOpen){ showEmpty(term); return; }   // already up: just re-aim the hint
+      if (emptyDelay) return;                      // already counting down
+      emptyDelay = setTimeout(() => {
+        emptyDelay = null;
+        if (q.value.trim().toLowerCase() === term) showEmpty(term);
+      }, EMPTY_DELAY_MS);
+    }
+
+    function showEmpty(term){
+      const hint = closestNation(term);
+      [...flagRail.children].forEach(b => {
+        b.classList.toggle('suggested', b.dataset.nation === hint);
+      });
+
+      if (emptyOpen) return;      // already running — don't restart per keystroke
+      emptyOpen = true;
+      emptyEl.hidden = false;
+      emptyLine.classList.remove('drop');
+      flagStrip.hidden = true;
+      flagStrip.classList.remove('in');
+
+      if (REDUCED){
+        emptyLine.textContent = NO_HITS;
+        flagStrip.hidden = false;
+        flagStrip.classList.add('in');
+        measureRail();
+        return;
+      }
+
+      emptyLine.textContent = '';
+      let n = 0;
+      (function typeOut(){
+        if (n < NO_HITS.length){
+          emptyLine.textContent += NO_HITS.charAt(n++);
+          emptyTimers.push(setTimeout(typeOut, 34));
+        } else {
+          emptyTimers.push(setTimeout(() => {
+            emptyLine.classList.add('drop');          // reel turns over
+            emptyTimers.push(setTimeout(() => {
+              flagStrip.hidden = false;
+              void flagStrip.offsetWidth;
+              flagStrip.classList.add('in');
+              measureRail();
+            }, 260));
+          }, 900));
+        }
+      })();
+    }
+
+    /* the ends only dissolve once there are more flags than fit */
+    function measureRail(){
+      flagRail.classList.toggle('overflowing',
+        flagRail.scrollWidth > flagRail.clientWidth + 1);
+    }
+    window.addEventListener('resize', measureRail);
+
+    /* Match on the START of words, never on any old substring — "h"
+       should not drag in "British". A multi-word term has to place
+       every one of its parts, so "mtp bag" needs both. */
+    function itemMatches(el, term){
+      const tokens = term.split(/\s+/).filter(Boolean);
+      if (!tokens.length) return true;
+      const words   = el.dataset.words.split('|');
+      const aliases = el.dataset.alias.split('|');
+      return tokens.every(t =>
+        words.some(w => w.startsWith(t)) ||
+        aliases.some(a => a && a.startsWith(t))
+      );
+    }
+
+    function filter(){
+      const term = q.value.trim().toLowerCase();
+      // swaps the right-hand slot between the star and the ✕
+      searchForm.classList.toggle('has-term', !!term);
+
+      allItems.forEach(el => {
+        el.hidden = term ? !itemMatches(el, term) : false;
+      });
+
+      allGroups.forEach(g => {
+        g.hidden = !g.querySelector('.item:not([hidden])');
+      });
+
+      let shown = 0;
+      allNations.forEach(d => {
+        const hits = d.querySelectorAll('.item:not([hidden])').length;
+        shown += hits;
+        d.hidden = term ? hits === 0 : false;
+        d.querySelector('.qty').textContent = term ? hits : d.querySelectorAll('.item').length;
+        if (term) d.open = true;
+        else d.open = NATIONS.find(x => x.key === d.dataset.nation).open;
+      });
+
+      const noHits = !!term && shown === 0;
+      if (noHits) queueEmpty(term); else hideEmpty();
+
+      countEl.textContent = term
+        ? `${shown} ${shown === 1 ? 'garment' : 'garments'} matching “${q.value.trim()}”`
+        : `${allItems.length} garments`;
+    }
+
+    /* the ✕ on the main bar puts the whole page back to how it loaded */
+    function resetPage(){
+      q.value = '';
+      const dqEl = document.getElementById('dq');
+      if (dqEl) dqEl.value = '';
+      filter();                      // restores each tab's default open state
+      window.scrollTo({ top:0, behavior:REDUCED ? 'auto' : 'smooth' });
+    }
+
+    q.addEventListener('input', filter);
+    clearQ.addEventListener('click', resetPage);
+    q.addEventListener('keydown', e => { if (e.key === 'Escape') resetPage(); });
+    filter();
+
+    /* ============================================================
+       SEARCH SUGGESTIONS
+       Cycles every garment in the archive: types the name out, holds
+       with a blinking caret, deletes it again, moves to the next.
+       Sits behind the input and yields the moment anything is typed.
+       ============================================================ */
+    const ghost   = document.getElementById('ghost');
+    const SUGGESTIONS = [...new Set(ITEMS.map(p => p.name))];
+
+    const gText  = document.createTextNode('');
+    const gCaret = document.createElement('span');
+    gCaret.className = 'caret';
+    ghost.append(gText, gCaret);
+
+    /* hold is long enough for the caret to blink several times before
+       the suggestion is deleted again */
+    const TYPE_MS = 45, DELETE_MS = 25, HOLD_MS = 3800, GAP_MS = 320;
+    let sIdx = 0, sPos = 0, sPhase = 'typing', sTimer = null;
+
+    function ghostVisible(){ return q.value === ''; }
+
+    function suggestTick(){
+      if (!ghostVisible()){ sTimer = setTimeout(suggestTick, 400); return; }
+
+      const word = SUGGESTIONS[sIdx];
+
+      if (sPhase === 'typing'){
+        if (sPos < word.length){
+          sPos++;
+          gText.nodeValue = word.slice(0, sPos);
+          gCaret.classList.remove('blink');
+          sTimer = setTimeout(suggestTick, TYPE_MS);
+        } else {
+          sPhase = 'holding';
+          gCaret.classList.add('blink');       // blink at the end of the suggestion
+          sTimer = setTimeout(suggestTick, HOLD_MS);
+        }
+      } else if (sPhase === 'holding'){
+        sPhase = 'deleting';
+        gCaret.classList.remove('blink');
+        sTimer = setTimeout(suggestTick, DELETE_MS);
+      } else {
+        if (sPos > 0){
+          sPos--;
+          gText.nodeValue = word.slice(0, sPos);
+          sTimer = setTimeout(suggestTick, DELETE_MS);
+        } else {
+          sPhase = 'typing';
+          sIdx = (sIdx + 1) % SUGGESTIONS.length;
+          sTimer = setTimeout(suggestTick, GAP_MS);
+        }
+      }
+    }
+
+    function startSuggestions(){
+      if (REDUCED){
+        // no motion: rotate the whole suggestion on a slow timer
+        gCaret.remove();
+        gText.nodeValue = SUGGESTIONS[0];
+        setInterval(() => {
+          sIdx = (sIdx + 1) % SUGGESTIONS.length;
+          if (ghostVisible()) gText.nodeValue = SUGGESTIONS[sIdx];
+        }, 3200);
+        return;
+      }
+      suggestTick();
+    }
+
+    /* the suggestion yields as soon as there is real input to read */
+    function syncGhost(){ ghost.hidden = q.value !== ''; }
+    q.addEventListener('input', syncGhost);
+    clearQ.addEventListener('click', () => setTimeout(syncGhost, 0));
+    q.addEventListener('keydown', e => { if (e.key === 'Escape') setTimeout(syncGhost, 0); });
+    syncGhost();
+
+    /* the real caret takes over while the field is focused */
+    q.addEventListener('focus', () => gCaret.style.visibility = 'hidden');
+    q.addEventListener('blur',  () => gCaret.style.visibility = '');
+
+    /* ============================================================
+       REQUESTS
+       Static site, so this composes a mail to BMU rather than posting
+       to a server. Quantity is a slider and a number box kept in sync.
+       ============================================================ */
+    const REQUEST_TO = 'hello@britishmaterialunit.com';
+
+    function wireCard(el, name, ref, txtPath){
+      const reqBtn   = el.querySelector('.req-toggle');
+      const infoBtn  = el.querySelector('.info-toggle');
+      const reqPanel = el.querySelector('.req-panel');
+      const infoPane = el.querySelector('.info-panel');
+      const range    = el.querySelector('.req-range');
+      const val      = el.querySelector('.qtyval');
+      const email    = el.querySelector('.req-email');
+      const send     = el.querySelector('.req-send');
+      const msg      = el.querySelector('.req-msg');
+
+      let infoLoaded = false;
+
+      function setState(state){   // 'idle' | 'request' | 'info'
+        reqPanel.classList.toggle('open', state === 'request');
+        infoPane.classList.toggle('open', state === 'info');
+        // while requesting, Request steps aside and Info is the way out
+        reqBtn.hidden = state === 'request';
+        reqBtn.setAttribute('aria-expanded', state === 'request' ? 'true' : 'false');
+        infoBtn.setAttribute('aria-expanded', state === 'info' ? 'true' : 'false');
+        infoBtn.textContent = state === 'info' ? '✕' : 'Info';
+        infoBtn.setAttribute('aria-label', state === 'info' ? 'Close info' : 'Info');
+        if (state !== 'request') msg.textContent = '';
+      }
+
+      async function loadInfo(){
+        if (infoLoaded) return;
+        infoLoaded = true;
+        try {
+          const res = await fetch(txtPath);
+          if (!res.ok) throw new Error(res.status);
+          infoPane.textContent = (await res.text()).trim();
+        } catch {
+          infoPane.textContent = 'No record filed for this garment yet.';
+        }
+      }
+
+      reqBtn.addEventListener('click', () => setState('request'));
+
+      infoBtn.addEventListener('click', () => {
+        // from the request form this doubles as the way back out
+        if (infoPane.classList.contains('open')) { setState('idle'); return; }
+        loadInfo();
+        setState('info');
+      });
+
+      range.addEventListener('input', () => { val.textContent = range.value; });
+
+      send.addEventListener('click', () => {
+        const qty  = range.value;
+        const addr = email.value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)){
+          msg.textContent = 'Enter a valid email address.';
+          email.focus({ preventScroll:true });
+          return;
+        }
+
+        const subject = `Archive request — ${qty} × ${name}`;
+        const body =
+          `Garment: ${name}\n` +
+          (ref ? `Archive ref: ${ref}\n` : '') +
+          `Quantity: ${qty}\n` +
+          `From: ${addr}\n`;
+
+        window.location.href =
+          `mailto:${REQUEST_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        msg.textContent = `Opening your mail app — ${qty} × ${name}.`;
+      });
+    }
+
+    /* ============================================================
+       DOCK
+       Appears only once the reader is inside an open nation tab and
+       the real search bar has scrolled away. The arrow climbs out in
+       two stages: first to the top of the tab you are in (closing the
+       others), then to the top of the page with everything shut.
+       ============================================================ */
+    const dock        = document.getElementById('dock');
+    const dockSearch  = document.getElementById('dockSearch');
+    const dockUp      = document.getElementById('dockUp');
+    const dockClear   = document.getElementById('dockClear');
+    const dq          = document.getElementById('dq');
+
+    let searchOffscreen = false;
+    let dockForced = false;      // summoned by the navigate star
+
+    function anyNationOpen(){
+      return allNations.some(d => d.open && !d.hidden);
+    }
+
+    function collapseDock(){
+      dock.classList.remove('open');
+      dq.tabIndex = -1;
+      dockClear.tabIndex = -1;
+      dq.blur();
+    }
+
+    function openDock(){
+      dock.classList.add('open');
+      dq.tabIndex = 0;
+      dockClear.tabIndex = 0;
+      dq.value = q.value;
+      dq.focus({ preventScroll:true });
+    }
+
+    function updateDock(){
+      // while the bar is open the reader is typing in it — it stays put
+      // even if the filtered page got short enough to reveal the main bar
+      const show = dockForced ||
+                   (anyNationOpen() &&
+                    (searchOffscreen || dock.classList.contains('open')));
+      dock.classList.toggle('show', show);
+      dock.setAttribute('aria-hidden', show ? 'false' : 'true');
+      if (!show){ collapseDock(); upStage = null; }
+    }
+
+    /* the star summons the black buttons whatever the page is doing */
+    navBtn.addEventListener('click', () => {
+      dockForced = !dockForced;
+      navBtn.setAttribute('aria-pressed', dockForced ? 'true' : 'false');
+      updateDock();
+    });
+
+    // the dock exists precisely because the real search bar has gone
+    new IntersectionObserver(([e]) => {
+      searchOffscreen = !e.isIntersecting;
+      updateDock();
+    }, { threshold:0 }).observe(searchForm);
+
+    // opening or closing any tab can bring the dock in or send it away
+    allNations.forEach(d => d.addEventListener('toggle', updateDock));
+
+    dockSearch.addEventListener('click', () => {
+      if (!dock.classList.contains('open')) openDock();
+    });
+    dockSearch.addEventListener('keydown', e => {
+      if (!dock.classList.contains('open') && (e.key === 'Enter' || e.key === ' ')){
+        e.preventDefault();
+        openDock();
+      }
+    });
+
+    /* The dock field is forgiving: a term that matches nothing is read
+       as a typo still being corrected, so the last good result set is
+       held on screen rather than the page emptying under the reader. */
+    let lastScrolled = null;
+
+    function countMatches(term){
+      if (!term) return allItems.length;
+      let n = 0;
+      allItems.forEach(el => { if (itemMatches(el, term)) n++; });
+      return n;
+    }
+
+    dq.addEventListener('input', () => {
+      const term = dq.value.trim().toLowerCase();
+
+      if (term && countMatches(term) === 0) return;   // hold what's there
+
+      q.value = dq.value;
+      filter();
+      syncGhost();
+      updateDock();
+
+      if (!term){ lastScrolled = null; return; }
+
+      // matching is word-accurate now, so a real hit can move the page
+      // straight away. Only a change of nation scrolls, so typing on
+      // through "d ▸ dp ▸ dpm" travels once, not three times.
+      const first = allNations.find(d => !d.hidden && d.open);
+      if (first && first !== lastScrolled){
+        lastScrolled = first;
+        scrollToNation(first);
+      }
+    });
+
+    // enter jumps to the first garment that matched
+    dq.addEventListener('keydown', e => {
+      if (e.key === 'Escape'){ e.preventDefault(); resetDock(); return; }
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const first = catalogue.querySelector('.item:not([hidden])');
+      if (first) first.scrollIntoView({ behavior:'smooth', block:'center' });
+    });
+
+    function resetDock(){
+      dq.value = '';
+      q.value = '';
+      filter();
+      syncGhost();
+      collapseDock();
+    }
+    dockClear.addEventListener('click', e => { e.stopPropagation(); resetDock(); });
+
+    /* which open nation the reader is currently inside */
+    function currentNation(open){
+      let cur = open[0];
+      open.forEach(d => {
+        if (d.getBoundingClientRect().top <= 8) cur = d;
+      });
+      return cur;
+    }
+
+    /* which stage the arrow is on. Held explicitly rather than inferred
+       from scroll position, so a quick second press still works while
+       the first press's smooth scroll is still running. */
+    let upStage = null;
+
+    dockUp.addEventListener('click', () => {
+      const behavior = REDUCED ? 'auto' : 'smooth';
+      const open = allNations.filter(d => d.open && !d.hidden);
+
+      if (!open.length){
+        upStage = null;
+        window.scrollTo({ top:0, behavior });
+        return;
+      }
+
+      if (upStage && open.length === 1 && open[0] === upStage){
+        // second press: everything shut, back to the very top
+        allNations.forEach(d => setNationOpen(d, false));
+        upStage = null;
+        window.scrollTo({ top:0, behavior });
+      } else {
+        // first press: keep the tab you are in, close the rest, sit at its head
+        const cur    = currentNation(open);
+        const others = allNations.filter(d => d !== cur && d.open);
+        others.forEach(d => setNationOpen(d, false));
+        upStage = cur;
+        // wait for the slide, otherwise we'd aim at a position the
+        // collapsing tabs above are about to move
+        if (others.length && !REDUCED) setTimeout(() => scrollToNation(cur), 340);
+        else scrollToNation(cur);
+      }
+    });
+
+    updateDock();
+
+    /* ---------- operations: fade the page out, then hand over ---------- */
+    const opsBtn = document.getElementById('opsBtn');
+    let leaving = false;
+
+    opsBtn.addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      if (leaving) return;
+      leaving = true;
+
+      const href = opsBtn.getAttribute('href');
+      if (REDUCED){ window.location.href = href; return; }
+
+      document.body.classList.add('leaving');
+      setTimeout(() => { window.location.href = href; }, 300);
+    });
+
+    startSuggestions();
   </script>
 </body>
 </html>
