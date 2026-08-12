@@ -251,9 +251,11 @@
     }
 
     /* ---------- LOGO SQUARE ---------- */
+    /* the 58vh term keeps the mark inside short/landscape viewports
+       instead of overflowing them — same min() approach as the archive */
     .container{
       position:relative;
-      width:min(88vw, 400px);
+      width:min(88vw, 400px, 58vh);
       aspect-ratio:1 / 1;
       flex:none;
     }
@@ -263,8 +265,10 @@
       cursor:pointer;
       transition:opacity 1s ease;
     }
+    /* stroke-width is in user units, so the tighter viewBox scales it up —
+       2.07 keeps the traced line the same weight it rendered at before */
     .animated-path{
-      fill:none; stroke:var(--ink); stroke-width:3;
+      fill:none; stroke:var(--ink); stroke-width:2.07;
       stroke-dasharray:9999; stroke-dashoffset:9999;
       animation:trace 7s ease-in-out forwards;
     }
@@ -342,7 +346,7 @@
       z-index:5;
       touch-action:pan-y;
       transition:background-color .3s ease, color .3s ease,
-                 border-bottom-color .5s ease .45s,
+                 border-bottom-color .12s ease,
                  left .55s cubic-bezier(.65,0,.35,1),
                  width .55s cubic-bezier(.65,0,.35,1);
     }
@@ -351,8 +355,8 @@
       top:0;
       background:var(--bg);
     }
-    /* once the sheet starts drawing, the bar's bottom edge dissolves
-       so the bar's top + sides become the top of the A4 outline */
+    /* the bar's bottom edge goes as the box drops, so the bar simply
+       becomes the top of one continuous outline */
     #opsBtn.open{
       border-bottom-color:transparent;
       cursor:default;
@@ -380,7 +384,11 @@
     .ops-close:hover{ color:#000; }
     #opsBtn.open .ops-close{ display:block; }
 
-    /* ---------- OPERATIONS SHEET (A4) ---------- */
+    /* ---------- OPERATIONS SHEET (A4) ----------
+       The sheet carries the box's own sides and bottom as real borders
+       and sits flush under the bar, overlapping its bottom edge. Bar and
+       sheet therefore read as one unbroken box — there is no separate
+       outline to align, so no seam can appear. */
     #opsSheet{
       position:absolute;
       left:0;
@@ -389,30 +397,13 @@
       z-index:4;
       background:var(--bg);
       touch-action:pan-y;
+      border:1.5px solid var(--line);
+      border-top:none;
+      height:0;
+      overflow:hidden;
+      transition:height .52s cubic-bezier(.65,0,.35,1);
     }
     #opsSheet.on{ display:block; }
-
-    #opsOutline{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      overflow:visible;
-      pointer-events:none;
-    }
-    #opsOutline path{
-      fill:none;
-      stroke:var(--line);
-      stroke-width:1.5;
-    }
-    /* sides accelerate out of the corners then ease;
-       bottom halves start as sides near completion, ease to the join */
-    .ol-side{
-      transition:stroke-dashoffset .6s cubic-bezier(.55,.05,.3,1);
-    }
-    .ol-bottom{
-      transition:stroke-dashoffset .45s cubic-bezier(.2,.6,.25,1) .48s;
-    }
 
     .ops-body{
       position:relative;
@@ -530,14 +521,33 @@
 
     @media (prefers-reduced-motion: reduce){
       .animated-path{ animation-duration:.01s; }
-      #opsBtn, .ol-side, .ol-bottom, #navRow{ transition:none; }
+      #opsBtn, #opsSheet, #navRow{ transition:none; }
       html{ scroll-behavior:auto; }
     }
 
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
-      #page{ padding-top:max(24px, env(safe-area-inset-top)); }
+      /* symmetric padding, otherwise the 24/40 split lands the mark 8px high */
+      #page{
+        padding-top:max(24px, env(safe-area-inset-top));
+        padding-bottom:max(24px, env(safe-area-inset-bottom));
+      }
+      /* the stacked button column is 240px tall against the desktop row's
+         40px, so centring the whole flex column pushed the mark ~100px
+         above the middle. Grid instead: two equal flexible tracks pin the
+         logo square to the true centre and the nav hangs off its bottom
+         edge without pulling it up. */
+      #page{
+        display:grid;
+        grid-template-rows:1fr auto 1fr;
+        justify-items:center;
+        height:100dvh;        /* definite height, or the fr tracks size to
+                                 content and stop balancing */
+      }
+      .container{ grid-row:2; align-self:center; }
       #navRow{
+        grid-row:3;
+        align-self:start;
         flex-direction:column;
         align-items:stretch;
         width:min(88vw, 400px);
@@ -557,7 +567,10 @@
   <main id="page">
     <div class="container">
       <div class="svg-wrapper">
-        <svg id="animatedSvg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="British Material Unit logo">
+        <!-- viewBox is the mark's own bounding box (125,362 829x356) padded
+             by 4 units for the stroke. The old 0 0 1200 800 box left the
+             artwork sitting low and left of centre at every screen size. -->
+        <svg id="animatedSvg" viewBox="121 358 837 364" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="British Material Unit logo">
           <path id="animatedPath" class="animated-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
           <path id="filledPath" class="filled-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
         </svg>
@@ -577,25 +590,24 @@
       </div>
 
       <div id="opsSheet" aria-hidden="true">
-        <svg id="opsOutline" xmlns="http://www.w3.org/2000/svg">
-          <path id="olLeft"  class="ol-side" />
-          <path id="olRight" class="ol-side" />
-          <path id="olBL"    class="ol-bottom" />
-          <path id="olBR"    class="ol-bottom" />
-        </svg>
         <div class="ops-body">
           <div id="opsPaper" class="ops-paper"></div>
           <div id="opsNews" class="ops-news">
-            <h2>Latest — News &amp; Partnerships</h2>
+            <h2>Relations &amp; Partnerships</h2>
             <a class="news-item" href="https://britishmaterialunit.com/ou">
-              <span class="ni-date">Partnership ◎ 001</span>
-              <span class="ni-title">Operation Upcycle</span>
-              <span class="ni-sub">Upcycling graded-out British surplus into new garments.</span>
+              <span class="ni-date">Partnership</span>
+              <span class="ni-title">Ramco</span>
+              <span class="ni-sub">Operation Upcycle Partner — upcycling via reverse engineering of garments.</span>
             </a>
             <a class="news-item" href="https://britishmaterialunit.com/ew">
-              <span class="ni-date">Partnership ◎ 002</span>
+              <span class="ni-date">Partnership</span>
               <span class="ni-title">East West</span>
-              <span class="ni-sub">Industrial Partner — sourcing European surplus, open-studio and repository.</span>
+              <span class="ni-sub">Industrial Partner — archive, open-studio and repository.</span>
+            </a>
+            <a class="news-item" href="https://britishmaterialunit.com/soframa">
+              <span class="ni-date">Partnership</span>
+              <span class="ni-title">Soframa</span>
+              <span class="ni-sub">Franco-British Partnership — Circular Exit Strategy.</span>
             </a>
             <button id="mapBtn" type="button" aria-label="Reveal capability map">↓</button>
             <div class="ops-hint">Swipe up or sideways to close · ↓ reveals the capability map</div>
@@ -1637,11 +1649,6 @@
     const opsBtn   = document.getElementById('opsBtn');
     const opsClose = document.getElementById('opsClose');
     const opsSheet = document.getElementById('opsSheet');
-    const outline  = document.getElementById('opsOutline');
-    const olLeft   = document.getElementById('olLeft');
-    const olRight  = document.getElementById('olRight');
-    const olBL     = document.getElementById('olBL');
-    const olBR     = document.getElementById('olBR');
     const opsPaper = document.getElementById('opsPaper');
     const opsNews  = document.getElementById('opsNews');
 
@@ -1712,27 +1719,12 @@ Per operation we create design systems which secure textiles and their material 
       const W = opsSheet.getBoundingClientRect().width;
       const fullH = Math.min(Math.round(W * 1.414), Math.round(window.innerHeight * 0.82));
       const sheetH = fullH - BAR_H;
+
+      // the box drops out of the bar: pin it shut, force the reflow that
+      // commits that as the transition's start, then run the height
+      opsSheet.style.height = '0px';
+      void opsSheet.offsetHeight;
       opsSheet.style.height = sheetH + 'px';
-
-      // outline paths in sheet-local pixels (inset .75 so the 1.5px
-      // stroke sits exactly on the bar's border line)
-      const x0 = 0.75, x1 = W - 0.75, yb = sheetH - 0.75, xm = W / 2;
-      olLeft .setAttribute('d', `M ${x0} 0 L ${x0} ${yb}`);
-      olRight.setAttribute('d', `M ${x1} 0 L ${x1} ${yb}`);
-      olBL   .setAttribute('d', `M ${x0} ${yb} L ${xm} ${yb}`);
-      olBR   .setAttribute('d', `M ${x1} ${yb} L ${xm} ${yb}`);
-
-      [olLeft, olRight, olBL, olBR].forEach(p => {
-        const len = p.getTotalLength();
-        p.style.transition = 'none';
-        p.style.strokeDasharray = len;
-        p.style.strokeDashoffset = len;
-      });
-      void outline.getBoundingClientRect();          // commit start state
-      [olLeft, olRight, olBL, olBR].forEach(p => { p.style.transition = ''; });
-      requestAnimationFrame(() => {
-        [olLeft, olRight, olBL, olBR].forEach(p => { p.style.strokeDashoffset = 0; });
-      });
 
       // page grows in step with the drawing so nothing jumps
       navRow.style.minHeight = (opsBtn.offsetTop + BAR_H - 1.5 + sheetH + 12) + 'px';
@@ -1760,26 +1752,18 @@ Per operation we create design systems which secure textiles and their material 
       opsState = 'closed';
       clearOpsTimers();
 
-      // retract: content fades, bottom halves pull apart, sides pull up
+      // retract: content fades, then the box draws back up into the bar
       opsSheet.classList.remove('content-in');
       opsNews.classList.remove('visible');
       opsPaper.classList.remove('ops-caret');
-      [olBL, olBR].forEach(p => {
-        p.style.transition = 'stroke-dashoffset .3s cubic-bezier(.6,0,.8,.5)';
-        p.style.strokeDashoffset = p.style.strokeDasharray;
-      });
-      [olLeft, olRight].forEach(p => {
-        p.style.transition = 'stroke-dashoffset .4s cubic-bezier(.6,0,.7,.6) .2s';
-        p.style.strokeDashoffset = p.style.strokeDasharray;
-      });
-      opsBtn.classList.remove('open');   // bottom border re-forms
+      opsSheet.style.height = '0px';
       opsBtn.setAttribute('aria-expanded', 'false');
       navRow.style.minHeight = '40px';
 
       setTimeout(() => {
+        opsBtn.classList.remove('open');   // bottom edge re-forms once shut
         opsSheet.classList.remove('on');
         opsSheet.setAttribute('aria-hidden', 'true');
-        [olLeft, olRight, olBL, olBR].forEach(p => { p.style.transition = ''; });
 
         if (!isMobileCol() && opsBtn.classList.contains('expanding')){
           const slot = estimateSlot();
