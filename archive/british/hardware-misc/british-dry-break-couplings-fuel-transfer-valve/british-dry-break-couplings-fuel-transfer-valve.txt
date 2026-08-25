@@ -1,8 +1,0 @@
-British Dry Break Couplings Fuel Transfer Valve
-
-Nation: British
-Type: Hardware / Misc
-
-Placeholder record. Replace this file with the garment write-up:
-issue period, pattern, fabric and construction, and any notes on
-provenance or condition.

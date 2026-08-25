@@ -52,7 +52,7 @@
       display:flex;
       flex-direction:column;
       align-items:center;
-      padding:40px 16px 70px;
+      padding:40px 16px 150px;
       -webkit-font-smoothing:antialiased;
     }
     /* auto margins centre the archive in the viewport when it is short
@@ -60,10 +60,58 @@
        unlike justify-content:center, this never clips the top */
     .wrap{ width:min(94vw, 880px); margin:auto 0; }
 
+    /* ---------- fixed bottom bar ----------
+       On arrival the archive is only this: a search bar and its footer
+       line. Tabs, explore and the dock are all summoned from here. */
+    #bottomBar{
+      position:fixed;
+      left:50%;
+      bottom:0;
+      transform:translateX(-50%);
+      width:min(90vw, 880px);
+      z-index:70;
+      padding:12px 0 14px;
+      background:var(--bg);
+    }
+    #bottomBar #foot{ margin-top:10px; }
+    #bottomBar{
+      transition:transform .72s cubic-bezier(.35,0,.2,1), opacity .55s ease;
+    }
+    /* explore takes the screen: the main bar drops away and the dock's
+       own bar becomes the only instrument */
+    body.exploring #bottomBar,
+    body.dock-open #bottomBar,
+    body.tab-open #bottomBar{
+      transform:translateX(-50%) translateY(130%);
+      opacity:0;
+      pointer-events:none;
+    }
+
+    /* the catalogue only exists once the reader asks for it */
+    #shell{ display:none; }
+    body.browsing #shell{ display:block; }
+    body.library #catalogue{ display:none; }
+    #savedTab .bm{ width:16px; height:16px; flex:none; fill:currentColor; stroke:currentColor; }
+
+    /* the empty page asks a question rather than sitting blank */
+    #prompt{
+      position:fixed;
+      left:50%; top:46%;
+      transform:translate(-50%, -50%);
+      z-index:20;
+      font-size:15px;
+      letter-spacing:.04em;
+      color:#999;
+      white-space:nowrap;
+      pointer-events:none;
+      transition:opacity .4s ease;
+    }
+    body.browsing #prompt, body.exploring #prompt{ opacity:0; }
+
     /* ---------- search ---------- */
     .search{
       position:relative;
-      margin-bottom:8px;
+      margin-bottom:0;
     }
     .search input{
       width:100%;
@@ -74,7 +122,7 @@
       color:var(--ink);
       background:transparent;
       border:1.5px solid var(--line);
-      padding:13px 40px 13px 42px;
+      padding:13px 68px 13px 42px;
       outline:none;
       border-radius:0;
       -webkit-appearance:none;
@@ -113,7 +161,7 @@
       z-index:1;
       display:flex;
       align-items:center;
-      padding:13px 40px 13px 42px;
+      padding:13px 68px 13px 42px;
       font-family:var(--font);
       font-size:12px;
       letter-spacing:.1em;
@@ -124,6 +172,13 @@
       overflow:hidden;
     }
     .search .ghost[hidden]{ display:none; }
+    /* the suggestion dissolves as it runs up on the icons rather than
+       being sliced off by them */
+    .search .ghost{
+      transition:opacity .18s linear;
+      -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 86px), transparent calc(100% - 62px));
+              mask-image:linear-gradient(to right, #000 calc(100% - 86px), transparent calc(100% - 62px));
+    }
     .search .ghost .caret{
       display:inline-block;
       width:1px;
@@ -139,6 +194,33 @@
     }
     /* the ✕ and the navigate star share one slot and cross-fade:
        star while the field is empty, ✕ once there is a term */
+    /* the flag sits immediately left of the navigate mark, greyed until
+       it is doing something */
+    .search .flagtoggle{
+      position:absolute;
+      top:50%; right:36px;
+      transform:translateY(-50%);
+      width:26px; height:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:transparent;
+      border:none;
+      padding:0;
+      cursor:pointer;
+      z-index:3;
+    }
+    /* contrast past the pivot turns the red and blue solid black while
+       the white field stays white — no colour in the furniture */
+    .search .flagtoggle img{
+      display:block;
+      height:12px; width:auto;
+      filter:grayscale(1) contrast(1000%) opacity(.32);
+      transition:filter .3s ease;
+    }
+    .search .flagtoggle:hover img{ filter:grayscale(1) contrast(1000%); }
+    .search .flagtoggle[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
+
     .search .clear,
     .search .navtoggle{
       position:absolute;
@@ -162,15 +244,59 @@
     .search .clear{ opacity:0; pointer-events:none; }
     .search.has-term .clear{ opacity:1; pointer-events:auto; }
     .search.has-term .navtoggle{ opacity:0; pointer-events:none; }
-    .search .navtoggle img{ display:block; width:13px; height:13px; }
-    .search .navtoggle[aria-pressed="true"] img{ opacity:.45; }
+    .search .navtoggle img{
+      display:block; width:13px; height:13px;
+      opacity:.3;
+      transition:opacity .3s ease;
+    }
+    .search .navtoggle:hover img{ opacity:.65; }
+    .search .navtoggle[aria-pressed="true"] img{ opacity:1; }
+
+    .count-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:26px;
+    }
+    #savedBtn{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      background:transparent;
+      border:none;
+      padding:4px 2px;
+      cursor:pointer;
+      color:#bbb;
+      font-family:var(--font);
+      font-size:10px;
+      letter-spacing:.16em;
+      transition:color .3s ease;
+    }
+    #savedBtn:hover{ color:#777; }
+    #savedBtn[aria-pressed="true"]{ color:var(--ink); }
+    /* outline by default, filled once it holds something */
+    .bm{
+      display:block;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.4;
+      stroke-linejoin:round;
+      transition:fill .35s ease, transform .3s cubic-bezier(.3,1.6,.5,1);
+    }
+    [aria-pressed="true"] > .bm{ fill:currentColor; }
+    .bm.pop{ animation:bmPop .45s cubic-bezier(.3,1.5,.5,1); }
+    @keyframes bmPop{
+      0%  { transform:scale(1); }
+      45% { transform:scale(1.35); }
+      100%{ transform:scale(1); }
+    }
 
     .count{
       font-size:10px;
       letter-spacing:.18em;
       text-transform:uppercase;
       color:#888;
-      margin-bottom:26px;
       min-height:1.2em;
     }
 
@@ -178,6 +304,21 @@
     .nation{
       border:1.5px solid var(--line);
       margin-bottom:10px;
+      transform-origin:top center;
+    }
+    /* tabs topple in like pages falling flat, and fold back on the way out */
+    body.browsing .nation{ animation:toppleIn .46s cubic-bezier(.2,.75,.3,1) backwards; }
+    body.closing-tabs .nation{ animation:toppleOut .34s cubic-bezier(.5,0,.75,.4) forwards; }
+    @keyframes toppleIn{
+      from{ opacity:0; transform:perspective(760px) rotateX(-34deg) translateY(-16px); }
+      to  { opacity:1; transform:none; }
+    }
+    @keyframes toppleOut{
+      from{ opacity:1; transform:none; }
+      to  { opacity:0; transform:perspective(760px) rotateX(-26deg) translateY(-12px); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      body.browsing .nation, body.closing-tabs .nation{ animation:none; }
     }
     .nation > summary{
       list-style:none;
@@ -291,6 +432,25 @@
       font-weight:bold;
       line-height:1.4;
     }
+    .name-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .btn-save-inline{
+      flex:none;
+      background:transparent;
+      border:none;
+      padding:0;
+      margin-top:1px;
+      color:#c9c9c9;
+      cursor:pointer;
+      transition:color .3s ease;
+    }
+    .btn-save-inline:hover{ color:#888; }
+    .btn-save-inline[aria-pressed="true"]{ color:var(--ink); }
+
     .item .tag{
       display:block;
       margin-top:4px;
@@ -305,6 +465,143 @@
       font-size:9.5px;
       letter-spacing:.14em;
       color:#aaa;
+    }
+
+    /* ---------- a single garment, on its own ----------
+       The card turns on its side so the record and the request form open
+       beside the garment instead of pushing down below it. */
+    body.single-result .section-label{ display:none; }
+    body.single-result .item .tag{ display:none; }
+    body.single-result .nation > summary .qty{ display:none; }
+    /* .qty was the spacer holding the sign right; without it the sign
+       collapsed against the title */
+    body.single-result .nation > summary .n{ flex:1; }
+    body.single-result .grid{
+      grid-template-columns:1fr;
+      justify-items:center;
+    }
+    body.single-result .item{
+      flex-direction:row;
+      width:min(94vw, 760px);
+      align-items:stretch;
+      transition:width .62s cubic-bezier(.4,0,.2,1);
+    }
+    body.single-result .item .slot{
+      flex:0 0 46%;
+      aspect-ratio:auto;
+      border-bottom:none;
+      border-right:1.5px solid var(--line);
+      transition:flex-basis .62s cubic-bezier(.4,0,.2,1),
+                 border-right-color .3s ease .28s;
+    }
+    body.single-result .item .meta{
+      flex:1 1 auto;
+      padding:16px 18px 18px;
+      opacity:1;
+      transition:opacity .42s ease .2s,
+                 flex-basis .62s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* a lone garment does not fold in — it is drawn, named, then shifted */
+    body.single-result .nation{ animation:none !important; }
+
+    /* the build state must arrive instantly, not animate into itself —
+       otherwise the card visibly shrinks before it grows */
+    body.single-result .item.no-anim,
+    body.single-result .item.no-anim *{ transition:none !important; }
+
+    /* First the garment stands alone in its own box, centred; only once
+       the frame has drawn does it move aside and let the record in. */
+    body.single-result .item.build{
+      width:min(80vw, 520px);
+      border-color:transparent;      /* nothing, until the line draws it */
+    }
+    /* once the line has closed, the card's own border takes over */
+    body.single-result .item.build.framed{ border-color:var(--line); }
+    body.single-result .item{ transition:width .62s cubic-bezier(.4,0,.2,1),
+                                         border-color .32s ease; }
+    body.single-result .item.build .slot{
+      flex-basis:100%;
+      aspect-ratio:1 / 1;
+    }
+
+    /* every edge is drawn rather than switched on */
+    body.single-result .item{ border-color:var(--line); }
+    body.single-result .item .slot{ position:relative; border-right:none; }
+    body.single-result .item .slot::after{
+      content:"";
+      position:absolute;
+      top:0; right:0; bottom:0;
+      width:1.5px;
+      background:var(--line);
+      transform:scaleY(0);
+      transform-origin:top center;
+      transition:transform .5s cubic-bezier(.4,0,.2,1);
+    }
+    body.single-result .item:not(.build) .slot::after{ transform:scaleY(1); }
+
+    body.single-result .item .actions .btn-line,
+    body.single-result .item .req-send{
+      clip-path:inset(0 100% 0 0);
+      transition:clip-path .42s cubic-bezier(.4,0,.2,1);
+    }
+    body.single-result .item:not(.build) .actions .btn-line,
+    body.single-result .item:not(.build) .req-send{ clip-path:inset(0 0 0 0); }
+    body.single-result .item:not(.build) .actions .btn-line:nth-child(2){
+      transition-delay:.1s;
+    }
+    body.single-result .item .name-row{
+      clip-path:inset(0 100% 0 0);
+      transition:clip-path .45s cubic-bezier(.4,0,.2,1) .06s;
+    }
+    body.single-result .item:not(.build) .name-row{ clip-path:inset(0 0 0 0); }
+    body.single-result .item.build .meta{
+      opacity:0;
+      flex:0 0 0px;
+      min-width:0;          /* content was holding a sliver open */
+      padding-left:0;
+      padding-right:0;
+      overflow:hidden;
+    }
+    body.single-result .item .name{ font-size:14px; }
+    body.single-result .item:hover{ background:var(--bg); }
+
+    @media (max-width:640px){
+      body.single-result .item{ flex-direction:column; width:100%; }
+      body.single-result .item .slot{
+        flex:none;
+        aspect-ratio:1 / 1;
+        border-right:none;
+        border-bottom:1.5px solid var(--line);
+      }
+    }
+
+    /* ---------- opening a garment's record ----------
+       The frame draws itself around the garment, then the garment settles
+       left and its record arrives beside it. Reversed on the way out. */
+    .solo-frame{
+      position:absolute;
+      inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
+      overflow:visible;
+      z-index:3;
+    }
+    .solo-frame rect{
+      fill:none;
+      stroke:var(--line);
+      stroke-width:1.5;
+    }
+    body.single-result .item{ position:relative; }
+    body.single-result .item.unbuild .meta{ animation:metaLeave .3s ease both; }
+    @keyframes metaLeave{
+      from{ opacity:1; transform:none; }
+      to  { opacity:0; transform:translateX(14px); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      body.single-result .item.build .meta,
+      body.single-result .item.build .slot,
+      body.single-result .item.unbuild .meta{ animation:none; }
     }
 
     /* ---------- actions: always the last thing in the card ---------- */
@@ -329,6 +626,21 @@
       transition:background-color .3s ease, color .3s ease;
     }
     .btn-line:hover{ background:var(--faint); }
+    .btn-save{
+      flex:0 0 34px;
+      padding:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      color:#c2c2c2;
+      cursor:pointer;
+      transition:color .3s ease, background-color .3s ease;
+    }
+    .btn-save:hover{ background:var(--faint); color:#888; }
+    .btn-save[aria-pressed="true"]{ color:var(--ink); }
+
     .btn-line[hidden]{ display:none; }
 
     /* ---------- request ---------- */
@@ -530,6 +842,80 @@
     }
 
     /* ============================================================
+       EXPLORE — the whole archive as one spiral, pannable and zoomable
+       ============================================================ */
+    #explore{
+      position:fixed;
+      inset:0;
+      z-index:40;
+      background:var(--bg);
+      overflow:hidden;
+      cursor:grab;
+      touch-action:none;
+    }
+    #explore[hidden]{ display:none; }
+    #explore.grabbing{ cursor:grabbing; }
+
+    #spiral{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:0; height:0;
+      transform-origin:0 0;
+      will-change:transform;
+    }
+    /* garments sit as isolated cut-outs, no frame — the cards are built
+       large so zooming in resolves real detail rather than a blur */
+    .sp-item{
+      position:absolute;
+      width:150px;
+      transform:translate(-50%, -50%);
+      cursor:pointer;
+      opacity:0;
+      animation:spIn .5s ease forwards;
+    }
+    @keyframes spIn{ to{ opacity:1; } }
+    .sp-item .sp-slot{
+      width:150px; height:150px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:transform .2s ease;
+    }
+    .sp-item img{
+      max-width:100%; max-height:100%;
+      width:auto; height:auto;
+      object-fit:contain;               /* never crop a garment */
+      display:block;
+    }
+    .sp-item:hover .sp-slot{ transform:scale(1.06); }
+    /* no lettering anywhere in explore — garments only. A garment with no
+       photograph yet leaves a faint empty plot rather than a caption. */
+    .sp-item.sp-dim{
+      opacity:.06;
+      pointer-events:none;
+      transition:opacity .5s ease;
+    }
+    .sp-item .sp-code{
+      width:100%; height:100%;
+      border:1px dashed #f2f2f2;
+      font-size:0;
+    }
+
+    #exploreHint{
+      position:fixed;
+      left:50%;
+      top:18px;
+      transform:translateX(-50%);
+      z-index:41;
+      font-size:9px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#bbb;
+      pointer-events:none;
+    }
+
+    /* ============================================================
        DOCK — floating navigation, only alive while the reader is
        inside an open nation tab and the real search bar has gone
        off screen. Collapsed it is two black squares; the left one
@@ -538,10 +924,10 @@
     #dock{
       /* opened width sits between the nation tab's inner edge and the
          garment boxes' inner edge, so the arrow never touches the tab */
-      --dock-w:calc(min(94vw, 880px) - 18px);
+      --dock-w:calc(min(90vw, 880px) - 18px);
       position:fixed;
       left:50%;
-      bottom:22px;
+      bottom:112px;                 /* clears the fixed search bar */
       transform:translateX(-50%) translateY(14px);
       z-index:80;
       display:flex;
@@ -550,12 +936,102 @@
       opacity:0;
       pointer-events:none;
       transition:opacity .28s ease, transform .28s ease;
+      touch-action:none;
     }
     #dock.show{
       opacity:1;
       transform:translateX(-50%) translateY(0);
       pointer-events:auto;
     }
+    /* once dragged it holds an absolute position and drops the centring */
+    #dock.moved{
+      left:0; top:0; bottom:auto;
+      transform:translate(var(--dx), var(--dy));
+    }
+    #dock.moved.show{ transform:translate(var(--dx), var(--dy)); }
+    #dock.dragging{ transition:none; cursor:grabbing; }
+
+    /* with the main bar gone the dock drops to the bottom edge */
+    body.tab-open #dock:not(.moved){ bottom:26px; }
+
+    /* in explore the dock sits central but low, clear of the garments */
+    body.exploring #dock:not(.moved){
+      left:50%; top:auto; bottom:34px;
+      transform:translateX(-50%);
+    }
+
+    /* the middle button carries a stack of tools */
+    .face-stack{
+      position:relative;
+      display:block;
+      width:16px; height:16px;
+      overflow:hidden;
+    }
+    .face-stack .face{
+      position:absolute;
+      inset:0;
+      width:16px; height:16px;
+      opacity:0;
+      transform:translateY(120%);
+      transition:opacity .26s ease, transform .3s cubic-bezier(.4,0,.2,1);
+    }
+    .face-stack .face.is-on{ opacity:1; transform:translateY(0); }
+    .face-stack .face.is-out{ opacity:0; transform:translateY(-120%); }
+    /* the periodic reminder that this button carries more than one tool */
+    #dockExplore.hinting .face.is-on{ animation:faceHint .9s ease; }
+    @keyframes faceHint{
+      0%,100%{ opacity:1; transform:translateY(0); }
+      30%    { opacity:.25; transform:translateY(-22%); }
+      60%    { opacity:1;   transform:translateY(0); }
+    }
+
+    /* tools living inside the dock's own search bar */
+    .dq-tool{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      width:26px; height:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:transparent;
+      border:none;
+      padding:0;
+      cursor:pointer;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .26s ease;
+      z-index:4;
+    }
+    .dghost{
+      position:absolute;
+      inset:0;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      padding:0 96px 0 42px;
+      font-family:var(--font);
+      font-size:12px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:#bbb;
+      pointer-events:none;
+      white-space:nowrap;
+      overflow:hidden;
+      opacity:0;
+      transition:opacity .2s linear;
+      -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 112px), transparent calc(100% - 92px));
+              mask-image:linear-gradient(to right, #000 calc(100% - 112px), transparent calc(100% - 92px));
+    }
+    #dock.open .dghost{ opacity:1; }
+    .dghost[hidden]{ display:none; }
+
+    #dqFlag{ right:64px; }
+    #dqExplore{ right:36px; }
+    #dock.open .dq-tool{ opacity:1; pointer-events:auto; }
+    #dqFlag img{ display:block; height:12px; width:auto; filter:grayscale(1) contrast(1000%) opacity(.35); transition:filter .3s ease; }
+    #dqFlag[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
+    #dqExplore img{ display:block; width:13px; height:13px; }
 
     .dock-sq{
       flex:none;
@@ -580,7 +1056,7 @@
     }
     /* opened: fills the bar width less the arrow square and its gap */
     #dock.open #dockSearch{
-      width:calc(var(--dock-w) - 56px);
+      width:calc(var(--dock-w) - 112px);   /* two 46px buttons + two 10px gaps */
       background:var(--bg);
       cursor:text;
     }
@@ -606,7 +1082,7 @@
       letter-spacing:.1em;
       text-transform:uppercase;
       color:var(--ink);
-      padding:0 40px 0 42px;
+      padding:0 96px 0 42px;   /* room for flag, explore and the ✕ */
       border-radius:0;
       -webkit-appearance:none;
       opacity:0;
@@ -634,10 +1110,21 @@
     #dock.open #dockClear{ opacity:1; pointer-events:auto; }
     #dockClear:hover{ color:var(--ink); }
 
-    #dockUp img{ width:16px; height:16px; display:block; }
+    #dockLibrary{ color:#fff; }
+    #dockLibrary .bm{ width:16px; height:16px; }
+    #dockLibrary[aria-pressed="true"] .bm{ fill:#fff; }
 
     @media (max-width:640px){
-      #dock{ bottom:16px; --dock-w:calc(94vw - 18px); }
+      #dock{ bottom:16px; --dock-w:calc(88vw - 18px); }
+
+      /* the suggestion is long and the phone is narrow: shrink it and
+         fade it out before it reaches the flag and the star */
+      .search input, .search .ghost{
+        font-size:10px;
+        letter-spacing:.04em;
+        padding-right:78px;
+      }
+      #prompt{ font-size:13px; }
     }
 
     /* ---------- OPERATIONS DEPARTURE ----------
@@ -652,18 +1139,25 @@
 <body>
   <div class="wrap">
     <div id="shell">
-      <form class="search" role="search" onsubmit="return false;">
-        <label for="q" class="sr-only" hidden>Search the archive</label>
-        <img class="icon" src="/searchicon.svg" alt="" aria-hidden="true" width="16" height="16" />
-        <div class="ghost" id="ghost" aria-hidden="true"></div>
-        <input id="q" type="search" autocomplete="off" spellcheck="false"
-               placeholder="Search the archive" aria-label="Search the archive" />
-        <button type="button" class="clear" id="clearQ" aria-label="Clear search">✕</button>
-        <button type="button" class="navtoggle" id="navBtn" aria-label="Show navigation" aria-pressed="false">
-          <img src="/navigate.svg" alt="" aria-hidden="true" width="13" height="13">
+      <div class="count-row">
+        <div class="count" id="count"></div>
+        <button type="button" id="savedBtn" aria-pressed="false" aria-label="Show saved garments">
+          <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/></svg>
+          <span id="savedCount"></span>
         </button>
-      </form>
-      <div class="count" id="count"></div>
+      </div>
+
+      <details class="nation" id="savedTab" data-nation="saved" hidden>
+        <summary>
+          <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+            <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
+          </svg>
+          <span class="n">Saved</span>
+          <span class="qty" id="savedTabQty">0</span>
+          <span class="sign" aria-hidden="true"></span>
+        </summary>
+        <div class="nbody"><div class="grid" id="savedGrid"></div></div>
+      </details>
 
       <main id="catalogue" aria-label="Military surplus archive"></main>
       <div class="empty" id="empty" hidden>
@@ -673,10 +1167,32 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <nav class="back" aria-label="Return">
-      <a href="https://britishmaterialunit.com/" id="opsBtn" class="bm-button">Reset</a>
-    </nav>
+  <div id="prompt" aria-hidden="true"></div>
+
+  <!-- EXPLORE — every garment in the archive as one spiral -->
+  <div id="explore" hidden aria-hidden="true">
+    <div id="spiral"></div>
+  </div>
+
+  <!-- the search bar is the page's fixed furniture; everything else
+       is summoned from it -->
+  <div id="bottomBar">
+    <form class="search" role="search" onsubmit="return false;">
+      <label for="q" class="sr-only" hidden>Search the archive</label>
+      <img class="icon" src="/searchicon.svg" alt="" aria-hidden="true" width="16" height="16" />
+      <div class="ghost" id="ghost" aria-hidden="true"></div>
+      <input id="q" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Search the archive" aria-label="Search the archive" />
+      <button type="button" class="clear" id="clearQ" aria-label="Clear search">✕</button>
+      <button type="button" class="flagtoggle" id="flagBtn" aria-label="Browse nations" aria-pressed="false">
+        <img src="/flags/ukflag.png" alt="" aria-hidden="true">
+      </button>
+      <button type="button" class="navtoggle" id="navBtn" aria-label="Explore" aria-pressed="false">
+        <img src="/navigate.svg" alt="" aria-hidden="true" width="13" height="13">
+      </button>
+    </form>
     <footer id="foot">British Material Unit (BMU) — Archive</footer>
   </div>
 
@@ -684,12 +1200,29 @@
     <div id="dockSearch" class="dock-sq" role="button" tabindex="0" aria-label="Search the archive">
       <img class="ico ico-w" src="/searchicon-white.svg" alt="" aria-hidden="true" width="16" height="16">
       <img class="ico ico-b" src="/searchicon.svg" alt="" aria-hidden="true" width="16" height="16">
+      <div class="dghost" id="dghost" aria-hidden="true"></div>
       <input id="dq" type="search" autocomplete="off" spellcheck="false"
-             placeholder="Search the archive" aria-label="Search the archive" tabindex="-1">
+             placeholder="" aria-label="Search the archive" tabindex="-1">
+      <button type="button" id="dqFlag" class="dq-tool" aria-label="Group by nation" tabindex="-1" aria-pressed="false">
+        <img src="/flags/ukflag.png" alt="" aria-hidden="true">
+      </button>
+      <button type="button" id="dqExplore" class="dq-tool" aria-label="Leave explore" tabindex="-1">
+        <img src="/navigate.svg" alt="" aria-hidden="true" width="13" height="13">
+      </button>
       <button type="button" id="dockClear" aria-label="Close search" tabindex="-1">✕</button>
     </div>
-    <button type="button" id="dockUp" class="dock-sq" aria-label="Back to top">
-      <img src="/arrowup-white.svg" alt="" aria-hidden="true" width="16" height="16">
+    <!-- one button holding several tools; scroll or swipe it to change -->
+    <button type="button" id="dockExplore" class="dock-sq" aria-label="Explore the archive" aria-pressed="false">
+      <span class="face-stack">
+        <img class="face is-on" src="/circle-white.svg" alt="" aria-hidden="true" width="16" height="16">
+        <img class="face" src="/menu-white.svg" alt="" aria-hidden="true" width="16" height="16">
+        <img class="face" src="/close-white.svg" alt="" aria-hidden="true" width="16" height="16">
+      </span>
+    </button>
+    <button type="button" id="dockLibrary" class="dock-sq" aria-pressed="false" aria-label="Gather saved garments">
+      <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
+      </svg>
     </button>
   </div>
 
@@ -704,7 +1237,7 @@
        country, the native spelling, the abbreviation. Searching any of
        them finds the nation's garments. */
     const NATIONS = [
-      { key:"british", label:"British", abbr:"UK", flag:"ukflag.png", open:true,
+      { key:"british", label:"British", abbr:"UK", flag:"ukflag.png", open:false,
         alias:["british","britain","great britain","united kingdom","uk","gb","england","english","scotland","wales"] },
       { key:"danish", label:"Danish", abbr:"DK", flag:"denmarkflag.png", open:false,
         alias:["danish","denmark","danmark","dansk","dk"] },
@@ -714,6 +1247,8 @@
         alias:["russian","russia","rossiya","rossiyskaya","soviet","ussr","ru"] },
       { key:"united-states", label:"United States", abbr:"US", flag:"usaflag.png", open:false,
         alias:["united states","united states of america","usa","us","america","american","stateside"] },
+      { key:"iraqi", label:"Iraqi", abbr:"IQ", flag:"iraqflag.png", open:false,
+        alias:["iraqi","iraq","al-iraq","mesopotamia"] },
       { key:"unattributed", label:"Unattributed", abbr:"UNA", flag:null, open:false,
         alias:["unattributed","unknown","unidentified"] }
     ];
@@ -734,67 +1269,20 @@
       /* ---------------- BRITISH ---------------- */
 
       /* Jackets / Shirts / Smocks */
-      { n:"british", name:"British Army 1980s Falklands DPM Jacket", cat:"Jackets / Shirts", img:"BA1980FWCJ.png", ref:"BA1980FWCJ" },
-      { n:"british", name:"British DPM Windproof Smock", cat:"Jackets / Shirts" },
-      { n:"british", name:"British MTP Windproof Smock", cat:"Jackets / Shirts" },
-      { n:"british", name:"British MTP Windproof Smock (Cadet Sizes)", cat:"Jackets / Shirts" },
-      { n:"british", name:"British MTP Windproof Smock — Grade 2", cat:"Jackets / Shirts" },
-      { n:"british", name:"British '95 DPM Shirt", cat:"Jackets / Shirts" },
-      { n:"british", name:"British Desert DPM Shirt", cat:"Jackets / Shirts" },
-      { n:"british", name:"British MTP PCS Shirt", cat:"Jackets / Shirts" },
-      { n:"british", name:"British MTP PCS Shirt (Cadet Size 88)", cat:"Jackets / Shirts" },
-      { n:"british", name:"British MTP Barrack Shirt", cat:"Jackets / Shirts" },
-      { n:"british", name:"British Cold Weather Norwegian Shirt", cat:"Jackets / Shirts" },
-      { n:"british", name:"British OG Fleece", cat:"Jackets / Shirts" },
-      { n:"british", name:"British OG Jumper", cat:"Jackets / Shirts" },
 
       /* Trousers / Coveralls */
-      { n:"british", name:"British Army 1980s Foul Weather Trousers", cat:"Trousers / Coveralls", img:"BA80FWT.png", ref:"BA80FWT" },
-      { n:"british", name:"British DPM Trousers (New)", cat:"Trousers / Coveralls" },
-      { n:"british", name:"British MTP Trousers (Cadet Sizes)", cat:"Trousers / Coveralls" },
-      { n:"british", name:"British DPM Goretex Trousers", cat:"Trousers / Coveralls" },
-      { n:"british", name:"British DPM PVC Trousers", cat:"Trousers / Coveralls" },
-      { n:"british", name:"British MK3 Aircrew Trousers", cat:"Trousers / Coveralls" },
-      { n:"british", name:"British OG Coveralls", cat:"Trousers / Coveralls" },
 
       /* Bags / Webbing / Vests */
-      { n:"british", name:"British DPM PLCE Bergen (Grade 2)", cat:"Bags / Webbing" },
-      { n:"british", name:"British DPM Other Arms Bergen", cat:"Bags / Webbing" },
-      { n:"british", name:"British DPM PLCE Webbing Set", cat:"Bags / Webbing" },
-      { n:"british", name:"British DPM Main Yoke (New)", cat:"Bags / Webbing" },
-      { n:"british", name:"British DPM OPS Vest", cat:"Bags / Webbing" },
-      { n:"british", name:"British Desert DPM MOLLE Vest", cat:"Bags / Webbing" },
-      { n:"british", name:"British Desert DPM CBA Cover", cat:"Bags / Webbing" },
-      { n:"british", name:"British DPM Grenade Bandolier", cat:"Bags / Webbing" },
 
       /* Pouches / Cases */
-      { n:"british", name:"British DPM 349 Radio Pouch", cat:"Pouches / Cases" },
-      { n:"british", name:"British DPM Motorola Communications Pouch", cat:"Pouches / Cases" },
-      { n:"british", name:"British Desert KDU Pouch", cat:"Pouches / Cases" },
-      { n:"british", name:"British MTP Osprey Double Mag Pouch", cat:"Pouches / Cases" },
-      { n:"british", name:"British DPM Respirator Case", cat:"Pouches / Cases" },
-      { n:"british", name:"British MTP Respirator Case", cat:"Pouches / Cases" },
 
       /* Headwear */
-      { n:"british", name:"British DPM Crap Hat", cat:"Headwear" },
-      { n:"british", name:"British MTP Crap Hat", cat:"Headwear" },
-      { n:"british", name:"British MTP Boonie Hat", cat:"Headwear" },
-      { n:"british", name:"British MTP MK6 Combat Helmet Cover", cat:"Headwear" },
 
       /* Footwear */
-      { n:"british", name:"British / US Jungle Boots", cat:"Footwear" },
 
       /* Sleep / Shelter / Field */
-      { n:"british", name:"British BASHA (Grade 2)", cat:"Sleep / Shelter / Field" },
-      { n:"british", name:"British Camouflage Net (4 x 4m)", cat:"Sleep / Shelter / Field" },
-      { n:"british", name:"British C95 Sleep System", cat:"Sleep / Shelter / Field" },
-      { n:"british", name:"British Jungle Sleeping Bag", cat:"Sleep / Shelter / Field" },
-      { n:"british", name:"British Mediumweight Modular Sleeping Bag", cat:"Sleep / Shelter / Field" },
-      { n:"british", name:"British OG Bivvy Bag (Grade 2)", cat:"Sleep / Shelter / Field" },
-      { n:"british", name:"British 58 Pattern Water Bottle", cat:"Sleep / Shelter / Field" },
 
       /* Hardware / Misc */
-      { n:"british", name:"British Dry Break Couplings Fuel Transfer Valve", cat:"Hardware / Misc" },
 
       /* ---------------- DANISH ---------------- */
       { n:"danish", name:"Danish Army 1990s M/84 Camouflage HMAK Jacket", cat:"Jackets / Shirts",
@@ -813,6 +1301,10 @@
       /* ---------------- UNITED STATES ---------------- */
       { n:"united-states", name:"United States Army 1990s Gulf Camouflage Jacket", cat:"Jackets / Shirts",
         img:"USA1990GWC0.png", ref:"USA1990GWC0", src:"East West Trading" },
+
+      /* ---------------- IRAQI ---------------- */
+      { n:"iraqi", name:"Iraqi Army 1980s Desert DPM Combat Jacket", cat:"Jackets / Shirts",
+        img:"IQA1980DCJ.png", ref:"IQA1980DCJ" },
 
       /* ---------------- UNATTRIBUTED ---------------- */
       { n:"unattributed", name:"Unidentified Garment", cat:"Unclassified",
@@ -899,6 +1391,7 @@
       const details = document.createElement('details');
       details.className = 'nation';
       details.dataset.nation = nation.key;
+      details.dataset.label  = nation.label;
       details.open = nation.open;
       const flag = nation.flag
         ? `<img class="flag" src="/flags/${esc(nation.flag)}" alt="" aria-hidden="true" loading="lazy">`
@@ -942,7 +1435,14 @@
               <span class="pending" hidden>${esc(fileName)}</span>
             </div>
             <div class="meta">
-              <div class="name">${esc(p.name)}</div>
+              <div class="name-row">
+                <div class="name">${esc(p.name)}</div>
+                <button type="button" class="btn-save-inline" aria-pressed="false" aria-label="Save to library">
+                  <svg class="bm" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
+                  </svg>
+                </button>
+              </div>
               <span class="tag">${esc(p.cat)}</span>
               ${p.ref ? `<span class="ref">${esc(p.ref)}${p.src ? ` — ${esc(p.src)}` : ''}</span>` : ''}
               <div class="req-panel">
@@ -966,6 +1466,10 @@
           const img = el.querySelector('img');
           const pending = el.querySelector('.pending');
           img.addEventListener('error', () => { img.remove(); pending.hidden = false; });
+          el.dataset.id   = `${nation.key}/${slugBase(p.name)}`;
+          el.dataset.gname = p.name;
+          el.dataset.gref  = p.ref || '';
+          el.dataset.gtxt  = txt;
           wireCard(el, p.name, p.ref, txt);
           grid.appendChild(el);
         });
@@ -977,6 +1481,11 @@
       // take over the summary's own toggling so it can slide
       details.querySelector('summary').addEventListener('click', e => {
         e.preventDefault();
+        // on a single garment reached from explore, the − is the way back
+        if (document.body.classList.contains('single-result') && lastExploreItem){
+          returnToExplore();
+          return;
+        }
         setNationOpen(details, !details.open);
       });
 
@@ -990,6 +1499,11 @@
     const searchForm = document.querySelector('.search');
     const countEl = document.getElementById('count');
     const emptyEl = document.getElementById('empty');
+    const savedBtn      = document.getElementById('savedBtn');
+    const savedTab      = document.getElementById('savedTab');
+    const savedGrid     = document.getElementById('savedGrid');
+    const savedTabQty   = document.getElementById('savedTabQty');
+    const savedCountEl  = document.getElementById('savedCount');
     const emptyLine  = document.getElementById('emptyLine');
     const flagStrip  = document.getElementById('flagStrip');
     const flagRail   = document.getElementById('flagRail');
@@ -1149,13 +1663,88 @@
       );
     }
 
+    /* ============================================================
+       SAVED LIBRARY
+       Kept in localStorage so a return visit still has the reader's
+       shortlist; falls back to memory when storage is unavailable.
+       ============================================================ */
+    const SAVED_KEY = 'bmu.archive.saved';
+    let savedIds = [];
+    let savedOnly = false;
+
+    try {
+      savedIds = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+      if (!Array.isArray(savedIds)) savedIds = [];
+    } catch { savedIds = []; }
+
+    function persistSaved(){
+      try { localStorage.setItem(SAVED_KEY, JSON.stringify(savedIds)); } catch {}
+    }
+    function isSaved(id){ return savedIds.includes(id); }
+    function toggleSaved(id){
+      const i = savedIds.indexOf(id);
+      if (i === -1) savedIds.push(id); else savedIds.splice(i, 1);
+      persistSaved();
+      paintSaved();
+    }
+
+    /* the tabs show either because the flag asked for them or because a
+       search is running — a term must always have somewhere to land,
+       otherwise typing on the bare page looks broken */
+    let nationsOpen = false;
+
+    /* The tab is built from clones of the real cards, re-wired through the
+       same path, so a saved garment behaves identically wherever it sits. */
+    function buildSavedTab(){
+      savedGrid.innerHTML = '';
+      savedIds.forEach(id => {
+        const src = allItems.find(el => el.dataset.id === id);
+        if (!src) return;
+        const copy = src.cloneNode(true);
+        copy.hidden = false;
+        const img = copy.querySelector('img');
+        const pending = copy.querySelector('.pending');
+        if (img && pending){
+          img.addEventListener('error', () => { img.remove(); pending.hidden = false; });
+        }
+        wireCard(copy, copy.dataset.gname, copy.dataset.gref, copy.dataset.gtxt);
+        savedGrid.appendChild(copy);
+      });
+      savedTabQty.textContent = savedIds.length;
+      // its own section: present only while the bookmark is selected
+      savedTab.hidden = !savedOnly || savedIds.length === 0;
+      if (savedTab.hidden) savedTab.open = false;
+    }
+
+    function paintSaved(){
+      buildSavedTab();
+      document.querySelectorAll('.item').forEach(el => {
+        const on = isSaved(el.dataset.id) ? 'true' : 'false';
+        el.querySelectorAll('.btn-save, .btn-save-inline')
+          .forEach(b => b.setAttribute('aria-pressed', on));
+      });
+      const n = savedIds.length;
+      savedCountEl.textContent = n ? String(n) : '';
+      savedBtn.setAttribute('aria-pressed', savedOnly ? 'true' : 'false');
+      if (savedOnly && !n) savedOnly = false;
+    }
+
+    let soloId = null;      // one garment held open on its own
+    // declared here because filter() reads it and filter() runs at init,
+    // long before the count typewriter further down is reached
+    let countTyping = false;
+
     function filter(){
       const term = q.value.trim().toLowerCase();
       // swaps the right-hand slot between the star and the ✕
       searchForm.classList.toggle('has-term', !!term);
+      document.body.classList.toggle('browsing', nationsOpen || !!term);
+      if (term) hidePrompt();
 
       allItems.forEach(el => {
-        el.hidden = term ? !itemMatches(el, term) : false;
+        if (soloId){ el.hidden = el.dataset.id !== soloId; return; }
+        const inLibrary = !savedOnly || isSaved(el.dataset.id);
+        el.hidden = !inLibrary || (term ? !itemMatches(el, term) : false);
       });
 
       allGroups.forEach(g => {
@@ -1166,18 +1755,40 @@
       allNations.forEach(d => {
         const hits = d.querySelectorAll('.item:not([hidden])').length;
         shown += hits;
-        d.hidden = term ? hits === 0 : false;
+        d.hidden = (term || soloId) ? hits === 0 : false;
         d.querySelector('.qty').textContent = term ? hits : d.querySelectorAll('.item').length;
         if (term) d.open = true;
+        // a garment opened from explore must land on its record, not on a
+        // shut tab — this reset was undoing the tab the click had opened
+        else if (soloId) d.open = hits > 0;
         else d.open = NATIONS.find(x => x.key === d.dataset.nation).open;
       });
+
+      // a lone result is presented on its own, without section furniture
+      const lone = !!soloId || (!!term && shown === 1);
+      document.body.classList.toggle('single-result', lone);
+
+      allNations.forEach(d => {
+        const label = d.querySelector('summary .n');
+        if (label) label.textContent = d.dataset.label;
+      });
+      if (lone){
+        const only = catalogue.querySelector('.item:not([hidden])');
+        const tab  = only && only.closest('.nation');
+        if (tab){
+          tab.querySelector('summary .n').textContent =
+            only.querySelector('.name').textContent;
+        }
+      }
 
       const noHits = !!term && shown === 0;
       if (noHits) queueEmpty(term); else hideEmpty();
 
-      countEl.textContent = term
+      if (!countTyping) countEl.textContent = soloId
+        ? ''
+        : term
         ? `${shown} ${shown === 1 ? 'garment' : 'garments'} matching “${q.value.trim()}”`
-        : `${allItems.length} garments`;
+        : `${shown} ${shown === 1 ? 'garment' : 'garments'}`;
     }
 
     /* the ✕ on the main bar puts the whole page back to how it loaded */
@@ -1188,6 +1799,26 @@
       filter();                      // restores each tab's default open state
       window.scrollTo({ top:0, behavior:REDUCED ? 'auto' : 'smooth' });
     }
+
+    savedBtn.addEventListener('click', () => {
+      if (!savedIds.length && !savedOnly){
+        // nothing kept yet — say so rather than showing an empty page
+        countEl.textContent = 'Nothing saved yet — use the bookmark on a garment';
+        return;
+      }
+      savedOnly = !savedOnly;
+      soloId = null;
+      nationsOpen = true;
+      document.body.classList.add('browsing');
+      document.body.classList.toggle('library', savedOnly);
+      paintSaved();
+      filter();
+      if (savedOnly){ savedTab.open = true; }
+      countEl.textContent = savedOnly
+        ? `${savedIds.length} ${savedIds.length === 1 ? 'garment' : 'garments'}`
+        : `${allItems.length} garments`;
+      syncChrome();
+    });
 
     q.addEventListener('input', filter);
     clearQ.addEventListener('click', resetPage);
@@ -1201,12 +1832,37 @@
        Sits behind the input and yields the moment anything is typed.
        ============================================================ */
     const ghost   = document.getElementById('ghost');
-    const SUGGESTIONS = [...new Set(ITEMS.map(p => p.name))];
+    const NAME_POOL = [...new Set(ITEMS.map(p => p.name))];
+    const CAMO_POOL = ['DPM','MTP','Desert DPM','Vegetato','M/84','Woodland','Flecktarn','OG','Gulf Camouflage'];
+    const NATION_POOL = NATIONS.filter(n => n.flag).map(n => n.label);
+    const TYPE_POOL = [...new Set(ITEMS.map(p => p.cat))];
+
+    /* the running suggestion answers whichever question is being asked */
+    let SUGGESTIONS = NAME_POOL;
+    function poolForPrompt(i){
+      if (i === 2) return NATION_POOL;
+      if (i === 3) return CAMO_POOL;
+      if (i === 4) return TYPE_POOL;
+      return NAME_POOL;
+    }
 
     const gText  = document.createTextNode('');
     const gCaret = document.createElement('span');
     gCaret.className = 'caret';
     ghost.append(gText, gCaret);
+
+    /* the dock's bar carries the same running suggestion, so it prompts
+       the same way the main bar does rather than sitting blank */
+    const dghost  = document.getElementById('dghost');
+    const dgText  = document.createTextNode('');
+    const dgCaret = document.createElement('span');
+    dgCaret.className = 'caret';
+    dghost.append(dgText, dgCaret);
+
+    function mirrorGhost(v){
+      dgText.nodeValue = v;
+      dghost.hidden = document.getElementById('dq').value !== '';
+    }
 
     /* hold is long enough for the caret to blink several times before
        the suggestion is deleted again */
@@ -1214,6 +1870,23 @@
     let sIdx = 0, sPos = 0, sPhase = 'typing', sTimer = null;
 
     function ghostVisible(){ return q.value === ''; }
+
+    /* The suggestion is a full garment name and the bar is narrow on a
+       phone. Measure the run each tick and dim it as it closes on the
+       right-hand icons, so it dissolves instead of colliding. */
+    const ghostRange = document.createRange();
+    function ghostFade(){
+      const cs = getComputedStyle(ghost);
+      const room = ghost.clientWidth
+                 - parseFloat(cs.paddingLeft)
+                 - parseFloat(cs.paddingRight);
+      if (room <= 0) return;
+      ghostRange.selectNodeContents(gText);
+      const used = ghostRange.getBoundingClientRect().width / room;
+      ghost.style.opacity = used <= 0.78
+        ? '1'
+        : Math.max(0.1, 1 - (used - 0.78) / 0.3).toFixed(2);
+    }
 
     function suggestTick(){
       if (!ghostVisible()){ sTimer = setTimeout(suggestTick, 400); return; }
@@ -1224,11 +1897,14 @@
         if (sPos < word.length){
           sPos++;
           gText.nodeValue = word.slice(0, sPos);
+          mirrorGhost(gText.nodeValue);
+          ghostFade();
           gCaret.classList.remove('blink');
           sTimer = setTimeout(suggestTick, TYPE_MS);
         } else {
           sPhase = 'holding';
           gCaret.classList.add('blink');       // blink at the end of the suggestion
+          dgCaret.classList.add('blink');
           sTimer = setTimeout(suggestTick, HOLD_MS);
         }
       } else if (sPhase === 'holding'){
@@ -1239,6 +1915,8 @@
         if (sPos > 0){
           sPos--;
           gText.nodeValue = word.slice(0, sPos);
+          mirrorGhost(gText.nodeValue);
+          ghostFade();
           sTimer = setTimeout(suggestTick, DELETE_MS);
         } else {
           sPhase = 'typing';
@@ -1281,6 +1959,18 @@
     const REQUEST_TO = 'hello@britishmaterialunit.com';
 
     function wireCard(el, name, ref, txtPath){
+      el.querySelectorAll('.btn-save, .btn-save-inline').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          toggleSaved(el.dataset.id);
+          const mark = btn.querySelector('.bm');
+          if (mark && isSaved(el.dataset.id)){
+            mark.classList.remove('pop');
+            void mark.offsetWidth;
+            mark.classList.add('pop');
+          }
+        });
+      });
       const reqBtn   = el.querySelector('.req-toggle');
       const infoBtn  = el.querySelector('.info-toggle');
       const reqPanel = el.querySelector('.req-panel');
@@ -1360,19 +2050,15 @@
        ============================================================ */
     const dock        = document.getElementById('dock');
     const dockSearch  = document.getElementById('dockSearch');
-    const dockUp      = document.getElementById('dockUp');
+    const dockLibrary = document.getElementById('dockLibrary');
     const dockClear   = document.getElementById('dockClear');
     const dq          = document.getElementById('dq');
 
-    let searchOffscreen = false;
-    let dockForced = false;      // summoned by the navigate star
-
-    function anyNationOpen(){
-      return allNations.some(d => d.open && !d.hidden);
-    }
+    let dockForced = false;      // summoned by the explore mark
 
     function collapseDock(){
       dock.classList.remove('open');
+      document.body.classList.remove('dock-open');
       dq.tabIndex = -1;
       dockClear.tabIndex = -1;
       dq.blur();
@@ -1380,38 +2066,106 @@
 
     function openDock(){
       dock.classList.add('open');
+      document.body.classList.add('dock-open');
+      setFace(0, true);        // never leave the exit under a searching finger
       dq.tabIndex = 0;
       dockClear.tabIndex = 0;
       dq.value = q.value;
       dq.focus({ preventScroll:true });
     }
 
-    function updateDock(){
-      // while the bar is open the reader is typing in it — it stays put
-      // even if the filtered page got short enough to reveal the main bar
-      const show = dockForced ||
-                   (anyNationOpen() &&
-                    (searchOffscreen || dock.classList.contains('open')));
-      dock.classList.toggle('show', show);
-      dock.setAttribute('aria-hidden', show ? 'false' : 'true');
-      if (!show){ collapseDock(); upStage = null; }
+    /* The search bar is permanent now, so the dock is no longer tied to
+       it scrolling away — it is simply what the explore mark summons. */
+    function anyNationOpen(){
+      return allNations.some(d => d.open && !d.hidden);
     }
 
-    /* the star summons the black buttons whatever the page is doing */
+    /* explore's element is declared further down, so its state is tracked
+       here rather than read off the DOM — updateDock() runs before it */
+    let exploreOn = false;
+
+    /* The three boxes appear whenever there is something to navigate:
+       the star was pressed, a nation tab is open, or explore is running.
+       Opening a tab therefore hands the reader the dock's own search bar
+       in place of the main one. */
+    function updateDock(){
+      const show = dockForced || anyNationOpen() || exploreOn;
+      dock.classList.toggle('show', show);
+      dock.setAttribute('aria-hidden', show ? 'false' : 'true');
+      // whenever the three boxes are out, the star reads active
+      navBtn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      if (!show) collapseDock();
+    }
+
+    /* Everything that returns the archive to rest goes through here, so
+       the star can never end up a step behind the buttons it summoned. */
+    function goHome(){
+      soloTimers.forEach(clearTimeout);
+      soloTimers = [];
+      soloId = null;
+      if (!explore.hidden) endExplore(false);
+      dockForced = false;
+      navBtn.setAttribute('aria-pressed', 'false');
+      collapseDock();
+      updateDock();
+
+      nationsOpen = false;
+      flagBtn.setAttribute('aria-pressed', 'false');
+      dqFlag.setAttribute('aria-pressed', 'false');
+      document.body.classList.remove('closing-tabs');
+      allNations.forEach(d => { d.open = false; });
+
+      q.value = '';
+      dq.value = '';
+      filter();
+      syncGhost();
+      setFace(0, true);
+      showPrompt();
+    }
+
+    /* Pushing further up when already at the top folds the open tab away.
+       Only downward reading opens tabs — going up never does, so scrolling
+       back never surprises the reader with more to read. */
+    let upAcc = 0, upLock = 0;
+    window.addEventListener('wheel', e => {
+      if (exploreOn || !document.body.classList.contains('browsing')) return;
+      if (e.deltaY >= 0){ upAcc = 0; return; }
+      if (window.scrollY > 6){ upAcc = 0; return; }
+
+      upAcc += -e.deltaY;
+      const now = Date.now();
+      if (upAcc > 130 && now - upLock > 700){
+        const open = allNations.filter(d => d.open && !d.hidden);
+        if (open.length){
+          setNationOpen(open[open.length - 1], false);
+          upLock = now;
+          upAcc = 0;
+        }
+      }
+    }, { passive:true });
+
+    /* an opening or closing tab changes what furniture belongs on screen */
+    function syncChrome(){
+      document.body.classList.toggle('tab-open', anyNationOpen());
+      updateDock();
+    }
+    allNations.forEach(d => d.addEventListener('toggle', syncChrome));
+
+    /* the star is a straight toggle: anything open → home, otherwise
+       straight into explore */
     navBtn.addEventListener('click', () => {
-      dockForced = !dockForced;
-      navBtn.setAttribute('aria-pressed', dockForced ? 'true' : 'false');
+      if (exploreOn){ closeExplore(); return; }      // tabs, if any, stay
+      if (dockForced){
+        dockForced = false;
+        collapseDock();
+        updateDock();
+        return;
+      }
+      dockForced = true;
+      setFace(0, true);
       updateDock();
+      openExplore();
     });
-
-    // the dock exists precisely because the real search bar has gone
-    new IntersectionObserver(([e]) => {
-      searchOffscreen = !e.isIntersecting;
-      updateDock();
-    }, { threshold:0 }).observe(searchForm);
-
-    // opening or closing any tab can bring the dock in or send it away
-    allNations.forEach(d => d.addEventListener('toggle', updateDock));
 
     dockSearch.addEventListener('click', () => {
       if (!dock.classList.contains('open')) openDock();
@@ -1436,7 +2190,11 @@
     }
 
     dq.addEventListener('input', () => {
+      dghost.hidden = dq.value !== '';
       const term = dq.value.trim().toLowerCase();
+
+      // in explore the search regroups the field rather than the page
+      if (exploreOn){ clusterSearch(term); return; }
 
       if (term && countMatches(term) === 0) return;   // hold what's there
 
@@ -1462,6 +2220,14 @@
       if (e.key === 'Escape'){ e.preventDefault(); resetDock(); return; }
       if (e.key !== 'Enter') return;
       e.preventDefault();
+
+      // in explore, enter gathers everything that answers the term and
+      // settles on the group — a nation becomes that nation's cluster
+      if (exploreOn){
+        clusterSearch(dq.value.trim().toLowerCase());
+        return;
+      }
+
       const first = catalogue.querySelector('.item:not([hidden])');
       if (first) first.scrollIntoView({ behavior:'smooth', block:'center' });
     });
@@ -1475,67 +2241,868 @@
     }
     dockClear.addEventListener('click', e => { e.stopPropagation(); resetDock(); });
 
-    /* which open nation the reader is currently inside */
-    function currentNation(open){
-      let cur = open[0];
-      open.forEach(d => {
-        if (d.getBoundingClientRect().top <= 8) cur = d;
-      });
-      return cur;
-    }
 
-    /* which stage the arrow is on. Held explicitly rather than inferred
-       from scroll position, so a quick second press still works while
-       the first press's smooth scroll is still running. */
-    let upStage = null;
-
-    dockUp.addEventListener('click', () => {
-      const behavior = REDUCED ? 'auto' : 'smooth';
-      const open = allNations.filter(d => d.open && !d.hidden);
-
-      if (!open.length){
-        upStage = null;
-        window.scrollTo({ top:0, behavior });
-        return;
-      }
-
-      if (upStage && open.length === 1 && open[0] === upStage){
-        // second press: everything shut, back to the very top
-        allNations.forEach(d => setNationOpen(d, false));
-        upStage = null;
-        window.scrollTo({ top:0, behavior });
-      } else {
-        // first press: keep the tab you are in, close the rest, sit at its head
-        const cur    = currentNation(open);
-        const others = allNations.filter(d => d !== cur && d.open);
-        others.forEach(d => setNationOpen(d, false));
-        upStage = cur;
-        // wait for the slide, otherwise we'd aim at a position the
-        // collapsing tabs above are about to move
-        if (others.length && !REDUCED) setTimeout(() => scrollToNation(cur), 340);
-        else scrollToNation(cur);
-      }
-    });
 
     updateDock();
 
-    /* ---------- operations: fade the page out, then hand over ---------- */
-    const opsBtn = document.getElementById('opsBtn');
-    let leaving = false;
+    /* ============================================================
+       NATIONS — the tabs are hidden until the flag asks for them
+       ============================================================ */
+    const flagBtn = document.getElementById('flagBtn');
 
-    opsBtn.addEventListener('click', e => {
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-      e.preventDefault();
-      if (leaving) return;
-      leaving = true;
+    /* ---------- the question on the bare page ----------
+       Re-typed every time the archive comes back to rest, so returning
+       feels like arriving rather than finding a leftover. */
+    const promptEl = document.getElementById('prompt');
+    const PROMPTS = [
+      'What are you looking for?',
+      'What have you got in mind?',
+      'Which nation are you after?',
+      'Looking for a particular camouflage?',
+      'Smock, trousers, bergen — what do you need?'
+    ];
+    let promptIx = Math.floor(Math.random() * PROMPTS.length);
+    let promptTimer = null;
 
-      const href = opsBtn.getAttribute('href');
-      if (REDUCED){ window.location.href = href; return; }
+    function showPrompt(){
+      clearTimeout(promptTimer);
+      promptEl.hidden = false;
+      // a different line each time the archive comes back to rest
+      promptIx = (promptIx + 1) % PROMPTS.length;
+      // the suggestions follow the question
+      SUGGESTIONS = poolForPrompt(promptIx);
+      sIdx = 0; sPos = 0; sPhase = 'typing';
+      const line = PROMPTS[promptIx];
+      promptEl.textContent = '';
+      promptEl.style.opacity = '';
+      if (REDUCED){ promptEl.textContent = line; return; }
+      let i = 0;
+      (function tick(){
+        if (i < line.length){
+          promptEl.textContent += line.charAt(i++);
+          promptTimer = setTimeout(tick, 55);
+        }
+      })();
+    }
 
-      document.body.classList.add('leaving');
-      setTimeout(() => { window.location.href = href; }, 300);
+    function hidePrompt(){
+      clearTimeout(promptTimer);
+      promptEl.style.opacity = '0';
+    }
+
+    /* the bare page always carries its question */
+    function restPrompt(){
+      if (!exploreOn && !nationsOpen && !savedOnly && !soloId && !q.value.trim()){
+        showPrompt();
+      }
+    }
+
+    /* the tabs topple in one after another, and fold back out the same
+       way rather than simply vanishing */
+    function dealTabs(){
+      allNations.forEach((d, i) => {
+        d.style.animation = 'none';
+        void d.offsetWidth;
+        d.style.animation = '';
+        d.style.animationDelay = (i * 65) + 'ms';
+      });
+    }
+
+    let countTimer = null;
+
+    function typeCount(){
+      clearTimeout(countTimer);
+      const text = `${allItems.length} garments`;
+      countEl.textContent = '';
+      if (REDUCED){ countEl.textContent = text; return; }
+      countTyping = true;
+      let i = 0;
+      (function tick(){
+        if (i < text.length){
+          countEl.textContent += text.charAt(i++);
+          countTimer = setTimeout(tick, 32);
+        } else {
+          countTyping = false;
+        }
+      })();
+    }
+
+    /* the tally unwrites itself as the tabs fold away, so both halves of
+       the header leave the same way they arrived */
+    function untypeCount(){
+      clearTimeout(countTimer);
+      countTyping = true;
+      if (REDUCED){ countEl.textContent = ''; return; }
+      (function tick(){
+        const t = countEl.textContent;
+        if (t.length){
+          countEl.textContent = t.slice(0, -1);
+          countTimer = setTimeout(tick, 22);
+        } else {
+          countTyping = false;
+        }
+      })();
+    }
+
+    function setBrowsing(on){
+      nationsOpen = on;
+      if (on){
+        collapseDock();              // never two search bars at once
+        document.body.classList.remove('closing-tabs');
+        document.body.classList.add('browsing');
+        dealTabs();
+        typeCount();
+      } else {
+        if (!q.value.trim()){
+          // fold away, then drop out of browsing entirely
+          untypeCount();
+          document.body.classList.add('closing-tabs');
+          setTimeout(() => {
+            document.body.classList.remove('closing-tabs');
+            allNations.forEach(d => { d.open = false; });
+            filter();          // recomputes browsing from term + nationsOpen
+            restPrompt();
+          }, REDUCED ? 0 : 420);
+        } else {
+          allNations.forEach(d => { d.open = false; });
+        }
+      }
+      flagBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      updateDock();
+    }
+
+    flagBtn.addEventListener('click', () => {
+      // inside explore the flag regroups the field by nation instead
+      if (!explore.hidden){
+        const next = spiralMode === 'clusters' ? 'spiral' : 'clusters';
+        morphLayout(next);
+        flagBtn.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
+        dqFlag.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
+        return;
+      }
+      const on = !nationsOpen;
+      setBrowsing(on);
+      if (on) window.scrollTo({ top:0, behavior:REDUCED ? 'auto' : 'smooth' });
     });
 
+    /* ============================================================
+       EXPLORE — every garment laid out on a phyllotaxis spiral.
+       Same golden-angle packing a sunflower uses, so the density stays
+       even from the middle out instead of bunching into arms.
+       ============================================================ */
+    const explore    = document.getElementById('explore');
+    const spiral     = document.getElementById('spiral');
+    const dockExplore = document.getElementById('dockExplore');
+
+    const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+    const SPACING = 172;              // ~1.15× the 150px card, so they clear
+    let spiralBuilt = false;
+    let sc = 1, tx = 0, ty = 0;
+
+    /* wraps a jump in a transition so the field travels rather than cuts */
+    function glide(fn, ms){
+      spiral.style.transition = `transform ${ms || 850}ms cubic-bezier(.4,0,.2,1)`;
+      fn();
+      setTimeout(() => { spiral.style.transition = ''; }, (ms || 850) + 60);
+    }
+
+    function applyTransform(){
+      spiral.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+    }
+
+    function buildSpiral(){
+      if (spiralBuilt) return;
+      spiralBuilt = true;
+
+      NATIONS.forEach(nation => {
+        ITEMS.filter(p => p.n === nation.key).forEach(p => {
+          const fileName = p.img || slug(p.name);
+          const file = `${assetDir(nation.key, p.cat, p.name)}/${fileName}`;
+          const el = Object.assign(document.createElement('div'), {
+            className:'sp-item',
+            innerHTML:
+              `<div class="sp-slot">` +
+                `<img src="${esc(file)}" alt="${esc(p.name)}" loading="lazy">` +
+                `<span class="sp-code" hidden></span>` +
+              `</div>`
+          });
+          el.dataset.nation = nation.key;
+          el.dataset.name   = p.name;
+          el.dataset.id     = `${nation.key}/${slugBase(p.name)}`;
+          el.dataset.words  = [p.name, nation.label, p.cat, p.ref]
+            .filter(Boolean).join(' ').toLowerCase()
+            .split(/[^a-z0-9]+/).filter(Boolean).join('|');
+          el.dataset.alias  = (nation.alias || []).join('|');
+          spiral.appendChild(el);
+        });
+      });
+
+      [...spiral.children].forEach((el, i) => {
+        el.style.animationDelay = Math.min(i * 12, 700) + 'ms';
+        const img = el.querySelector('img');
+        const code = el.querySelector('.sp-code');
+        img.addEventListener('error', () => { img.remove(); code.hidden = false; });
+      });
+      layoutSpiral('spiral');
+    }
+
+    /* 'spiral'   — one phyllotaxis over the whole archive
+       'clusters' — one per nation, biggest in the middle, the rest
+                    scattered around it on a jittered ring          */
+    let spiralMode = 'spiral';
+
+    function place(el, x, y){
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+    }
+
+    /* Re-laying out is a movement, not a jump: the field draws back, the
+       garments glide to their new homes like a cell dividing, then the
+       view settles on whatever shape resulted. */
+    let morphing = false;
+
+    function morphLayout(mode){
+      if (morphing) return;
+      morphing = true;
+
+      if (REDUCED){
+        layoutSpiral(mode); fitSpiral(); morphing = false; return;
+      }
+
+      const els = [...spiral.children];
+      els.forEach(el => {
+        el.style.transition = 'left .95s cubic-bezier(.45,.05,.2,1), top .95s cubic-bezier(.45,.05,.2,1)';
+      });
+      spiral.style.transition = 'transform .95s cubic-bezier(.45,.05,.2,1)';
+
+      // pull back first so the split happens inside the frame
+      sc = Math.max(0.06, sc * 0.55);
+      applyTransform();
+
+      // a forced reflow commits the pull-back as the start of the move —
+      // rAF is not guaranteed to run and would leave the field unplaced
+      void spiral.offsetWidth;
+      layoutSpiral(mode);
+
+      setTimeout(() => {
+        if (mode === 'saved'){
+          const keep = [...spiral.children].filter(e => isSaved(e.dataset.id));
+          if (keep.length) fitTo(keep); else fitSpiral();
+        } else fitSpiral();                // settle on the new extent
+        setTimeout(() => {
+          els.forEach(el => { el.style.transition = ''; });
+          spiral.style.transition = '';
+          morphing = false;
+        }, 1000);
+      }, 900);
+    }
+
+    function layoutSpiral(mode){
+      spiralMode = mode;
+      const els = [...spiral.children];
+
+      if (mode === 'spiral'){
+        els.forEach((el, i) => {
+          const r = SPACING * Math.sqrt(i + 0.5);
+          const a = i * GOLDEN;
+          place(el, Math.cos(a) * r, Math.sin(a) * r);
+        });
+        return;
+      }
+
+      if (mode === 'saved'){
+        const keep = els.filter(e => isSaved(e.dataset.id));
+        const rest = els.filter(e => !isSaved(e.dataset.id));
+        keep.forEach((el, i) => {
+          const r = SPACING * Math.sqrt(i + 0.5);
+          const a = i * GOLDEN;
+          place(el, Math.cos(a) * r, Math.sin(a) * r);
+        });
+        // everything unkept goes to its own cluster, well off the frame
+        const away = SPACING * (Math.sqrt(els.length) + 16);
+        rest.forEach((el, i) => {
+          const r = SPACING * Math.sqrt(i + 0.5);
+          const a = i * GOLDEN;
+          place(el, away + Math.cos(a) * r, Math.sin(a) * r);
+        });
+        return;
+      }
+
+      const groups = NATIONS
+        .map(n => ({ key:n.key, els:els.filter(e => e.dataset.nation === n.key) }))
+        .filter(g => g.els.length)
+        .sort((a, b) => b.els.length - a.els.length);
+
+      const radiusOf = g => SPACING * Math.sqrt(g.els.length) + SPACING * 0.6;
+      const big = radiusOf(groups[0]);
+
+      groups.forEach((g, gi) => {
+        let cx = 0, cy = 0;
+        if (gi > 0){
+          // even spread around the centre, then knocked off true so the
+          // satellites do not read as a dial
+          const step = (Math.PI * 2) / (groups.length - 1);
+          const ang  = step * (gi - 1) + (Math.random() - 0.5) * step * 0.55;
+          const ring = big + radiusOf(g) + SPACING * (0.7 + Math.random() * 0.8);
+          cx = Math.cos(ang) * ring;
+          cy = Math.sin(ang) * ring;
+        }
+        g.els.forEach((el, i) => {
+          const r = SPACING * Math.sqrt(i + 0.5);
+          const a = i * GOLDEN;
+          place(el, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        });
+      });
+    }
+
+    /* ---------- searching inside explore ----------
+       A term pulls everything that answers it into its own cluster in the
+       middle and dims the rest, so "mtp" makes an MTP group, "british" a
+       British one, "smock" a smock one. The same matching the catalogue
+       uses, so both bars behave alike. */
+    function spiralMatch(el, term){
+      const tokens = term.split(/\s+/).filter(Boolean);
+      if (!tokens.length) return true;
+      const words   = (el.dataset.words || '').split('|');
+      const aliases = (el.dataset.alias || '').split('|');
+      return tokens.every(t =>
+        words.some(w => w.startsWith(t)) ||
+        aliases.some(a => a && a.startsWith(t))
+      );
+    }
+
+    function fitTo(els){
+      let reach = 1;
+      els.forEach(el => {
+        reach = Math.max(reach, Math.hypot(
+          parseFloat(el.style.left) || 0,
+          parseFloat(el.style.top)  || 0
+        ));
+      });
+      const margin = Math.max(70, Math.min(150, window.innerWidth * 0.14));
+      const fit = Math.min(window.innerWidth, window.innerHeight - 150) /
+                  ((reach + margin) * 2);
+      sc = Math.max(0.08, Math.min(maxScale(), fit));
+      tx = 0; ty = -40;
+      applyTransform();
+    }
+
+    let clusterTimer = null;
+    function clusterSearch(term){
+      clearTimeout(clusterTimer);
+      const els = [...spiral.children];
+
+      if (!term){
+        els.forEach(el => el.classList.remove('sp-dim'));
+        els.forEach(el => { el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1)'; });
+        layoutSpiral(spiralMode);
+        clusterTimer = setTimeout(() => {
+          glide(() => fitSpiral(), 800);
+          els.forEach(el => { el.style.transition = ''; });
+        }, 60);
+        return;
+      }
+
+      const hit = els.filter(el => spiralMatch(el, term));
+      els.forEach(el => {
+        el.classList.toggle('sp-dim', !hit.includes(el));
+        el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1)';
+      });
+      if (!hit.length) return;
+
+      hit.forEach((el, i) => {
+        const r = SPACING * Math.sqrt(i + 0.5);
+        const a = i * GOLDEN;
+        place(el, Math.cos(a) * r, Math.sin(a) * r);
+      });
+
+      clusterTimer = setTimeout(() => {
+        glide(() => fitTo(hit), 800);
+        els.forEach(el => { el.style.transition = ''; });
+      }, 60);
+    }
+
+    /* stop zooming once a single garment fills the view — past that the
+       source PNGs are being upscaled and just go soft */
+    function maxScale(){
+      return Math.min(window.innerWidth, window.innerHeight - 150) / SPACING;
+    }
+
+    function focusItem(el, scale){
+      const x = parseFloat(el.style.left) || 0;
+      const y = parseFloat(el.style.top)  || 0;
+      sc = Math.min(scale || maxScale() * 0.72, maxScale());
+      tx = -x * sc;
+      ty = -y * sc;
+      atInitial = false;
+      applyTransform();
+      offerSave(el);
+    }
+
+    /* while one garment holds the view, the arrow's slot offers to keep it */
+    let focusedItem = null;
+
+    /* One bookmark button, two jobs: with a garment framed it keeps that
+       garment; with the whole field showing it gathers what is kept. */
+    function offerSave(el){
+      focusedItem = el || null;
+      if (!dockLibrary) return;
+      dockLibrary.setAttribute('aria-label',
+        focusedItem ? 'Save this garment' : 'Gather saved garments');
+      dockLibrary.setAttribute('aria-pressed',
+        focusedItem
+          ? (isSaved(focusedItem.dataset.id) ? 'true' : 'false')
+          : (spiralMode === 'saved' ? 'true' : 'false'));
+    }
+
+    /* measures the real extent so it frames clusters as well as the spiral */
+    function fitSpiral(){
+      let reach = 1;
+      [...spiral.children].forEach(el => {
+        reach = Math.max(reach, Math.hypot(
+          parseFloat(el.style.left) || 0,
+          parseFloat(el.style.top)  || 0
+        ));
+      });
+      const margin = Math.max(70, Math.min(150, window.innerWidth * 0.14));
+      const radius = reach + margin;
+      const fit = Math.min(window.innerWidth, window.innerHeight - 150) / (radius * 2);
+      sc = Math.max(0.08, Math.min(maxScale(), fit));
+      tx = 0; ty = -40;
+      applyTransform();
+      atInitial = true;
+      offerSave(null);
+    }
+
+    let exploreClosing = false;
+    let lastExploreItem = null;
+    let atInitial = false;      // is the field sitting at its opening view?
+
+    function openExplore(){
+      exploreClosing = false;
+      explore.hidden = false;
+      exploreOn = true;
+      explore.setAttribute('aria-hidden', 'false');
+      dockExplore.setAttribute('aria-pressed', 'true');
+      document.body.classList.add('exploring');
+      document.body.style.overflow = 'hidden';
+      hidePrompt();
+      // the dock returns to the middle of the screen for explore
+      dock.classList.remove('moved');
+      setFace(0, true);              // explore always opens on the circle
+      buildSpiral();
+      [...spiral.children].forEach(el => { el.style.transition = ''; el.style.opacity = ''; });
+      fitSpiral();
+    }
+
+    function endExplore(handBack){
+      explore.hidden = true;
+      exploreOn = false;
+      explore.setAttribute('aria-hidden', 'true');
+      dockExplore.setAttribute('aria-pressed', 'false');
+      document.body.classList.remove('exploring');
+      document.body.style.overflow = '';
+      exploreClosing = false;
+      if (handBack){
+        dockForced = false;
+        collapseDock();
+        updateDock();
+        restPrompt();
+        setTimeout(() => q.focus({ preventScroll:true }), 300);
+      }
+    }
+
+    /* garments go out one at a time rather than as a block */
+    function closeExplore(){
+      if (explore.hidden || exploreClosing) return;
+      exploreClosing = true;
+      if (REDUCED){ endExplore(true); return; }
+      [...spiral.children].forEach(el => {
+        el.style.transition = 'opacity .3s ease';
+        setTimeout(() => { el.style.opacity = '0'; }, Math.random() * 520);
+      });
+      setTimeout(() => endExplore(true), 950);
+    }
+
+    /* ---------- the middle button holds more than one tool ----------
+       Scroll it on a laptop, swipe it on a phone: the faces roll round.
+       Whichever is showing is what a press does. */
+    const faces = [...dockExplore.querySelectorAll('.face')];
+    let faceIx = 0;
+    const FACE_LABEL = ['Explore the archive', 'Nation list', 'Exit explore'];
+
+    function setFace(next, force){
+      const n = (next + faces.length) % faces.length;
+      if (n === faceIx && !force) return;
+      faces.forEach((f, i) => {
+        f.classList.toggle('is-on', i === n);
+        f.classList.toggle('is-out', i !== n);
+      });
+      faceIx = n;
+      dockExplore.setAttribute('aria-label', FACE_LABEL[faceIx]);
+    }
+
+    /* A trackpad fires a burst of small wheel events per flick, which was
+       toggling the face back and forth. Accumulate the travel and step
+       once per gesture, then sit out until the burst dies down. */
+    /* A trackpad flick is one gesture but many events, and the tail keeps
+       arriving after the finger has gone. Stepping on a timer let that
+       tail carry on past the face you wanted — sandwich would run
+       straight through the cross and back to the circle. So: one step per
+       gesture, and the next needs a genuine pause first. */
+    let faceAcc = 0, faceSpent = false, faceIdle = null;
+
+    dockExplore.addEventListener('wheel', e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      clearTimeout(faceIdle);
+      faceIdle = setTimeout(() => { faceSpent = false; faceAcc = 0; }, 220);
+
+      if (faceSpent) return;              // this gesture already moved one
+      faceAcc += Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+
+      if (Math.abs(faceAcc) >= 45){
+        setFace(faceIx + (faceAcc > 0 ? 1 : -1));
+        faceAcc = 0;
+        faceSpent = true;
+      }
+    }, { passive:false });
+
+    // swipe the button itself — any direction moves along the stack
+    let fx = 0, fy = 0, fid = null, swiped = false;
+    dockExplore.addEventListener('pointerdown', e => {
+      fid = e.pointerId; fx = e.clientX; fy = e.clientY; swiped = false;
+    });
+    dockExplore.addEventListener('pointermove', e => {
+      if (e.pointerId !== fid || swiped) return;
+      const dx = e.clientX - fx, dy = e.clientY - fy;
+      if (Math.hypot(dx, dy) < 22) return;
+      swiped = true;
+      setFace(faceIx + ((dy < 0 || dx > 0) ? 1 : -1));
+    });
+    ['pointerup','pointercancel'].forEach(t => dockExplore.addEventListener(t, e => {
+      if (e.pointerId === fid) fid = null;
+    }));
+
+    dockExplore.addEventListener('click', e => {
+      if (swiped){ swiped = false; return; }       // that was a swipe
+
+      if (faceIx === 1){
+        // the listed nations, showing everything — not whatever the field
+        // happened to be filtered to
+        if (!explore.hidden) endExplore(false);
+        collapseDock();
+        soloId = null;
+        savedOnly = false;
+        document.body.classList.remove('library');
+        q.value = '';
+        dq.value = '';
+        filter();
+        syncGhost();
+        setBrowsing(true);      // types the tally last, so nothing overwrites it
+        return;
+      }
+
+      if (faceIx === 2){
+        // the cross always lands on the bare archive page
+        if (exploreOn){ closeExplore(); setTimeout(goHome, 1000); }
+        else goHome();
+        return;
+      }
+
+      // the circle always returns explore to how it opens: the single
+      // spiral, pulled back to fit — it is not a way out
+      if (explore.hidden){ openExplore(); return; }
+      if (spiralMode !== 'spiral'){
+        morphLayout('spiral');
+        flagBtn.setAttribute('aria-pressed', 'false');
+        dqFlag.setAttribute('aria-pressed', 'false');
+        return;
+      }
+      if (atInitial){
+        // already home — press again and it travels to one at random
+        const pool = [...spiral.children].filter(el => !el.classList.contains('sp-dim'));
+        if (pool.length){
+          const pick = pool[Math.floor(Math.random() * pool.length)];
+          glide(() => focusItem(pick, maxScale() * 0.68));
+        }
+      } else {
+        glide(() => fitSpiral());
+      }
+    });
+
+    /* every so often the middle button blinks, so the other tools on it
+       are discoverable rather than hidden */
+
+    dockLibrary.addEventListener('click', e => {
+      e.stopPropagation();
+
+      // a framed garment turns this into its keep switch
+      if (focusedItem){
+        toggleSaved(focusedItem.dataset.id);
+        const on = isSaved(focusedItem.dataset.id);
+        dockLibrary.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const mark = dockLibrary.querySelector('.bm');
+        mark.classList.remove('pop');
+        void mark.offsetWidth;
+        if (on) mark.classList.add('pop');
+        return;
+      }
+
+      if (!savedIds.length) return;          // nothing kept, nothing to gather
+      const next = spiralMode === 'saved' ? 'spiral' : 'saved';
+      morphLayout(next);
+      dockLibrary.setAttribute('aria-pressed', next === 'saved' ? 'true' : 'false');
+      if (next === 'spiral'){
+        flagBtn.setAttribute('aria-pressed', 'false');
+        dqFlag.setAttribute('aria-pressed', 'false');
+      }
+    });
+
+
+    /* ---------- tools inside the dock's own search bar ---------- */
+    const dqFlag    = document.getElementById('dqFlag');
+    const dqExplore = document.getElementById('dqExplore');
+
+    dqFlag.addEventListener('click', e => {
+      e.stopPropagation();
+      if (explore.hidden) openExplore();
+      const next = spiralMode === 'clusters' ? 'spiral' : 'clusters';
+      morphLayout(next);
+      dqFlag.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
+      flagBtn.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
+    });
+
+    dqExplore.addEventListener('click', e => {
+      e.stopPropagation();
+      if (explore.hidden) openExplore(); else closeExplore();
+    });
+
+    /* ---------- zoom + pan ---------- */
+    explore.addEventListener('wheel', e => {
+      e.preventDefault();
+      const rect = explore.getBoundingClientRect();
+      const cx = e.clientX - rect.left - rect.width / 2;
+      const cy = e.clientY - rect.top - rect.height / 2;
+      const factor = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0016));
+      const next = Math.max(0.08, Math.min(maxScale(), sc * factor));
+      // keep the point under the cursor fixed while scaling
+      tx = cx - (cx - tx) * (next / sc);
+      ty = cy - (cy - ty) * (next / sc);
+      sc = next;
+      atInitial = false;
+      applyTransform();
+    }, { passive:false });
+
+    let panId = null, panX = 0, panY = 0;
+    explore.addEventListener('pointerdown', e => {
+      if (e.target.closest('.sp-item')) return;
+      panId = e.pointerId; panX = e.clientX; panY = e.clientY;
+      explore.setPointerCapture(panId);
+      explore.classList.add('grabbing');
+    });
+    explore.addEventListener('pointermove', e => {
+      if (e.pointerId !== panId) return;
+      tx += e.clientX - panX; ty += e.clientY - panY;
+      panX = e.clientX; panY = e.clientY;
+      atInitial = false;
+      applyTransform();
+    });
+    ['pointerup','pointercancel'].forEach(t => explore.addEventListener(t, e => {
+      if (e.pointerId !== panId) return;
+      panId = null;
+      explore.classList.remove('grabbing');
+    }));
+
+    // a garment opens on its own, centred; the tab's − brings you back
+    spiral.addEventListener('click', e => {
+      const item = e.target.closest('.sp-item');
+      if (!item) return;
+
+      // first press frames the garment, the way the circle's random pick
+      // does; only a second press on the same one opens its record
+      if (focusedItem !== item){
+        glide(() => focusItem(item, maxScale() * 0.68));
+        return;
+      }
+
+      lastExploreItem = item;
+      endExplore(false);
+      soloId = item.dataset.id;
+      nationsOpen = true;
+      document.body.classList.add('browsing');
+      const tab = allNations.find(d => d.dataset.nation === item.dataset.nation);
+      if (tab) tab.open = true;
+      filter();
+      syncChrome();
+      window.scrollTo({ top:0, behavior:'auto' });
+      beginSoloBuild();
+    });
+
+    /* Applied in the same tick as the render, so the settled two-column
+       state is never painted first — that flash was the whole problem. */
+    let soloTimers = [];
+
+    function beginSoloBuild(){
+      const item = catalogue.querySelector('.item:not([hidden])');
+      if (!item || REDUCED) return;
+      item.querySelectorAll('.solo-frame').forEach(n => n.remove());
+
+      // snap into the build state, then let transitions run for the settle
+      item.classList.remove('framed');
+      item.classList.add('build', 'no-anim');
+      void item.offsetWidth;
+      item.classList.remove('no-anim');
+
+      // the name is written after the frame closes, not before
+      const label = item.closest('.nation')
+        ? item.closest('.nation').querySelector('summary .n')
+        : null;
+      const full = label ? label.textContent : '';
+      if (label) label.textContent = '';
+
+      soloTimers.forEach(clearTimeout);
+      soloTimers = [];
+
+      // measure once the build state has laid out, then draw its frame
+      soloTimers.push(setTimeout(() => drawSoloFrame(item), 20));
+
+      // frame closed → the name types itself
+      const NAME_MS = 26;
+      soloTimers.push(setTimeout(() => {
+        if (!label) return;
+        let i = 0;
+        (function tick(){
+          if (i < full.length){
+            label.textContent += full.charAt(i++);
+            soloTimers.push(setTimeout(tick, NAME_MS));
+          }
+        })();
+      }, 660));
+
+      // named → the garment shifts aside and the record comes in
+      soloTimers.push(setTimeout(
+        () => item.classList.remove('build'),
+        660 + full.length * NAME_MS + 200
+      ));
+    }
+
+    function drawSoloFrame(item){
+      const r = item.getBoundingClientRect();
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'solo-frame');
+      svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', 0.75);
+      rect.setAttribute('y', 0.75);
+      rect.setAttribute('width',  Math.max(1, r.width  - 1.5));
+      rect.setAttribute('height', Math.max(1, r.height - 1.5));
+      svg.appendChild(rect);
+      item.appendChild(svg);
+
+      const len = 2 * (r.width + r.height);
+      rect.style.strokeDasharray  = len;
+      rect.style.strokeDashoffset = len;
+      void rect.getBoundingClientRect();
+      rect.style.transition = 'stroke-dashoffset .62s cubic-bezier(.4,0,.2,1)';
+      rect.style.strokeDashoffset = 0;
+
+      // the drawn line hands over to the card's own border, crossfading
+      // so there is never two of them, nor a gap with neither
+      setTimeout(() => {
+        item.classList.add('framed');
+        svg.style.transition = 'opacity .32s ease';
+        svg.style.opacity = '0';
+        setTimeout(() => svg.remove(), 360);
+      }, 660);
+    }
+
+    /* back out of a single garment into the spiral, sitting on it rather
+       than pulling all the way out to the wide view */
+    function returnToExplore(){
+      soloTimers.forEach(clearTimeout);
+      soloTimers = [];
+      const card = catalogue.querySelector('.item:not([hidden])');
+      if (card && !REDUCED){
+        card.classList.add('unbuild');
+        setTimeout(() => card.classList.remove('unbuild'), 320);
+      }
+      const item = lastExploreItem;
+      lastExploreItem = null;
+      soloId = null;
+      q.value = '';
+      filter();
+      syncGhost();
+      setBrowsing(false);
+      dockForced = true;
+      navBtn.setAttribute('aria-pressed', 'true');
+      updateDock();
+      openExplore();
+      if (item) focusItem(item);
+    }
+
+    window.addEventListener('resize', () => { if (!explore.hidden) fitSpiral(); });
+
+    /* ============================================================
+       DOCK DRAGGING — the three buttons can be put anywhere
+       ============================================================ */
+    (function makeDockDraggable(){
+      let id = null, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
+
+      /* Press and hold on any of the three buttons to pick the dock up.
+         A hold is what separates moving it from pressing it, so a plain
+         click still works and the middle button keeps its swipe. */
+      let armed = false, holdTimer = null;
+
+      dock.addEventListener('pointerdown', e => {
+        if (e.target.closest('input')) return;      // typing, not dragging
+        const r = dock.getBoundingClientRect();
+        id = e.pointerId; sx = e.clientX; sy = e.clientY;
+        ox = r.left; oy = r.top; moved = false; armed = false;
+        clearTimeout(holdTimer);
+        holdTimer = setTimeout(() => { armed = true; }, 280);
+        // NB: no pointer capture here. Capturing on pointerdown retargets
+        // the click to the dock, so the buttons inside stop responding.
+      });
+
+      dock.addEventListener('pointermove', e => {
+        if (e.pointerId !== id) return;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        if (!armed){
+          // moved off before the hold registered — that is a swipe, not a lift
+          if (Math.hypot(dx, dy) > 8) clearTimeout(holdTimer);
+          return;
+        }
+        if (!moved){
+          moved = true;
+          dock.classList.add('moved','dragging');
+          dock.setPointerCapture(id);                   // only once dragging
+        }
+        const r = dock.getBoundingClientRect();
+        const nx = Math.max(6, Math.min(window.innerWidth  - r.width  - 6, ox + dx));
+        const ny = Math.max(6, Math.min(window.innerHeight - r.height - 6, oy + dy));
+        dock.style.setProperty('--dx', nx + 'px');
+        dock.style.setProperty('--dy', ny + 'px');
+      });
+
+      ['pointerup','pointercancel'].forEach(t => dock.addEventListener(t, e => {
+        if (e.pointerId !== id) return;
+        id = null;
+        clearTimeout(holdTimer);
+        armed = false;
+        dock.classList.remove('dragging');
+        if (moved){
+          // swallow the click that would otherwise fire on release
+          const kill = ev => { ev.stopPropagation(); ev.preventDefault(); };
+          dock.addEventListener('click', kill, { capture:true, once:true });
+        }
+      }));
+    })();
+
+    paintSaved();
+    showPrompt();
     startSuggestions();
   </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="British Material Unit (BMU) — a designer-led startup upcycling surplus British military textiles. We work with fashion designers and surplus dealers across the UK to reuse and recirculate military surplus waste through open-source design tools, repositories and systems." />
+  <meta name="description" content="British Material Unit (BMU) a designer-led startup reutilising surplus textile waste, uniting the intelligence of garments and wearers via circular design tools, repositories and systems." />
   <meta name="keywords" content="British Material Unit, BMU, upcycling, military surplus, textile waste, surplus textiles, British army surplus, circular fashion, upcycled fashion, DPM, MTP, surplus dealers UK, deadstock, reworked military clothing, sustainable fashion UK, open-source design" />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="British Material Unit" />
@@ -23,9 +23,9 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="British Material Unit (BMU) — Uniting Intelligence" />
-  <meta name="twitter:description" content="A designer-led circular startup reusing surplus defence textiles."" />
+  <meta name="twitter:description" content="A designer-led circular startup reusing surplus defence textiles." />
 
-  <title>British Material Unit (BMU) — Uniting Intelligence &amp; Circular Textile Systems</title>
+  <title>British Material Unit (BMU) — Uniting Intelligence</title>
 
   <script type="application/ld+json">
   {
@@ -223,6 +223,9 @@
       --bg:#ffffff;
       --faint:#f0f0f0;
       --font:Helvetica, Arial, sans-serif;
+      /* the height of a button, the Operations bar and the arrow — the
+         sheet geometry is measured off it, so it is set in one place */
+      --bar-h:32px;
     }
     *{ box-sizing:border-box; }
     html{ height:100%; scroll-behavior:smooth; }
@@ -260,6 +263,9 @@
       flex:none;
     }
     .svg-wrapper{ position:absolute; inset:0; }
+    /* the mark is a box inside the square, not the square itself: the
+       typed copy and the button row keep the square's full width while
+       the mark alone is free to come down to a phone-sized scale */
     .svg-wrapper svg{
       width:100%; height:100%;
       cursor:pointer;
@@ -294,13 +300,23 @@
     .show-text{ opacity:1; pointer-events:auto; }
 
     /* ---------- BUTTON ROW ---------- */
-    /* negative margin pulls the row up under the typed text
-       (the text is vertically centred in the square, leaving
-       dead space at the bottom) — tune here if copy changes   */
-    #navRow{
+    /* Holds the row and the footer arrow beneath it as one block. The
+       negative margin — which used to sit on the row itself — pulls the
+       block up under the typed text, which is vertically centred in the
+       square and leaves dead space below it. Tune here if the copy
+       changes. */
+    #navStack{
       position:relative;
       margin-top:-90px;
       width:min(92vw, 720px);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    #navRow{
+      position:relative;
+      width:100%;
       display:flex;
       gap:12px;
       justify-content:center;
@@ -308,7 +324,7 @@
       opacity:0;
       transition:opacity .5s ease, min-height .9s cubic-bezier(.65,0,.35,1);
       pointer-events:none;
-      min-height:40px;
+      min-height:var(--bar-h);
     }
     #navRow.visible{ opacity:1; pointer-events:auto; }
 
@@ -316,8 +332,8 @@
       display:block;
       flex:1 1 0;
       min-width:0;
-      height:40px;
-      line-height:37px;
+      height:var(--bar-h);
+      line-height:calc(var(--bar-h) - 3px);
       font-family:var(--font);
       font-size:13px;
       color:#000;
@@ -327,7 +343,8 @@
       cursor:pointer;
       user-select:none;
       text-align:center;
-      transition:background-color .3s ease, color .3s ease, opacity .4s ease;
+      transition:background-color .3s ease, color .3s ease, opacity .4s ease,
+                 transform .55s cubic-bezier(.65,0,.35,1);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -338,6 +355,65 @@
     #navRow.ops-engaged .bm-button:not(#opsBtn){
       opacity:.22;
       pointer-events:none;
+    }
+    /* Join collapses the row rather than opening it: the four other
+       buttons are driven into the middle slot and go, so nothing is left
+       ghosted behind the single button */
+    #navRow.join-mode .bm-button:not(#opsBtn){ opacity:0; }
+    #opsBtn.join-solo{ letter-spacing:.04em; }
+    #opsBtn.join-solo.sending{ color:#999; cursor:progress; }
+    #opsBtn.join-solo.sent{ color:#999; cursor:default; }
+
+    /* ---------- FOOTER ARROW ---------- */
+    /* Doubles as the way out of Join: the arrow turns over into a cross
+       while Join holds the row, and turns back once the five buttons are
+       home again. */
+
+    /* ---------- JOIN PANEL ---------- */
+    #joinPanel{
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      gap:12px;
+    }
+    #joinPanel.on{ display:flex; }
+    /* shrink-to-fit, so its rendered width is what the grey field is cut to */
+    #joinEmail{
+      white-space:pre;
+      font-size:clamp(10pt, 3.4vw, 12pt);
+      line-height:1.5;
+      min-height:1.5em;
+      letter-spacing:.01em;
+    }
+    /* slides out from the left at the address's own length */
+    #joinSlide{
+      width:0;
+      height:34px;
+      background:#e9e9e9;
+      overflow:hidden;
+      cursor:text;
+      transition:width .62s cubic-bezier(.65,0,.35,1);
+    }
+    #joinSlide.slid{ width:var(--slide-w, 0px); }
+    #joinInput{
+      width:100%; height:100%;
+      border:0; outline:none; background:transparent;
+      font-family:var(--font);
+      font-size:clamp(10pt, 3.4vw, 12pt);
+      color:var(--ink);
+      text-align:center;
+      padding:0 10px;
+      opacity:0;
+      transition:opacity .45s ease;
+    }
+    #joinSlide.typable #joinInput{ opacity:1; }
+    #joinInput::placeholder{ color:#aaa; }
+    #joinMsg{
+      min-height:1.3em;
+      font-size:10.5px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#999;
     }
 
     /* ---------- OPERATIONS BAR ---------- */
@@ -373,10 +449,10 @@
       display:none;
       position:absolute;
       top:0; right:0;
-      width:40px; height:40px;
-      line-height:37px;
+      width:var(--bar-h); height:var(--bar-h);
+      line-height:calc(var(--bar-h) - 3px);
       text-align:center;
-      font-size:17px;
+      font-size:16px;
       color:#888;
       cursor:pointer;
       letter-spacing:0;
@@ -476,21 +552,6 @@
     }
 
     /* ↓ arrow — collapses Operations, scrolls to the map */
-    #mapBtn{
-      margin-top:18px;
-      width:100%;
-      height:44px;
-      font-family:var(--font);
-      font-size:19px;
-      line-height:1;
-      color:#000;
-      border:1.5px solid var(--line);
-      background:var(--bg);
-      cursor:pointer;
-      transition:background-color .3s ease;
-    }
-    #mapBtn:hover{ background:var(--faint); }
-
     .ops-hint{
       margin-top:16px;
       font-size:10.5px;
@@ -519,24 +580,252 @@
     pointer-events:auto;
 }
 
+    /* ---------- FOOTER ---------- */
+    /* scroll cue — only once the reader is in, gone once they arrive */
+    #scrollCue{
+      position:fixed;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%);
+      width:16px; height:16px;
+      z-index:30;
+      display:grid; place-items:center;
+      padding:0;
+      border:0;                 /* no box — the mark stands on its own */
+      background:none;
+      cursor:pointer;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .6s ease;
+    }
+    body.entered #scrollCue{ opacity:.45; pointer-events:auto; }
+    body.entered #scrollCue:hover{ opacity:.8; }
+    body.entered.at-footer #scrollCue{ opacity:0; pointer-events:none; }
+    /* while Join holds the row this is the only way out, so it stays up
+       and stays live even at the footer */
+    body.entered #scrollCue.close-mode,
+    body.entered.at-footer #scrollCue.close-mode{ opacity:.8; pointer-events:auto; }
+    #scrollCue:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
+    /* the mark stays 16px but the target does not — a thumb needs more
+       than that, and the pseudo-element grows the hit area without
+       moving the arrow or drawing anything */
+    #scrollCue::after{ content:''; position:absolute; inset:-13px; }
+
+    #scrollCue svg{ width:16px; height:16px; display:block; overflow:visible; }
+    #scrollCue path{
+      fill:none;
+      stroke:#000;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    /* both marks share the one box and swap by turning through each
+       other, so the cue never blinks empty */
+    .fa-arrow, .fa-cross{
+      transform-box:fill-box;
+      transform-origin:50% 50%;
+      transition:opacity .28s ease, transform .38s cubic-bezier(.65,0,.35,1);
+    }
+    .fa-cross{ opacity:0; transform:rotate(-90deg) scale(.55); }
+    #scrollCue.close-mode .fa-arrow{ opacity:0; transform:rotate(90deg) scale(.55); }
+    #scrollCue.close-mode .fa-cross{ opacity:1; transform:none; }
+
+    /* the footer does not exist until the reader has entered the site by
+       clicking the mark, then it fades up as they scroll onto it */
+    /* the dot radius is registered so it can be animated — a plain custom
+       property would jump straight to its end value */
+    @property --dot-r{
+      syntax:'<length>';
+      inherits:false;
+      initial-value:0px;
+    }
+
+    #siteFooter{
+      display:none;
+      position:relative;
+      width:100%;
+      flex:none;
+      padding:60px 16px 46px;
+      font-family:var(--font);
+      color:var(--ink);
+      opacity:0;
+      /* the footer resolves out of a field of dots as it is scrolled onto:
+         each 5px tile holds one dot that grows until the tiles meet and
+         the mask is solid */
+      --dot-r:0px;
+      -webkit-mask-image:radial-gradient(circle, #000 var(--dot-r), transparent calc(var(--dot-r) + .7px));
+              mask-image:radial-gradient(circle, #000 var(--dot-r), transparent calc(var(--dot-r) + .7px));
+      -webkit-mask-size:5px 5px;
+              mask-size:5px 5px;
+      transition:opacity .55s ease, --dot-r 1.25s cubic-bezier(.3,.7,.3,1);
+    }
+    body.entered #siteFooter{ display:block; }
+    #siteFooter.in{
+      opacity:1;
+      --dot-r:4px;          /* > half the 5px tile diagonal, so it closes up */
+    }
+    /* once resolved the mask is dropped altogether: it can never be left
+       part-drawn, and text renders without a mask over it */
+    #siteFooter.settled{
+      -webkit-mask-image:none;
+              mask-image:none;
+    }
+
+    /* tactical map wash, strongest along the bottom edge and gone by the
+       top of the footer */
+    #siteFooter::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background-image:url('/background-overlay.png');
+      background-size:200% auto;
+      background-position:center bottom;
+      background-repeat:no-repeat;
+      opacity:.30;
+      -webkit-mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,0) 100%);
+              mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,0) 100%);
+    }
+    /* inner width keeps the hairline clear of the screen edges */
+    .foot-inner{
+      position:relative;
+      z-index:1;
+      width:min(92vw, 1100px);
+      margin:0 auto;
+    }
+
+    /* same three tracks as the columns below, so the slogan starts on the
+       identity column's edge — in line with "British Material Unit (BMU)" */
+    .foot-head{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:34px;
+      align-items:center;
+    }
+    .foot-slogan{ grid-column:3; }
+
+    .foot-mark{
+      height:15px; width:auto;
+      display:block;
+      align-self:center;
+      justify-self:start;
+    }
+    /* the hero's draw-then-fill, reused at footer scale.
+       .9 rendered the same ~1px line as the hero, far too heavy on a mark
+       this small. .45 halved it; .35 takes it down another step to a
+       ~0.39px hairline. */
+    .foot-trace{
+      fill:none;
+      stroke:var(--ink);
+      stroke-width:.35;
+      stroke-dashoffset:9999;
+    }
+    /* single source of truth: the slogan waits on 80% of this */
+    #siteFooter{ --trace-ms:4200ms; }
+    #siteFooter.in .foot-trace{
+      animation:trace var(--trace-ms) ease-in-out forwards;
+    }
+    .foot-fill{
+      fill:var(--ink);
+      stroke:none;
+      opacity:0;
+      transition:opacity 1s ease;
+    }
+    .foot-fill.visible{ opacity:1; }
+
+    /* flex-centres the text inside its reserved height so it sits on the
+       mark's centre line rather than riding above it while it types */
+    .foot-slogan{
+      display:flex;
+      align-items:center;
+      min-height:15px;              /* the mark's height */
+      font-size:11.5px;
+      line-height:1.2;
+      letter-spacing:.02em;
+      color:#888;
+    }
+
+    .foot-rule{
+      height:1px;
+      background:#e6e6e6;
+      margin:20px 0 28px;
+    }
+
+    .foot-cols{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:34px;
+      align-items:start;
+    }
+    .foot-col{
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+      min-width:0;
+    }
+    .foot-col h3{
+      margin:0 0 8px;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:bold;
+      color:var(--ink);
+    }
+    .foot-col a,
+    .foot-col span{
+      font-size:11.5px;
+      line-height:1.55;
+      color:#666;
+      text-decoration:none;
+    }
+    .foot-col a{
+      width:fit-content;
+      cursor:pointer;
+      transition:color .25s ease;
+    }
+    .foot-col a:hover{ color:var(--ink); }
+
+    /* sits on the same row as the INDEX / SERVICES headings */
+    .foot-col h3.foot-name{
+      font-size:11.5px;
+      letter-spacing:.02em;
+      text-transform:none;
+      color:var(--ink);
+      font-weight:bold;
+      margin:0 0 6px;
+    }
+    /* the address is one block of information, so it sets tight — the
+       column's 7px rhythm is for lists, not for a postal address */
+    .foot-id{ gap:2px; }
+    .foot-id a{ margin-bottom:7px; }
+    .foot-id .foot-copy{ margin-top:12px; }
+    .foot-id .foot-copy{
+      margin-top:8px;
+      font-size:10.5px;
+      letter-spacing:.06em;
+      color:#999;
+    }
+
     @media (prefers-reduced-motion: reduce){
-      .animated-path{ animation-duration:.01s; }
+      .animated-path, .foot-trace{ animation-duration:.01s; }
+      /* no dot dissolve when motion is unwelcome — show it plainly */
+      #siteFooter{ transition:none; --dot-r:4px; }
       #opsBtn, #opsSheet, #navRow{ transition:none; }
       html{ scroll-behavior:auto; }
     }
 
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
+      :root{ --bar-h:28px; }
       /* symmetric padding, otherwise the 24/40 split lands the mark 8px high */
       #page{
         padding-top:max(24px, env(safe-area-inset-top));
         padding-bottom:max(24px, env(safe-area-inset-bottom));
       }
-      /* the stacked button column is 240px tall against the desktop row's
-         40px, so centring the whole flex column pushed the mark ~100px
-         above the middle. Grid instead: two equal flexible tracks pin the
-         logo square to the true centre and the nav hangs off its bottom
-         edge without pulling it up. */
+      /* Grid rather than a centred flex column: two equal flexible tracks
+         pin the logo square to the true centre and the nav hangs off its
+         bottom edge without pulling it up. */
       #page{
         display:grid;
         grid-template-rows:1fr auto 1fr;
@@ -545,21 +834,54 @@
                                  content and stop balancing */
       }
       .container{ grid-row:2; align-self:center; }
-      #navRow{
+      /* At 88vw the mark ran to both edges of a phone. It is sized off the
+         viewport instead: a third of the width, so a second copy of the
+         mark would fit either side of it. The square around it is left at
+         full width — it is what carries the typed copy. */
+      .svg-wrapper{
+        inset:auto;
+        top:50%; left:50%;
+        transform:translate(-50%, -50%);
+        width:clamp(118px, 34vw, 210px);
+        aspect-ratio:1 / 1;
+      }
+      #navStack{
         grid-row:3;
         align-self:start;
-        flex-direction:column;
-        align-items:stretch;
-        width:min(88vw, 400px);
-        gap:10px;
+        width:min(96vw, 440px);
         margin-top:-55px;
       }
-      .bm-button{ flex:none; width:100%; font-size:14px; }
-      #opsBtn.expanding{ position:relative; top:auto; }
-      /* on the stacked layout the sheet covers the buttons below,
-         so hide them fully rather than leaving faded text underneath */
+      /* one row on a phone as well — five narrow buttons read better than
+         a 240px column, and the Operations/Join choreography is then the
+         same motion on every screen */
+      #navRow{ gap:3px; }
+      /* back to the 13px of the desktop row, but "Early Access" is 5.78em
+         of Helvetica and it is what sets the floor: five of those plus the
+         gaps only reach 13px around a 448px-wide phone, so the size tracks
+         the viewport up to that cap and the row never truncates. */
+      .bm-button{
+        font-size:min(13px, 2.9vw);
+        padding:0 2px;
+        letter-spacing:-.01em;
+      }
+      /* the sheet is nearly the full width of a phone, so the faded
+         buttons behind the bar would show through its edges — take them
+         out entirely instead */
       #navRow.ops-engaged .bm-button:not(#opsBtn){ opacity:0; }
       .typewriter-text{ font-size:11pt; }
+      /* three columns will not fit a phone — stack them */
+      .foot-cols{ grid-template-columns:1fr; gap:26px; }
+      #siteFooter{ padding:44px 16px 38px; }
+      /* the head keeps mark and slogan on one line, ends apart: a third
+         of a phone's width is not enough for "Uniting Intelligence" and
+         it was breaking across two lines */
+      .foot-head{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:16px;
+      }
+      .foot-slogan{ white-space:nowrap; }
     }
   </style>
 </head>
@@ -577,11 +899,25 @@
       </div>
       <div id="textOutput" class="typewriter-text">
         <div id="textContent"></div>
+
+        <!-- JOIN — untyped intro gives way to this: our address types out,
+             the grey field slides in beneath it at the address's own width,
+             then the reader types theirs into it -->
+        <div id="joinPanel" aria-hidden="true">
+          <div id="joinEmail"></div>
+          <div id="joinSlide">
+            <input id="joinInput" type="email" inputmode="email" autocomplete="email"
+                   spellcheck="false" placeholder="enter email"
+                   aria-label="Enter your email address" />
+          </div>
+          <div id="joinMsg" role="status" aria-live="polite"></div>
+        </div>
       </div>
     </div>
 
+    <div id="navStack">
     <nav id="navRow" aria-label="Join, Early Access, Operations, Repository, Archive">
-      <a href="https://britishmaterialunit.com/join" class="bm-button">Join</a>
+      <div id="joinBtn" class="bm-button" role="button" tabindex="0" aria-label="Join">Join</div>
       <a href="https://britishmaterialunit.com/earlyaccess" class="bm-button">Early Access</a>
 
       <div id="opsBtn" class="bm-button" role="button" tabindex="0" aria-expanded="false" aria-label="Operations">
@@ -609,8 +945,7 @@
               <span class="ni-title">Soframa</span>
               <span class="ni-sub">Franco-British Partnership — Circular Exit Strategy.</span>
             </a>
-            <button id="mapBtn" type="button" aria-label="Reveal capability map">↓</button>
-            <div class="ops-hint">Swipe up or sideways to close · ↓ reveals the capability map</div>
+            <div class="ops-hint">Swipe up or sideways to close</div>
           </div>
         </div>
       </div>
@@ -618,6 +953,8 @@
       <a href="https://britishmaterialunit.com/repository" class="bm-button">Repository</a>
       <a href="https://britishmaterialunit.com/archive" class="bm-button">Archive</a>
     </nav>
+
+    </div>
   </main>
 
   <section id="mapSection" aria-label="BMU capability map of the United Kingdom">
@@ -1600,6 +1937,64 @@
 </div>
   </section>
 
+  <!-- the standing scroll cue, and the way out of Join: the arrow turns
+       over into a cross while Join holds the row, and back again after -->
+  <button id="scrollCue" type="button" aria-label="Scroll to the footer">
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <g class="fa-arrow">
+        <path d="M8 2.6 V12.8"/>
+        <path d="M3.5 8.3 L8 12.9 L12.5 8.3"/>
+      </g>
+      <g class="fa-cross">
+        <path d="M3.9 3.9 L12.1 12.1"/>
+        <path d="M12.1 3.9 L3.9 12.1"/>
+      </g>
+    </svg>
+  </button>
+
+  <footer id="siteFooter">
+    <div class="foot-inner">
+
+      <div class="foot-head">
+        <svg class="foot-mark" viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="British Material Unit">
+          <path id="footTrace" class="foot-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+          <path id="footFill" class="foot-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+        </svg>
+        <span class="foot-slogan" id="footSlogan"></span>
+      </div>
+
+      <div class="foot-rule" role="presentation"></div>
+
+      <div class="foot-cols">
+        <nav class="foot-col" aria-label="Site index">
+          <h3>Index</h3>
+          <a href="https://britishmaterialunit.com/join">Join</a>
+          <a href="https://britishmaterialunit.com/earlyaccess">Early Access</a>
+          <a href="#" id="footOps">Operations</a>
+          <a href="https://britishmaterialunit.com/repository">Repository</a>
+          <a href="https://britishmaterialunit.com/archive">Archive</a>
+        </nav>
+
+        <div class="foot-col">
+          <h3>Services</h3>
+          <span>Sourcing</span>
+          <span>Wholesale</span>
+          <span>Product Development</span>
+          <span>R&amp;D</span>
+        </div>
+
+        <div class="foot-col foot-id">
+          <h3 class="foot-name">British Material Unit (BMU)</h3>
+          <a href="mailto:hello@britishmaterialunit.com">hello@britishmaterialunit.com</a>
+          <span>Unit U, Wrexham Road SS15 6PX</span>
+          <span>England, United Kingdom</span>
+          <span class="foot-copy">British Material Unit ◎ 2026</span>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
   <script>
     /* ============================================================
        INTRO — logo trace, click to reveal typewriter + nav
@@ -1610,6 +2005,7 @@
     const textOutput   = document.getElementById('textOutput');
     const textContent  = document.getElementById('textContent');
     const navRow       = document.getElementById('navRow');
+    const scrollCue    = document.getElementById('scrollCue');
 
     const mainText = `British Material Unit (BMU) a designer-led startup reutilising surplus textile waste, uniting the intelligence of garments and wearers via circular design tools, repositories and systems.\n\nBritish Material Unit ◎ 2026`;
 
@@ -1617,13 +2013,27 @@
     animatedPath.style.strokeDasharray = traceLen;
     animatedPath.style.strokeDashoffset = traceLen;
 
-    function bmuType(text, element, delay, callback){
+    function bmuType(text, element, delay, callback, guard){
       let i = 0;
       element.textContent = '';
       (function type(){
+        if (guard && !guard()) return;
         if (i < text.length){
           element.textContent += text.charAt(i++);
           setTimeout(type, delay);
+        } else if (callback){ callback(); }
+      })();
+    }
+
+    /* the typewriter run backwards — the intro copy is taken off the page
+       the same way it was put on it */
+    function bmuUntype(element, delay, callback, guard){
+      (function back(){
+        if (guard && !guard()) return;
+        const t = element.textContent;
+        if (t.length){
+          element.textContent = t.slice(0, -1);
+          setTimeout(back, delay);
         } else if (callback){ callback(); }
       })();
     }
@@ -1637,8 +2047,61 @@
       textOutput.classList.add('show-text');
       bmuType(mainText, textContent, 20, () => {
         navRow.classList.add('visible');
+        // the page only becomes scrollable — and the footer only exists —
+        // once the reader is actually inside the site
+        document.body.classList.add('entered');
+        if (window.bmuFooterCheck) window.bmuFooterCheck();
       });
     });
+
+    /* ---------- FOOTER: revealed on scroll, once entered ---------- */
+    const siteFooter = document.getElementById('siteFooter');
+    const footTrace  = document.getElementById('footTrace');
+    const footFill   = document.getElementById('footFill');
+    const footSlogan = document.getElementById('footSlogan');
+    const SLOGAN     = 'Uniting Intelligence';
+
+    if (siteFooter && footTrace){
+      const len = footTrace.getTotalLength();
+      footTrace.style.strokeDasharray  = len;
+      footTrace.style.strokeDashoffset = len;
+
+      let footShown = false;
+
+      // read the duration off the stylesheet so CSS stays the one place
+      // the trace speed is set
+      const traceMs = parseFloat(
+        getComputedStyle(siteFooter).getPropertyValue('--trace-ms')
+      ) || 4200;
+
+      function revealFooter(){
+        footShown = true;
+        siteFooter.classList.add('in');            // starts the trace + dots
+        setTimeout(() => siteFooter.classList.add('settled'), 1500);
+        const fill = () => footFill.classList.add('visible');
+        // same draw-then-fill as the hero, with a fallback so the mark
+        // can never be left invisible if animationend does not arrive
+        footTrace.addEventListener('animationend', fill, { once:true });
+        setTimeout(fill, traceMs + 400);
+        // the slogan starts typing once the mark is 80% drawn
+        setTimeout(() => bmuType(SLOGAN, footSlogan, 55), traceMs * 0.8);
+      }
+
+      /* Driven by scroll rather than an IntersectionObserver: the footer
+         starts display:none, and an observer armed against a box that
+         does not exist yet cannot be relied on to re-deliver once it
+         appears. Reading the rect on scroll always tells the truth. */
+      window.bmuFooterCheck = function(){
+        if (!document.body.classList.contains('entered')) return;
+        const r = siteFooter.getBoundingClientRect();
+        const inView = r.top < window.innerHeight * 0.88 && r.bottom > 0;
+        document.body.classList.toggle('at-footer', inView);
+        if (inView && !footShown) revealFooter();
+      };
+
+      window.addEventListener('scroll', window.bmuFooterCheck, { passive:true });
+      window.addEventListener('resize', window.bmuFooterCheck);
+    }
 
     /* ============================================================
        OPERATIONS — one continuous choreography:
@@ -1661,7 +2124,8 @@ We are a designer-led unit. We see designers as integral nodes in repositioning 
 
 Per operation we create design systems which secure textiles and their material intelligence found in each garment; we unite intelligence, maintain sovereignty and circulate.`;
 
-    const BAR_H = 40;
+    /* measured, not hard-coded: --bar-h is the only place the height is set */
+    function barH(){ return opsBtn.offsetHeight || 32; }
     let opsState = 'closed';           // closed | expanding | open
     let paperTyped = false;
     let opsTimers = [];
@@ -1669,27 +2133,41 @@ Per operation we create design systems which secure textiles and their material 
     function later(fn, ms){ opsTimers.push(setTimeout(fn, ms)); }
     function clearOpsTimers(){ opsTimers.forEach(clearTimeout); opsTimers = []; }
 
-    function isMobileCol(){ return window.matchMedia('(max-width:640px)').matches; }
+    /* read the layout rather than the breakpoint: the row is a row on
+       every screen now, but this stays honest if that ever changes */
+    function isStacked(){
+      return getComputedStyle(navRow).flexDirection === 'column';
+    }
+
+    /* pin the bar's current geometry and drop a hidden stand-in into its
+       flex slot, so it can be moved and resized without the row reflowing */
+    function flipPin(){
+      const rowRect = navRow.getBoundingClientRect();
+      const btnRect = opsBtn.getBoundingClientRect();
+      const ghost = document.createElement('div');
+      ghost.id = 'opsGhost';
+      ghost.className = 'bm-button';
+      ghost.style.visibility = 'hidden';
+      opsBtn.after(ghost);
+      opsBtn.style.left  = (btnRect.left - rowRect.left) + 'px';
+      opsBtn.style.width = btnRect.width + 'px';
+      opsBtn.classList.add('expanding');
+      void opsBtn.offsetWidth;
+    }
+
+    function dropGhost(){
+      const ghost = document.getElementById('opsGhost');
+      if (ghost) ghost.remove();
+    }
 
     function openOps(){
-      if (opsState !== 'closed') return;
+      if (opsState !== 'closed' || joinState !== 'off') return;
       opsState = 'expanding';
       navRow.classList.add('ops-engaged');
       opsBtn.setAttribute('aria-expanded', 'true');
 
-      if (!isMobileCol()){
-        // FLIP: pin geometry, ghost holds the row, then widen
-        const rowRect = navRow.getBoundingClientRect();
-        const btnRect = opsBtn.getBoundingClientRect();
-        const ghost = document.createElement('div');
-        ghost.id = 'opsGhost';
-        ghost.className = 'bm-button';
-        ghost.style.visibility = 'hidden';
-        opsBtn.after(ghost);
-        opsBtn.style.left  = (btnRect.left - rowRect.left) + 'px';
-        opsBtn.style.width = btnRect.width + 'px';
-        opsBtn.classList.add('expanding');
-        void opsBtn.offsetWidth;
+      if (!isStacked()){
+        flipPin();
         opsBtn.style.left  = '0px';
         opsBtn.style.width = '100%';
         // sides begin drawing just before the widening fully settles,
@@ -1710,7 +2188,8 @@ Per operation we create design systems which secure textiles and their material 
       // width comes from the SETTLED sheet (100% of navRow), never from
       // the bar mid-transition — measuring the bar early is what caused
       // the doubled/offset right edge under the × button.
-      opsSheet.style.top = (opsBtn.offsetTop + BAR_H - 1.5) + 'px';
+      const bar = barH();
+      opsSheet.style.top = (opsBtn.offsetTop + bar - 1.5) + 'px';
       opsSheet.style.left = '0px';
       opsSheet.style.width = '100%';
       opsSheet.classList.add('on');
@@ -1718,7 +2197,7 @@ Per operation we create design systems which secure textiles and their material 
 
       const W = opsSheet.getBoundingClientRect().width;
       const fullH = Math.min(Math.round(W * 1.414), Math.round(window.innerHeight * 0.82));
-      const sheetH = fullH - BAR_H;
+      const sheetH = fullH - bar;
 
       // the box drops out of the bar: pin it shut, force the reflow that
       // commits that as the transition's start, then run the height
@@ -1727,7 +2206,7 @@ Per operation we create design systems which secure textiles and their material 
       opsSheet.style.height = sheetH + 'px';
 
       // page grows in step with the drawing so nothing jumps
-      navRow.style.minHeight = (opsBtn.offsetTop + BAR_H - 1.5 + sheetH + 12) + 'px';
+      navRow.style.minHeight = (opsBtn.offsetTop + bar - 1.5 + sheetH + 12) + 'px';
 
       // content fades in as the bottom edges join (~.48s delay + .45s draw)
       later(() => {
@@ -1758,14 +2237,14 @@ Per operation we create design systems which secure textiles and their material 
       opsPaper.classList.remove('ops-caret');
       opsSheet.style.height = '0px';
       opsBtn.setAttribute('aria-expanded', 'false');
-      navRow.style.minHeight = '40px';
+      navRow.style.minHeight = barH() + 'px';
 
       setTimeout(() => {
         opsBtn.classList.remove('open');   // bottom edge re-forms once shut
         opsSheet.classList.remove('on');
         opsSheet.setAttribute('aria-hidden', 'true');
 
-        if (!isMobileCol() && opsBtn.classList.contains('expanding')){
+        if (!isStacked() && opsBtn.classList.contains('expanding')){
           const slot = estimateSlot();
           opsBtn.style.left  = slot.left + 'px';
           opsBtn.style.width = slot.width + 'px';
@@ -1773,14 +2252,12 @@ Per operation we create design systems which secure textiles and their material 
             opsBtn.classList.remove('expanding');
             opsBtn.style.left = '';
             opsBtn.style.width = '';
-            const ghost = document.getElementById('opsGhost');
-            if (ghost) ghost.remove();
+            dropGhost();
             navRow.classList.remove('ops-engaged');
           }, 580);
         } else {
           opsBtn.classList.remove('expanding');
-          const ghost = document.getElementById('opsGhost');
-          if (ghost) ghost.remove();
+          dropGhost();
           navRow.classList.remove('ops-engaged');
         }
       }, 620);
@@ -1788,19 +2265,284 @@ Per operation we create design systems which secure textiles and their material 
 
     function estimateSlot(){
       const rowW = navRow.getBoundingClientRect().width;
-      const gap = 12, n = 5;
+      const gap = parseFloat(getComputedStyle(navRow).columnGap) || 0;
+      const n = 5;
       const w = (rowW - gap * (n - 1)) / n;
       return { left: (w + gap) * 2, width: w };
     }
 
-    opsBtn.addEventListener('click', () => { if (opsState === 'closed') openOps(); });
-    opsBtn.addEventListener('keydown', (e) => {
-      if ((e.key === 'Enter' || e.key === ' ') && opsState === 'closed'){
-        e.preventDefault(); openOps();
+    /* ============================================================
+       JOIN — the mirror of Operations. The bar widens exactly as it
+       does for Operations, but instead of dropping a sheet it closes
+       back down into a single centred button reading "Join"; the four
+       other buttons are driven into that same slot as it goes. The
+       intro copy is then untyped, our address typed in its place, and
+       the grey field slides out beneath it at the address's own width.
+       ============================================================ */
+
+    /* ---- where the address is posted ------------------------------
+       This page is static, so it cannot send mail by itself: the POST
+       needs a form endpoint (Formspree, Basin, a Worker, an Apps Script
+       webhook — anything that accepts JSON and mails hello@). Paste that
+       URL here and Join sends silently, no mail client, no subject. Left
+       empty, Join tells the reader it could not send rather than
+       pretending it did. */
+    /* Where a join request goes. GitHub Pages serves static files only, so
+       there is no server here to receive a POST — it has to be a third-party
+       form endpoint. The body below is already in Formspree's JSON shape, so
+       pasting a Formspree form URL is all that is needed:
+
+           const JOIN_ENDPOINT = 'https://formspree.io/f/xxxxxxxx';
+
+       Anything accepting a JSON POST works the same way (Basin, Getform, a
+       Cloudflare Worker). Leave it empty and the panel falls back to showing
+       the address to write to, so the flow never dead-ends. */
+    const JOIN_ENDPOINT = '';
+    const JOIN_TO       = 'hello@britishmaterialunit.com';
+
+    const joinBtn   = document.getElementById('joinBtn');
+    const joinPanel = document.getElementById('joinPanel');
+    const joinEmail = document.getElementById('joinEmail');
+    const joinSlide = document.getElementById('joinSlide');
+    const joinInput = document.getElementById('joinInput');
+    const joinMsg   = document.getElementById('joinMsg');
+    const opsLabel  = document.getElementById('opsLabel');
+
+    let joinState = 'off';   // off | opening | ready | sending | sent | closing
+    let joinRun   = 0;       // bumped on every open/close, so a stale
+                             // typewriter run stops instead of fighting
+
+    /* the width one nav button had in the five-up row, captured before the
+       sequence starts widening things — the collapsed Join button settles at
+       exactly that size rather than a wider slab */
+    let joinSoloW = 0;
+    function soloWidth(){
+      if (joinSoloW) return joinSoloW;
+      const rowW = navRow.getBoundingClientRect().width;
+      const gap  = parseFloat(getComputedStyle(navRow).columnGap) || 0;
+      return Math.max(64, (rowW - gap * 4) / 5);
+    }
+
+    /* drive the four other buttons into the middle slot and out */
+    function convergeButtons(){
+      const target = opsBtn.getBoundingClientRect();
+      const cx = target.left + target.width / 2;
+      navRow.querySelectorAll('.bm-button').forEach(b => {
+        if (b === opsBtn || b.id === 'opsGhost') return;
+        const r = b.getBoundingClientRect();
+        const dx = cx - (r.left + r.width / 2);
+        b.style.transform = 'translateX(' + dx + 'px) scaleX(.18)';
+      });
+    }
+    function releaseButtons(){
+      navRow.querySelectorAll('.bm-button').forEach(b => { b.style.transform = ''; });
+    }
+
+    function openJoin(){
+      if (joinState !== 'off' || opsState !== 'closed') return;
+      joinState = 'opening';
+      joinRun++;
+      joinMsg.textContent = '';
+      // measure first: everything below this line starts resizing the row
+      joinSoloW = Math.round(opsBtn.getBoundingClientRect().width);
+      navRow.classList.add('ops-engaged', 'join-mode');
+
+      convergeButtons();
+
+      if (!isStacked()){
+        flipPin();
+        opsBtn.style.left  = '0px';
+        opsBtn.style.width = '100%';
+      } else {
+        opsBtn.classList.add('expanding');
       }
+
+      // ...and straight back down into one button, now reading Join
+      later(() => {
+        const rowW = navRow.getBoundingClientRect().width;
+        const w = soloWidth();
+        opsBtn.style.left  = ((rowW - w) / 2) + 'px';
+        opsBtn.style.width = w + 'px';
+        opsBtn.classList.add('join-solo');
+        opsLabel.textContent = 'Join';
+        opsBtn.setAttribute('aria-label', 'Send join request');
+        scrollCue.classList.add('close-mode');
+        scrollCue.setAttribute('aria-label', 'Leave Join');
+      }, 540);
+
+      later(joinSequence, 700);
+    }
+
+    function joinSequence(){
+      const tok = joinRun;
+      const live = () => tok === joinRun && joinState !== 'off';
+      bmuUntype(textContent, 7, () => {
+        if (!live()) return;
+        joinPanel.classList.add('on');
+        joinPanel.setAttribute('aria-hidden', 'false');
+        bmuType(JOIN_TO, joinEmail, 40, () => {
+          if (!live()) return;
+          // the field is cut to the address's rendered length, then slid out
+          requestAnimationFrame(() => {
+            const w = Math.ceil(joinEmail.getBoundingClientRect().width);
+            joinSlide.style.setProperty('--slide-w', w + 'px');
+            joinSlide.classList.add('slid');
+            later(() => {
+              if (!live()) return;
+              joinSlide.classList.add('typable');
+              joinState = 'ready';
+              try { joinInput.focus({ preventScroll:true }); } catch(_){}
+            }, 640);
+          });
+        }, live);
+      }, live);
+    }
+
+    /* The opening run backwards: the field and the address go, the one
+       button widens back out to the full row, and only then does it come
+       down into its own slot with the other four sliding out of it. */
+    function closeJoin(){
+      if (joinState === 'off' || joinState === 'closing') return;
+      joinState = 'closing';
+      joinRun++;
+      clearOpsTimers();
+
+      joinSlide.classList.remove('slid', 'typable');
+      joinPanel.classList.remove('on');
+      joinPanel.setAttribute('aria-hidden', 'true');
+      joinEmail.textContent = '';
+      joinInput.value = '';
+      joinInput.disabled = false;
+      joinMsg.textContent = '';
+
+      opsBtn.classList.remove('join-solo', 'sending', 'sent');
+
+      function land(){
+        opsBtn.classList.remove('expanding');
+        opsBtn.style.left = '';
+        opsBtn.style.width = '';
+        dropGhost();
+        navRow.classList.remove('ops-engaged');
+        navRow.style.pointerEvents = '';
+        // the arrow only comes back once all five buttons are home
+        scrollCue.classList.remove('close-mode');
+        scrollCue.setAttribute('aria-label', 'Scroll to the footer');
+        joinState = 'off';
+      }
+
+      if (!isStacked() && opsBtn.classList.contains('expanding')){
+        opsBtn.style.left  = '0px';
+        opsBtn.style.width = '100%';
+        later(() => {
+          opsLabel.textContent = 'Operations';
+          opsBtn.setAttribute('aria-label', 'Operations');
+          const slot = estimateSlot();
+          opsBtn.style.left  = slot.left + 'px';
+          opsBtn.style.width = slot.width + 'px';
+          navRow.classList.remove('join-mode', 'ops-engaged');
+          navRow.style.pointerEvents = 'none';   // nothing is clickable mid-flight
+          releaseButtons();
+        }, 560);
+        later(land, 1160);
+      } else {
+        opsLabel.textContent = 'Operations';
+        opsBtn.setAttribute('aria-label', 'Operations');
+        navRow.classList.remove('join-mode');
+        releaseButtons();
+        land();
+      }
+
+      const tok = joinRun;
+      bmuType(mainText, textContent, 6, null, () => tok === joinRun);
+    }
+
+    function submitJoin(){
+      if (joinState !== 'ready') return;
+      const email = joinInput.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+        joinMsg.textContent = 'Enter a valid address';
+        try { joinInput.focus({ preventScroll:true }); } catch(_){}
+        return;
+      }
+
+      if (!JOIN_ENDPOINT){
+        joinMsg.textContent = 'Could not send — write to ' + JOIN_TO;
+        return;
+      }
+
+      joinState = 'sending';
+      opsBtn.classList.add('sending');
+      joinInput.disabled = true;
+      joinMsg.textContent = 'Sending';
+
+      fetch(JOIN_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+        // no subject and no body: the address itself is the whole message
+        body: JSON.stringify({ email: email, _subject: '', message: '' })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error(res.status);
+        joinState = 'sent';
+        opsBtn.classList.remove('sending');
+        opsBtn.classList.add('sent');
+        joinSlide.classList.remove('slid', 'typable');
+        joinMsg.textContent = 'Received';
+      })
+      .catch(() => {
+        joinState = 'ready';
+        opsBtn.classList.remove('sending');
+        joinInput.disabled = false;
+        joinMsg.textContent = 'Could not send — write to ' + JOIN_TO;
+      });
+    }
+
+    joinBtn.addEventListener('click', openJoin);
+    joinBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openJoin(); }
     });
-    opsClose.addEventListener('click', (e) => { e.stopPropagation(); closeOps(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOps(); });
+    joinInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){ e.preventDefault(); submitJoin(); }
+    });
+    joinSlide.addEventListener('click', () => {
+      if (joinState === 'ready') try { joinInput.focus({ preventScroll:true }); } catch(_){}
+    });
+
+    opsBtn.addEventListener('click', () => {
+      if (joinState !== 'off'){ submitJoin(); return; }
+      if (opsState === 'closed') openOps();
+    });
+    opsBtn.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (joinState !== 'off'){ e.preventDefault(); submitJoin(); return; }
+      if (opsState === 'closed'){ e.preventDefault(); openOps(); }
+    });
+    opsClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (joinState !== 'off') closeJoin(); else closeOps();
+    });
+
+    /* ---- the cue at the foot of the screen: down to the footer, or out of Join ---- */
+    scrollCue.addEventListener('click', () => {
+      if (joinState !== 'off'){ closeJoin(); return; }
+      if (!siteFooter) return;
+      siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+    });
+
+    /* Operations has no page of its own — the footer link returns to the
+       top of this one and opens the sheet */
+    const footOps = document.getElementById('footOps');
+    if (footOps){
+      footOps.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({ top:0, behavior:'smooth' });
+        setTimeout(() => { if (opsState === 'closed') openOps(); }, 620);
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (joinState !== 'off') closeJoin(); else closeOps();
+    });
 
     /* ---- swipe to dismiss: sideways anywhere, up when at end of content ---- */
     function attachSwipe(el){
@@ -1866,17 +2608,15 @@ Per operation we create design systems which secure textiles and their material 
 
     /* ============================================================
        CAPABILITY MAP — lives below the fold in this same page.
-       Revealed only by: (a) scrolling down past the buttons, or
-       (b) the ↓ button in the Operations sheet, which collapses
-       the sheet back to five buttons and scrolls down to it.
+       Revealed by scrolling down past the buttons — the observer
+       below arms the reveal each time the section comes into view.
        ============================================================ */
     const mapSection = document.getElementById('mapSection');
-    const mapBtn     = document.getElementById('mapBtn');
     let mapVisible = false;
 
     /* the blink/flicker reveal plays EVERY time the user arrives at the
-       map — by scrolling or via the ↓ arrow — because leaving the section
-       re-arms the intro state. RESET (zoom) never disarms it. */
+       map, because leaving the section re-arms the intro state.
+       RESET (zoom) never disarms it. */
     function activateMap(){
       if (mapVisible) return;
       mapVisible = true;
@@ -1903,12 +2643,6 @@ Per operation we create design systems which secure textiles and their material 
     }, { threshold: [0, 0.3] });
     mapObserver.observe(mapSection);
 
-    mapBtn.addEventListener('click', () => {
-      closeOps();
-      setTimeout(() => {
-        mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 700);
-    });
   </script>
 
   <script>

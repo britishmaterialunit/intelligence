@@ -1,8 +1,0 @@
-British MTP Respirator Case
-
-Nation: British
-Type: Pouches / Cases
-
-Placeholder record. Replace this file with the garment write-up:
-issue period, pattern, fabric and construction, and any notes on
-provenance or condition.

@@ -1,9 +1,0 @@
-British Army 1980s Foul Weather Trousers
-
-Nation: British
-Type: Trousers / Coveralls
-Archive ref: BA80FWT
-
-Placeholder record. Replace this file with the garment write-up:
-issue period, pattern, fabric and construction, and any notes on
-provenance or condition.
