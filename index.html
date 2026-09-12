@@ -9,23 +9,23 @@
   <meta name="author" content="British Material Unit" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="canonical" href="https://britishmaterialunit.com/" />
+  <link rel="canonical" href="/" />
   <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://britishmaterialunit.com/" />
   <meta property="og:site_name" content="British Material Unit (BMU)" />
-  <meta property="og:title" content="British Material Unit (BMU) — Uniting Intelligence" />
+  <meta property="og:title" content="British Material Unit (BMU) — Uniting Intelligence & Circular Systems" />
   <meta property="og:description" content="A designer-led circular startup reusing surplus defence textiles." />
   <meta property="og:locale" content="en_GB" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="British Material Unit (BMU) — Uniting Intelligence" />
+  <meta name="twitter:title" content="British Material Unit (BMU) — Uniting Intelligence & Circular Systems" />
   <meta name="twitter:description" content="A designer-led circular startup reusing surplus defence textiles." />
 
-  <title>British Material Unit (BMU) — Uniting Intelligence</title>
+  <title>British Material Unit (BMU) — Uniting Intelligence & Circular Systems</title>
 
   <script type="application/ld+json">
   {
@@ -297,7 +297,13 @@
       pointer-events:none;
       padding:20px;
     }
-    .show-text{ opacity:1; pointer-events:auto; }
+    /* --hero-fade is driven by the scroll position (see bmuFooterCheck):
+       the copy dims as the footer rises towards it instead of being cut off
+       against the top of the screen. */
+    .show-text{ opacity:var(--hero-fade, 1); pointer-events:auto; }
+    /* the 1s ease belongs to the reveal; once the reader is in, the value is
+       following a scroll and has to track it rather than lag a beat behind */
+    body.entered .typewriter-text{ transition:opacity .25s linear; }
 
     /* ---------- BUTTON ROW ---------- */
     /* Holds the row and the footer arrow beneath it as one block. The
@@ -327,6 +333,19 @@
       min-height:var(--bar-h);
     }
     #navRow.visible{ opacity:1; pointer-events:auto; }
+
+    /* The footer carries the same five destinations in its index, so the
+       row steps aside rather than sitting above a duplicate of itself. The
+       map is normally between the two, but with it collapsed they otherwise
+       share a screen. */
+    #navStack{
+      transition:opacity .55s ease, transform .55s cubic-bezier(.65,0,.35,1);
+    }
+    body.entered.at-footer #navStack{
+      opacity:0;
+      transform:translateY(-14px);
+      pointer-events:none;
+    }
 
     .bm-button{
       display:block;
@@ -375,6 +394,11 @@
       flex-direction:column;
       align-items:center;
       gap:12px;
+      /* .typewriter-text sets white-space:pre-wrap for the intro copy, and
+         the panel inherits it — which turns the newlines between these tags
+         into real line breaks and walks the field's contents out of the box.
+         The panel is markup, not preformatted text. */
+      white-space:normal;
     }
     #joinPanel.on{ display:flex; }
     /* shrink-to-fit, so its rendered width is what the grey field is cut to */
@@ -385,8 +409,10 @@
       min-height:1.5em;
       letter-spacing:.01em;
     }
-    /* slides out from the left at the address's own length */
+    /* slides out from the left at the address's own length, then tracks
+       whatever is typed into it */
     #joinSlide{
+      position:relative;
       width:0;
       height:34px;
       background:#e9e9e9;
@@ -395,34 +421,142 @@
       transition:width .62s cubic-bezier(.65,0,.35,1);
     }
     #joinSlide.slid{ width:var(--slide-w, 0px); }
+    /* once it is live the width follows the typing, so it needs to keep up
+       with a keystroke rather than open like a drawer */
+    #joinSlide.typable{ transition:width .2s cubic-bezier(.3,.7,.3,1); }
+    /* off-screen twin of the input, used to measure the typed text — the
+         same font and size, so what it measures is what will render */
+    #joinGhost{
+      position:absolute;
+      left:-9999px;
+      top:0;
+      white-space:pre;
+      font-family:var(--font);
+      font-size:clamp(10pt, 3.4vw, 12pt);
+      letter-spacing:normal;
+      pointer-events:none;
+    }
+    /* pinned to the field rather than sitting on its line box: the input is
+       the grey box's whole contents, so inline layout has no say in it */
     #joinInput{
+      position:absolute;
+      inset:0;
       width:100%; height:100%;
       border:0; outline:none; background:transparent;
       font-family:var(--font);
       font-size:clamp(10pt, 3.4vw, 12pt);
       color:var(--ink);
+      caret-color:var(--ink);   /* the blinking bar: the reader's cue to type */
       text-align:center;
       padding:0 10px;
       opacity:0;
       transition:opacity .45s ease;
     }
-    #joinSlide.typable #joinInput{ opacity:1; }
-    #joinInput::placeholder{ color:#aaa; }
+    /* The placeholder is up the moment the field starts opening — the
+       reader should never be looking at an empty grey box wondering
+       whether it is their turn. */
+    #joinSlide.slid #joinInput{ opacity:1; }
+    #joinInput::placeholder{ color:#a8a8a8; }
+
+    /* the form answers inside the field, over the top of it */
     #joinMsg{
-      min-height:1.3em;
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0 10px;
+      background:#e9e9e9;
       font-size:10.5px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      white-space:nowrap;
+      color:#777;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .28s ease;
+    }
+    #joinMsg.show{ opacity:1; }
+    #joinSlide.sent #joinMsg{ color:var(--ink); }
+
+    /* ---------- REPOSITORY PANEL ---------- */
+    #repoPanel{
+      display:none;
+      flex-direction:column;
+      align-items:stretch;
+      gap:14px;
+      white-space:normal;
+      width:min(92vw, 420px);
+      text-align:left;
+    }
+    #repoPanel.on{ display:flex; }
+    .repo-lede{
+      font-size:clamp(10pt, 3.2vw, 11.5pt);
+      line-height:1.55;
+      text-align:center;
+      min-height:1.55em;
+    }
+    .repo-camos{
+      list-style:none;
+      margin:0;
+      padding:0;
+      border-top:1px solid #e0e0e0;
+      opacity:0;
+      transition:opacity .7s ease;
+    }
+    .repo-camos.in{ opacity:1; }
+    .repo-camos li{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:9px 2px;
+      border-bottom:1px solid #e0e0e0;
+    }
+    /* the mark's own left-hand bars, reused as the menu's bullet — the
+       repository is the mark read one line at a time */
+    .camo-lines{ flex:none; width:15px; height:11px; display:block; }
+    .camo-lines path{
+      fill:none;
+      stroke:var(--ink);
+      stroke-width:1;
+      stroke-linecap:round;
+    }
+    .camo-name{
+      flex:1 1 auto;
+      min-width:0;
+      font-size:11.5px;
+      letter-spacing:.02em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .camo-meta{
+      flex:none;
+      font-size:10px;
       letter-spacing:.08em;
       text-transform:uppercase;
       color:#999;
     }
+    .repo-note{
+      font-size:10.5px;
+      line-height:1.6;
+      color:#777;
+      text-align:center;
+      opacity:0;
+      transition:opacity .7s ease;
+    }
+    .repo-note.in{ opacity:1; }
 
     /* ---------- OPERATIONS BAR ---------- */
     #opsBtn{
       position:relative;
       z-index:5;
       touch-action:pan-y;
+      /* height joins left/width on the same curve: widening and growing are
+         one continuous motion of one element, never two boxes meeting */
       transition:background-color .3s ease, color .3s ease,
-                 border-bottom-color .12s ease,
+                 height .62s cubic-bezier(.65,0,.35,1),
+                 top .6s cubic-bezier(.65,0,.35,1),
                  left .55s cubic-bezier(.65,0,.35,1),
                  width .55s cubic-bezier(.65,0,.35,1);
     }
@@ -431,19 +565,26 @@
       top:0;
       background:var(--bg);
     }
-    /* the bar's bottom edge goes as the box drops, so the bar simply
-       becomes the top of one continuous outline */
+    /* The bar keeps its whole border throughout — it IS the box. The open
+       typography goes on the label rather than the bar, so none of it
+       cascades into the sheet and no padding shifts the sheet's edges. */
     #opsBtn.open{
-      border-bottom-color:transparent;
       cursor:default;
       text-align:left;
-      padding-left:18px;
-      font-size:10px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:#888;
+      white-space:normal;
     }
     #opsBtn.open:hover{ background:var(--bg); }
+    #opsBtn.open #opsLabel{
+      display:block;
+      height:var(--bar-h);
+      line-height:calc(var(--bar-h) - 3px);
+      padding-left:18px;
+      /* sentence case, as it reads on the closed bar — the box is a title,
+         and shouting it made it a different word from the button */
+      font-size:11px;
+      letter-spacing:.06em;
+      color:#888;
+    }
 
     .ops-close{
       display:none;
@@ -461,23 +602,17 @@
     #opsBtn.open .ops-close{ display:block; }
 
     /* ---------- OPERATIONS SHEET (A4) ----------
-       The sheet carries the box's own sides and bottom as real borders
-       and sits flush under the bar, overlapping its bottom edge. Bar and
-       sheet therefore read as one unbroken box — there is no separate
-       outline to align, so no seam can appear. */
+       Now a pane INSIDE the bar. It owns no border and no height of its
+       own — it simply fills whatever room the bar has grown into, from
+       the bar's own bottom edge downwards. Nothing here can animate, so
+       nothing here can fall out of step with the box. */
     #opsSheet{
       position:absolute;
-      left:0;
-      width:100%;
+      top:var(--bar-h);
+      left:0; right:0; bottom:0;
       display:none;
-      z-index:4;
       background:var(--bg);
       touch-action:pan-y;
-      border:1.5px solid var(--line);
-      border-top:none;
-      height:0;
-      overflow:hidden;
-      transition:height .52s cubic-bezier(.65,0,.35,1);
     }
     #opsSheet.on{ display:block; }
 
@@ -488,8 +623,15 @@
       overflow-x:hidden;
       -webkit-overflow-scrolling:touch;
       padding:22px clamp(20px, 6%, 54px) 40px;
+      /* the sheet sits inside a button now, so it has to put back everything
+         .bm-button sets: type, alignment, wrapping and the pointer */
       font-size:12pt;
       line-height:1.65;
+      letter-spacing:normal;
+      text-transform:none;
+      text-align:left;
+      white-space:normal;
+      cursor:auto;
       color:var(--ink);
       opacity:0;
       transition:opacity .5s ease;
@@ -660,6 +802,8 @@
       transition:opacity .55s ease, --dot-r 1.25s cubic-bezier(.3,.7,.3,1);
     }
     body.entered #siteFooter{ display:block; }
+    /* and it is taken off the page entirely, so a scroll cannot reach it */
+    body.ops-open #siteFooter{ display:none; }
     #siteFooter.in{
       opacity:1;
       --dot-r:4px;          /* > half the 5px tile diagonal, so it closes up */
@@ -671,22 +815,6 @@
               mask-image:none;
     }
 
-    /* tactical map wash, strongest along the bottom edge and gone by the
-       top of the footer */
-    #siteFooter::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      z-index:0;
-      pointer-events:none;
-      background-image:url('/background-overlay.png');
-      background-size:200% auto;
-      background-position:center bottom;
-      background-repeat:no-repeat;
-      opacity:.30;
-      -webkit-mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,0) 100%);
-              mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,0) 100%);
-    }
     /* inner width keeps the hairline clear of the screen edges */
     .foot-inner{
       position:relative;
@@ -695,18 +823,17 @@
       margin:0 auto;
     }
 
-    /* same three tracks as the columns below, so the slogan starts on the
-       identity column's edge — in line with "British Material Unit (BMU)" */
+    /* The slogan sits with the mark, not three columns away from it. On a
+       1100px footer a 3-track grid threw it most of the width clear of the
+       thing it belongs to, which read as two unrelated items. */
     .foot-head{
-      display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:34px;
+      display:flex;
       align-items:center;
+      gap:16px;
     }
-    .foot-slogan{ grid-column:3; }
 
     .foot-mark{
-      height:15px; width:auto;
+      height:17px; width:auto;   /* matches .hd-mark in the header */
       display:block;
       align-self:center;
       justify-self:start;
@@ -739,7 +866,7 @@
     .foot-slogan{
       display:flex;
       align-items:center;
-      min-height:15px;              /* the mark's height */
+      min-height:17px;              /* the mark's height */
       font-size:11.5px;
       line-height:1.2;
       letter-spacing:.02em;
@@ -749,19 +876,22 @@
     .foot-rule{
       height:1px;
       background:#e6e6e6;
-      margin:20px 0 28px;
+      margin:22px 0 34px;
     }
 
+    /* Tracks sized to their contents rather than three equal thirds: the two
+       link lists are short and the contact block is not, so equal thirds left
+       a trench of dead space beside the lists and broke the address. */
     .foot-cols{
       display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:34px;
+      grid-template-columns:minmax(0,.85fr) minmax(0,.85fr) minmax(0,1.3fr);
+      gap:clamp(24px, 5vw, 68px);
       align-items:start;
     }
     .foot-col{
       display:flex;
       flex-direction:column;
-      gap:7px;
+      gap:9px;
       min-width:0;
     }
     .foot-col h3{
@@ -786,38 +916,206 @@
     }
     .foot-col a:hover{ color:var(--ink); }
 
-    /* sits on the same row as the INDEX / SERVICES headings */
-    .foot-col h3.foot-name{
+    /* the address is one block of information, so it sets on its own tight
+       rhythm — the column's 9px gap is for lists, not for a postal address */
+    .foot-id{ gap:9px; }
+    .foot-addr{
+      font-style:normal;
       font-size:11.5px;
-      letter-spacing:.02em;
-      text-transform:none;
-      color:var(--ink);
-      font-weight:bold;
-      margin:0 0 6px;
+      line-height:1.65;
+      color:#666;
     }
-    /* the address is one block of information, so it sets tight — the
-       column's 7px rhythm is for lists, not for a postal address */
-    .foot-id{ gap:2px; }
-    .foot-id a{ margin-bottom:7px; }
-    .foot-id .foot-copy{ margin-top:12px; }
-    .foot-id .foot-copy{
-      margin-top:8px;
+
+    /* closing rule: identity left, copyright right */
+    .foot-base{
+      margin-top:40px;
+      padding-top:18px;
+      border-top:1px solid #e6e6e6;
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+    .foot-org{
+      font-size:11.5px;
+      font-weight:bold;
+      color:var(--ink);
+    }
+    .foot-copy{
       font-size:10.5px;
       letter-spacing:.06em;
       color:#999;
     }
+    .foot-legal{ display:flex; gap:18px; }
+    .foot-legal a{
+      font-size:10.5px;
+      letter-spacing:.06em;
+      color:#999;
+      text-decoration:none;
+      transition:color .25s ease;
+    }
+    .foot-legal a:hover{ color:var(--ink); }
+
+    /* the confirmation the address copied — it takes no room until it has
+       something to say, so the contact block does not shift */
+    #footMailMsg{
+      display:block;
+      height:0;
+      overflow:hidden;
+      font-size:10px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:#999;
+      opacity:0;
+      transition:opacity .25s ease, height .25s ease;
+    }
+    #footMailMsg.show{ height:1.5em; opacity:1; }
 
     @media (prefers-reduced-motion: reduce){
       .animated-path, .foot-trace{ animation-duration:.01s; }
       /* no dot dissolve when motion is unwelcome — show it plainly */
       #siteFooter{ transition:none; --dot-r:4px; }
       #opsBtn, #opsSheet, #navRow{ transition:none; }
+      /* same resting state, reached instantly: the drawn outline, unfilled */
+      #siteHead.armed .hd-trace{ animation-duration:.01s; }
+      #siteHead{ transition:background-color .2s ease; }
       html{ scroll-behavior:auto; }
     }
+
+    /* ---------- SITE HEADER ---------- */
+    /* Only exists once the reader is inside the site — it rides in on the
+       same beat as the button row. See-through over the white page; on
+       hover it fills to near-black, which is the whole reason the mark and
+       the two tools are built to read on either ground. */
+    #siteHead{
+      position:fixed;
+      top:0; left:0; right:0;
+      z-index:60;
+      height:54px;
+      display:flex;
+      align-items:center;
+      background:transparent;
+      opacity:0;
+      pointer-events:none;
+      transition:background-color .35s ease, opacity .9s ease;
+    }
+    body.entered #siteHead{ opacity:1; pointer-events:auto; }
+    #siteHead:hover{ background:#262626; }
+
+    /* the footer's own measure, so the corner mark and the footer mark sit
+       on one line down the left edge — and the tools land on the footer's
+       right edge in the same way */
+    .hd-inner{
+      width:min(92vw, 1100px);
+      height:100%;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* --- the mark, top left --- */
+    .hd-mark{
+      display:block;
+      transition:opacity .45s ease;
+      line-height:0;
+      text-decoration:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-mark svg{ height:17px; width:auto; display:block; overflow:visible; }
+    /* .4 against the footer's .35, for the two extra pixels of height */
+    .hd-trace{
+      fill:none;
+      stroke:var(--ink);
+      stroke-width:.4;
+      transition:stroke .35s ease, opacity .3s ease;
+    }
+    /* The hero's gesture at header scale: it draws ONCE, on arrival, and
+       then holds that drawn outline for good. forwards is what keeps it
+       there — a loop made the corner restless, and there is nothing in a
+       header worth re-animating every few seconds. */
+    #siteHead.armed .hd-trace{ animation:hd-draw 2.6s ease-in-out forwards; }
+    @keyframes hd-draw{
+      from { stroke-dashoffset:var(--hd-len); }
+      to   { stroke-dashoffset:0; }
+    }
+    .hd-fill{
+      fill:var(--ink);
+      stroke:none;
+      opacity:0;
+      transition:opacity .35s ease, fill .35s ease;
+    }
+    #siteHead:hover .hd-trace{ animation-play-state:paused; opacity:0; }
+    #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+
+    /* At the footer the mark is already on the page, twice the size and
+       drawing itself — a second copy in the corner is just a repeat. It
+       stands down, and only a hover brings it back, in white on the dark
+       ground. The tools stay put either way. */
+    body.at-footer #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .45s ease;
+    }
+    body.at-footer #siteHead:hover .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.at-footer #siteHead:hover .hd-trace{ opacity:0; }
+    body.at-footer #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+
+    /* --- explore + index, top right --- */
+    .hd-tools{ display:flex; align-items:center; gap:18px; }
+    .hd-ico{
+      display:block;
+      line-height:0;
+      padding:8px;
+      margin:-8px;
+      border:0;
+      background:none;
+      cursor:pointer;
+      /* the footer's "British Material Unit ◎ 2026" grey */
+      color:#999;
+      transition:color .3s ease, transform .3s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-ico svg{ display:block; width:15px; height:15px; }
+    .hd-ico .ico-fill{ fill:currentColor; }
+    .hd-ico .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+    }
+    #hdExplore svg{ width:13px; height:13px; }
+    .hd-ico .ico-stroke{ stroke-linejoin:round; }
+
+    /* index ⇄ arrow, swapping by turning through each other so the tool is
+       never empty mid-change. The arrow is the cue's own two paths, so the
+       pair cannot drift apart. */
+    .hd-menu, .hd-up{
+      transform-box:fill-box;
+      transform-origin:50% 50%;
+      transition:opacity .28s ease, transform .38s cubic-bezier(.65,0,.35,1);
+    }
+    .hd-up{ opacity:0; transform:rotate(90deg) scale(.55); }
+    body.at-footer .hd-menu{ opacity:0; transform:rotate(-90deg) scale(.55); }
+    body.at-footer .hd-up{ opacity:1; transform:rotate(180deg); }
+    /* white on the black ground, so they pop rather than sink */
+    #siteHead:hover .hd-ico{ color:#fff; }
+    .hd-ico:hover{ color:#fff; transform:scale(1.1); }
 
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
       :root{ --bar-h:28px; }
+      #siteHead{
+        height:46px;
+        padding-top:env(safe-area-inset-top);
+        height:calc(46px + env(safe-area-inset-top));
+      }
+      .hd-mark svg{ height:15px; }
+      .hd-tools{ gap:15px; }
       /* symmetric padding, otherwise the 24/40 split lands the mark 8px high */
       #page{
         padding-top:max(24px, env(safe-area-inset-top));
@@ -845,11 +1143,27 @@
         width:clamp(118px, 34vw, 210px);
         aspect-ratio:1 / 1;
       }
+      /* On a phone the copy is the tallest thing on the screen and its
+         height moves with the wrap. The square stops being a square here and
+         lets the copy set its own height, so the row can simply sit under it
+         — a fixed negative margin was pulling the buttons up into whatever
+         the last line happened to be. */
+      .container{
+        aspect-ratio:auto;
+        width:min(92vw, 400px);
+        height:auto;
+        min-height:clamp(118px, 34vw, 210px);
+      }
+      .typewriter-text{
+        position:static;
+        inset:auto;
+        padding:0 4px;
+      }
       #navStack{
         grid-row:3;
         align-self:start;
         width:min(96vw, 440px);
-        margin-top:-55px;
+        margin-top:22px;      /* below the copy, always */
       }
       /* one row on a phone as well — five narrow buttons read better than
          a 240px column, and the Operations/Join choreography is then the
@@ -872,20 +1186,53 @@
       /* three columns will not fit a phone — stack them */
       .foot-cols{ grid-template-columns:1fr; gap:26px; }
       #siteFooter{ padding:44px 16px 38px; }
-      /* the head keeps mark and slogan on one line, ends apart: a third
-         of a phone's width is not enough for "Uniting Intelligence" and
-         it was breaking across two lines */
-      .foot-head{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:16px;
-      }
       .foot-slogan{ white-space:nowrap; }
+      /* stacked columns do not need the desktop trench between them */
+      .foot-cols{ gap:26px; }
+      .foot-base{ margin-top:30px; gap:8px; }
     }
   </style>
 </head>
 <body>
+  <!-- SITE HEADER — arrives with the button row, once the typewriter has
+       finished. See-through over the white page, near-black on hover, so
+       the mark and the two tools each have to read on both grounds. -->
+  <header id="siteHead">
+   <div class="hd-inner">
+    <a class="hd-mark" id="hdMark" href="#" aria-label="British Material Unit — back to top">
+      <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path id="hdTrace" class="hd-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+        <path id="hdFill" class="hd-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+      </svg>
+    </a>
+
+    <nav class="hd-tools" aria-label="Explore">
+      <a class="hd-ico" id="hdExplore" href="/archive" aria-label="Explore the archive">
+        <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+          <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
+        </svg>
+      </a>
+      <!-- One tool, two states, turning through each other the way the
+           scroll cue's arrow and cross do. At the top it is the index and
+           takes you down; at the footer it is the cue's own arrow turned
+           up, and brings you back. -->
+      <button class="hd-ico" id="hdToggle" type="button" aria-label="Go to the footer">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <g class="ico-stroke hd-menu">
+            <path d="M2.6 4.6 H13.4"/>
+            <path d="M2.6 8 H13.4"/>
+            <path d="M2.6 11.4 H13.4"/>
+          </g>
+          <g class="ico-stroke hd-up">
+            <path d="M8 2.6 V12.8"/>
+            <path d="M3.5 8.3 L8 12.9 L12.5 8.3"/>
+          </g>
+        </svg>
+      </button>
+    </nav>
+   </div>
+  </header>
+
   <main id="page">
     <div class="container">
       <div class="svg-wrapper">
@@ -907,10 +1254,22 @@
           <div id="joinEmail"></div>
           <div id="joinSlide">
             <input id="joinInput" type="email" inputmode="email" autocomplete="email"
-                   spellcheck="false" placeholder="enter email"
+                   spellcheck="false" placeholder="you@example.com"
                    aria-label="Enter your email address" />
+            <span id="joinGhost" aria-hidden="true"></span>
+            <!-- every reply the form makes appears over the field itself:
+                 nothing is announced in a line underneath it -->
+            <div id="joinMsg" role="status" aria-live="polite"></div>
           </div>
-          <div id="joinMsg" role="status" aria-live="polite"></div>
+        </div>
+
+        <!-- REPOSITORY — the same untyping the Join button plays, opening on
+             the roll rather than a field. Holding state: the camouflage page
+             proper comes later, this is the menu it will be built on. -->
+        <div id="repoPanel" aria-hidden="true">
+          <div id="repoLede" class="repo-lede"></div>
+          <ul class="repo-camos" id="repoCamos"></ul>
+          <div class="repo-note" id="repoNote"></div>
         </div>
       </div>
     </div>
@@ -918,40 +1277,50 @@
     <div id="navStack">
     <nav id="navRow" aria-label="Join, Early Access, Operations, Repository, Archive">
       <div id="joinBtn" class="bm-button" role="button" tabindex="0" aria-label="Join">Join</div>
-      <a href="https://britishmaterialunit.com/earlyaccess" class="bm-button">Early Access</a>
+      <a href="/earlyaccess" class="bm-button">Early Access</a>
 
+      <!-- ONE BOX. The sheet is a child of the bar, not a sibling: the bar
+           carries the only border, and opening Operations does nothing but
+           grow that one element's height. There is no second outline to
+           meet, so the seam — and the blip where the two used to part
+           company mid-transition — cannot occur. -->
       <div id="opsBtn" class="bm-button" role="button" tabindex="0" aria-expanded="false" aria-label="Operations">
         <span id="opsLabel">Operations</span>
         <span class="ops-close" id="opsClose" role="button" aria-label="Close Operations">×</span>
-      </div>
 
-      <div id="opsSheet" aria-hidden="true">
-        <div class="ops-body">
-          <div id="opsPaper" class="ops-paper"></div>
-          <div id="opsNews" class="ops-news">
-            <h2>Relations &amp; Partnerships</h2>
-            <a class="news-item" href="https://britishmaterialunit.com/ou">
-              <span class="ni-date">Partnership</span>
-              <span class="ni-title">Ramco</span>
-              <span class="ni-sub">Operation Upcycle Partner — upcycling via reverse engineering of garments.</span>
-            </a>
-            <a class="news-item" href="https://britishmaterialunit.com/ew">
-              <span class="ni-date">Partnership</span>
-              <span class="ni-title">East West</span>
-              <span class="ni-sub">Industrial Partner — archive, open-studio and repository.</span>
-            </a>
-            <a class="news-item" href="https://britishmaterialunit.com/soframa">
-              <span class="ni-date">Partnership</span>
-              <span class="ni-title">Soframa</span>
-              <span class="ni-sub">Franco-British Partnership — Circular Exit Strategy.</span>
-            </a>
-            <div class="ops-hint">Swipe up or sideways to close</div>
+        <div id="opsSheet" aria-hidden="true">
+          <div class="ops-body">
+            <div id="opsPaper" class="ops-paper"></div>
+            <div id="opsNews" class="ops-news">
+              <h2>Relations &amp; Partnerships</h2>
+              <a class="news-item" href="/ou">
+                <span class="ni-date">Partnership</span>
+                <span class="ni-title">Ramco</span>
+                <span class="ni-sub">Operation Upcycle Partner — upcycling via reverse engineering of garments.</span>
+              </a>
+              <a class="news-item" href="/ew">
+                <span class="ni-date">Partnership</span>
+                <span class="ni-title">East West</span>
+                <span class="ni-sub">Industrial Partner — archive, open-studio and repository.</span>
+              </a>
+              <a class="news-item" href="/soframa">
+                <span class="ni-date">Partnership</span>
+                <span class="ni-title">Soframa</span>
+                <span class="ni-sub">Franco-British Partnership — Circular Exit Strategy.</span>
+              </a>
+              <a class="news-item" href="/lambrino">
+                <span class="ni-date">Partnership</span>
+                <span class="ni-title">Lambrino</span>
+                <span class="ni-sub">Research Partner — joining East West and Soframa to build the archive at scale.</span>
+              </a>
+              <div class="ops-hint">Swipe up or sideways to close</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <a href="https://britishmaterialunit.com/repository" class="bm-button">Repository</a>
-      <a href="https://britishmaterialunit.com/archive" class="bm-button">Archive</a>
+      <div id="repoBtn" class="bm-button" role="button" tabindex="0" aria-label="Repository">Repository</div>
+      <a href="/archive" class="bm-button">Archive</a>
     </nav>
 
     </div>
@@ -1968,28 +2337,43 @@
       <div class="foot-cols">
         <nav class="foot-col" aria-label="Site index">
           <h3>Index</h3>
-          <a href="https://britishmaterialunit.com/join">Join</a>
-          <a href="https://britishmaterialunit.com/earlyaccess">Early Access</a>
+          <!-- Join, Operations and Repository all happen up on this page, so
+               the footer returns the reader there and plays them rather than
+               navigating away to a page that does not exist -->
+          <a href="#" id="footJoin">Join</a>
+          <a href="/earlyaccess">Early Access</a>
           <a href="#" id="footOps">Operations</a>
-          <a href="https://britishmaterialunit.com/repository">Repository</a>
-          <a href="https://britishmaterialunit.com/archive">Archive</a>
+          <a href="#" id="footRepo">Repository</a>
+          <a href="/archive">Archive</a>
         </nav>
 
         <div class="foot-col">
           <h3>Services</h3>
           <span>Sourcing</span>
-          <span>Wholesale</span>
           <span>Product Development</span>
           <span>R&amp;D</span>
         </div>
 
         <div class="foot-col foot-id">
-          <h3 class="foot-name">British Material Unit (BMU)</h3>
-          <a href="mailto:hello@britishmaterialunit.com">hello@britishmaterialunit.com</a>
-          <span>Unit U, Wrexham Road SS15 6PX</span>
-          <span>England, United Kingdom</span>
-          <span class="foot-copy">British Material Unit ◎ 2026</span>
+          <h3>Contact</h3>
+          <a href="mailto:hello@britishmaterialunit.com" id="footMail"
+             data-mail="hello@britishmaterialunit.com">hello@britishmaterialunit.com</a>
+          <span id="footMailMsg" role="status" aria-live="polite"></span>
+          <!-- the address breaks where a postal address breaks, not wherever
+               the column happens to run out -->
+          <address class="foot-addr">Unit U, Wrexham Road<br />SS15 6PX, England<br />United Kingdom</address>
         </div>
+      </div>
+
+      <!-- the identity and the copyright close the footer on their own rule,
+           rather than hanging off the bottom of the address -->
+      <div class="foot-base">
+        <span class="foot-org">British Material Unit (BMU)</span>
+        <nav class="foot-legal" aria-label="Legal">
+          <a href="/terms.html">Terms &amp; Conditions</a>
+          <a href="/privacy.html">Privacy Policy</a>
+        </nav>
+        <span class="foot-copy">British Material Unit ◎ 2026</span>
       </div>
 
     </div>
@@ -2091,16 +2475,82 @@
          starts display:none, and an observer armed against a box that
          does not exist yet cannot be relied on to re-deliver once it
          appears. Reading the rect on scroll always tells the truth. */
+      /* What is left of the intro copy once the footer is fully up. The
+         buttons go out altogether — they are repeated in the footer's index —
+         but the copy is the masthead, so it dims and stays rather than
+         disappearing or being clipped against the top of the screen. */
+      const HERO_FLOOR = 0.15;
+      function setHeroFade(v){
+        document.body.style.setProperty('--hero-fade', v);
+      }
+
       window.bmuFooterCheck = function(){
         if (!document.body.classList.contains('entered')) return;
-        const r = siteFooter.getBoundingClientRect();
-        const inView = r.top < window.innerHeight * 0.88 && r.bottom > 0;
+        /* Operations is a full-height sheet in the flow of this same page —
+           revealing the footer underneath it puts the two on one screen and
+           the sheet lands on top. While it is open there is nothing below. */
+        if (typeof opsState !== 'undefined' && opsState !== 'closed'){
+          document.body.classList.remove('at-footer');
+          setHeroFade(1);
+          return;
+        }
+        const vh = window.innerHeight;
+        const r  = siteFooter.getBoundingClientRect();
+        const inView = r.top < vh * 0.88 && r.bottom > 0;
         document.body.classList.toggle('at-footer', inView);
+        if (window.bmuSyncHeadTool) window.bmuSyncHeadTool();
+
+        /* Measured against how far this footer can actually rise, not a fixed
+           slice of the viewport: a short footer never reaches a fixed mark, so
+           the fade would stall part-way and never resolve. Starting at the
+           fold and ending where the footer comes to rest means the handover
+           always completes exactly as the reader lands on it. The 0.35 clamp
+           keeps a very tall footer from finishing the fade too early. */
+        const rest = Math.max(vh - r.height, vh * 0.35);
+        const t = Math.max(0, Math.min(1, (vh - r.top) / Math.max(1, vh - rest)));
+        setHeroFade(1 - (1 - HERO_FLOOR) * t);
+
         if (inView && !footShown) revealFooter();
       };
 
       window.addEventListener('scroll', window.bmuFooterCheck, { passive:true });
       window.addEventListener('resize', window.bmuFooterCheck);
+    }
+
+    /* ---------- SITE HEADER ---------- */
+    /* The mark's own length drives the loop, so the keyframes stay honest
+       whatever the path is: measure it, hand it to CSS, then arm. */
+    const siteHead = document.getElementById('siteHead');
+    const hdTrace  = document.getElementById('hdTrace');
+    if (siteHead && hdTrace){
+      const hdLen = hdTrace.getTotalLength();
+      hdTrace.style.strokeDasharray  = hdLen;
+      hdTrace.style.strokeDashoffset = hdLen;
+      siteHead.style.setProperty('--hd-len', hdLen);
+      siteHead.classList.add('armed');
+
+      document.getElementById('hdMark').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({ top:0, behavior:'smooth' });
+      });
+
+      /* One tool, both directions. At the top it is the index and takes the
+         reader down; at the footer it is the arrow and brings them back, the
+         page unwinding to the state it opened in as bmuFooterCheck runs. */
+      const hdToggle = document.getElementById('hdToggle');
+      hdToggle.addEventListener('click', () => {
+        if (document.body.classList.contains('at-footer')){
+          window.scrollTo({ top:0, behavior:'smooth' });
+        } else if (siteFooter){
+          siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+        }
+      });
+      /* the label has to say which way it is pointing */
+      window.bmuSyncHeadTool = function(){
+        const up = document.body.classList.contains('at-footer');
+        hdToggle.setAttribute('aria-label', up ? 'Back to top' : 'Go to the footer');
+      };
+      window.bmuSyncHeadTool();
     }
 
     /* ============================================================
@@ -2116,16 +2566,20 @@
     const opsNews  = document.getElementById('opsNews');
 
     const WHITEPAPER =
-`BRITISH MATERIAL UNIT — WHITEPAPER
+`British Material Unit (BMU) — Whitepaper
 
-Our defence industry disposes vast quantities of textile surplus annually: graded-out smocks, parachutes and camouflage nets built to specifications far exceeding civilian clothing. BMU treats this surplus as a national material asset rather than waste.
+Our defence industry disposes of mass textile waste annually: graded-out smocks, parachutes and camouflage nets built to specifications far exceeding civilian clothing, commonly known as fast fashion. BMU treats this waste as a national asset, championing material sovereignty, transforming disposals from linear to a circular regenerative design model.
 
-We are a designer-led unit. We see designers as integral nodes in repositioning assets before being defined waste. We source, archive, remanufacture and ultimately circulate defence textiles.      
+We are a designer-led unit. Designers are integral nodes in repositioning assets before being defined waste, and build Proof of Design (POD) to claim and have material access granted. We source, archive and remanufacture via the reverse engineering of garments.
 
-Per operation we create design systems which secure textiles and their material intelligence found in each garment; we unite intelligence, maintain sovereignty and circulate.`;
+Per operation we create design systems which secure textiles and their material intelligence found in each garment; uniting the intelligence between designers and garments to solve circulation of defence textiles.`;
 
-    /* measured, not hard-coded: --bar-h is the only place the height is set */
-    function barH(){ return opsBtn.offsetHeight || 32; }
+    /* Read off --bar-h rather than the element: the bar IS the box now, so
+       its offsetHeight is the expanded height once Operations is open. */
+    function barH(){
+      const v = parseFloat(getComputedStyle(navRow).getPropertyValue('--bar-h'));
+      return v || 32;
+    }
     let opsState = 'closed';           // closed | expanding | open
     let paperTyped = false;
     let opsTimers = [];
@@ -2163,6 +2617,8 @@ Per operation we create design systems which secure textiles and their material 
     function openOps(){
       if (opsState !== 'closed' || joinState !== 'off') return;
       opsState = 'expanding';
+      document.body.classList.add('ops-open');
+      document.body.classList.remove('at-footer');
       navRow.classList.add('ops-engaged');
       opsBtn.setAttribute('aria-expanded', 'true');
 
@@ -2182,33 +2638,27 @@ Per operation we create design systems which secure textiles and their material 
     function drawSheet(){
       if (opsState !== 'expanding') return;
       opsState = 'open';
-      opsBtn.classList.add('open');       // bottom border dissolves via its own transition
+      opsBtn.classList.add('open');
 
-      // geometry: sheet hangs from the bar's bottom edge.
-      // width comes from the SETTLED sheet (100% of navRow), never from
-      // the bar mid-transition — measuring the bar early is what caused
-      // the doubled/offset right edge under the × button.
-      const bar = barH();
-      opsSheet.style.top = (opsBtn.offsetTop + bar - 1.5) + 'px';
-      opsSheet.style.left = '0px';
-      opsSheet.style.width = '100%';
       opsSheet.classList.add('on');
       opsSheet.setAttribute('aria-hidden', 'false');
 
-      const W = opsSheet.getBoundingClientRect().width;
+      /* Aspect comes from the row, not from the bar: the bar is still
+         mid-widen at this point and measuring it is what used to leave the
+         geometry half a frame behind. The row is already at its final width. */
+      const bar   = barH();
+      const W     = navRow.getBoundingClientRect().width;
       const fullH = Math.min(Math.round(W * 1.414), Math.round(window.innerHeight * 0.82));
-      const sheetH = fullH - bar;
 
-      // the box drops out of the bar: pin it shut, force the reflow that
-      // commits that as the transition's start, then run the height
-      opsSheet.style.height = '0px';
-      void opsSheet.offsetHeight;
-      opsSheet.style.height = sheetH + 'px';
+      // pin it shut, commit that as the transition's start, then run the height
+      opsBtn.style.height = bar + 'px';
+      void opsBtn.offsetHeight;
+      opsBtn.style.height = fullH + 'px';
 
-      // page grows in step with the drawing so nothing jumps
-      navRow.style.minHeight = (opsBtn.offsetTop + bar - 1.5 + sheetH + 12) + 'px';
+      // page grows in step with the box so nothing jumps
+      navRow.style.minHeight = (opsBtn.offsetTop + fullH + 12) + 'px';
 
-      // content fades in as the bottom edges join (~.48s delay + .45s draw)
+      // content fades in as the box finishes opening
       later(() => {
         if (opsState !== 'open') return;
         opsSheet.classList.add('content-in');
@@ -2235,12 +2685,15 @@ Per operation we create design systems which secure textiles and their material 
       opsSheet.classList.remove('content-in');
       opsNews.classList.remove('visible');
       opsPaper.classList.remove('ops-caret');
-      opsSheet.style.height = '0px';
+      opsBtn.style.height = barH() + 'px';   // the box draws back down into the bar
       opsBtn.setAttribute('aria-expanded', 'false');
       navRow.style.minHeight = barH() + 'px';
 
       setTimeout(() => {
-        opsBtn.classList.remove('open');   // bottom edge re-forms once shut
+        opsBtn.classList.remove('open');
+        opsBtn.style.height = '';          // back to the row's own --bar-h
+        document.body.classList.remove('ops-open');
+        if (window.bmuFooterCheck) window.bmuFooterCheck();
         opsSheet.classList.remove('on');
         opsSheet.setAttribute('aria-hidden', 'true');
 
@@ -2281,23 +2734,20 @@ Per operation we create design systems which secure textiles and their material 
        ============================================================ */
 
     /* ---- where the address is posted ------------------------------
-       This page is static, so it cannot send mail by itself: the POST
-       needs a form endpoint (Formspree, Basin, a Worker, an Apps Script
-       webhook — anything that accepts JSON and mails hello@). Paste that
-       URL here and Join sends silently, no mail client, no subject. Left
-       empty, Join tells the reader it could not send rather than
-       pretending it did. */
-    /* Where a join request goes. GitHub Pages serves static files only, so
-       there is no server here to receive a POST — it has to be a third-party
-       form endpoint. The body below is already in Formspree's JSON shape, so
-       pasting a Formspree form URL is all that is needed:
+       GitHub Pages serves static files only, so there is no server here to
+       receive a POST — it has to be a third-party form endpoint. FormSubmit
+       needs no account: it takes the destination address in the URL and
+       mails it straight on.
 
-           const JOIN_ENDPOINT = 'https://formspree.io/f/xxxxxxxx';
+       ONE-TIME ACTIVATION: the very first submission makes FormSubmit send
+       a confirmation link to hello@britishmaterialunit.com. Click it once
+       and every join request after that arrives silently. Until it is
+       clicked, submissions are held rather than delivered.
 
-       Anything accepting a JSON POST works the same way (Basin, Getform, a
-       Cloudflare Worker). Leave it empty and the panel falls back to showing
-       the address to write to, so the flow never dead-ends. */
-    const JOIN_ENDPOINT = '';
+       Any endpoint accepting a JSON POST is a drop-in replacement here
+       (Formspree, Basin, Getform, a Cloudflare Worker). Left empty, Join
+       shows the address to write to instead, so the flow never dead-ends. */
+    const JOIN_ENDPOINT = 'https://formsubmit.co/ajax/hello@britishmaterialunit.com';
     const JOIN_TO       = 'hello@britishmaterialunit.com';
 
     const joinBtn   = document.getElementById('joinBtn');
@@ -2305,9 +2755,15 @@ Per operation we create design systems which secure textiles and their material 
     const joinEmail = document.getElementById('joinEmail');
     const joinSlide = document.getElementById('joinSlide');
     const joinInput = document.getElementById('joinInput');
+    const joinGhost = document.getElementById('joinGhost');
     const joinMsg   = document.getElementById('joinMsg');
     const opsLabel  = document.getElementById('opsLabel');
 
+    /* Join and Repository are the same choreography — the row collapses to
+       one button, the intro copy is untyped, and something takes its place.
+       They share the state machine and differ only in what that something
+       is, so there is one set of transitions to keep honest, not two. */
+    let joinMode  = 'join';  // join | repo
     let joinState = 'off';   // off | opening | ready | sending | sent | closing
     let joinRun   = 0;       // bumped on every open/close, so a stale
                              // typewriter run stops instead of fighting
@@ -2316,12 +2772,45 @@ Per operation we create design systems which secure textiles and their material 
        sequence starts widening things — the collapsed Join button settles at
        exactly that size rather than a wider slab */
     let joinSoloW = 0;
+    /* the field's resting width — our own address's rendered length. It
+       never sets narrower than this; it only grows. */
+    let joinBaseW = 0;
+
+    /* Keep the grey field exactly as wide as what is in it. The twin span
+       carries the same font, so measuring it gives the width the text will
+       actually render at; 22px is the input's own padding plus room for the
+       caret, so the last character never sits against the edge. */
+    function fitJoinField(){
+      if (!joinBaseW) return;
+      joinGhost.textContent = joinInput.value || joinInput.placeholder;
+      const text = Math.ceil(joinGhost.getBoundingClientRect().width) + 22;
+      const cap  = Math.round(Math.min(window.innerWidth * 0.86, 560));
+      joinSlide.style.setProperty('--slide-w',
+        Math.round(Math.max(joinBaseW, Math.min(text, cap))) + 'px');
+    }
     function soloWidth(){
       if (joinSoloW) return joinSoloW;
       const rowW = navRow.getBoundingClientRect().width;
       const gap  = parseFloat(getComputedStyle(navRow).columnGap) || 0;
       return Math.max(64, (rowW - gap * 4) / 5);
     }
+
+    /* The field is centred in the logo square; the row sits well below it,
+       so left alone the button reads as belonging to nothing. Lift it to sit
+       under the field, and drop it back into the row on the way out — the
+       drop is what lets it rejoin the other four cleanly. */
+    const JOIN_LIFT_GAP = 30;
+    function raiseJoinButton(){
+      const el  = (joinMode === 'repo')
+        ? document.getElementById('repoPanel')
+        : joinSlide;
+      if (!el) return;
+      const box = el.getBoundingClientRect();
+      const row = navRow.getBoundingClientRect();
+      if (!box.height || !row.height) return;
+      opsBtn.style.top = Math.round(box.bottom + JOIN_LIFT_GAP - row.top) + 'px';
+    }
+    function dropJoinButton(){ opsBtn.style.top = ''; }
 
     /* drive the four other buttons into the middle slot and out */
     function convergeButtons(){
@@ -2338,8 +2827,11 @@ Per operation we create design systems which secure textiles and their material 
       navRow.querySelectorAll('.bm-button').forEach(b => { b.style.transform = ''; });
     }
 
-    function openJoin(){
+    function openRepo(){ openJoin('repo'); }
+
+    function openJoin(mode){
       if (joinState !== 'off' || opsState !== 'closed') return;
+      joinMode = (mode === 'repo') ? 'repo' : 'join';
       joinState = 'opening';
       joinRun++;
       joinMsg.textContent = '';
@@ -2364,10 +2856,11 @@ Per operation we create design systems which secure textiles and their material 
         opsBtn.style.left  = ((rowW - w) / 2) + 'px';
         opsBtn.style.width = w + 'px';
         opsBtn.classList.add('join-solo');
-        opsLabel.textContent = 'Join';
-        opsBtn.setAttribute('aria-label', 'Send join request');
+        const isRepo = joinMode === 'repo';
+        opsLabel.textContent = isRepo ? 'Repository' : 'Join';
+        opsBtn.setAttribute('aria-label', isRepo ? 'Repository' : 'Send join request');
         scrollCue.classList.add('close-mode');
-        scrollCue.setAttribute('aria-label', 'Leave Join');
+        scrollCue.setAttribute('aria-label', isRepo ? 'Leave Repository' : 'Leave Join');
       }, 540);
 
       later(joinSequence, 700);
@@ -2378,6 +2871,7 @@ Per operation we create design systems which secure textiles and their material 
       const live = () => tok === joinRun && joinState !== 'off';
       bmuUntype(textContent, 7, () => {
         if (!live()) return;
+        if (joinMode === 'repo'){ repoSequence(live); return; }
         joinPanel.classList.add('on');
         joinPanel.setAttribute('aria-hidden', 'false');
         bmuType(JOIN_TO, joinEmail, 40, () => {
@@ -2385,16 +2879,86 @@ Per operation we create design systems which secure textiles and their material 
           // the field is cut to the address's rendered length, then slid out
           requestAnimationFrame(() => {
             const w = Math.ceil(joinEmail.getBoundingClientRect().width);
+            joinBaseW = w;
             joinSlide.style.setProperty('--slide-w', w + 'px');
             joinSlide.classList.add('slid');
+            /* ready at once — the placeholder is showing and the caret is
+               in it, so waiting on the slide before accepting a keystroke
+               would contradict what the field is telling the reader */
+            joinState = 'ready';
+            try { joinInput.focus({ preventScroll:true }); } catch(_){}
+            raiseJoinButton();
+            /* .typable is only the fast width transition for tracking what
+               is typed; it must not shorten the opening slide itself */
             later(() => {
               if (!live()) return;
               joinSlide.classList.add('typable');
-              joinState = 'ready';
-              try { joinInput.focus({ preventScroll:true }); } catch(_){}
             }, 640);
           });
         }, live);
+      }, live);
+    }
+
+    /* ---- REPOSITORY ------------------------------------------------
+       Holding state. The roll is listed here so the menu exists and can be
+       read; the camouflage page it becomes is the next piece of work. The
+       list is drawn from what the archive already holds — confirm it against
+       the actual roll before this goes out. */
+    const CAMOS = [
+      ['DPM — Woodland',      'British'],
+      ['DPM — Desert',        'British'],
+      ['MTP',                 'British'],
+      ['Olive Green',         'British'],
+      ['M/84',                'Danish'],
+      ['Vegetato',            'Italian'],
+      ['DPM — Desert',        'Iraqi'],
+      ['3-Colour Desert',     'United States']
+    ];
+    const REPO_LEDE = 'Every camouflage currently on the roll.';
+    const REPO_NOTE =
+      'Lengths are cut to order and logged against the garment they came from. ' +
+      'What we cannot remake, we donate — each donation issued with its proof ' +
+      'of design, so the material keeps its record wherever it goes next.';
+
+    const repoPanel = document.getElementById('repoPanel');
+    const repoLede  = document.getElementById('repoLede');
+    const repoCamos = document.getElementById('repoCamos');
+    const repoNote  = document.getElementById('repoNote');
+    let repoBuilt = false;
+
+    function buildCamos(){
+      if (repoBuilt) return;
+      repoBuilt = true;
+      repoCamos.innerHTML = CAMOS.map(([name, nation]) => `
+        <li>
+          <svg class="camo-lines" viewBox="0 0 16 12" aria-hidden="true">
+            <path d="M0 1 H11"/><path d="M0 3.6 H14"/><path d="M0 6 H16"/>
+            <path d="M0 8.4 H14"/><path d="M0 11 H11"/>
+          </svg>
+          <span class="camo-name">${name}</span>
+          <span class="camo-meta">${nation}</span>
+        </li>`).join('');
+    }
+
+    function repoSequence(live){
+      buildCamos();
+      repoPanel.classList.add('on');
+      repoPanel.setAttribute('aria-hidden', 'false');
+      repoCamos.classList.remove('in');
+      repoNote.classList.remove('in');
+      bmuType(REPO_LEDE, repoLede, 26, () => {
+        if (!live()) return;
+        repoCamos.classList.add('in');
+        joinState = 'ready';
+        raiseJoinButton();
+        later(() => {
+          if (!live()) return;
+          repoNote.textContent = REPO_NOTE;
+          repoNote.classList.add('in');
+          /* the note is the last thing to land and it changes the panel's
+             height — measure the lift again against the finished panel */
+          raiseJoinButton();
+        }, 520);
       }, live);
     }
 
@@ -2407,20 +2971,32 @@ Per operation we create design systems which secure textiles and their material 
       joinRun++;
       clearOpsTimers();
 
-      joinSlide.classList.remove('slid', 'typable');
+      joinSlide.classList.remove('slid', 'typable', 'sent');
       joinPanel.classList.remove('on');
       joinPanel.setAttribute('aria-hidden', 'true');
+      repoPanel.classList.remove('on');
+      repoPanel.setAttribute('aria-hidden', 'true');
+      repoCamos.classList.remove('in');
+      repoNote.classList.remove('in');
+      repoLede.textContent = '';
+      joinMode = 'join';
       joinEmail.textContent = '';
       joinInput.value = '';
       joinInput.disabled = false;
+      clearTimeout(joinMsgTimer);
+      joinMsg.classList.remove('show');
       joinMsg.textContent = '';
 
+      /* down first, so by the time it is widening back across the row it is
+         already at the height the other four sit at */
+      dropJoinButton();
       opsBtn.classList.remove('join-solo', 'sending', 'sent');
 
       function land(){
         opsBtn.classList.remove('expanding');
         opsBtn.style.left = '';
         opsBtn.style.width = '';
+        opsBtn.style.top = '';
         dropGhost();
         navRow.classList.remove('ops-engaged');
         navRow.style.pointerEvents = '';
@@ -2453,56 +3029,100 @@ Per operation we create design systems which secure textiles and their material 
       }
 
       const tok = joinRun;
-      bmuType(mainText, textContent, 6, null, () => tok === joinRun);
+      // the same 20ms the intro types at: coming back is the same gesture
+      // as arriving, so it should read at the same pace
+      bmuType(mainText, textContent, 20, null, () => tok === joinRun);
+    }
+
+    /* Replies appear over the field. A failure clears itself, and typing
+       clears it sooner; 'Sending' and 'Received' are the reader's answer and
+       stay put. */
+    let joinMsgTimer = null;
+    function showJoinMsg(text, sticky){
+      clearTimeout(joinMsgTimer);
+      joinMsg.textContent = text;
+      joinMsg.classList.add('show');
+      if (!sticky) joinMsgTimer = setTimeout(hideJoinMsg, 2600);
+    }
+    function hideJoinMsg(){
+      clearTimeout(joinMsgTimer);
+      joinMsg.classList.remove('show');
+      if (joinState === 'ready'){
+        try { joinInput.focus({ preventScroll:true }); } catch(_){}
+      }
     }
 
     function submitJoin(){
+      if (joinMode !== 'join') return;   // Repository's solo button posts nothing
       if (joinState !== 'ready') return;
       const email = joinInput.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
-        joinMsg.textContent = 'Enter a valid address';
-        try { joinInput.focus({ preventScroll:true }); } catch(_){}
+        showJoinMsg('Enter a valid address');
         return;
       }
 
+      /* the address to write to is on screen directly above the field, so
+         the message does not have to carry it as well */
       if (!JOIN_ENDPOINT){
-        joinMsg.textContent = 'Could not send — write to ' + JOIN_TO;
+        showJoinMsg('Could not send');
         return;
       }
 
       joinState = 'sending';
       opsBtn.classList.add('sending');
       joinInput.disabled = true;
-      joinMsg.textContent = 'Sending';
+      showJoinMsg('Sending', true);
 
       fetch(JOIN_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
-        // no subject and no body: the address itself is the whole message
-        body: JSON.stringify({ email: email, _subject: '', message: '' })
+        // the address itself is the whole message
+        body: JSON.stringify({
+          email: email,
+          _subject: 'BMU join request',
+          _template: 'table',
+          _captcha: 'false'
+        })
       })
       .then(res => {
         if (!res.ok) throw new Error(res.status);
         joinState = 'sent';
         opsBtn.classList.remove('sending');
         opsBtn.classList.add('sent');
-        joinSlide.classList.remove('slid', 'typable');
-        joinMsg.textContent = 'Received';
+        /* the field stays open — it is what the confirmation is written in */
+        joinSlide.classList.add('sent');
+        showJoinMsg('Received', true);
       })
       .catch(() => {
         joinState = 'ready';
         opsBtn.classList.remove('sending');
         joinInput.disabled = false;
-        joinMsg.textContent = 'Could not send — write to ' + JOIN_TO;
+        showJoinMsg('Could not send');
       });
     }
 
-    joinBtn.addEventListener('click', openJoin);
+    joinBtn.addEventListener('click', () => openJoin('join'));
     joinBtn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openJoin(); }
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openJoin('join'); }
+    });
+    const repoBtn = document.getElementById('repoBtn');
+    repoBtn.addEventListener('click', openRepo);
+    repoBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openRepo(); }
     });
     joinInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter'){ e.preventDefault(); submitJoin(); }
+    });
+    // input covers typing, pasting, autofill and deletion alike
+    joinInput.addEventListener('input', () => {
+      if (joinMsg.classList.contains('show')) hideJoinMsg();
+      fitJoinField();
+    });
+    window.addEventListener('resize', () => {
+      if (joinState === 'ready' || joinState === 'sending' || joinState === 'sent'){
+        raiseJoinButton();
+        fitJoinField();
+      }
     });
     joinSlide.addEventListener('click', () => {
       if (joinState === 'ready') try { joinInput.focus({ preventScroll:true }); } catch(_){}
@@ -2526,17 +3146,73 @@ Per operation we create design systems which secure textiles and their material 
     scrollCue.addEventListener('click', () => {
       if (joinState !== 'off'){ closeJoin(); return; }
       if (!siteFooter) return;
+      // with Operations open the arrow shuts it first — the footer it is
+      // pointing at does not exist until the sheet is out of the way
+      if (opsState !== 'closed'){
+        closeOps();
+        setTimeout(() => {
+          siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+        }, 780);
+        return;
+      }
       siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
     });
 
-    /* Operations has no page of its own — the footer link returns to the
-       top of this one and opens the sheet */
-    const footOps = document.getElementById('footOps');
-    if (footOps){
-      footOps.addEventListener('click', (e) => {
+    /* Join, Operations and Repository have no pages of their own — they are
+       states of this one. From the footer, each returns the reader to the top
+       and then plays exactly what its button plays, once the scroll has
+       settled: starting a transition mid-scroll measures the wrong geometry. */
+    function fromFooter(run){
+      return (e) => {
         e.preventDefault();
         window.scrollTo({ top:0, behavior:'smooth' });
-        setTimeout(() => { if (opsState === 'closed') openOps(); }, 620);
+        setTimeout(run, 720);
+      };
+    }
+    const footOps = document.getElementById('footOps');
+    if (footOps) footOps.addEventListener('click', fromFooter(() => {
+      if (opsState === 'closed' && joinState === 'off') openOps();
+    }));
+    const footJoin = document.getElementById('footJoin');
+    if (footJoin) footJoin.addEventListener('click', fromFooter(() => {
+      if (joinState === 'off' && opsState === 'closed') openJoin();
+    }));
+    const footRepo = document.getElementById('footRepo');
+    if (footRepo) footRepo.addEventListener('click', fromFooter(() => {
+      if (joinState === 'off' && opsState === 'closed') openRepo();
+    }));
+
+    /* ---- the address copies itself ---------------------------------
+       A mailto is no use to anyone reading on a machine with no mail client
+       set up, which is most of them. Clicking copies instead, and says so. */
+    const footMail    = document.getElementById('footMail');
+    const footMailMsg = document.getElementById('footMailMsg');
+    if (footMail && footMailMsg){
+      let mailTimer = null;
+      footMail.addEventListener('click', (e) => {
+        e.preventDefault();
+        const addr = footMail.dataset.mail;
+        const done = (ok) => {
+          footMailMsg.textContent = ok ? 'Copied to clipboard' : addr;
+          footMailMsg.classList.add('show');
+          clearTimeout(mailTimer);
+          mailTimer = setTimeout(() => footMailMsg.classList.remove('show'), 2600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(addr).then(() => done(true), () => done(false));
+        } else {
+          // older Safari and any non-secure origin land here
+          try {
+            const t = document.createElement('textarea');
+            t.value = addr;
+            t.setAttribute('readonly','');
+            t.style.cssText = 'position:absolute;left:-9999px';
+            document.body.appendChild(t);
+            t.select();
+            done(document.execCommand('copy'));
+            t.remove();
+          } catch(_){ done(false); }
+        }
       });
     }
     document.addEventListener('keydown', (e) => {
@@ -2565,22 +3241,23 @@ Per operation we create design systems which secure textiles and their material 
         if (dy < -70 && Math.abs(dy) > Math.abs(dx) * 1.5){
           const body = opsSheet.querySelector('.ops-body');
           const atEnd = body.scrollHeight - body.scrollTop - body.clientHeight < 6;
-          if (el === opsBtn || atEnd){ sx = sy = null; closeOps(); }
+          if (!body.contains(e.target) || atEnd){ sx = sy = null; closeOps(); }
         }
         // swipe down (a scroll-up gesture) — resets to the five buttons
         // once the body is already at its top
         if (dy > 70 && Math.abs(dy) > Math.abs(dx) * 1.5){
           const body = opsSheet.querySelector('.ops-body');
-          if (el === opsBtn || body.scrollTop <= 2){ sx = sy = null; closeOps(); }
+          if (!body.contains(e.target) || body.scrollTop <= 2){ sx = sy = null; closeOps(); }
         }
       }, { passive:true });
       el.addEventListener('touchend', () => { sx = sy = null; });
     }
+    /* the sheet is a child of the bar, so one listener on the bar already
+       hears both — binding the sheet as well would fire everything twice */
     attachSwipe(opsBtn);
-    attachSwipe(opsSheet);
 
     let wheelAcc = 0, wheelTimer = null;
-    [opsBtn, opsSheet].forEach(el => el.addEventListener('wheel', (e) => {
+    opsBtn.addEventListener('wheel', (e) => {
       if (opsState === 'closed') return;
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)){
         e.preventDefault();
@@ -2589,7 +3266,7 @@ Per operation we create design systems which secure textiles and their material 
         wheelTimer = setTimeout(() => { wheelAcc = 0; }, 250);
         if (Math.abs(wheelAcc) > 140){ wheelAcc = 0; closeOps(); }
       }
-    }, { passive:false }));
+    }, { passive:false });
 
     /* scrolling UP anywhere while Operations is open resets to the
        five-button layout — unless the whitepaper itself still has
