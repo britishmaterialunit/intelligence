@@ -17,13 +17,13 @@
   <meta property="og:url" content="https://britishmaterialunit.com/" />
   <meta property="og:site_name" content="British Material Unit (BMU)" />
   <meta property="og:title" content="British Material Unit (BMU) — Uniting Intelligence & Circular Systems" />
-  <meta property="og:description" content="A designer-led circular startup reusing surplus defence textiles." />
+  <meta property="og:description" content="British Material Unit (BMU) a designer-led startup reutilising surplus textile waste, uniting the intelligence of garments and wearers via circular design tools, repositories and systems." />
   <meta property="og:locale" content="en_GB" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="British Material Unit (BMU) — Uniting Intelligence & Circular Systems" />
-  <meta name="twitter:description" content="A designer-led circular startup reusing surplus defence textiles." />
+  <meta name="twitter:description" content="British Material Unit (BMU) a designer-led startup reutilising surplus textile waste, uniting the intelligence of garments and wearers via circular design tools, repositories and systems." />
 
   <title>British Material Unit (BMU) — Uniting Intelligence & Circular Systems</title>
 
@@ -37,7 +37,7 @@
         "name": "British Material Unit",
         "alternateName": "BMU",
         "url": "https://britishmaterialunit.com/",
-        "description": "A designer-led circular startup focused on recycling surplus defence textiles via circular design tools, repositories and systems.",
+        "description": "British Material Unit (BMU) a designer-led startup reutilising surplus textile waste, uniting the intelligence of garments and wearers via circular design tools, repositories and systems.",
         "areaServed": "GB",
         "knowsAbout": ["textile upcycling", "military surplus", "circular design", "British camouflage", "DPM", "MTP", "surplus textiles", "sustainable fashion"]
       },
@@ -60,7 +60,8 @@
           { "@type": "ListItem", "position": 4, "name": "Repository", "url": "https://britishmaterialunit.com/repository" },
           { "@type": "ListItem", "position": 5, "name": "Archive", "url": "https://britishmaterialunit.com/archive" },
           { "@type": "ListItem", "position": 6, "name": "Operation Upcycle", "url": "https://britishmaterialunit.com/ou" },
-          { "@type": "ListItem", "position": 7, "name": "East West", "url": "https://britishmaterialunit.com/ew" }
+          { "@type": "ListItem", "position": 7, "name": "East West", "url": "https://britishmaterialunit.com/ew" },
+          { "@type": "ListItem", "position": 8, "name": "Lambrino", "url": "https://britishmaterialunit.com/lamb" }
         ]
       }
     ]
@@ -803,11 +804,11 @@
     }
     body.entered #siteFooter{ display:block; }
     /* and it is taken off the page entirely, so a scroll cannot reach it */
-    /* With Operations open there is nothing below it: the sheet is the
-       screen. The exception is the deliberate trip down — the arrow, or the
-       header's index — which leaves the sheet open and lets the footer take
-       its space back so there is something to travel to. */
-    body.ops-open:not(.ops-pass) #siteFooter{ display:none; }
+    /* The footer used to be taken out of the flow while Operations was
+       open, which moved it every time the sheet opened or shut and made the
+       page jump under anyone standing on it. It stays put now: an open
+       sheet grows the row it lives in, so the footer is pushed below the
+       fold on its own without being removed from the document. */
     #siteFooter.in{
       opacity:1;
       --dot-r:4px;          /* > half the 5px tile diagonal, so it closes up */
@@ -1298,19 +1299,19 @@
             <div id="opsNews" class="ops-news">
               <h2>Relations &amp; Partnerships</h2>
               <a class="news-item" href="/ou">
-                <span class="ni-date">Partnership</span>
+                <span class="ni-date">Circular Partner</span>
                 <span class="ni-title">Ramco</span>
-                <span class="ni-sub">Operation Upcycle Partner — upcycling via reverse engineering of garments.</span>
+                <span class="ni-sub">Operation Upcycle — reutilising surplus textile waste via reverse engineering.</span>
               </a>
               <a class="news-item" href="/ew">
-                <span class="ni-date">Partnership</span>
+                <span class="ni-date">Industrial Partner</span>
                 <span class="ni-title">East West</span>
-                <span class="ni-sub">Industrial Partner — archive, open-studio and repository.</span>
+                <span class="ni-sub">Archive, repository and open-studio.</span>
               </a>
-              <a class="news-item" href="/lambrino">
-                <span class="ni-date">Partnership</span>
+              <a class="news-item" href="/lamb">
+                <span class="ni-date">Research Partner</span>
                 <span class="ni-title">Lambrino</span>
-                <span class="ni-sub">Research Partner — joining East West to build the archive at scale.</span>
+                <span class="ni-sub">Building the largest military garment archive.</span>
               </a>
               <div class="ops-hint">Swipe up or sideways to close</div>
             </div>
@@ -2491,14 +2492,10 @@
 
       window.bmuFooterCheck = function(){
         if (!document.body.classList.contains('entered')) return;
-        /* Operations is a full-height sheet in the flow of this same page —
-           revealing the footer underneath it puts the two on one screen and
-           the sheet lands on top. While it is open there is nothing below. */
-        if (typeof opsState !== 'undefined' && opsState !== 'closed' && !opsFooterPass){
-          document.body.classList.remove('at-footer');
-          setHeroFade(1);
-          return;
-        }
+        /* The footer's position is now the plain truth of where the reader
+           is, whatever Operations is doing. The sheet leaves the screen by
+           fading with the row it sits in (see #navStack at .at-footer), so
+           the two can never end up stacked on one screen. */
         const vh = window.innerHeight;
         const r  = siteFooter.getBoundingClientRect();
         const inView = r.top < vh * 0.88 && r.bottom > 0;
@@ -2529,19 +2526,14 @@
        journey even starts. Scrolling back up is what closes it — see the
        wheel handler further down.
 
-       The footer is display:none under an open sheet, so it is handed its
-       space back first and the scroll waits two frames for the layout that
-       follows: scrolling towards a box that does not exist yet goes nowhere. */
+       The footer keeps its place in the document either way, so this is one
+       smooth scroll and nothing else. */
     function goToFooter(){
       if (!siteFooter) return;
-      const land = () => siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
       if (typeof opsState !== 'undefined' && opsState !== 'closed'){
         opsFooterPass = true;
-        document.body.classList.add('ops-pass');
-        requestAnimationFrame(() => requestAnimationFrame(land));
-        return;
       }
-      land();
+      siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
     }
 
     /* ---------- SITE HEADER ---------- */
@@ -2645,7 +2637,6 @@ Per operation we create design systems which secure textiles and their material 
       if (opsState !== 'closed' || joinState !== 'off') return;
       opsState = 'expanding';
       opsFooterPass = false;
-      document.body.classList.remove('ops-pass');
       document.body.classList.add('ops-open');
       document.body.classList.remove('at-footer');
       navRow.classList.add('ops-engaged');
@@ -2709,7 +2700,6 @@ Per operation we create design systems which secure textiles and their material 
       if (opsState === 'closed') return;
       opsState = 'closed';
       opsFooterPass = false;
-      document.body.classList.remove('ops-pass');
       clearOpsTimers();
 
       // retract: content fades, then the box draws back up into the bar
@@ -3265,11 +3255,12 @@ Per operation we create design systems which secure textiles and their material 
           const atEnd = body.scrollHeight - body.scrollTop - body.clientHeight < 6;
           if (!body.contains(e.target) || atEnd){ sx = sy = null; closeOps(); }
         }
-        // swipe down (a scroll-up gesture) — resets to the five buttons
-        // once the body is already at its top
+        // swipe down (a scroll-up gesture) — the same two-stage climb the
+        // wheel takes: back to the sheet from the footer, out of it from
+        // in front of it. Only once the body is already at its top.
         if (dy > 70 && Math.abs(dy) > Math.abs(dx) * 1.5){
           const body = opsSheet.querySelector('.ops-body');
-          if (!body.contains(e.target) || body.scrollTop <= 2){ sx = sy = null; closeOps(); }
+          if (!body.contains(e.target) || body.scrollTop <= 2){ sx = sy = null; opsStepUp(); }
         }
       }, { passive:true });
       el.addEventListener('touchend', () => { sx = sy = null; });
@@ -3290,10 +3281,33 @@ Per operation we create design systems which secure textiles and their material 
       }
     }, { passive:false });
 
-    /* scrolling UP anywhere while Operations is open resets to the
-       five-button layout — unless the whitepaper itself still has
-       room to scroll up, in which case the content scrolls first */
-    let upAcc = 0, upTimer = null;
+    /* Scrolling UP while Operations is open, in two stages — unless the
+       whitepaper itself still has room to scroll up, in which case the
+       content scrolls first.
+
+       Down at the footer the sheet is off-screen, and a push up there means
+       "take me back to it", not "throw it away" — closing something the
+       reader cannot even see is how the box used to disappear behind their
+       back. So the first push climbs back to the sheet and leaves it open;
+       only a second push, with the sheet in front of them again, closes it.
+
+       The lock covers the climb: a smooth scroll takes about a second, and
+       without it the wheel that started the journey would still be rolling
+       when .at-footer came off and would close the box on arrival. */
+    let upAcc = 0, upTimer = null, opsReturnLock = 0;
+
+    /* one step up, wherever the gesture came from — wheel or finger */
+    function opsStepUp(){
+      if (Date.now() < opsReturnLock) return;
+      if (document.body.classList.contains('at-footer')){
+        opsReturnLock = Date.now() + 1100;
+        opsFooterPass = false;
+        window.scrollTo({ top:0, behavior:'smooth' });
+        return;
+      }
+      closeOps();
+    }
+
     window.addEventListener('wheel', (e) => {
       if (opsState !== 'open') return;
       if (e.deltaY >= 0){ upAcc = 0; return; }
@@ -3302,7 +3316,9 @@ Per operation we create design systems which secure textiles and their material 
       upAcc += -e.deltaY;
       clearTimeout(upTimer);
       upTimer = setTimeout(() => { upAcc = 0; }, 250);
-      if (upAcc > 120){ upAcc = 0; closeOps(); }
+      if (upAcc <= 120) return;
+      upAcc = 0;
+      opsStepUp();
     }, { passive:true });
 
     /* ============================================================
@@ -3367,10 +3383,21 @@ Per operation we create design systems which secure textiles and their material 
 
     (function arrival(){
       const want = location.hash.slice(1).toLowerCase();
-      if (want !== 'home' && want !== 'footer') return;
+      if (want !== 'home' && want !== 'footer' && want !== 'operations') return;
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       history.replaceState(null, '', location.pathname + location.search);
       enterInstant();
+
+      /* A partner page's footer links here rather than to a page of its
+         own, because Operations is a state of this page and not a document.
+         The sheet is opened a beat after arrival: openOps measures the row
+         it grows out of, and that row has only just been laid out. */
+      if (want === 'operations'){
+        window.scrollTo(0, 0);
+        if (window.bmuFooterCheck) window.bmuFooterCheck();
+        setTimeout(() => { if (typeof openOps === 'function') openOps(); }, 260);
+        return;
+      }
 
       if (want === 'footer' && siteFooter){
         /* The footer is display:none until `entered` is on the body, so it
