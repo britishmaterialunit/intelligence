@@ -677,13 +677,47 @@
     .btn-line[hidden]{ display:none; }
 
     /* ---------- request ---------- */
+    /* These used to be display:none toggled to block, which is a snap by
+       definition — the panel and the card's whole height arrived in one
+       frame. They slide instead: the row opens from nothing with the
+       grid-rows trick (the one way to animate to a height you have not
+       measured), and the content rides in from the right as it does.
+
+       Out is the same move reversed, which is what makes it read as one
+       panel going back and forth rather than two appearing and vanishing. */
     .req-panel, .info-panel{
-      display:none;
+      display:grid;
+      grid-template-rows:0fr;
+      margin-top:0;
+      border-top:1.5px solid transparent;
+      padding-top:0;
+      transition:grid-template-rows .42s cubic-bezier(.4,0,.2,1),
+                 margin-top .42s cubic-bezier(.4,0,.2,1),
+                 padding-top .42s cubic-bezier(.4,0,.2,1),
+                 border-top-color .3s ease;
+    }
+    .req-panel > *, .info-panel > *{
+      min-height:0;                 /* the grid row has to be free to be 0 */
+      overflow:hidden;
+      opacity:0;
+      transform:translateX(18px);
+      transition:opacity .3s ease, transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .req-panel.open, .info-panel.open{
+      grid-template-rows:1fr;
       margin-top:12px;
-      border-top:1.5px solid var(--line);
+      border-top-color:var(--line);
       padding-top:12px;
     }
-    .req-panel.open, .info-panel.open{ display:block; }
+    .req-panel.open > *, .info-panel.open > *{
+      opacity:1;
+      transform:none;
+      transition-delay:.12s;        /* the box opens first, then the content rides in */
+    }
+    @media (prefers-reduced-motion:reduce){
+      .req-panel, .info-panel,
+      .req-panel > *, .info-panel > *{ transition:none; }
+    }
 
     .req-row label{
       display:block;
@@ -1284,10 +1318,13 @@
       -webkit-tap-highlight-color:transparent;
     }
     .hd-mark svg{ height:17px; width:auto; display:block; overflow:visible; }
+    /* Grey, to sit with the two tools on the right rather than shout over
+       them, and stroke only — the filled version was a second state the mark
+       did not need. */
     .hd-trace{
       fill:none;
-      stroke:var(--ink);
-      stroke-width:.4;
+      stroke:#999;
+      stroke-width:.5;
       transition:stroke .35s ease, opacity .3s ease;
     }
     /* draws ONCE, on arrival, and holds the outline after — forwards is
@@ -1303,8 +1340,17 @@
       opacity:0;
       transition:opacity .35s ease, fill .35s ease;
     }
-    #siteHead:hover .hd-trace{ animation-play-state:paused; opacity:0; }
-    #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    /* The header darkens on hover. The mark has to be white BEFORE that
+       happens rather than fade towards it: a crossfade between two colours
+       over a moving ground is the change you can see. No transition on the
+       way in, the normal one on the way back out. */
+    #siteHead:hover .hd-trace{
+      animation-play-state:paused;
+      stroke:#fff;
+      opacity:1;
+      transition:none;
+    }
+    #siteHead:hover .hd-fill{ opacity:0; }
 
 
     /* The mark is fixed over a page that scrolls underneath it, so the
@@ -1320,8 +1366,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.scrolled #siteHead:hover .hd-trace{ opacity:0; }
-    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:0; }
 
     .hd-tools{ display:flex; align-items:center; gap:18px; }
     .hd-ico{
@@ -1593,117 +1639,109 @@
       { n:"british", name:"British Royal Air Force 2010s Flight Jacket", cat:"Jackets / Shirts",
         img:"BRAF2010FJ.png", ref:"BRAF2010FJ" },
       { n:"british", name:"British Royal Navy 1980s Blue Upper Deck Jacket", cat:"Jackets / Shirts",
-        img:"BRN1980BUDJ.png", ref:"BRN1980BUDJ", src:"Lambrino" },
+        img:"BRN1980BUDJ.png", ref:"BRN1980BUDJ" },
       /* ---------------- AUSTRIAN ---------------- */
       { n:"austrian", name:"Austrian Army 2000s Olive Drab Anzug 03 Alpine Jacket", cat:"Jackets / Shirts",
-        img:"AA2000ODA03AJ.png", ref:"AA2000ODA03AJ", src:"Lambrino" },
+        img:"AA2000ODA03AJ.png", ref:"AA2000ODA03AJ" },
       /* ---------------- BELGIAN ---------------- */
       { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Field Jacket", cat:"Jackets / Shirts",
-        img:"BA1960M64OGFJ.png", ref:"BA1960M64OGFJ", src:"Lambrino" },
+        img:"BA1960M64OGFJ.png", ref:"BA1960M64OGFJ" },
       /* ---------------- BULGARIAN ---------------- */
       { n:"bulgarian", name:"Bulgarian People's Army 1970s Olive Green Cossack Shirt", cat:"Jackets / Shirts",
-        img:"BUPA1970OGCS.png", ref:"BUPA1970OGCS", src:"Lambrino" },
+        img:"BUPA1970OGCS.png", ref:"BUPA1970OGCS" },
       /* ---------------- CHINESE ---------------- */
       { n:"chinese", name:"Chinese People's Liberation Army 1980s Type 81 Olive Green AK Bandolier Chest Rig", cat:"Bags / Webbing",
-        img:"CPLA1980T81OGABCR.png", ref:"CPLA1980T81OGABCR", src:"Lambrino" },
+        img:"CPLA1980T81OGABCR.png", ref:"CPLA1980T81OGABCR" },
       /* ---------------- CZECH ---------------- */
       { n:"czech", name:"Czech Army 1990s Cold Weather Liner Jacket", cat:"Jackets / Shirts",
-        img:"CZA1990CWLJ.png", ref:"CZA1990CWLJ", src:"Lambrino" },
+        img:"CZA1990CWLJ.png", ref:"CZA1990CWLJ" },
       /* ---------------- CZECHOSLOVAK ---------------- */
       { n:"czechoslovak", name:"Czechoslovak Army 1980s M85 Field Olive Green with Hood Parka", cat:"Jackets / Shirts",
-        img:"CSA1980M85FOGWHP.png", ref:"CSA1980M85FOGWHP", src:"Lambrino" },
+        img:"CSA1980M85FOGWHP.png", ref:"CSA1980M85FOGWHP" },
       /* ---------------- DANISH ---------------- */
       { n:"danish", name:"Danish Army 1990s M/84 Camouflage HMAK Jacket", cat:"Jackets / Shirts",
-        img:"DA1990M84.png", ref:"DA1990M84", src:"Christopher Raeburn" },
+        img:"DA1990M84.png", ref:"DA1990M84" },
       { n:"danish", name:"Danish Civil Defence 1970s M71 Parka", cat:"Jackets / Shirts",
-        img:"DCD1970M71P.png", ref:"DCD1970M71P", src:"Lambrino" },
+        img:"DCD1970M71P.png", ref:"DCD1970M71P" },
       /* ---------------- DUTCH ---------------- */
       { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Jacket", cat:"Jackets / Shirts",
-        img:"NLA1990M93DWCJ.png", ref:"NLA1990M93DWCJ", src:"Lambrino" },
+        img:"NLA1990M93DWCJ.png", ref:"NLA1990M93DWCJ" },
       { n:"dutch", name:"Dutch Army 1990s SPE Olive Green Chest Rig", cat:"Bags / Webbing",
-        img:"NLA1990SOGCR.png", ref:"NLA1990SOGCR", src:"Lambrino" },
+        img:"NLA1990SOGCR.png", ref:"NLA1990SOGCR" },
       /* ---------------- EAST GERMAN ---------------- */
       { n:"east-german", name:"East German Army 1960s NVA Raindrop Strichmuster Camouflage Jacket", cat:"Jackets / Shirts",
-        img:"EGA1960NRSCJ.png", ref:"EGA1960NRSCJ", src:"Lambrino" },
+        img:"EGA1960NRSCJ.png", ref:"EGA1960NRSCJ" },
       /* ---------------- FINNISH ---------------- */
       { n:"finnish", name:"Finnish Army 1960s M64 NBC Smock", cat:"Jackets / Shirts",
-        img:"FA1960M64NS.png", ref:"FA1960M64NS", src:"Lambrino" },
+        img:"FA1960M64NS.png", ref:"FA1960M64NS" },
       /* ---------------- FRENCH ---------------- */
       { n:"french", name:"French Army 1990s CCE Camouflage F2 Jacket", cat:"Jackets / Shirts",
-        img:"FRA1990CCF2J.png", ref:"FRA1990CCF2J", src:"Lambrino" },
+        img:"FRA1990CCF2J.png", ref:"FRA1990CCF2J" },
       /* ---------------- GREEK ---------------- */
       { n:"greek", name:"Greek Army 1960s M65 Faux Fur Liner Jacket", cat:"Jackets / Shirts",
-        img:"GRA1960M65FFLJ.png", ref:"GRA1960M65FFLJ", src:"Lambrino" },
+        img:"GRA1960M65FFLJ.png", ref:"GRA1960M65FFLJ" },
       /* ---------------- HUNGARIAN ---------------- */
       { n:"hungarian", name:"Hungarian People's Army 1970s Cold Weather Tank Liner Jacket", cat:"Jackets / Shirts",
-        img:"HPA1970CWTLJ.png", ref:"HPA1970CWTLJ", src:"Lambrino" },
+        img:"HPA1970CWTLJ.png", ref:"HPA1970CWTLJ" },
       /* ---------------- IRAQI ---------------- */
       { n:"iraqi", name:"Iraqi Army 1980s Desert DPM Camouflage Combat Jacket", cat:"Jackets / Shirts",
-        img:"IQA1980DDCCJ.png", ref:"IQA1980DDCCJ", src:"Lambrino" },
+        img:"IQA1980DDCCJ.png", ref:"IQA1980DDCCJ" },
       /* ---------------- IRISH ---------------- */
       { n:"irish", name:"Irish Army 1980s Green Dress Jacket", cat:"Jackets / Shirts",
-        img:"IRA1980GDJ.png", ref:"IRA1980GDJ", src:"Lambrino" },
+        img:"IRA1980GDJ.png", ref:"IRA1980GDJ" },
       /* ---------------- ISRAELI ---------------- */
       { n:"israeli", name:"Israeli Defense Force 1970s Green Battledress Ike Jacket", cat:"Jackets / Shirts",
-        img:"ISDF1970GBIJ.png", ref:"ISDF1970GBIJ", src:"Lambrino" },
+        img:"ISDF1970GBIJ.png", ref:"ISDF1970GBIJ" },
       /* ---------------- ITALIAN ---------------- */
-      { n:"italian", name:"Italian Army 1990s Camouflage Jacket", cat:"Jackets / Shirts",
-        img:"IA1990CJ.png", ref:"IA1990CJ" },
       { n:"italian", name:"Italian Army 1990s Roma 90 Woodland Camouflage Combat Jacket", cat:"Jackets / Shirts",
-        img:"IA1990R90WCCJ.png", ref:"IA1990R90WCCJ", src:"Lambrino" },
-      { n:"italian", name:"Italian Army 2000s ECWCS Vegetato Camouflage Jacket", cat:"Jackets / Shirts",
-        img:"IA2000VCJ.png", ref:"IA2000VCJ" },
+        img:"IA1990R90WCCJ.png", ref:"IA1990R90WCCJ" },
       { n:"italian", name:"Italian Army 1960s Denim Alpini Mountain Rucksack", cat:"Bags / Webbing",
-        img:"IA1960DAMR.png", ref:"IA1960DAMR", src:"Lambrino" },
+        img:"IA1960DAMR.png", ref:"IA1960DAMR" },
       /* ---------------- NORWEGIAN ---------------- */
       { n:"norwegian", name:"Norwegian Army 1950s M51 Thermal Liner Parka", cat:"Jackets / Shirts",
-        img:"NA1950M51TLP.png", ref:"NA1950M51TLP", src:"Lambrino" },
+        img:"NA1950M51TLP.png", ref:"NA1950M51TLP" },
       /* ---------------- POLISH ---------------- */
       { n:"polish", name:"Polish Army 1990s WZ93 Pantera Camouflage Windproof Winter Liner Parka", cat:"Jackets / Shirts",
-        img:"PA1990WZ93PCWWLP.png", ref:"PA1990WZ93PCWWLP", src:"Lambrino" },
+        img:"PA1990WZ93PCWWLP.png", ref:"PA1990WZ93PCWWLP" },
       /* ---------------- PORTUGUESE ---------------- */
       { n:"portuguese", name:"Portuguese Army 1960s M63 Lizard Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
-        img:"PTA1960M63LCLSS.png", ref:"PTA1960M63LCLSS", src:"Lambrino" },
+        img:"PTA1960M63LCLSS.png", ref:"PTA1960M63LCLSS" },
       /* ---------------- ROMANIAN ---------------- */
       { n:"romanian", name:"Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
-        img:"ROP1990M1990BLCLSS.png", ref:"ROP1990M1990BLCLSS", src:"Lambrino" },
+        img:"ROP1990M1990BLCLSS.png", ref:"ROP1990M1990BLCLSS" },
       /* ---------------- SERBIAN ---------------- */
       { n:"serbian", name:"Serbian Army 1990s M93 Oak Leaf Camouflage Thermal Liner Parka", cat:"Jackets / Shirts",
-        img:"SBA1990M93OLCTLP.png", ref:"SBA1990M93OLCTLP", src:"Lambrino" },
-      { n:"serbian", name:"Serbian Army 1990s Camouflage Coverall", cat:"Trousers / Coveralls",
-        img:"SA1990KCCO.png", ref:"SA1990KCCO" },
+        img:"SBA1990M93OLCTLP.png", ref:"SBA1990M93OLCTLP" },
       /* ---------------- SLOVAK ---------------- */
       { n:"slovak", name:"Slovak Air Force 2000s Thermal Flight Jacket", cat:"Jackets / Shirts",
-        img:"SKAF2000TFJ.png", ref:"SKAF2000TFJ", src:"Lambrino" },
+        img:"SKAF2000TFJ.png", ref:"SKAF2000TFJ" },
       /* ---------------- SOVIET ---------------- */
       { n:"soviet", name:"Soviet Navy 1970s Yellow Dress Shirt", cat:"Jackets / Shirts",
-        img:"SN1970YDS.png", ref:"SN1970YDS", src:"Lambrino" },
+        img:"SN1970YDS.png", ref:"SN1970YDS" },
       { n:"soviet", name:"Soviet Red Army 1970s Brown Wool Greatcoat", cat:"Jackets / Shirts",
-        img:"SRA1970BWG.png", ref:"SRA1970BWG", src:"Lambrino" },
+        img:"SRA1970BWG.png", ref:"SRA1970BWG" },
       /* ---------------- SPANISH ---------------- */
       { n:"spanish", name:"Spanish Army 2000s M09 Pixel Leaf Camouflage Ripstop Jacket", cat:"Jackets / Shirts",
-        img:"SPA2000M09PLCRJ.png", ref:"SPA2000M09PLCRJ", src:"Lambrino" },
+        img:"SPA2000M09PLCRJ.png", ref:"SPA2000M09PLCRJ" },
       /* ---------------- SWEDISH ---------------- */
       { n:"swedish", name:"Swedish Army 1940s M39 Wool Jacket", cat:"Jackets / Shirts",
-        img:"SWA1940M39WJ.png", ref:"SWA1940M39WJ", src:"Lambrino" },
+        img:"SWA1940M39WJ.png", ref:"SWA1940M39WJ" },
       /* ---------------- SWISS ---------------- */
       { n:"swiss", name:"Swiss Army 1980s TAZ83 Alpenflage Camouflage Field Shirt", cat:"Jackets / Shirts",
-        img:"CHA1980TAZ83ACFS.png", ref:"CHA1980TAZ83ACFS", src:"Lambrino" },
+        img:"CHA1980TAZ83ACFS.png", ref:"CHA1980TAZ83ACFS" },
       /* ---------------- UNITED STATES ---------------- */
       { n:"united-states", name:"United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket", cat:"Jackets / Shirts",
-        img:"USAF1990TCDCSCRCJ.png", ref:"USAF1990TCDCSCRCJ", src:"Lambrino" },
+        img:"USAF1990TCDCSCRCJ.png", ref:"USAF1990TCDCSCRCJ" },
       { n:"united-states", name:"United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket", cat:"Jackets / Shirts",
-        img:"USAF2000DTSCBCJ.png", ref:"USAF2000DTSCBCJ", src:"Lambrino" },
+        img:"USAF2000DTSCBCJ.png", ref:"USAF2000DTSCBCJ" },
       { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage MVP Parka", cat:"Jackets / Shirts",
-        img:"USA1980M81WCMP.png", ref:"USA1980M81WCMP", src:"Lambrino" },
-      { n:"united-states", name:"United States Army 1990s Gulf Camouflage Jacket", cat:"Jackets / Shirts",
-        img:"USA1990GWC0.png", ref:"USA1990GWC0", src:"East West Trading" },
+        img:"USA1980M81WCMP.png", ref:"USA1980M81WCMP" },
       /* ---------------- WEST GERMAN ---------------- */
       { n:"west-german", name:"West German Army 1960s Tracksuit Jacket", cat:"Jackets / Shirts",
-        img:"WGA1960TJ.png", ref:"WGA1960TJ", src:"Lambrino" },
+        img:"WGA1960TJ.png", ref:"WGA1960TJ" },
       /* ---------------- YUGOSLAV ---------------- */
       { n:"yugoslav", name:"Yugoslav Army 1980s JNA M87 Oak Leaf Camouflage Shirt", cat:"Jackets / Shirts",
-        img:"YA1980JM87OLCS.png", ref:"YA1980JM87OLCS", src:"Lambrino" }
+        img:"YA1980JM87OLCS.png", ref:"YA1980JM87OLCS" }
     ];
 
     /* ---------- category order within each nation ---------- */
@@ -1836,7 +1874,7 @@
               </div>
               <span class="tag">${esc(p.cat)}</span>
               ${p.ref ? `<span class="ref">${esc(p.ref)}${p.src ? ` — ${esc(p.src)}` : ''}</span>` : ''}
-              <div class="req-panel">
+              <div class="req-panel"><div class="req-inner">
                 <div class="req-row">
                   <label>Quantity</label>
                   <div class="req-qty">
@@ -1849,8 +1887,8 @@
                 <input type="text" class="req-hp" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
                 <button type="button" class="req-send">Send request</button>
                 <div class="req-msg" role="status"></div>
-              </div>
-              <div class="info-panel"></div>
+              </div></div>
+              <div class="info-panel"><div class="info-inner"></div></div>
               <div class="actions">
                 <button type="button" class="btn-line req-toggle" aria-expanded="false">Request</button>
                 <button type="button" class="btn-line info-toggle" aria-expanded="false">Info</button>
@@ -2404,6 +2442,9 @@
       const infoBtn  = el.querySelector('.info-toggle');
       const reqPanel = el.querySelector('.req-panel');
       const infoPane = el.querySelector('.info-panel');
+      // the text goes in the inner box: writing to the panel itself would
+      // throw away the wrapper the slide collapses against
+      const infoBody = el.querySelector('.info-inner');
       const range    = el.querySelector('.req-range');
       const val      = el.querySelector('.qtyval');
       const person   = el.querySelector('.req-name');
@@ -2432,9 +2473,14 @@
         try {
           const res = await fetch(txtPath);
           if (!res.ok) throw new Error(res.status);
-          infoPane.textContent = (await res.text()).trim();
+          /* The name, nation, type and ref are already on the card an inch
+             away. What the panel is for is everything under them — the
+             material, the closures, the measurements, the dating. */
+          const raw = (await res.text()).trim();
+          const cut = raw.indexOf('\n\n', raw.indexOf('Archive ref:'));
+          infoBody.textContent = cut === -1 ? raw : raw.slice(cut + 2).trim();
         } catch {
-          infoPane.textContent = 'No record filed for this garment yet.';
+          infoBody.textContent = 'No record filed for this garment yet.';
         }
       }
 
@@ -3348,7 +3394,8 @@
       hidePrompt();
       // the dock returns to the middle of the screen for explore
       dock.classList.remove('moved');
-      setFace(0, true);              // explore always opens on the circle
+      setFaceMode('explore');        // explore always opens on the circle
+      setFace(0, true);
       buildSpiral();
       [...spiral.children].forEach(el => { el.style.transition = ''; el.style.opacity = ''; });
       fitSpiral();
@@ -3386,19 +3433,47 @@
     /* ---------- the middle button holds more than one tool ----------
        Scroll it on a laptop, swipe it on a phone: the faces roll round.
        Whichever is showing is what a press does. */
-    const faces = [...dockExplore.querySelectorAll('.face')];
+    /* The three glyphs sit in the DOM in one order; which of them is FIRST
+       under the finger depends on where the reader is.
+
+       In explore, the circle is home — it pulls the spiral back to fit — so
+       it leads. In list view the circle is a way OUT of a view the reader is
+       already in, so the list glyph leads and explore is one step away.
+
+       The cross is always last. Whatever the mode, two steps from rest is
+       the way out, and that never moves. */
+    const faceEls = [...dockExplore.querySelectorAll('.face')];
+    const FACE = { explore: faceEls[0], list: faceEls[1], exit: faceEls[2] };
+    const ORDER = {
+      explore: ['explore', 'list', 'exit'],
+      list:    ['list', 'explore', 'exit'],
+    };
+    let faceMode = 'explore';
+    let faces = ORDER.explore.map(k => FACE[k]);
+
+    function setFaceMode(mode){
+      if (mode === faceMode) return;
+      faceMode = mode;
+      faces = ORDER[mode].map(k => FACE[k]);
+      setFace(0, true);            // whichever glyph now leads
+    }
     let faceIx = 0;
-    const FACE_LABEL = ['Explore the archive', 'Nation list', 'Exit explore'];
+    const FACE_LABEL = { explore:'Explore the archive', list:'Nation list', exit:'Leave' };
+
+    function currentFace(){ return ORDER[faceMode][faceIx]; }
 
     function setFace(next, force){
       const n = (next + faces.length) % faces.length;
       if (n === faceIx && !force) return;
-      faces.forEach((f, i) => {
-        f.classList.toggle('is-on', i === n);
-        f.classList.toggle('is-out', i !== n);
+      // every glyph is addressed, not just the ones in this mode's order —
+      // the third is still in the DOM and must not be left showing
+      faceEls.forEach(f => {
+        const on = f === faces[n];
+        f.classList.toggle('is-on', on);
+        f.classList.toggle('is-out', !on);
       });
       faceIx = n;
-      dockExplore.setAttribute('aria-label', FACE_LABEL[faceIx]);
+      dockExplore.setAttribute('aria-label', FACE_LABEL[currentFace()]);
     }
 
     /* A trackpad fires a burst of small wheel events per flick, which was
@@ -3447,7 +3522,9 @@
     dockExplore.addEventListener('click', e => {
       if (swiped){ swiped = false; return; }       // that was a swipe
 
-      if (faceIx === 1){
+      const face = currentFace();
+
+      if (face === 'list'){
         // the listed nations, showing everything — not whatever the field
         // happened to be filtered to
         if (!explore.hidden) endExplore(false);
@@ -3460,10 +3537,19 @@
         filter();
         syncGhost();
         setBrowsing(true);      // types the tally last, so nothing overwrites it
+
+        /* The reader now has the main search bar and the list in front of
+           them. The three boxes were the instrument for a view that has just
+           been left, and leaving them out is a second bar over a page that
+           already has one. They come back on their own when a tab opens and
+           carries the main bar away — see updateDock. */
+        dockForced = false;
+        setFaceMode('list');
+        updateDock();
         return;
       }
 
-      if (faceIx === 2){
+      if (face === 'exit'){
         // the cross always lands on the bare archive page
         if (exploreOn){ closeExplore(); setTimeout(goHome, 1000); }
         else goHome();
@@ -3472,7 +3558,7 @@
 
       // the circle always returns explore to how it opens: the single
       // spiral, pulled back to fit — it is not a way out
-      if (explore.hidden){ openExplore(); return; }
+      if (explore.hidden){ dockForced = true; openExplore(); return; }
       if (spiralMode !== 'spiral'){
         morphLayout('spiral');
         flagBtn.setAttribute('aria-pressed', 'false');
@@ -3586,6 +3672,36 @@
         return;
       }
 
+      /* The second press must begin from the framing the first press set.
+         Someone who has pinched in further since is not looking at the same
+         garment any more — the record would be handed a garment at the wrong
+         size and would have to jump to correct it. So the view is walked
+         back to the frame first, and the record follows once it has settled. */
+      const FRAME = maxScale() * 0.68;
+      if (Math.abs(sc - FRAME) > FRAME * 0.02){
+        glide(() => focusItem(item, FRAME), 520);
+        setTimeout(() => openRecord(item), 560);
+        return;
+      }
+      openRecord(item);
+    });
+
+    /* ------------------------------------------------------------------
+       EXPLORE → RECORD
+       The garment does not move. It is the one thing on screen the reader
+       is already looking at, and moving it to hand it over is the jump this
+       used to have: explore vanished, the page redrew, and the garment
+       reappeared somewhere else at some other size.
+
+       So its position on the glass is measured before the handover, the
+       built card's slot is put back exactly there, and only then is it
+       released to settle into the card. The garment holds still, and the
+       layout comes to it.
+       ------------------------------------------------------------------ */
+    function openRecord(item){
+      const img = item.querySelector('img');
+      const from = (img || item).getBoundingClientRect();
+
       lastExploreItem = item;
       endExplore(false);
       soloId = item.dataset.id;
@@ -3601,14 +3717,14 @@
       if (window.scrollY > 0){
         window.scrollTo({ top:0, behavior:REDUCED ? 'auto' : 'smooth' });
       }
-      beginSoloBuild();
-    });
+      beginSoloBuild(from);
+    }
 
     /* Applied in the same tick as the render, so the settled two-column
        state is never painted first — that flash was the whole problem. */
     let soloTimers = [];
 
-    function beginSoloBuild(){
+    function beginSoloBuild(from){
       const item = catalogue.querySelector('.item:not([hidden])');
       if (!item || REDUCED) return;
       item.querySelectorAll('.solo-frame').forEach(n => n.remove());
@@ -3623,6 +3739,34 @@
       void item.offsetWidth;
       item.classList.remove('no-anim');
       document.body.classList.remove('solo-snap');
+
+      /* FLIP, but only the garment. `from` is where it was sitting on the
+         glass a moment ago in explore; the slot is put back there with a
+         transform, and released on the next frame. For the length of the
+         handover the garment has not moved by a pixel — everything else is
+         what moves around it. */
+      const slot = item.querySelector('.slot');
+      if (from && slot){
+        const to = slot.getBoundingClientRect();
+        if (to.width > 4){
+          const k  = from.width / to.width;
+          const dx = (from.left + from.width  / 2) - (to.left + to.width  / 2);
+          const dy = (from.top  + from.height / 2) - (to.top  + to.height / 2);
+          slot.style.transition = 'none';
+          slot.style.transformOrigin = 'center center';
+          slot.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
+          slot.style.zIndex = '4';
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            slot.style.transition = 'transform .82s cubic-bezier(.4,0,.2,1)';
+            slot.style.transform = 'none';
+            soloTimers.push(setTimeout(() => {
+              slot.style.transition = '';
+              slot.style.transform = '';
+              slot.style.zIndex = '';
+            }, 900));
+          }));
+        }
+      }
 
       // the name is written after the frame closes, not before
       const label = item.closest('.nation')
@@ -3648,7 +3792,8 @@
          a doubled outline rather than two steps, so the box is drawn once. */
       const BOX_MS   = 560;   // the line around the card
       const HANDOVER =  70;   // drawn line → the card's real border
-      const NAME_AT  = 40 + BOX_MS + HANDOVER;
+      const START    = from ? 780 : 40;
+      const NAME_AT  = START + BOX_MS + HANDOVER;
 
       soloTimers.push(setTimeout(() => {
         const r = item.getBoundingClientRect();
@@ -3662,7 +3807,7 @@
           box.style.opacity = '0';
           soloTimers.push(setTimeout(() => box.remove(), 380));
         }, BOX_MS + HANDOVER));
-      }, 40));
+      }, from ? 780 : 40));   // with a handover running, the box waits for it
 
       // the box closed → the tab arrives and the name types itself into it
       const NAME_MS = 26;

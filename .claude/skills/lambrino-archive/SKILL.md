@@ -32,6 +32,24 @@ Russia, a date that lives in the garment's history rather than in its name.
 Put those in the list rather than growing the parser a special case per
 garment. Always `--dry-run` first and read the names before writing.
 
+Then write the records:
+
+```bash
+python3 .claude/skills/lambrino-archive/descriptions.py \
+  --sources _incoming/lambrino/sources.json --root .
+```
+
+**This step is not optional.** Every listing opens with an "At a glance"
+list — material, closures, pockets, the pattern, full measurements, the
+issue period, and which army it came from. That list IS the archive record:
+it is the only place the measurements and the dating exist, and it was
+written by people who had the garment in their hands. A folder holding a
+placeholder instead has thrown that away.
+
+Everything after "Grades -" is condition and sales patter for one particular
+item on one particular day. It does not belong in an archive record and the
+parser stops there.
+
 **A whole collection** — the bulk path below, with its review checkpoint.
 
 Both share `naming.py`. After either, rebuild the page's arrays from what is

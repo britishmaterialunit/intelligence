@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="British Material Unit — book to British Material Unit. A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
+  <meta name="description" content="MarshalOS — book to British Material Unit. A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="British Material Unit" />
   <meta name="theme-color" content="#ffffff" />
@@ -13,11 +13,11 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://britishmaterialunit.com/contact" />
   <meta property="og:site_name" content="British Material Unit (BMU)" />
-  <meta property="og:title" content="British Material Unit — Book | British Material Unit" />
+  <meta property="og:title" content="MarshalOS — Book | British Material Unit" />
   <meta property="og:description" content="A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
   <meta property="og:locale" content="en_GB" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="British Material Unit — Book | British Material Unit" />
+  <meta name="twitter:title" content="MarshalOS — Book | British Material Unit" />
   <meta name="twitter:description" content="A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
 
   <title>Book — MarshalOS, Unit U or a meeting | BMU</title>
@@ -30,7 +30,7 @@
     "name": "Book \u2014 MarshalOS, Unit U or a meeting | BMU",
     "description": "A demo of MarshalOS, a day in Unit U, or half an hour to talk it through.",
     "isPartOf": { "@id": "https://britishmaterialunit.com/#website" },
-    "about": { "@type": "Organization", "name": "British Material Unit" }
+    "about": { "@type": "Organization", "name": "MarshalOS" }
   }
   </script>
 
@@ -377,11 +377,13 @@
       -webkit-tap-highlight-color:transparent;
     }
     .hd-mark svg{ height:17px; width:auto; display:block; overflow:visible; }
-    /* .4 against the footer's .35, for the two extra pixels of height */
+    /* Grey, to sit with the two tools on the right rather than shout over
+       them, and stroke only — the filled version was a second state the mark
+       did not need. */
     .hd-trace{
       fill:none;
-      stroke:var(--ink);
-      stroke-width:.4;
+      stroke:#999;
+      stroke-width:.5;
       transition:stroke .35s ease, opacity .3s ease;
     }
     /* The hero's gesture at header scale: it draws ONCE, on arrival, and
@@ -399,13 +401,39 @@
       opacity:0;
       transition:opacity .35s ease, fill .35s ease;
     }
-    #siteHead:hover .hd-trace{ animation-play-state:paused; opacity:0; }
-    #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    /* The header darkens on hover. The mark has to be white BEFORE that
+       happens rather than fade towards it: a crossfade between two colours
+       over a moving ground is the change you can see. No transition on the
+       way in, the normal one on the way back out. */
+    #siteHead:hover .hd-trace{
+      animation-play-state:paused;
+      stroke:#fff;
+      opacity:1;
+      transition:none;
+    }
+    #siteHead:hover .hd-fill{ opacity:0; }
 
     /* At the footer the mark is already on the page, twice the size and
        drawing itself — a second copy in the corner is just a repeat. It
        stands down, and only a hover brings it back, in white on the dark
        ground. The tools stay put either way. */
+
+    /* The mark is fixed over a page that scrolls underneath it, so the
+       moment the reader moves it is sitting on top of their content. It
+       stands down as soon as the page leaves the top and comes back when
+       they return — or on a hover, which darkens the header behind it and
+       gives it a ground of its own to read against. */
+    body.scrolled #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+    }
+    body.scrolled #siteHead:hover .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:0; }
+
     body.at-footer #siteHead .hd-mark{
       opacity:0;
       pointer-events:none;
@@ -415,8 +443,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.at-footer #siteHead:hover .hd-trace{ opacity:0; }
-    body.at-footer #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    body.at-footer #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
+    body.at-footer #siteHead:hover .hd-fill{ opacity:0; }
 
     /* --- explore + index, top right --- */
     .hd-tools{ display:flex; align-items:center; gap:18px; }
@@ -461,7 +489,7 @@
 
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
-      :root{ --bar-h:28px; }
+      :root{ --bar-h:30px; }
       #siteHead{
         height:46px;
         padding-top:env(safe-area-inset-top);
@@ -521,15 +549,24 @@
       /* one row on a phone as well — five narrow buttons read better than
          a 240px column, and the Operations/Join choreography is then the
          same motion on every screen */
-      #navRow{ gap:3px; }
+      #navRow{ gap:6px; }
       /* back to the 13px of the desktop row, but "Early Access" is 5.78em
          of Helvetica and it is what sets the floor: five of those plus the
          gaps only reach 13px around a 448px-wide phone, so the size tracks
          the viewport up to that cap and the row never truncates. */
+      /* The row was being made to fit by squeezing: 3px gaps, a 1.5px rule
+         that reads as heavy at phone scale, and letters tightened against
+         each other. The result was five cramped boxes that looked nothing
+         like the desktop's.
+
+         It is scaled down instead of squashed. The rule thins with the row,
+         the gap keeps its proportion, and the type stays at its own spacing
+         — the same five boxes, further away. */
       .bm-button{
-        font-size:min(13px, 2.9vw);
-        padding:0 2px;
-        letter-spacing:-.01em;
+        font-size:min(12px, 2.7vw);
+        padding:0 4px;
+        letter-spacing:0;
+        border-width:1px;
       }
       /* the sheet is nearly the full width of a phone, so the faded
          buttons behind the bar would show through its edges — take them
@@ -538,7 +575,12 @@
       .typewriter-text{ font-size:11pt; }
       /* three columns will not fit a phone — stack them */
       .foot-cols{ grid-template-columns:1fr; gap:26px; }
-      #siteFooter{ padding:44px 16px 38px; }
+      /* The body already insets the page by 16px, and the footer was adding
+         16 more of its own — so .foot-inner's measure started 16px inside
+         the header's, and the corner mark, the page's heading and the footer
+         mark each sat on a different left edge. The inner measure is the
+         only thing that should be deciding this. */
+      #siteFooter{ padding:44px 0 38px; }
       .foot-slogan{ white-space:nowrap; }
       /* stacked columns do not need the desktop trench between them */
       .foot-cols{ gap:26px; }
@@ -684,8 +726,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.scrolled #siteHead:hover .hd-trace{ opacity:0; }
-    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:0; }
 
     /* The shared chrome retires the mark at the footer, because the home
        page's footer carries a large copy of it and a second in the corner
@@ -701,6 +743,9 @@
     @media (max-width:640px){
       #partner{ padding:92px 0 70px; }
       .p-body{ font-size:12.5px; }
+      /* the name has to shrink with the phone or it sets the page's width
+         and pushes the whole column off the header's left edge */
+      .p-name{ font-size:clamp(28px, 9vw, 44px); }
     }
 
 
@@ -836,7 +881,7 @@
 
   <main id="partner">
     <div class="p-role" id="pRole" data-text="Book"></div>
-    <h1 class="p-name" id="pName" data-text="British Material Unit"></h1>
+    <h1 class="p-name" id="pName" data-text="MarshalOS"></h1>
     <p class="p-line">A demo of MarshalOS, a day in Unit U, or half an hour to talk it through.</p>
     <p class="p-body">Three ways in, one calendar. MarshalOS is our remanufacturing software for garment to garment recycling. Unit U is the open-studio — book the floor, the machines and the surplus on it. A meeting is for everything that is not yet either of those.</p>
 
@@ -845,13 +890,13 @@
 
         <div class="book-tabs" role="tablist" aria-label="What to book">
           <button type="button" class="book-tab" role="tab" id="tabMarshal"
-                  aria-selected="true"  data-note="MarshalOS demo"
+                  aria-selected="true"  data-note="MarshalOS demo" data-head="MarshalOS"
                   data-blurb="A walk through how MarshalOS reads a garment, what it returns, and how it fits a production run you already have in mind.">MarshalOS</button>
           <button type="button" class="book-tab" role="tab" id="tabUnit"
-                  aria-selected="false" data-note="Unit U studio booking"
+                  aria-selected="false" data-note="Unit U studio booking" data-head="Unit U"
                   data-blurb="The open-studio: the floor, the machines and the surplus on it. Tell us what you are making and we will have the material out.">Unit U</button>
           <button type="button" class="book-tab" role="tab" id="tabMeet"
-                  aria-selected="false" data-note="General meeting"
+                  aria-selected="false" data-note="General meeting" data-head="Meeting"
                   data-blurb="Half an hour to talk it through — sourcing, a production run, a partnership, or something none of these boxes covers yet.">Meeting</button>
         </div>
 
@@ -934,10 +979,18 @@
        Reduced motion gets the finished text rather than a performance. */
     const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /* Two runs on one element interleave their letters — the page's arrival
+       typing the heading while something else retypes it produced exactly
+       that. Each element carries the id of the run that owns it, and a run
+       that finds it no longer owns the element stops on the spot. */
+    let typeRun = 0;
     function bmuType(text, el, delay, done){
+      const tok = ++typeRun;
+      el.dataset.run = tok;
       let i = 0;
       el.textContent = '';
       (function tick(){
+        if (String(el.dataset.run) !== String(tok)) return;
         if (i < text.length){
           el.textContent += text.charAt(i++);
           setTimeout(tick, delay);
@@ -950,9 +1003,17 @@
     const ROLE = roleEl.dataset.text;
     const NAME = nameEl.dataset.text;
 
+    /* On a page whose heading cycles, the tabs own it — the arrival types
+       the role only and leaves the name to whichever tab is selected. One
+       owner per element: two typewriters in one heading interleave their
+       letters, which is exactly what this produced. */
+    const headIsCycled = !!document.querySelector('.book-tab');
+
     if (REDUCED){
       roleEl.textContent = ROLE;
-      nameEl.textContent = NAME;
+      if (!headIsCycled) nameEl.textContent = NAME;
+    } else if (headIsCycled){
+      bmuType(ROLE, roleEl, 26);
     } else {
       bmuType(ROLE, roleEl, 26, () => setTimeout(() => bmuType(NAME, nameEl, 48), 160));
     }
@@ -1073,8 +1134,36 @@
 
       const BOOK_URL = 'https://cal.com/british-material-unit-4jsp90/30min';
 
-      function select(tab){
+      /* The page's own heading is what changes. A row of tabs under a
+         heading that never moves reads as three ways to book one thing;
+         retyping the heading makes each one the subject of the page while
+         it is selected. Retyped rather than swapped, because that is how
+         every other heading on this site arrives. */
+      const head = document.getElementById('pName');
+      let headRun = 0;
+
+      function setHead(text){
+        if (head.textContent === text) return;
+        const tok = ++headRun;
+        if (REDUCED){ head.textContent = text; return; }
+        head.dataset.run = 'unwind-' + tok;     // stop whatever was typing
+        (function back(){
+          if (tok !== headRun) return;
+          const t = head.textContent;
+          if (t.length){
+            head.textContent = t.slice(0, -1);
+            setTimeout(back, 18);
+          } else {
+            bmuType(text, head, 48);
+          }
+        })();
+      }
+
+      function select(tab, quiet){
         tabs.forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+        // `quiet` on the first paint: the page's arrival is already typing
+        // this heading, and two typewriters in one element interleave
+        if (!quiet) setHead(tab.dataset.head);
         note.textContent = tab.dataset.blurb;
         const next = BOOK_URL + '?notes=' + encodeURIComponent(tab.dataset.note);
         // only reload when it actually changes — a reload the reader did not
@@ -1093,7 +1182,9 @@
         select(next);
       }));
 
-      select(tabs[0]);
+      // this page's heading belongs to the tabs; give the role a beat to
+      // land first so the two arrive in the order they are read
+      setTimeout(() => select(tabs[0]), 260);
     })();
   </script>
 </body>

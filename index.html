@@ -997,11 +997,13 @@
       -webkit-tap-highlight-color:transparent;
     }
     .hd-mark svg{ height:17px; width:auto; display:block; overflow:visible; }
-    /* .4 against the footer's .35, for the two extra pixels of height */
+    /* Grey, to sit with the two tools on the right rather than shout over
+       them, and stroke only — the filled version was a second state the mark
+       did not need. */
     .hd-trace{
       fill:none;
-      stroke:var(--ink);
-      stroke-width:.4;
+      stroke:#999;
+      stroke-width:.5;
       transition:stroke .35s ease, opacity .3s ease;
     }
     /* The hero's gesture at header scale: it draws ONCE, on arrival, and
@@ -1019,8 +1021,17 @@
       opacity:0;
       transition:opacity .35s ease, fill .35s ease;
     }
-    #siteHead:hover .hd-trace{ animation-play-state:paused; opacity:0; }
-    #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    /* The header darkens on hover. The mark has to be white BEFORE that
+       happens rather than fade towards it: a crossfade between two colours
+       over a moving ground is the change you can see. No transition on the
+       way in, the normal one on the way back out. */
+    #siteHead:hover .hd-trace{
+      animation-play-state:paused;
+      stroke:#fff;
+      opacity:1;
+      transition:none;
+    }
+    #siteHead:hover .hd-fill{ opacity:0; }
 
     /* At the footer the mark is already on the page, twice the size and
        drawing itself — a second copy in the corner is just a repeat. It
@@ -1040,8 +1051,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.scrolled #siteHead:hover .hd-trace{ opacity:0; }
-    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:0; }
 
     body.at-footer #siteHead .hd-mark{
       opacity:0;
@@ -1052,8 +1063,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.at-footer #siteHead:hover .hd-trace{ opacity:0; }
-    body.at-footer #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+    body.at-footer #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
+    body.at-footer #siteHead:hover .hd-fill{ opacity:0; }
 
     /* --- explore + index, top right --- */
     .hd-tools{ display:flex; align-items:center; gap:18px; }
@@ -1098,7 +1109,7 @@
 
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
-      :root{ --bar-h:28px; }
+      :root{ --bar-h:30px; }
       #siteHead{
         height:46px;
         padding-top:env(safe-area-inset-top);
@@ -1158,15 +1169,24 @@
       /* one row on a phone as well — five narrow buttons read better than
          a 240px column, and the Operations/Join choreography is then the
          same motion on every screen */
-      #navRow{ gap:3px; }
+      #navRow{ gap:6px; }
       /* back to the 13px of the desktop row, but "Early Access" is 5.78em
          of Helvetica and it is what sets the floor: five of those plus the
          gaps only reach 13px around a 448px-wide phone, so the size tracks
          the viewport up to that cap and the row never truncates. */
+      /* The row was being made to fit by squeezing: 3px gaps, a 1.5px rule
+         that reads as heavy at phone scale, and letters tightened against
+         each other. The result was five cramped boxes that looked nothing
+         like the desktop's.
+
+         It is scaled down instead of squashed. The rule thins with the row,
+         the gap keeps its proportion, and the type stays at its own spacing
+         — the same five boxes, further away. */
       .bm-button{
-        font-size:min(13px, 2.9vw);
-        padding:0 2px;
-        letter-spacing:-.01em;
+        font-size:min(12px, 2.42vw);
+        padding:0 4px;
+        letter-spacing:0;
+        border-width:1px;
       }
       /* the sheet is nearly the full width of a phone, so the faded
          buttons behind the bar would show through its edges — take them
@@ -1175,7 +1195,12 @@
       .typewriter-text{ font-size:11pt; }
       /* three columns will not fit a phone — stack them */
       .foot-cols{ grid-template-columns:1fr; gap:26px; }
-      #siteFooter{ padding:44px 16px 38px; }
+      /* The body already insets the page by 16px, and the footer was adding
+         16 more of its own — so .foot-inner's measure started 16px inside
+         the header's, and the corner mark, the page's heading and the footer
+         mark each sat on a different left edge. The inner measure is the
+         only thing that should be deciding this. */
+      #siteFooter{ padding:44px 0 38px; }
       .foot-slogan{ white-space:nowrap; }
       /* stacked columns do not need the desktop trench between them */
       .foot-cols{ gap:26px; }

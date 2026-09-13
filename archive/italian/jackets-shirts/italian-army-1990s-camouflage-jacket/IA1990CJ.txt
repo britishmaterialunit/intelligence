@@ -1,9 +1,0 @@
-Italian Army 1990s Camouflage Jacket
-
-Nation: Italian
-Type: Jackets / Shirts
-Archive ref: IA1990CJ
-
-Placeholder record. Replace this file with the garment write-up:
-issue period, pattern, fabric and construction, and any notes on
-provenance or condition.
