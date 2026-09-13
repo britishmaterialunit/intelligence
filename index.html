@@ -497,47 +497,6 @@
       text-align:center;
       min-height:1.55em;
     }
-    .repo-camos{
-      list-style:none;
-      margin:0;
-      padding:0;
-      border-top:1px solid #e0e0e0;
-      opacity:0;
-      transition:opacity .7s ease;
-    }
-    .repo-camos.in{ opacity:1; }
-    .repo-camos li{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:9px 2px;
-      border-bottom:1px solid #e0e0e0;
-    }
-    /* the mark's own left-hand bars, reused as the menu's bullet — the
-       repository is the mark read one line at a time */
-    .camo-lines{ flex:none; width:15px; height:11px; display:block; }
-    .camo-lines path{
-      fill:none;
-      stroke:var(--ink);
-      stroke-width:1;
-      stroke-linecap:round;
-    }
-    .camo-name{
-      flex:1 1 auto;
-      min-width:0;
-      font-size:11.5px;
-      letter-spacing:.02em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .camo-meta{
-      flex:none;
-      font-size:10px;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:#999;
-    }
     .repo-note{
       font-size:10.5px;
       line-height:1.6;
@@ -547,6 +506,15 @@
       transition:opacity .7s ease;
     }
     .repo-note.in{ opacity:1; }
+    /* the two ways on out of this panel — underlined rather than coloured,
+       so they read as links without breaking the page's one-ink rule */
+    .repo-note a{
+      color:var(--ink);
+      text-decoration:underline;
+      text-underline-offset:2px;
+      transition:opacity .25s ease;
+    }
+    .repo-note a:hover{ opacity:.6; }
 
     /* ---------- OPERATIONS BAR ---------- */
     #opsBtn{
@@ -1058,6 +1026,23 @@
        drawing itself — a second copy in the corner is just a repeat. It
        stands down, and only a hover brings it back, in white on the dark
        ground. The tools stay put either way. */
+
+    /* The mark is fixed over a page that scrolls underneath it, so the
+       moment the reader moves it is sitting on top of their content. It
+       stands down as soon as the page leaves the top and comes back when
+       they return — or on a hover, which darkens the header behind it and
+       gives it a ground of its own to read against. */
+    body.scrolled #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+    }
+    body.scrolled #siteHead:hover .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:0; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+
     body.at-footer #siteHead .hd-mark{
       opacity:0;
       pointer-events:none;
@@ -1269,11 +1254,11 @@
         </div>
 
         <!-- REPOSITORY — the same untyping the Join button plays, opening on
-             the roll rather than a field. Holding state: the camouflage page
-             proper comes later, this is the menu it will be built on. -->
+             a statement rather than a field. Holding state: the repository
+             proper comes later, and this says so and offers the two ways on
+             that exist today — the archive, and a demo of MarshalOS. -->
         <div id="repoPanel" aria-hidden="true">
           <div id="repoLede" class="repo-lede"></div>
-          <ul class="repo-camos" id="repoCamos"></ul>
           <div class="repo-note" id="repoNote"></div>
         </div>
       </div>
@@ -2536,6 +2521,23 @@
       siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
     }
 
+
+    /* ---------- the mark stands down once the page moves ----------
+       It is fixed over content that scrolls underneath it; anywhere but the
+       top of the page it is sitting on top of something. 24px is past the
+       first flick of a trackpad and well short of a deliberate scroll. */
+    (function markOnScroll(){
+      let on = null;
+      function sync(){
+        const past = window.scrollY > 24;
+        if (past === on) return;          // only touch the class when it changes
+        on = past;
+        document.body.classList.toggle('scrolled', past);
+      }
+      window.addEventListener('scroll', sync, { passive:true });
+      sync();
+    })();
+
     /* ---------- SITE HEADER ---------- */
     /* The mark's own length drives the loop, so the keyframes stay honest
        whatever the path is: measure it, hand it to CSS, then arm. */
@@ -2921,60 +2923,38 @@ Per operation we create design systems which secure textiles and their material 
     }
 
     /* ---- REPOSITORY ------------------------------------------------
-       Holding state. The roll is listed here so the menu exists and can be
-       read; the camouflage page it becomes is the next piece of work. The
-       list is drawn from what the archive already holds — confirm it against
-       the actual roll before this goes out. */
-    const CAMOS = [
-      ['DPM — Woodland',      'British'],
-      ['DPM — Desert',        'British'],
-      ['MTP',                 'British'],
-      ['Olive Green',         'British'],
-      ['M/84',                'Danish'],
-      ['Vegetato',            'Italian'],
-      ['DPM — Desert',        'Iraqi'],
-      ['3-Colour Desert',     'United States']
-    ];
-    const REPO_LEDE = 'Every camouflage currently on the roll.';
-    const REPO_NOTE =
-      'Lengths are cut to order and logged against the garment they came from. ' +
-      'What we cannot remake, we donate — each donation issued with its proof ' +
-      'of design, so the material keeps its record wherever it goes next.';
+       Holding state. The repository itself is the next piece of work, so
+       this says what is true now and hands the reader the two doors that
+       are actually open: the archive, and a demo of MarshalOS. */
+    /* The lede is typed and the rest fades in under it — the same two-beat
+       the Join panel plays. Typing all of it would run past ten seconds,
+       which is a long time to hold someone at a closed door. */
+    const REPO_LEDE =
+      'We regularly donate military surplus to designers and have an ' +
+      'open-studio called Unit U.';
+    const REPO_NOTE_HTML =
+      'Our repository will be updated in due time with military surplus textiles ' +
+      'available for acquisition with their pattern metrics. In the meantime, search ' +
+      'for military garments via our <a href="/archive">archive</a> and request for ' +
+      'sourcing for small production runs. Alternatively, request for a ' +
+      '<a href="/contact">demo</a> of MarshalOS, our remanufacturing software for ' +
+      'garment to garment recycling.';
 
     const repoPanel = document.getElementById('repoPanel');
     const repoLede  = document.getElementById('repoLede');
-    const repoCamos = document.getElementById('repoCamos');
     const repoNote  = document.getElementById('repoNote');
-    let repoBuilt = false;
-
-    function buildCamos(){
-      if (repoBuilt) return;
-      repoBuilt = true;
-      repoCamos.innerHTML = CAMOS.map(([name, nation]) => `
-        <li>
-          <svg class="camo-lines" viewBox="0 0 16 12" aria-hidden="true">
-            <path d="M0 1 H11"/><path d="M0 3.6 H14"/><path d="M0 6 H16"/>
-            <path d="M0 8.4 H14"/><path d="M0 11 H11"/>
-          </svg>
-          <span class="camo-name">${name}</span>
-          <span class="camo-meta">${nation}</span>
-        </li>`).join('');
-    }
 
     function repoSequence(live){
-      buildCamos();
       repoPanel.classList.add('on');
       repoPanel.setAttribute('aria-hidden', 'false');
-      repoCamos.classList.remove('in');
       repoNote.classList.remove('in');
       bmuType(REPO_LEDE, repoLede, 26, () => {
         if (!live()) return;
-        repoCamos.classList.add('in');
         joinState = 'ready';
         raiseJoinButton();
         later(() => {
           if (!live()) return;
-          repoNote.textContent = REPO_NOTE;
+          repoNote.innerHTML = REPO_NOTE_HTML;
           repoNote.classList.add('in');
           /* the note is the last thing to land and it changes the panel's
              height — measure the lift again against the finished panel */
@@ -2997,7 +2977,6 @@ Per operation we create design systems which secure textiles and their material 
       joinPanel.setAttribute('aria-hidden', 'true');
       repoPanel.classList.remove('on');
       repoPanel.setAttribute('aria-hidden', 'true');
-      repoCamos.classList.remove('in');
       repoNote.classList.remove('in');
       repoLede.textContent = '';
       joinMode = 'join';

@@ -652,9 +652,59 @@
       margin:0 !important;
     }
 
+    /* The mark is fixed over a page that scrolls underneath it, so the
+       moment the reader moves it is sitting on top of their content — on a
+       partner page that means directly on top of the copy. It stands down
+       as soon as the page leaves the top, and a hover brings it back on the
+       dark ground the header gives it. */
+    body.scrolled #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+    }
+    body.scrolled #siteHead:hover .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:0; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+
+    /* The shared chrome retires the mark at the footer, because the home
+       page's footer carries a large copy of it and a second in the corner
+       is just a repeat. A partner page is short enough that its footer can
+       already be in view on arrival, and that rule would then take the mark
+       away before the reader had moved at all. Here it is the scroll that
+       decides, not the footer. */
+    body.at-footer:not(.scrolled) #siteHead .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+
     @media (max-width:640px){
       #partner{ padding:92px 0 70px; }
       .p-body{ font-size:12.5px; }
+    }
+
+
+    /* ---------- BOOKING ----------
+       Cal.com's own scheduler, framed the way everything else on the site
+       is framed. It is given a tall box because the calendar decides its
+       own height and a short one leaves the reader scrolling inside a
+       scroller. The plate underneath is the way through if the frame is
+       blocked — a booking nobody can reach is worse than a plain link. */
+    .book-frame{
+      width:100%;
+      max-width:900px;
+      height:min(78vh, 760px);
+      border:1.5px solid var(--line);
+      background:var(--bg);
+    }
+    .book-frame iframe{
+      width:100%; height:100%;
+      border:0;
+      display:block;
+    }
+    @media (max-width:640px){
+      .book-frame{ height:min(74vh, 620px); }
     }
 
   </style>
@@ -795,6 +845,19 @@
     } else {
       bmuType(ROLE, roleEl, 26, () => setTimeout(() => bmuType(NAME, nameEl, 48), 160));
     }
+
+    /* ---------- the mark stands down once the page moves ---------- */
+    (function markOnScroll(){
+      let on = null;
+      function sync(){
+        const past = window.scrollY > 24;
+        if (past === on) return;      // only touch the class when it changes
+        on = past;
+        document.body.classList.toggle('scrolled', past);
+      }
+      window.addEventListener('scroll', sync, { passive:true });
+      sync();
+    })();
 
     /* ---------- the header mark draws once, then holds ---------- */
     const siteHead = document.getElementById('siteHead');

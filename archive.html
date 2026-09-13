@@ -548,20 +548,9 @@
     body.single-result .item.build.framed{ border-color:var(--line); }
     body.single-result .item{ transition:width .62s cubic-bezier(.4,0,.2,1),
                                          border-color .32s ease; }
-    /* The garment is held off the card's edge for the length of the build.
-       Without this the line drawn around the garment and the line drawn
-       around the card are the same rectangle drawn twice — which is what
-       made the sequence read as one shell arriving out of nowhere. The
-       padding runs back to nothing as the record comes in, so the garment
-       expanding to its edges IS the settle. */
     body.single-result .item.build .slot{
       flex-basis:100%;
       aspect-ratio:1 / 1;
-      padding:28px;
-    }
-    body.single-result .item .slot{
-      padding:0;
-      transition:padding .62s cubic-bezier(.4,0,.2,1);
     }
 
     /* every edge is drawn rather than switched on */
@@ -607,8 +596,6 @@
 
     @media (max-width:640px){
       body.single-result .item{ flex-direction:column; width:100%; }
-      /* the narrow card cannot spare 28px on each side */
-      body.single-result .item.build .slot{ padding:16px; }
       body.single-result .item .slot{
         flex:none;
         aspect-ratio:1 / 1;
@@ -1318,6 +1305,23 @@
     }
     #siteHead:hover .hd-trace{ animation-play-state:paused; opacity:0; }
     #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+
+
+    /* The mark is fixed over a page that scrolls underneath it, so the
+       moment the reader moves it is sitting on top of their content. It
+       stands down as soon as the page leaves the top and comes back when
+       they return — or on a hover, which darkens the header behind it and
+       gives it a ground of its own to read against. */
+    body.scrolled #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+    }
+    body.scrolled #siteHead:hover .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:0; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
 
     .hd-tools{ display:flex; align-items:center; gap:18px; }
     .hd-ico{
@@ -3514,55 +3518,35 @@
 
       /* THE SEQUENCE, in the order the eye should read it:
 
-           1. the garment, on its own, with no box anywhere
-           2. a line drawn tight around the garment — the inner box
-           3. a line drawn around the card that will hold it — the outer
-           4. the card's own border takes the outer line's place, and the
-              name types itself
-           5. the garment settles left and the record expands in beside it,
-              inside the box that was drawn for it in step 3
+           1. the garment, on its own, with no box
+           2. one line drawn around the card that will hold it
+           3. the card's own border takes that line's place, the tab arrives
+              and the name types itself
+           4. the garment settles left and the record expands in beside it,
+              inside the box that was drawn for it
 
-         The old version skipped straight to a box around the whole card,
-         which read as the outer shell arriving before the garment had been
-         introduced at all. */
-      const INNER_MS = 480;   // the line around the garment
-      const HOLD_MS  =  90;   // it is allowed to stand on its own for a beat
-      const OUTER_MS = 520;   // the line around the card
-      const HANDOVER =  60;   // drawn line → the card's real border
-      const NAME_AT  = 40 + INNER_MS + HOLD_MS + OUTER_MS + HANDOVER;
+         There was briefly a second line drawn tight around the garment
+         first. Two rectangles that close on almost the same pixels read as
+         a doubled outline rather than two steps, so the box is drawn once. */
+      const BOX_MS   = 560;   // the line around the card
+      const HANDOVER =  70;   // drawn line → the card's real border
+      const NAME_AT  = 40 + BOX_MS + HANDOVER;
 
       soloTimers.push(setTimeout(() => {
-        const ir   = item.getBoundingClientRect();
-        const slot = item.querySelector('.slot');
-        const img  = item.querySelector('.slot img');
-        /* the garment's own box, not the slot's: the slot is the square the
-           card reserves, and the image sits inside it with air around it */
-        const gr = (img && img.getBoundingClientRect().width > 4)
-          ? img.getBoundingClientRect()
-          : slot.getBoundingClientRect();
-
-        const inner = drawFrame(item, {
-          x: gr.left - ir.left, y: gr.top - ir.top, w: gr.width, h: gr.height
-        }, INNER_MS);
+        const r = item.getBoundingClientRect();
+        const box = drawFrame(item, { x:0, y:0, w:r.width, h:r.height }, BOX_MS);
 
         soloTimers.push(setTimeout(() => {
-          const r2 = item.getBoundingClientRect();
-          const outer = drawFrame(item, { x:0, y:0, w:r2.width, h:r2.height }, OUTER_MS);
-
-          soloTimers.push(setTimeout(() => {
-            // the card's own border takes over from the outer line, and both
-            // drawn lines go: the inner one's job was the introduction
-            item.classList.add('framed');
-            [inner, outer].forEach(svg => {
-              svg.style.transition = 'opacity .34s ease';
-              svg.style.opacity = '0';
-              soloTimers.push(setTimeout(() => svg.remove(), 380));
-            });
-          }, OUTER_MS + HANDOVER));
-        }, INNER_MS + HOLD_MS));
+          // the card's own border takes over from the drawn line, crossfading
+          // so there is never two of them, nor a gap with neither
+          item.classList.add('framed');
+          box.style.transition = 'opacity .34s ease';
+          box.style.opacity = '0';
+          soloTimers.push(setTimeout(() => box.remove(), 380));
+        }, BOX_MS + HANDOVER));
       }, 40));
 
-      // outer box closed → the tab arrives and the name types itself into it
+      // the box closed → the tab arrives and the name types itself into it
       const NAME_MS = 26;
       soloTimers.push(setTimeout(() => {
         document.body.classList.remove('solo-build');
@@ -3717,6 +3701,23 @@
        documents reads as a flash rather than a move, which is the whole
        reason body.leaving exists.
        ============================================================ */
+
+    /* ---------- the mark stands down once the page moves ----------
+       It is fixed over content that scrolls underneath it; anywhere but the
+       top of the page it is sitting on top of something. 24px is past the
+       first flick of a trackpad and well short of a deliberate scroll. */
+    (function markOnScroll(){
+      let on = null;
+      function sync(){
+        const past = window.scrollY > 24;
+        if (past === on) return;          // only touch the class when it changes
+        on = past;
+        document.body.classList.toggle('scrolled', past);
+      }
+      window.addEventListener('scroll', sync, { passive:true });
+      sync();
+    })();
+
     const siteHead = document.getElementById('siteHead');
     const hdTrace  = document.getElementById('hdTrace');
     if (siteHead && hdTrace){
