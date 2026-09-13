@@ -803,7 +803,11 @@
     }
     body.entered #siteFooter{ display:block; }
     /* and it is taken off the page entirely, so a scroll cannot reach it */
-    body.ops-open #siteFooter{ display:none; }
+    /* With Operations open there is nothing below it: the sheet is the
+       screen. The exception is the deliberate trip down — the arrow, or the
+       header's index — which leaves the sheet open and lets the footer take
+       its space back so there is something to travel to. */
+    body.ops-open:not(.ops-pass) #siteFooter{ display:none; }
     #siteFooter.in{
       opacity:1;
       --dot-r:4px;          /* > half the 5px tile diagonal, so it closes up */
@@ -1303,15 +1307,10 @@
                 <span class="ni-title">East West</span>
                 <span class="ni-sub">Industrial Partner — archive, open-studio and repository.</span>
               </a>
-              <a class="news-item" href="/soframa">
-                <span class="ni-date">Partnership</span>
-                <span class="ni-title">Soframa</span>
-                <span class="ni-sub">Franco-British Partnership — Circular Exit Strategy.</span>
-              </a>
               <a class="news-item" href="/lambrino">
                 <span class="ni-date">Partnership</span>
                 <span class="ni-title">Lambrino</span>
-                <span class="ni-sub">Research Partner — joining East West and Soframa to build the archive at scale.</span>
+                <span class="ni-sub">Research Partner — joining East West to build the archive at scale.</span>
               </a>
               <div class="ops-hint">Swipe up or sideways to close</div>
             </div>
@@ -2438,6 +2437,12 @@
       });
     });
 
+    /* Set when the reader asks for the footer while Operations is open.
+       The sheet is not closed on the way down — the row it lives in fades
+       out as the footer rises, so it leaves the screen without playing its
+       whole retraction. Scrolling back up is what closes it. */
+    let opsFooterPass = false;
+
     /* ---------- FOOTER: revealed on scroll, once entered ---------- */
     const siteFooter = document.getElementById('siteFooter');
     const footTrace  = document.getElementById('footTrace');
@@ -2489,7 +2494,7 @@
         /* Operations is a full-height sheet in the flow of this same page —
            revealing the footer underneath it puts the two on one screen and
            the sheet lands on top. While it is open there is nothing below. */
-        if (typeof opsState !== 'undefined' && opsState !== 'closed'){
+        if (typeof opsState !== 'undefined' && opsState !== 'closed' && !opsFooterPass){
           document.body.classList.remove('at-footer');
           setHeroFade(1);
           return;
@@ -2517,6 +2522,28 @@
       window.addEventListener('resize', window.bmuFooterCheck);
     }
 
+    /* The one way down, whether the cue asks for it or the header's index.
+       With Operations open the sheet is NOT closed first: it stays as it is
+       and fades out with the row it lives in as the footer rises, instead of
+       playing a full retraction the reader has to sit through before the
+       journey even starts. Scrolling back up is what closes it — see the
+       wheel handler further down.
+
+       The footer is display:none under an open sheet, so it is handed its
+       space back first and the scroll waits two frames for the layout that
+       follows: scrolling towards a box that does not exist yet goes nowhere. */
+    function goToFooter(){
+      if (!siteFooter) return;
+      const land = () => siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+      if (typeof opsState !== 'undefined' && opsState !== 'closed'){
+        opsFooterPass = true;
+        document.body.classList.add('ops-pass');
+        requestAnimationFrame(() => requestAnimationFrame(land));
+        return;
+      }
+      land();
+    }
+
     /* ---------- SITE HEADER ---------- */
     /* The mark's own length drives the loop, so the keyframes stay honest
        whatever the path is: measure it, hand it to CSS, then arm. */
@@ -2542,7 +2569,7 @@
         if (document.body.classList.contains('at-footer')){
           window.scrollTo({ top:0, behavior:'smooth' });
         } else if (siteFooter){
-          siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+          goToFooter();
         }
       });
       /* the label has to say which way it is pointing */
@@ -2617,6 +2644,8 @@ Per operation we create design systems which secure textiles and their material 
     function openOps(){
       if (opsState !== 'closed' || joinState !== 'off') return;
       opsState = 'expanding';
+      opsFooterPass = false;
+      document.body.classList.remove('ops-pass');
       document.body.classList.add('ops-open');
       document.body.classList.remove('at-footer');
       navRow.classList.add('ops-engaged');
@@ -2679,6 +2708,8 @@ Per operation we create design systems which secure textiles and their material 
     function closeOps(){
       if (opsState === 'closed') return;
       opsState = 'closed';
+      opsFooterPass = false;
+      document.body.classList.remove('ops-pass');
       clearOpsTimers();
 
       // retract: content fades, then the box draws back up into the bar
@@ -3146,16 +3177,7 @@ Per operation we create design systems which secure textiles and their material 
     scrollCue.addEventListener('click', () => {
       if (joinState !== 'off'){ closeJoin(); return; }
       if (!siteFooter) return;
-      // with Operations open the arrow shuts it first — the footer it is
-      // pointing at does not exist until the sheet is out of the way
-      if (opsState !== 'closed'){
-        closeOps();
-        setTimeout(() => {
-          siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
-        }, 780);
-        return;
-      }
-      siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+      goToFooter();
     });
 
     /* Join, Operations and Repository have no pages of their own — they are
@@ -3319,6 +3341,50 @@ Per operation we create design systems which secure textiles and their material 
       });
     }, { threshold: [0, 0.3] });
     mapObserver.observe(mapSection);
+
+    /* ============================================================
+       ARRIVING FROM THE ARCHIVE
+       The archive is a separate document, so coming back is a page load
+       and the reader would otherwise sit through the front door every
+       time. Its header says in the hash how much of this page it wants:
+
+         (none)    the front door — the mark draws and waits to be clicked
+         #home     already inside, at the top, nothing replayed
+         #footer   already inside and landed on the footer, so scrolling
+                   up is the way onto the page proper
+
+       The hash is spent on arrival and taken off the URL: a reload is a
+       fresh visit and should open the front door again.
+       ============================================================ */
+    function enterInstant(){
+      if (document.body.classList.contains('entered')) return;
+      logoSvg.classList.add('svg-faded');
+      textOutput.classList.add('show-text');
+      textContent.textContent = mainText;   // the typed copy, already typed
+      navRow.classList.add('visible');
+      document.body.classList.add('entered');
+    }
+
+    (function arrival(){
+      const want = location.hash.slice(1).toLowerCase();
+      if (want !== 'home' && want !== 'footer') return;
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      history.replaceState(null, '', location.pathname + location.search);
+      enterInstant();
+
+      if (want === 'footer' && siteFooter){
+        /* The footer is display:none until `entered` is on the body, so it
+           has no box to scroll to on the frame the class lands. Two frames
+           is layout done and painted — one is not, on Safari. */
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          siteFooter.scrollIntoView({ block:'end' });
+          if (window.bmuFooterCheck) window.bmuFooterCheck();
+        }));
+      } else {
+        window.scrollTo(0, 0);
+        if (window.bmuFooterCheck) window.bmuFooterCheck();
+      }
+    })();
 
   </script>
 

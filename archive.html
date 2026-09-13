@@ -52,7 +52,8 @@
       display:flex;
       flex-direction:column;
       align-items:center;
-      padding:40px 16px 150px;
+      /* top pad clears the fixed header, not just the edge of the page */
+      padding:66px 16px 150px;
       -webkit-font-smoothing:antialiased;
     }
     /* auto margins centre the archive in the viewport when it is short
@@ -107,6 +108,9 @@
       transition:opacity .4s ease;
     }
     body.browsing #prompt, body.exploring #prompt{ opacity:0; }
+    /* the plate answers the same question the prompt is asking, in the
+       same place — the prompt stands down rather than showing through it */
+    body.no-data #prompt{ opacity:0; }
 
     /* ---------- search ---------- */
     .search{
@@ -1127,6 +1131,134 @@
       #prompt{ font-size:13px; }
     }
 
+    /* ---------- NO DATA SAVED ----------
+       A white plate on a black rule that lifts into the middle of the page,
+       holds long enough to be read, and takes itself away. It never takes
+       the pointer: whatever the reader was doing carries on underneath. */
+    #noData{
+      position:fixed;
+      left:50%; top:50%;
+      transform:translate(-50%, calc(-50% + 10px));
+      z-index:130;
+      padding:22px 34px;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      font-size:13px;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      color:var(--ink);
+      white-space:nowrap;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .3s ease, transform .42s cubic-bezier(.2,.75,.3,1);
+    }
+    #noData.show{
+      opacity:1;
+      transform:translate(-50%, -50%);
+    }
+    @media (prefers-reduced-motion:reduce){
+      #noData{ transition:opacity .2s linear; }
+      #noData, #noData.show{ transform:translate(-50%, -50%); }
+    }
+
+    /* ---------- SITE HEADER ----------
+       The same header the home page wears, so the archive reads as a room
+       in the building rather than a separate site. See-through over the
+       white page, near-black on hover, which is why the mark and the two
+       tools are each built to read on either ground.
+
+       Three ways out, differing only in how much of the home page the
+       reader has to sit through again — see the handlers at the foot of
+       the script. */
+    #siteHead{
+      position:fixed;
+      top:0; left:0; right:0;
+      z-index:75;
+      height:54px;
+      display:flex;
+      align-items:center;
+      background:transparent;
+      transition:background-color .35s ease;
+    }
+    #siteHead:hover{ background:#262626; }
+
+    /* the archive's own measure, so the corner mark sits on the same left
+       edge as the catalogue and the tools on its right edge */
+    #siteHead .hd-inner{
+      width:min(94vw, 880px);
+      height:100%;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .hd-mark{
+      display:block;
+      line-height:0;
+      text-decoration:none;
+      transition:opacity .45s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-mark svg{ height:17px; width:auto; display:block; overflow:visible; }
+    .hd-trace{
+      fill:none;
+      stroke:var(--ink);
+      stroke-width:.4;
+      transition:stroke .35s ease, opacity .3s ease;
+    }
+    /* draws ONCE, on arrival, and holds the outline after — forwards is
+       what keeps it there; a loop makes the corner restless */
+    #siteHead.armed .hd-trace{ animation:hd-draw 2.6s ease-in-out forwards; }
+    @keyframes hd-draw{
+      from { stroke-dashoffset:var(--hd-len); }
+      to   { stroke-dashoffset:0; }
+    }
+    .hd-fill{
+      fill:var(--ink);
+      stroke:none;
+      opacity:0;
+      transition:opacity .35s ease, fill .35s ease;
+    }
+    #siteHead:hover .hd-trace{ animation-play-state:paused; opacity:0; }
+    #siteHead:hover .hd-fill{ opacity:1; fill:#fff; }
+
+    .hd-tools{ display:flex; align-items:center; gap:18px; }
+    .hd-ico{
+      display:block;
+      line-height:0;
+      padding:8px;
+      margin:-8px;
+      border:0;
+      background:none;
+      cursor:pointer;
+      color:#999;
+      transition:color .3s ease, transform .3s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-ico svg{ display:block; width:15px; height:15px; }
+    .hd-ico .ico-fill{ fill:currentColor; }
+    .hd-ico .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    #hdHome svg{ width:13px; height:13px; }
+    #siteHead:hover .hd-ico{ color:#fff; }
+    .hd-ico:hover{ color:#fff; transform:scale(1.1); }
+
+    @media (max-width:640px){
+      #siteHead{
+        height:calc(46px + env(safe-area-inset-top));
+        padding-top:env(safe-area-inset-top);
+      }
+    }
+    @media (prefers-reduced-motion:reduce){
+      #siteHead.armed .hd-trace{ animation:none; stroke-dashoffset:0; }
+    }
+
     /* ---------- OPERATIONS DEPARTURE ----------
        Straight fade of the whole page, then hand over to index.html. */
     body{ transition:opacity .3s ease; }
@@ -1137,6 +1269,38 @@
   </style>
 </head>
 <body>
+  <!-- SITE HEADER — the archive's way back to the site. The mark is the
+       front door and resets the home page; the star returns to it already
+       entered; the index drops the reader straight onto its footer, so
+       scrolling up is what brings the home page itself back. -->
+  <header id="siteHead">
+   <div class="hd-inner">
+    <a class="hd-mark" id="hdMark" href="/" aria-label="British Material Unit — home">
+      <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path id="hdTrace" class="hd-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+        <path id="hdFill" class="hd-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+      </svg>
+    </a>
+
+    <nav class="hd-tools" aria-label="Leave the archive">
+      <a class="hd-ico" id="hdHome" href="/" aria-label="Back to the site">
+        <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+          <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
+        </svg>
+      </a>
+      <button class="hd-ico" id="hdIndex" type="button" aria-label="Go to the site index">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <g class="ico-stroke">
+            <path d="M2.6 4.6 H13.4"/>
+            <path d="M2.6 8 H13.4"/>
+            <path d="M2.6 11.4 H13.4"/>
+          </g>
+        </svg>
+      </button>
+    </nav>
+   </div>
+  </header>
+
   <div class="wrap">
     <div id="shell">
       <div class="count-row">
@@ -1170,6 +1334,11 @@
   </div>
 
   <div id="prompt" aria-hidden="true"></div>
+
+  <!-- The bookmark with nothing behind it. Says so on a plate of its own
+       rather than opening an empty section or changing the count line,
+       which reads as a page fault rather than an answer. -->
+  <div id="noData" role="status" aria-live="polite" aria-hidden="true">No Data Saved</div>
 
   <!-- EXPLORE — every garment in the archive as one spiral -->
   <div id="explore" hidden aria-hidden="true">
@@ -1739,6 +1908,10 @@
       // swaps the right-hand slot between the star and the ✕
       searchForm.classList.toggle('has-term', !!term);
       document.body.classList.toggle('browsing', nationsOpen || !!term);
+      // the tabs this call is about to open must not carry the bar away with
+      // them; set here rather than through syncChrome, which reaches for the
+      // dock — declared further down and still in its dead zone at init
+      if (term) document.body.classList.remove('tab-open');
       if (term) hidePrompt();
 
       allItems.forEach(el => {
@@ -1800,10 +1973,27 @@
       window.scrollTo({ top:0, behavior:REDUCED ? 'auto' : 'smooth' });
     }
 
+    /* The plate that answers an empty library. Pressing again restarts the
+       hold rather than stacking a second timer behind the first. */
+    const noData = document.getElementById('noData');
+    let noDataTimer = null;
+    function flashNoData(){
+      if (!noData) return;
+      clearTimeout(noDataTimer);
+      noData.classList.add('show');
+      noData.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('no-data');
+      noDataTimer = setTimeout(() => {
+        noData.classList.remove('show');
+        noData.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('no-data');
+      }, 1700);
+    }
+
     savedBtn.addEventListener('click', () => {
       if (!savedIds.length && !savedOnly){
         // nothing kept yet — say so rather than showing an empty page
-        countEl.textContent = 'Nothing saved yet — use the bookmark on a garment';
+        flashNoData();
         return;
       }
       savedOnly = !savedOnly;
@@ -2089,7 +2279,11 @@
        Opening a tab therefore hands the reader the dock's own search bar
        in place of the main one. */
     function updateDock(){
-      const show = dockForced || anyNationOpen() || exploreOn;
+      /* Tabs opened by a term are not the reader reaching for the dock —
+         they are the answer to what is still being typed into the main bar.
+         Handing over a second search instrument at that moment puts two on
+         the screen at once, so the dock waits until the bar is done with. */
+      const show = dockForced || exploreOn || (anyNationOpen() && !q.value.trim());
       dock.classList.toggle('show', show);
       dock.setAttribute('aria-hidden', show ? 'false' : 'true');
       // whenever the three boxes are out, the star reads active
@@ -2146,7 +2340,13 @@
 
     /* an opening or closing tab changes what furniture belongs on screen */
     function syncChrome(){
-      document.body.classList.toggle('tab-open', anyNationOpen());
+      /* A term opens every tab that answers it, and an open tab is normally
+         what sends the main bar away and hands over to the dock's. Mid-word
+         that is exactly wrong: the reader is still typing into the bar it
+         would be taking off the screen. While there is a term, the bar
+         stays and the results arrange themselves underneath it. */
+      const typing = !!q.value.trim();
+      document.body.classList.toggle('tab-open', anyNationOpen() && !typing);
       updateDock();
     }
     allNations.forEach(d => d.addEventListener('toggle', syncChrome));
@@ -2850,7 +3050,7 @@
         return;
       }
 
-      if (!savedIds.length) return;          // nothing kept, nothing to gather
+      if (!savedIds.length){ flashNoData(); return; }   // nothing kept to gather
       const next = spiralMode === 'saved' ? 'spiral' : 'saved';
       morphLayout(next);
       dockLibrary.setAttribute('aria-pressed', next === 'saved' ? 'true' : 'false');
@@ -3100,6 +3300,49 @@
         }
       }));
     })();
+
+    /* ============================================================
+       SITE HEADER — three ways off the archive
+       The archive and the home page are separate documents, so every one
+       of these is a page load. What differs is how much of the home page
+       the reader is made to sit through on the way back in:
+
+         mark   →  /          the front door: the mark draws, and waits
+         star   →  /#home     already inside, at the top, nothing replayed
+         index  →  /#footer   already inside and landed on the footer, so
+                              scrolling up is what brings the page back
+
+       The page fades before it goes. Without it the hand-over between two
+       documents reads as a flash rather than a move, which is the whole
+       reason body.leaving exists.
+       ============================================================ */
+    const siteHead = document.getElementById('siteHead');
+    const hdTrace  = document.getElementById('hdTrace');
+    if (siteHead && hdTrace){
+      // the mark's own length drives the keyframes, so they stay honest
+      // whatever the path is: measure it, hand it to CSS, then arm
+      const hdLen = hdTrace.getTotalLength();
+      hdTrace.style.strokeDasharray  = hdLen;
+      hdTrace.style.strokeDashoffset = hdLen;
+      siteHead.style.setProperty('--hd-len', hdLen);
+      siteHead.classList.add('armed');
+    }
+
+    let leaving = false;
+    function leaveTo(href){
+      if (leaving) return;              // a second press must not re-arm it
+      leaving = true;
+      document.body.classList.add('leaving');
+      // matches the .3s on body's opacity transition
+      setTimeout(() => { window.location.href = href; }, 300);
+    }
+
+    const hdMark  = document.getElementById('hdMark');
+    const hdHome  = document.getElementById('hdHome');
+    const hdIndex = document.getElementById('hdIndex');
+    if (hdMark)  hdMark.addEventListener('click',  e => { e.preventDefault(); leaveTo('/'); });
+    if (hdHome)  hdHome.addEventListener('click',  e => { e.preventDefault(); leaveTo('/#home'); });
+    if (hdIndex) hdIndex.addEventListener('click', e => { e.preventDefault(); leaveTo('/#footer'); });
 
     paintSaved();
     showPrompt();
