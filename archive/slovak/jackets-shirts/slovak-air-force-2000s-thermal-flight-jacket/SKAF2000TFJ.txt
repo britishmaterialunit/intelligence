@@ -1,0 +1,10 @@
+Slovak Air Force 2000s Thermal Flight Jacket
+
+Nation: Slovak
+Type: Jackets / Shirts
+Archive ref: SKAF2000TFJ
+Source: Lambrino
+
+Placeholder record. Replace this file with the garment write-up:
+issue period, pattern, fabric and construction, and any notes on
+provenance or condition.

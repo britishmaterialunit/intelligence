@@ -1,0 +1,290 @@
+[
+  {
+    "n": "austrian",
+    "name": "Austrian Army 2000s Olive Drab Anzug 03 Alpine Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "AA2000ODA03AJ.png",
+    "ref": "AA2000ODA03AJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "belgian",
+    "name": "Belgian Army 1960s M64 Olive Green Field Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BA1960M64OGFJ.png",
+    "ref": "BA1960M64OGFJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Royal Navy 1980s Blue Upper Deck Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BRN1980BUDJ.png",
+    "ref": "BRN1980BUDJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "bulgarian",
+    "name": "Bulgarian People's Army 1970s Olive Green Cossack Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "BUPA1970OGCS.png",
+    "ref": "BUPA1970OGCS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "chinese",
+    "name": "Chinese People's Liberation Army 1980s Type 81 Olive Green AK Bandolier Chest Rig",
+    "cat": "Bags / Webbing",
+    "img": "CPLA1980T81OGABCR.png",
+    "ref": "CPLA1980T81OGABCR",
+    "src": "Lambrino"
+  },
+  {
+    "n": "czechoslovak",
+    "name": "Czechoslovak Army 1980s M85 Field Olive Green with Hood Parka",
+    "cat": "Jackets / Shirts",
+    "img": "CSA1980M85FOGWHP.png",
+    "ref": "CSA1980M85FOGWHP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "czech",
+    "name": "Czech Army 1990s Cold Weather Liner Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "CZA1990CWLJ.png",
+    "ref": "CZA1990CWLJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "danish",
+    "name": "Danish Civil Defence 1970s M71 Parka",
+    "cat": "Jackets / Shirts",
+    "img": "DCD1970M71P.png",
+    "ref": "DCD1970M71P",
+    "src": "Lambrino"
+  },
+  {
+    "n": "east-german",
+    "name": "East German Army 1960s NVA Raindrop Strichmuster Camouflage Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "EGA1960NRSCJ.png",
+    "ref": "EGA1960NRSCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "finnish",
+    "name": "Finnish Army 1960s M64 NBC Smock",
+    "cat": "Jackets / Shirts",
+    "img": "FA1960M64NS.png",
+    "ref": "FA1960M64NS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "french",
+    "name": "French Army 1990s CCE Camouflage F2 Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "FRA1990CCF2J.png",
+    "ref": "FRA1990CCF2J",
+    "src": "Lambrino"
+  },
+  {
+    "n": "west-german",
+    "name": "West German Army 1960s Tracksuit Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "WGA1960TJ.png",
+    "ref": "WGA1960TJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "greek",
+    "name": "Greek Army 1960s M65 Faux Fur Liner Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "GRA1960M65FFLJ.png",
+    "ref": "GRA1960M65FFLJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "hungarian",
+    "name": "Hungarian People's Army 1970s Cold Weather Tank Liner Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "HPA1970CWTLJ.png",
+    "ref": "HPA1970CWTLJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "iraqi",
+    "name": "Iraqi Army 1980s Desert DPM Camouflage Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "IQA1980DDCCJ.png",
+    "ref": "IQA1980DDCCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "irish",
+    "name": "Irish Army 1980s Green Dress Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "IRA1980GDJ.png",
+    "ref": "IRA1980GDJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "israeli",
+    "name": "Israeli Defense Force 1970s Green Battledress Ike Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "ISDF1970GBIJ.png",
+    "ref": "ISDF1970GBIJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "italian",
+    "name": "Italian Army 1960s Denim Alpini Mountain Rucksack",
+    "cat": "Bags / Webbing",
+    "img": "IA1960DAMR.png",
+    "ref": "IA1960DAMR",
+    "src": "Lambrino"
+  },
+  {
+    "n": "italian",
+    "name": "Italian Army 1990s Roma 90 Woodland Camouflage Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "IA1990R90WCCJ.png",
+    "ref": "IA1990R90WCCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "dutch",
+    "name": "Dutch Army 1990s M93 DPM Woodland Camouflage Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "NLA1990M93DWCJ.png",
+    "ref": "NLA1990M93DWCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "dutch",
+    "name": "Dutch Army 1990s SPE Olive Green Chest Rig",
+    "cat": "Bags / Webbing",
+    "img": "NLA1990SOGCR.png",
+    "ref": "NLA1990SOGCR",
+    "src": "Lambrino"
+  },
+  {
+    "n": "norwegian",
+    "name": "Norwegian Army 1950s M51 Thermal Liner Parka",
+    "cat": "Jackets / Shirts",
+    "img": "NA1950M51TLP.png",
+    "ref": "NA1950M51TLP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "polish",
+    "name": "Polish Army 1990s WZ93 Pantera Camouflage Windproof Winter Liner Parka",
+    "cat": "Jackets / Shirts",
+    "img": "PA1990WZ93PCWWLP.png",
+    "ref": "PA1990WZ93PCWWLP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "portuguese",
+    "name": "Portuguese Army 1960s M63 Lizard Camouflage Long Sleeve Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "PTA1960M63LCLSS.png",
+    "ref": "PTA1960M63LCLSS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "romanian",
+    "name": "Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "ROP1990M1990BLCLSS.png",
+    "ref": "ROP1990M1990BLCLSS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "soviet",
+    "name": "Soviet Navy 1970s Yellow Dress Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "SN1970YDS.png",
+    "ref": "SN1970YDS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "serbian",
+    "name": "Serbian Army 1990s M93 Oak Leaf Camouflage Thermal Liner Parka",
+    "cat": "Jackets / Shirts",
+    "img": "SBA1990M93OLCTLP.png",
+    "ref": "SBA1990M93OLCTLP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "slovak",
+    "name": "Slovak Air Force 2000s Thermal Flight Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "SKAF2000TFJ.png",
+    "ref": "SKAF2000TFJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "soviet",
+    "name": "Soviet Red Army 1970s Brown Wool Greatcoat",
+    "cat": "Jackets / Shirts",
+    "img": "SRA1970BWG.png",
+    "ref": "SRA1970BWG",
+    "src": "Lambrino"
+  },
+  {
+    "n": "spanish",
+    "name": "Spanish Army 2000s M09 Pixel Leaf Camouflage Ripstop Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "SPA2000M09PLCRJ.png",
+    "ref": "SPA2000M09PLCRJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "swedish",
+    "name": "Swedish Army 1940s M39 Wool Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "SWA1940M39WJ.png",
+    "ref": "SWA1940M39WJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "swiss",
+    "name": "Swiss Army 1980s TAZ83 Alpenflage Camouflage Field Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "CHA1980TAZ83ACFS.png",
+    "ref": "CHA1980TAZ83ACFS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "united-states",
+    "name": "United States Army 1980s M81 Woodland Camouflage MVP Parka",
+    "cat": "Jackets / Shirts",
+    "img": "USA1980M81WCMP.png",
+    "ref": "USA1980M81WCMP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "united-states",
+    "name": "United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "USAF2000DTSCBCJ.png",
+    "ref": "USAF2000DTSCBCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "united-states",
+    "name": "United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "USAF1990TCDCSCRCJ.png",
+    "ref": "USAF1990TCDCSCRCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "yugoslav",
+    "name": "Yugoslav Army 1980s JNA M87 Oak Leaf Camouflage Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "YA1980JM87OLCS.png",
+    "ref": "YA1980JM87OLCS",
+    "src": "Lambrino"
+  }
+]

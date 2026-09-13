@@ -638,6 +638,25 @@
       color:#9a9a9a;
     }
 
+    /* ---------- the film under the announcement ----------
+       It belongs to the announcement above it rather than to a section of
+       its own, so it sits directly beneath the plate.
+
+       Narrower than that plate on purpose. Instagram's embed enforces its
+       own width from inside its own stylesheet — it cannot be widened from
+       out here, and a reel is portrait anyway, so a 560px card would run to
+       a thousand pixels tall. The slot is cut to what the embed actually
+       takes so the narrower box reads as a decision rather than a failure. */
+    .p-film{
+      margin-top:12px;
+      max-width:326px;
+    }
+    .p-film .instagram-media{
+      border-radius:0 !important;
+      box-shadow:none !important;
+      margin:0 !important;
+    }
+
     /* ---------- the reel ----------
        Instagram's own embed, with a plate underneath it that is shown only
        if the embed never arrives. A reel shared by token can refuse to
@@ -687,24 +706,87 @@
 
     /* ---------- BOOKING ----------
        Cal.com's own scheduler, framed the way everything else on the site
-       is framed. It is given a tall box because the calendar decides its
-       own height and a short one leaves the reader scrolling inside a
-       scroller. The plate underneath is the way through if the frame is
-       blocked — a booking nobody can reach is worse than a plain link. */
+       is framed: one black rule around it and nothing else. It is given a
+       tall box because the calendar decides its own height, and a short one
+       leaves the reader scrolling inside a scroller. */
+    .book-wrap{ position:relative; max-width:900px; }
     .book-frame{
+      position:relative;
       width:100%;
-      max-width:900px;
       height:min(78vh, 760px);
       border:1.5px solid var(--line);
       background:var(--bg);
+      overflow:hidden;
     }
+    /* The embed carries a Cal.com badge in a band below the calendar card,
+       and being cross-origin it cannot be reached into. The band is covered
+       by a strip of the page's own background, inside the same black rule,
+       so what shows is the calendar and nothing else.
+
+       Running the frame taller and clipping the bottom was tried first and
+       does not work: the badge is anchored under the card, not to the
+       bottom of the frame, so a taller frame just adds empty space beneath
+       it. The height below is measured against where the band actually
+       falls — see the note in the handover, this is a cover, and the
+       supported way to drop the badge is Cal.com's own paid setting. */
     .book-frame iframe{
       width:100%; height:100%;
       border:0;
       display:block;
     }
+    .book-mask{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:var(--badge-cover, 186px);
+      background:var(--bg);
+      pointer-events:none;
+    }
+
+    /* ---------- the three things that can be booked ----------
+       One row of plates, one of them live. They are buttons rather than
+       links: the calendar underneath changes in place, so nothing about
+       the page is actually navigated. */
+    .book-tabs{
+      display:flex;
+      gap:-1.5px;
+      margin:0 0 14px;
+      flex-wrap:wrap;
+    }
+    .book-tab{
+      flex:1 1 0;
+      min-width:120px;
+      padding:11px 10px;
+      font-family:var(--font);
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink);
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      margin-right:-1.5px;   /* one shared rule between neighbours */
+      cursor:pointer;
+      transition:background-color .3s ease, color .3s ease;
+    }
+    .book-tab:last-child{ margin-right:0; }
+    .book-tab:hover{ background:var(--faint); }
+    .book-tab[aria-selected="true"]{
+      background:var(--line);
+      color:var(--bg);
+      position:relative;
+      z-index:1;
+    }
+    .book-note{
+      margin:12px 0 0;
+      max-width:60ch;
+      font-size:11px;
+      line-height:1.6;
+      color:#9a9a9a;
+      min-height:1.6em;
+    }
     @media (max-width:640px){
       .book-frame{ height:min(74vh, 620px); }
+      .book-tab{ flex:1 1 100%; margin-right:0; margin-bottom:-1.5px; }
+      .book-tabs{ display:block; }
     }
 
   </style>
@@ -766,6 +848,11 @@
           <span class="pl-title">OpUp partners with British Material Unit</span>
           <span class="pl-host">operationupcycle.co.uk</span>
         </a>
+        <div class="p-film">
+          <blockquote class="instagram-media"
+                      data-instgrm-permalink="https://www.instagram.com/reel/DYWj1rrKegg/"
+                      data-instgrm-version="14"></blockquote>
+        </div>
       </section>
   </main>
 
@@ -788,10 +875,10 @@
           <!-- Join, Operations and Repository all happen up on this page, so
                the footer returns the reader there and plays them rather than
                navigating away to a page that does not exist -->
-          <a href="/join">Join</a>
+          <a href="/#join">Join</a>
           <a href="/earlyaccess">Early Access</a>
           <a href="/#operations">Operations</a>
-          <a href="/#home">Repository</a>
+          <a href="/#repository">Repository</a>
           <a href="/archive">Archive</a>
         </nav>
 
@@ -827,6 +914,7 @@
     </div>
   </footer>
 
+  <script async src="//www.instagram.com/embed.js"></script>
 
   <script>
     /* ---------- the name types itself, as it does everywhere else ----------

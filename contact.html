@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="MarshalOS — book a demo to British Material Unit. Remanufacturing software for garment to garment recycling." />
+  <meta name="description" content="British Material Unit — book to British Material Unit. A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="British Material Unit" />
   <meta name="theme-color" content="#ffffff" />
@@ -13,24 +13,24 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://britishmaterialunit.com/contact" />
   <meta property="og:site_name" content="British Material Unit (BMU)" />
-  <meta property="og:title" content="MarshalOS — Book a demo | British Material Unit" />
-  <meta property="og:description" content="Remanufacturing software for garment to garment recycling." />
+  <meta property="og:title" content="British Material Unit — Book | British Material Unit" />
+  <meta property="og:description" content="A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
   <meta property="og:locale" content="en_GB" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="MarshalOS — Book a demo | British Material Unit" />
-  <meta name="twitter:description" content="Remanufacturing software for garment to garment recycling." />
+  <meta name="twitter:title" content="British Material Unit — Book | British Material Unit" />
+  <meta name="twitter:description" content="A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
 
-  <title>Book a demo — MarshalOS | BMU</title>
+  <title>Book — MarshalOS, Unit U or a meeting | BMU</title>
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
     "url": "https://britishmaterialunit.com/contact",
-    "name": "Book a demo \u2014 MarshalOS | BMU",
-    "description": "Remanufacturing software for garment to garment recycling.",
+    "name": "Book \u2014 MarshalOS, Unit U or a meeting | BMU",
+    "description": "A demo of MarshalOS, a day in Unit U, or half an hour to talk it through.",
     "isPartOf": { "@id": "https://britishmaterialunit.com/#website" },
-    "about": { "@type": "Organization", "name": "MarshalOS" }
+    "about": { "@type": "Organization", "name": "British Material Unit" }
   }
   </script>
 
@@ -638,6 +638,25 @@
       color:#9a9a9a;
     }
 
+    /* ---------- the film under the announcement ----------
+       It belongs to the announcement above it rather than to a section of
+       its own, so it sits directly beneath the plate.
+
+       Narrower than that plate on purpose. Instagram's embed enforces its
+       own width from inside its own stylesheet — it cannot be widened from
+       out here, and a reel is portrait anyway, so a 560px card would run to
+       a thousand pixels tall. The slot is cut to what the embed actually
+       takes so the narrower box reads as a decision rather than a failure. */
+    .p-film{
+      margin-top:12px;
+      max-width:326px;
+    }
+    .p-film .instagram-media{
+      border-radius:0 !important;
+      box-shadow:none !important;
+      margin:0 !important;
+    }
+
     /* ---------- the reel ----------
        Instagram's own embed, with a plate underneath it that is shown only
        if the embed never arrives. A reel shared by token can refuse to
@@ -687,24 +706,87 @@
 
     /* ---------- BOOKING ----------
        Cal.com's own scheduler, framed the way everything else on the site
-       is framed. It is given a tall box because the calendar decides its
-       own height and a short one leaves the reader scrolling inside a
-       scroller. The plate underneath is the way through if the frame is
-       blocked — a booking nobody can reach is worse than a plain link. */
+       is framed: one black rule around it and nothing else. It is given a
+       tall box because the calendar decides its own height, and a short one
+       leaves the reader scrolling inside a scroller. */
+    .book-wrap{ position:relative; max-width:900px; }
     .book-frame{
+      position:relative;
       width:100%;
-      max-width:900px;
       height:min(78vh, 760px);
       border:1.5px solid var(--line);
       background:var(--bg);
+      overflow:hidden;
     }
+    /* The embed carries a Cal.com badge in a band below the calendar card,
+       and being cross-origin it cannot be reached into. The band is covered
+       by a strip of the page's own background, inside the same black rule,
+       so what shows is the calendar and nothing else.
+
+       Running the frame taller and clipping the bottom was tried first and
+       does not work: the badge is anchored under the card, not to the
+       bottom of the frame, so a taller frame just adds empty space beneath
+       it. The height below is measured against where the band actually
+       falls — see the note in the handover, this is a cover, and the
+       supported way to drop the badge is Cal.com's own paid setting. */
     .book-frame iframe{
       width:100%; height:100%;
       border:0;
       display:block;
     }
+    .book-mask{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:var(--badge-cover, 186px);
+      background:var(--bg);
+      pointer-events:none;
+    }
+
+    /* ---------- the three things that can be booked ----------
+       One row of plates, one of them live. They are buttons rather than
+       links: the calendar underneath changes in place, so nothing about
+       the page is actually navigated. */
+    .book-tabs{
+      display:flex;
+      gap:-1.5px;
+      margin:0 0 14px;
+      flex-wrap:wrap;
+    }
+    .book-tab{
+      flex:1 1 0;
+      min-width:120px;
+      padding:11px 10px;
+      font-family:var(--font);
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink);
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      margin-right:-1.5px;   /* one shared rule between neighbours */
+      cursor:pointer;
+      transition:background-color .3s ease, color .3s ease;
+    }
+    .book-tab:last-child{ margin-right:0; }
+    .book-tab:hover{ background:var(--faint); }
+    .book-tab[aria-selected="true"]{
+      background:var(--line);
+      color:var(--bg);
+      position:relative;
+      z-index:1;
+    }
+    .book-note{
+      margin:12px 0 0;
+      max-width:60ch;
+      font-size:11px;
+      line-height:1.6;
+      color:#9a9a9a;
+      min-height:1.6em;
+    }
     @media (max-width:640px){
       .book-frame{ height:min(74vh, 620px); }
+      .book-tab{ flex:1 1 100%; margin-right:0; margin-bottom:-1.5px; }
+      .book-tabs{ display:block; }
     }
 
   </style>
@@ -753,26 +835,38 @@
   </header>
 
   <main id="partner">
-    <div class="p-role" id="pRole" data-text="Book a demo"></div>
-    <h1 class="p-name" id="pName" data-text="MarshalOS"></h1>
-    <p class="p-line">Remanufacturing software for garment to garment recycling.</p>
-    <p class="p-body">Thirty minutes, on a call. We walk through how MarshalOS reads a garment, what it returns, and how it fits a production run you already have in mind. Pick a time that suits you below — or write to us and we will find one.</p>
+    <div class="p-role" id="pRole" data-text="Book"></div>
+    <h1 class="p-name" id="pName" data-text="British Material Unit"></h1>
+    <p class="p-line">A demo of MarshalOS, a day in Unit U, or half an hour to talk it through.</p>
+    <p class="p-body">Three ways in, one calendar. MarshalOS is our remanufacturing software for garment to garment recycling. Unit U is the open-studio — book the floor, the machines and the surplus on it. A meeting is for everything that is not yet either of those.</p>
 
       <section class="p-sec">
         <h2>Book</h2>
-        <div class="book-frame">
-          <iframe src="https://cal.com/british-material-unit-4jsp90/30min"
-                  title="Book a 30 minute demo of MarshalOS"
-                  loading="lazy"
-                  referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
+        <div class="book-tabs" role="tablist" aria-label="What to book">
+          <button type="button" class="book-tab" role="tab" id="tabMarshal"
+                  aria-selected="true"  data-note="MarshalOS demo"
+                  data-blurb="A walk through how MarshalOS reads a garment, what it returns, and how it fits a production run you already have in mind.">MarshalOS</button>
+          <button type="button" class="book-tab" role="tab" id="tabUnit"
+                  aria-selected="false" data-note="Unit U studio booking"
+                  data-blurb="The open-studio: the floor, the machines and the surplus on it. Tell us what you are making and we will have the material out.">Unit U</button>
+          <button type="button" class="book-tab" role="tab" id="tabMeet"
+                  aria-selected="false" data-note="General meeting"
+                  data-blurb="Half an hour to talk it through — sourcing, a production run, a partnership, or something none of these boxes covers yet.">Meeting</button>
         </div>
-        <a class="p-link" style="margin-top:12px"
-           href="https://cal.com/british-material-unit-4jsp90/30min"
-           target="_blank" rel="noopener noreferrer">
-          <span class="pl-kind">If the calendar will not load</span>
-          <span class="pl-title">Open the booking page</span>
-          <span class="pl-host">cal.com</span>
-        </a>
+
+        <p class="book-note" id="bookNote"></p>
+
+        <div class="book-wrap">
+          <div class="book-frame">
+            <iframe id="bookFrame"
+                    src="https://cal.com/british-material-unit-4jsp90/30min"
+                    title="Book thirty minutes with British Material Unit"
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <div class="book-mask" aria-hidden="true"></div>
+          </div>
+        </div>
       </section>
   </main>
 
@@ -795,10 +889,10 @@
           <!-- Join, Operations and Repository all happen up on this page, so
                the footer returns the reader there and plays them rather than
                navigating away to a page that does not exist -->
-          <a href="/join">Join</a>
+          <a href="/#join">Join</a>
           <a href="/earlyaccess">Early Access</a>
           <a href="/#operations">Operations</a>
-          <a href="/#home">Repository</a>
+          <a href="/#repository">Repository</a>
           <a href="/archive">Archive</a>
         </nav>
 
@@ -965,6 +1059,42 @@
         } else { done(false); }
       });
     }
+
+    /* ---------- what is being booked ----------
+       One calendar, three reasons to be on it. Switching a tab reloads the
+       frame with the reason carried in the booking's notes, so the request
+       arrives saying which of the three it was. When each gets its own
+       Cal.com event type, only BOOK_URL below has to change. */
+    (function bookTabs(){
+      const tabs  = [...document.querySelectorAll('.book-tab')];
+      const frame = document.getElementById('bookFrame');
+      const note  = document.getElementById('bookNote');
+      if (!tabs.length || !frame) return;
+
+      const BOOK_URL = 'https://cal.com/british-material-unit-4jsp90/30min';
+
+      function select(tab){
+        tabs.forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+        note.textContent = tab.dataset.blurb;
+        const next = BOOK_URL + '?notes=' + encodeURIComponent(tab.dataset.note);
+        // only reload when it actually changes — a reload the reader did not
+        // ask for throws away a date they may already have picked
+        if (frame.getAttribute('src') !== next) frame.setAttribute('src', next);
+      }
+
+      tabs.forEach(t => t.addEventListener('click', () => select(t)));
+      // arrow keys move along the row, as a tablist should
+      tabs.forEach((t, i) => t.addEventListener('keydown', e => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        const next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus();
+        select(next);
+      }));
+
+      select(tabs[0]);
+    })();
   </script>
 </body>
 </html>

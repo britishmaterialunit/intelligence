@@ -2880,8 +2880,12 @@ Per operation we create design systems which secure textiles and their material 
         opsBtn.style.width = w + 'px';
         opsBtn.classList.add('join-solo');
         const isRepo = joinMode === 'repo';
-        opsLabel.textContent = isRepo ? 'Repository' : 'Join';
-        opsBtn.setAttribute('aria-label', isRepo ? 'Repository' : 'Send join request');
+        /* In repo mode the button used to read "Repository" and do nothing —
+           a label wearing a button's clothes. The repository itself is not
+           built yet; the open-studio behind it is, so the button offers the
+           thing that can actually be had today. */
+        opsLabel.textContent = isRepo ? 'Book Unit U' : 'Join';
+        opsBtn.setAttribute('aria-label', isRepo ? 'Book Unit U' : 'Send join request');
         scrollCue.classList.add('close-mode');
         scrollCue.setAttribute('aria-label', isRepo ? 'Leave Repository' : 'Leave Join');
       }, 540);
@@ -3053,7 +3057,9 @@ Per operation we create design systems which secure textiles and their material 
     }
 
     function submitJoin(){
-      if (joinMode !== 'join') return;   // Repository's solo button posts nothing
+      // Repository's solo button books the studio rather than posting anything
+      if (joinMode === 'repo'){ window.location.href = '/contact'; return; }
+      if (joinMode !== 'join') return;
       if (joinState !== 'ready') return;
       const email = joinInput.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
@@ -3343,10 +3349,19 @@ Per operation we create design systems which secure textiles and their material 
        and the reader would otherwise sit through the front door every
        time. Its header says in the hash how much of this page it wants:
 
-         (none)    the front door — the mark draws and waits to be clicked
-         #home     already inside, at the top, nothing replayed
-         #footer   already inside and landed on the footer, so scrolling
-                   up is the way onto the page proper
+         (none)        the front door — the mark draws and waits to be clicked
+         #home         already inside, at the top, nothing replayed
+         #footer       already inside and landed on the footer, so scrolling
+                       up is the way onto the page proper
+         #operations   inside, with the Operations sheet already open
+         #join         inside, with Join already open
+         #repository   inside, with Repository already open
+
+       Join, Operations and Repository are states of THIS page rather than
+       documents of their own, which is why /join and the footer's links all
+       arrive here carrying one of these rather than loading a page that
+       would only have to duplicate the machinery. Closing one leaves the
+       reader on the home page, where they already were.
 
        The hash is spent on arrival and taken off the URL: a reload is a
        fresh visit and should open the front door again.
@@ -3362,19 +3377,19 @@ Per operation we create design systems which secure textiles and their material 
 
     (function arrival(){
       const want = location.hash.slice(1).toLowerCase();
-      if (want !== 'home' && want !== 'footer' && want !== 'operations') return;
+      const PANELS = { operations:() => openOps(), join:() => openJoin('join'), repository:() => openJoin('repo') };
+      if (want !== 'home' && want !== 'footer' && !PANELS[want]) return;
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       history.replaceState(null, '', location.pathname + location.search);
       enterInstant();
 
-      /* A partner page's footer links here rather than to a page of its
-         own, because Operations is a state of this page and not a document.
-         The sheet is opened a beat after arrival: openOps measures the row
-         it grows out of, and that row has only just been laid out. */
-      if (want === 'operations'){
+      /* The panel is opened a beat after arrival rather than on it: each of
+         these measures the button row it grows out of, and that row has
+         only just been laid out. */
+      if (PANELS[want]){
         window.scrollTo(0, 0);
         if (window.bmuFooterCheck) window.bmuFooterCheck();
-        setTimeout(() => { if (typeof openOps === 'function') openOps(); }, 260);
+        setTimeout(PANELS[want], 300);
         return;
       }
 

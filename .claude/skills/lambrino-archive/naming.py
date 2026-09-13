@@ -81,6 +81,14 @@ DIVISIONS = [
 ]
 
 # Only explicit, documented markers. Never guess a decade.
+# A designation IS a date for most of these armies: WZ93 is 1993, M/84 is
+# 1984, TAZ83 is 1983. Reading the year out of the mark beats leaving the
+# slot at 0000s and asking someone to look each one up by hand.
+DESIGNATION_DATE = [
+    (r'\b(?:WZ|M|MK|TAZ|SPE|ANZUG|TYPE)[\s/\-]?(\d{2})\b', None),   # two-digit year in a mark
+    (r'\bM(\d{2})\b', None),
+]
+
 DATES = [
     (r'\bP23\b',                                       '2020s'),
     (r'\bPCS\b|\bMTP\b|\bMulti[-\s]?Terrain\b',        '2010s'),
@@ -117,9 +125,14 @@ FABRICS = [
 
 # Words carrying no distinguishing value once the rest of the name exists.
 FILLER = r"""\b(?:
-    Camo|Camouflage|Pattern|Genuine|Surplus|Issue|Issued|British|UK|New|Used|Grade|
-    Style|Type|Multi|Purpose|Original|Authentic|Military|Vintage|Classic|Mens|Womens
+    Genuine|Surplus|Issue|Issued|UK|New|Used|Grade|
+    Style|Multi|Purpose|Original|Authentic|Military|Vintage|Classic|Mens|Womens
 )\b"""
+
+# "Camo" is written out in full rather than dropped: on these garments the
+# pattern is the identifying fact, not a decoration. "Type" is kept too —
+# "Type 81" is a designation, and stripping the word left a bare number.
+CAMO_FIX = [(r'\bCamo\b', 'Camouflage')]
 
 # Order is priority: the first noun found becomes THE garment noun and every
 # other noun is stripped from the residue, so a listing titled "Combat Jacket /
@@ -230,8 +243,12 @@ def normalise_tokens(s):
     return s.strip(" -/'’")
 
 
-def derive(title, product_type='', body_html='', tags=()):
-    """Return dict with base name (no fabric tie-break yet), category, fabric, flags."""
+def derive(title, product_type='', body_html='', tags=(), nation='British'):
+    """Return dict with base name (no fabric tie-break yet), category, fabric, flags.
+
+    `nation` leads the name and is stripped out of the residue, so the same
+    engine serves the British bulk scrape and the one-per-nation passes.
+    """
     flags = []
     main, quals = split_title(htmlmod.unescape(title))
     main = strip_size_tokens(main)
@@ -260,7 +277,10 @@ def derive(title, product_type='', body_html='', tags=()):
 
     # ---- residue
     res = ' '.join(quals + [main])
-    res = re.sub(r'\bBritish\b', ' ', res, flags=re.I)
+    # the nation leads the name; it must not also turn up in the middle of it.
+    # Every word of it goes — "United States" has to lose both halves.
+    for word in nation.split():
+        res = re.sub(r'\b' + re.escape(word) + r'\b', ' ', res, flags=re.I)
     for pat, _ in DIVISIONS:
         res = re.sub(pat, ' ', res, flags=re.I)
     for pat, _ in DATES:                      # strip every date marker, not just the winner
@@ -284,7 +304,7 @@ def derive(title, product_type='', body_html='', tags=()):
     if not fabric:
         flags.append('fabric-unknown')
 
-    base = ' '.join(p for p in ['British', division, date, res, garment] if p)
+    base = ' '.join(p for p in [nation, division, date, res, garment] if p)
     base = re.sub(r'\s{2,}', ' ', base).strip()
 
     return {

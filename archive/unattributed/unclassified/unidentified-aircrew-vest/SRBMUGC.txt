@@ -1,9 +1,0 @@
-Unidentified Aircrew Vest
-
-Nation: Unattributed
-Type: Unclassified
-Archive ref: SRBMUGC
-
-Placeholder record. Replace this file with the garment write-up:
-issue period, pattern, fabric and construction, and any notes on
-provenance or condition.

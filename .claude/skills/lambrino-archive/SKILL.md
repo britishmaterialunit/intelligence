@@ -14,7 +14,37 @@ Everything lives in this skill's directory: `naming.py` (the name/dedupe
 engine), `survey.py` (phase 1), `review_page.py` (the reviewable list),
 `ingest.py` (phase 2).
 
+## Two ways in
+
+**A named list of products** — one or two per nation, chosen by hand:
+
+```bash
+python3 .claude/skills/lambrino-archive/fetch_urls.py \
+  --urls _incoming/lambrino/urls.txt --root .
+```
+
+The URL file is tab separated: `<product url>` `[nation key]` `[name override]`.
+The list IS the decision, so there is no review phase — but the two override
+columns matter. A shop title is written to sell, not to catalogue, and the
+engine gets perhaps eight in ten right on its own. The rest are cases it
+cannot know: a Czech jacket tagged Czechoslovakia, a Soviet shirt tagged
+Russia, a date that lives in the garment's history rather than in its name.
+Put those in the list rather than growing the parser a special case per
+garment. Always `--dry-run` first and read the names before writing.
+
+**A whole collection** — the bulk path below, with its review checkpoint.
+
+Both share `naming.py`. After either, rebuild the page's arrays from what is
+on disk rather than editing them by hand — the folders are the archive and
+the arrays are a view of them.
+
 ## Read this first
+
+**Fetch with curl, not urllib.** The Pythons on macOS are routinely installed
+without a CA bundle and urllib then refuses every https URL with
+CERTIFICATE_VERIFY_FAILED. Same for Wikimedia when pulling flags: it blocks
+requests that do not carry a descriptive User-Agent, and the failure looks
+exactly like rate limiting — a few succeed, then everything fails.
 
 **Do not scrape the paginated HTML.** `?page=1…149` at 24 products a page is
 149 requests plus 3,576 product pages. Shopify exposes the whole catalogue as

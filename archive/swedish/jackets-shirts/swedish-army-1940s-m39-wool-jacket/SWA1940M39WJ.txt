@@ -1,0 +1,10 @@
+Swedish Army 1940s M39 Wool Jacket
+
+Nation: Swedish
+Type: Jackets / Shirts
+Archive ref: SWA1940M39WJ
+Source: Lambrino
+
+Placeholder record. Replace this file with the garment write-up:
+issue period, pattern, fabric and construction, and any notes on
+provenance or condition.

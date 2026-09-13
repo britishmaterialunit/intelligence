@@ -1,0 +1,37 @@
+# url	nation override	name override
+https://lambrino.co.uk/products/austrian-army-olive-drab-anzug-03-alpine-jacket-5			
+https://lambrino.co.uk/products/belgian-army-m64-olive-green-field-jacket-4			
+https://lambrino.co.uk/products/british-royal-navy-blue-upper-deck-jacket-3		British Royal Navy 1980s Blue Upper Deck Jacket
+https://lambrino.co.uk/products/bulgarian-peoples-army-olive-green-cossack-shirt-58		Bulgarian People's Army 1970s Olive Green Cossack Shirt
+https://lambrino.co.uk/products/chinese-army-pla-olive-green-nam-era-type-81-ak-bandolier-chest-rig		Chinese People's Liberation Army 1980s Type 81 Olive Green AK Bandolier Chest Rig
+https://lambrino.co.uk/products/czechoslovak-army-m85-field-parka-olive-green-w-hood-7			
+https://lambrino.co.uk/products/czech-army-cold-weather-jacket-liner-9	czech	Czech Army 1990s Cold Weather Liner Jacket
+https://lambrino.co.uk/products/danish-civil-defence-m71-parka-2		Danish Civil Defence 1970s M71 Parka
+https://lambrino.co.uk/products/east-german-army-nva-ddr-raindrop-strichmuster-camouflage-jacket		East German Army 1960s NVA Raindrop Strichmuster Camouflage Jacket
+https://lambrino.co.uk/products/finnish-army-m64-nbc-smock-1			
+https://lambrino.co.uk/products/french-army-cce-camo-f2-jacket-32		French Army 1990s CCE Camouflage F2 Jacket
+https://lambrino.co.uk/products/west-german-army-60s-tracksuit-top-jacket-1		West German Army 1960s Tracksuit Jacket
+https://lambrino.co.uk/products/greek-army-m65-faux-fur-jacket-liner-2		Greek Army 1960s M65 Faux Fur Liner Jacket
+https://lambrino.co.uk/products/hungarian-peoples-army-cold-weather-tank-jacket-liner-medium-1		Hungarian People's Army 1970s Cold Weather Tank Liner Jacket
+https://lambrino.co.uk/products/iraqi-army-desert-dpm-camouflage-combat-shirt-jacket		Iraqi Army 1980s Desert DPM Camouflage Combat Jacket
+https://lambrino.co.uk/products/irish-army-80s-green-dress-jacket			
+https://lambrino.co.uk/products/israeli-army-israel-defense-force-70s-green-battledress-ike-jacket		Israeli Defense Force 1970s Green Battledress Ike Jacket
+https://lambrino.co.uk/products/italian-army-60s-denim-alpini-mountain-rucksack-1		Italian Army 1960s Denim Alpini Mountain Rucksack
+https://lambrino.co.uk/products/italian-army-roma-90-woodland-camouflage-combat-jacket-2		Italian Army 1990s Roma 90 Woodland Camouflage Combat Jacket
+https://lambrino.co.uk/products/dutch-army-m93-dpm-woodland-camouflage-jacket-9			
+https://lambrino.co.uk/products/dutch-army-spe-olive-green-chest-rig		Dutch Army 1990s SPE Olive Green Chest Rig
+https://lambrino.co.uk/products/norwegian-army-m51-thermal-parka-liner			
+https://lambrino.co.uk/products/polish-army-parka-w-winter-liner-wz93-pantera-camouflage-windproof-2		Polish Army 1990s WZ93 Pantera Camouflage Windproof Winter Liner Parka
+https://lambrino.co.uk/products/portuguese-army-m63-lizard-camouflage-long-sleeve-shirt-5			
+https://lambrino.co.uk/products/romanian-army-police-m1990-blue-leaf-camouflage-long-sleeve-shirt		Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt
+https://lambrino.co.uk/products/soviet-navy-yellow-dress-shirt	soviet	Soviet Navy 1970s Yellow Dress Shirt
+https://lambrino.co.uk/products/serbian-army-m93-oak-leaf-camouflage-parka-w-thermal-liner-medium-172-109		Serbian Army 1990s M93 Oak Leaf Camouflage Thermal Liner Parka
+https://lambrino.co.uk/products/slovak-air-force-thermal-flight-jacket-1		Slovak Air Force 2000s Thermal Flight Jacket
+https://lambrino.co.uk/products/soviet-red-army-brown-wool-greatcoat-1	soviet	Soviet Red Army 1970s Brown Wool Greatcoat
+https://lambrino.co.uk/products/spanish-army-m09-pixel-leaf-camouflage-ripstop-jacket			
+https://lambrino.co.uk/products/swedish-army-ww2-m39-wool-jacket		Swedish Army 1940s M39 Wool Jacket
+https://lambrino.co.uk/products/swiss-army-taz83-alpenflage-camouflage-field-shirt-medium			
+https://lambrino.co.uk/products/us-army-m81-woodland-camouflage-mvp-parka		United States Army 1980s M81 Woodland Camouflage MVP Parka
+https://lambrino.co.uk/products/us-air-force-digital-tiger-stripe-pixel-camouflage-bdu-combat-jacket-2		United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket
+https://lambrino.co.uk/products/us-air-force-tri-colour-desert-coffee-stain-camo-combat-jacket-ripstop-w-patches		United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket
+https://lambrino.co.uk/products/yugoslav-army-m87-oak-leaf-camouflage-shirt		Yugoslav Army 1980s JNA M87 Oak Leaf Camouflage Shirt

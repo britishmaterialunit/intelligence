@@ -1,44 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
-  <title>Join</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Join | British Material Unit (BMU)</title>
+  <link rel="canonical" href="https://britishmaterialunit.com/" />
+  <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
+
+  <!-- Join is a state of the home page, not a document of its own: the
+       address types itself out, the field slides from it, and closing it
+       leaves the reader on the home page rather than stranded on a second
+       copy of it. This page is the doorway to that state. Anyone arriving
+       at /join is handed straight to it.
+
+       replace(), not href: the reader should not have to press Back twice
+       to get out of a redirect they never saw. -->
+  <meta name="robots" content="noindex, follow" />
+  <script>
+    window.location.replace('/#join' + window.location.search);
+  </script>
+  <noscript><meta http-equiv="refresh" content="0; url=/#join" /></noscript>
+
   <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: #ffffff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: Helvetica, sans-serif;
-      color: #222;
+    body{
+      margin:0;
+      min-height:100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#ffffff;
+      color:#222;
+      font-family:Helvetica, Arial, sans-serif;
+      font-size:13px;
+      letter-spacing:.08em;
     }
-    .typewriter {
-      max-width: 90%;
-      font-size: 14pt;
-      text-align: center;
-      white-space: pre-wrap;
-      line-height: 1.5;
-    }
+    a{ color:#222; }
   </style>
 </head>
 <body>
-  <div class="typewriter" id="text"></div>
-
-  <script>
-    const textElement = document.getElementById('text');
-    const fullText = `hello@britishmaterialunit.com`;
-
-    let i = 0;
-    function type() {
-      if (i < fullText.length) {
-        textElement.textContent += fullText.charAt(i);
-        i++;
-        setTimeout(type, 30);
-      }
-    }
-    type();
-  </script>
+  <!-- seen only if the redirect cannot run -->
+  <p>Taking you to <a href="/#join">the join form</a>.</p>
 </body>
 </html>
