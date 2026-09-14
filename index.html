@@ -1021,17 +1021,20 @@
       opacity:0;
       transition:opacity .35s ease, fill .35s ease;
     }
-    /* The header darkens on hover. The mark has to be white BEFORE that
-       happens rather than fade towards it: a crossfade between two colours
-       over a moving ground is the change you can see. No transition on the
-       way in, the normal one on the way back out. */
+    /* Activated, the header goes near-black and the mark fills solid white
+       — not a white outline. Both halves switch in ONE frame, before the
+       ground has begun to move: transition:none on the way in, the normal
+       one on the way back out. A crossfade here is the change you can see. */
     #siteHead:hover .hd-trace{
       animation-play-state:paused;
-      stroke:#fff;
-      opacity:1;
+      opacity:0;
       transition:none;
     }
-    #siteHead:hover .hd-fill{ opacity:0; }
+    #siteHead:hover .hd-fill{
+      opacity:1;
+      fill:#fff;
+      transition:none;
+    }
 
     /* At the footer the mark is already on the page, twice the size and
        drawing itself — a second copy in the corner is just a repeat. It
@@ -1051,8 +1054,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.scrolled #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
-    body.scrolled #siteHead:hover .hd-fill{ opacity:0; }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:0; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
     body.at-footer #siteHead .hd-mark{
       opacity:0;
@@ -1063,8 +1066,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.at-footer #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
-    body.at-footer #siteHead:hover .hd-fill{ opacity:0; }
+    body.at-footer #siteHead:hover .hd-trace{ opacity:0; transition:none; }
+    body.at-footer #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
     /* --- explore + index, top right --- */
     .hd-tools{ display:flex; align-items:center; gap:18px; }

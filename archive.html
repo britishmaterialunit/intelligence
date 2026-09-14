@@ -82,6 +82,9 @@
        own bar becomes the only instrument */
     body.exploring #bottomBar,
     body.dock-open #bottomBar,
+    /* the dock came with the reader out of explore and is the bar they are
+       holding — handing back a second one would put two on the page */
+    body.dock-list #bottomBar,
     body.tab-open #bottomBar{
       transform:translateX(-50%) translateY(130%);
       opacity:0;
@@ -1065,9 +1068,11 @@
        opens out into a white search bar with the arrow beside it.
        ============================================================ */
     #dock{
-      /* opened width sits between the nation tab's inner edge and the
-         garment boxes' inner edge, so the arrow never touches the tab */
-      --dock-w:calc(min(90vw, 880px) - 18px);
+      /* The archive's own measure — the same min(94vw, 880px) that .wrap
+         gives the tab list. The bar and its two boxes then finish on exactly
+         the same pixels as the tabs above them rather than floating inside
+         their width. */
+      --dock-w:min(94vw, 880px);
       position:fixed;
       left:50%;
       bottom:112px;                 /* clears the fixed search bar */
@@ -1096,6 +1101,11 @@
 
     /* with the main bar gone the dock drops to the bottom edge */
     body.tab-open #dock:not(.moved){ bottom:26px; }
+    /* Riding under the list rather than over the page: with the dock kept
+       on there is no main bar beneath it to clear, so it sits close. */
+    body.dock-list #dock:not(.moved){ bottom:24px; }
+    /* and the list needs room to scroll clear of it */
+    body.dock-list{ padding-bottom:110px; }
 
     /* in explore the dock sits central but low, clear of the garments */
     body.exploring #dock:not(.moved){
@@ -1294,7 +1304,7 @@
     #dockLibrary[aria-pressed="true"] .bm{ fill:#fff; }
 
     @media (max-width:640px){
-      #dock{ bottom:16px; --dock-w:calc(88vw - 18px); }
+      #dock{ bottom:16px; --dock-w:min(94vw, 880px); }
       /* the narrow bar cannot spare 180px, so the chip shrinks with it */
       .dq-hint{ max-width:104px; font-size:9px; padding:3px 7px; gap:4px; }
       #dockSearch.has-hint #dq{ padding-right:212px; }
@@ -1403,17 +1413,20 @@
       opacity:0;
       transition:opacity .35s ease, fill .35s ease;
     }
-    /* The header darkens on hover. The mark has to be white BEFORE that
-       happens rather than fade towards it: a crossfade between two colours
-       over a moving ground is the change you can see. No transition on the
-       way in, the normal one on the way back out. */
+    /* Activated, the header goes near-black and the mark fills solid white
+       — not a white outline. Both halves switch in ONE frame, before the
+       ground has begun to move: transition:none on the way in, the normal
+       one on the way back out. A crossfade here is the change you can see. */
     #siteHead:hover .hd-trace{
       animation-play-state:paused;
-      stroke:#fff;
-      opacity:1;
+      opacity:0;
       transition:none;
     }
-    #siteHead:hover .hd-fill{ opacity:0; }
+    #siteHead:hover .hd-fill{
+      opacity:1;
+      fill:#fff;
+      transition:none;
+    }
 
 
     /* The mark is fixed over a page that scrolls underneath it, so the
@@ -1429,8 +1442,8 @@
       opacity:1;
       pointer-events:auto;
     }
-    body.scrolled #siteHead:hover .hd-trace{ opacity:1; stroke:#fff; transition:none; }
-    body.scrolled #siteHead:hover .hd-fill{ opacity:0; }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:0; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
     .hd-tools{ display:flex; align-items:center; gap:18px; }
     .hd-ico{
@@ -2770,6 +2783,7 @@
     /* Everything that returns the archive to rest goes through here, so
        the star can never end up a step behind the buttons it summoned. */
     function goHome(){
+      document.body.classList.remove('dock-list');
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
       document.body.classList.remove('solo-build', 'solo-snap');
@@ -3549,6 +3563,8 @@
     let atInitial = false;      // is the field sitting at its opening view?
 
     function openExplore(){
+      // the list's dressing does not belong to the field
+      document.body.classList.remove('dock-list');
       // whatever the last visit chose, this one starts with the whole field
       spiral.classList.remove('sp-chosen');
       spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
@@ -3694,26 +3710,9 @@
 
       if (face === 'list'){
         // the listed nations, showing everything — not whatever the field
-        // happened to be filtered to
-        if (!explore.hidden) endExplore(false);
-        collapseDock();
-        soloId = null;
-        savedOnly = false;
-        document.body.classList.remove('library');
-        q.value = '';
-        dq.value = '';
-        filter();
-        syncGhost();
-        setBrowsing(true);      // types the tally last, so nothing overwrites it
-
-        /* The reader now has the main search bar and the list in front of
-           them. The three boxes were the instrument for a view that has just
-           been left, and leaving them out is a second bar over a page that
-           already has one. They come back on their own when a tab opens and
-           carries the main bar away — see updateDock. */
-        dockForced = false;
-        setFaceMode('list');
-        updateDock();
+        // happened to be filtered to. The dock stays: explore is where the
+        // searching happens now, and its bar is the one the reader has.
+        toList({ keepDock:true });
         return;
       }
 
@@ -3778,19 +3777,60 @@
     const dqFlag    = document.getElementById('dqFlag');
     const dqExplore = document.getElementById('dqExplore');
 
+    /* The union flag is not a layout switch — it is OUR shelf. Pressing it
+       gathers the British garments and nothing else, which is the one
+       cluster this archive is actually built around. Pressing it again puts
+       the whole field back. */
     dqFlag.addEventListener('click', e => {
       e.stopPropagation();
       if (explore.hidden) openExplore();
-      const next = spiralMode === 'clusters' ? 'spiral' : 'clusters';
-      morphLayout(next);
-      dqFlag.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
-      flagBtn.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
+      const on = dqFlag.getAttribute('aria-pressed') === 'true';
+      dqFlag.setAttribute('aria-pressed', on ? 'false' : 'true');
+      flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
+      dq.value = on ? '' : 'British';
+      dghost.hidden = dq.value !== '';
+      paintHint(dq.value.trim().toLowerCase());
+      clusterSearch(on ? '' : 'british', true);
     });
 
+    /* From explore this is the way into the tab list — and the dock comes
+       with it. The main bar used to be handed back here, which put a second
+       search bar on a page that already had one open; the dock stays and
+       sits under the tabs instead. From the list it goes back to explore. */
     dqExplore.addEventListener('click', e => {
       e.stopPropagation();
-      if (explore.hidden) openExplore(); else closeExplore();
+      if (explore.hidden){ openExplore(); return; }
+      toList({ keepDock:true });
     });
+
+    /* Everything that lands on the tab list goes through here, so the dock's
+       state and the face order can never disagree about which view is up. */
+    function toList(opt){
+      const keepDock = !!(opt && opt.keepDock);
+      if (!explore.hidden) endExplore(false);
+      soloId = null;
+      savedOnly = false;
+      document.body.classList.remove('library');
+      q.value = '';
+      dq.value = keepDock ? dq.value : '';
+      filter();
+      syncGhost();
+      setBrowsing(true);
+      setFaceMode('list');
+      dockForced = keepDock;
+      document.body.classList.toggle('dock-list', keepDock);
+      if (keepDock){
+        // it arrives open: a collapsed bar here would read as the search
+        // having been taken away at the moment the reader changed view
+        const held = dq.value;
+        openDock();
+        dq.value = held;
+        dghost.hidden = dq.value !== '';
+      } else {
+        collapseDock();
+      }
+      updateDock();
+    }
 
     /* ---------- zoom + pan ---------- */
     explore.addEventListener('wheel', e => {
@@ -4200,8 +4240,17 @@
     if (hdIndex) hdIndex.addEventListener('click', e => { e.preventDefault(); leaveTo('/#footer'); });
 
     paintSaved();
-    showPrompt();
-    startSuggestions();
+
+    /* Explore IS the archive's front door now, and its own bar is where the
+       searching happens. The page used to open on the bare search bar with
+       everything else summoned from it; opening straight into the field
+       means the first thing anyone sees is the garments. */
+    dockForced = true;
+    setFaceMode('explore');
+    setFace(0, true);
+    openExplore();
+    openDock();
+    updateDock();
   </script>
 </body>
 </html>
