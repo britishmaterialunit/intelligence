@@ -43,6 +43,12 @@
       --font:Helvetica, Arial, sans-serif;
     }
     *{ box-sizing:border-box; }
+    /* The record is taller than the field, so a scrollbar arrives with it
+       and takes 15px off the viewport — every centred thing on the page
+       steps left at that moment. Reserving the gutter from the start means
+       nothing moves when it appears. This is the sideways shift between the
+       box closing and the tab forming. */
+    html{ scrollbar-gutter:stable; }
     body{
       margin:0;
       background:var(--bg);
@@ -508,34 +514,61 @@
       /* The border is the resting state — a garment reached by searching the
          list has no build sequence to wait for, and stripping it by default
          left that tab with no outline at all. Only the build takes it away,
-         and only for as long as the build runs. */
+         and only for as long as the build runs.
+
+         It FADES back rather than being switched on at the end of a delay.
+         A .01s change after half a second is a skip however it is written:
+         the rule draws across the top, and then the tab simply appears
+         around it in one frame. Both now run over the same half second, so
+         the drawing and the arriving are one movement. */
       border-color:var(--line);
       position:relative;
-      transition:border-color .01s linear .52s;
+      transition:border-color .5s ease;
     }
+    /* The rule that draws the tab in. It sits ON the tab's own top border
+       and is the same weight, so at rest the two stack and read as one
+       heavy line — which is the thick line above a solo garment. It exists
+       only while the build is running and goes when the border takes over. */
     body.single-result .nation::before{
       content:"";
       position:absolute;
-      left:0; right:0; top:0;
+      left:0; right:0; top:-1.5px;
       height:1.5px;
       background:var(--line);
-      transform:scaleX(1);
+      transform:scaleX(0);
       transform-origin:center;
-      transition:transform .54s cubic-bezier(.4,0,.2,1);
+      opacity:0;
       z-index:2;
     }
+    body.single-result.solo-build .nation::before{
+      opacity:1;
+      transform:scaleX(0);
+      transition:none;
+    }
+    body.single-result.solo-drawing .nation::before{
+      opacity:1;
+      transform:scaleX(1);
+      transition:transform .54s cubic-bezier(.4,0,.2,1);
+    }
     body.single-result .nation > summary{
-      transition:opacity .42s ease .26s, transform .42s cubic-bezier(.4,0,.2,1) .26s;
+      transition:opacity .5s ease .18s, transform .5s cubic-bezier(.4,0,.2,1) .18s;
       transform:translateY(0);
     }
     body.single-result.solo-build .nation{
       border-color:transparent;
       transition:none;
     }
-    body.single-result.solo-build .nation::before{
-      transform:scaleX(0);
-      transition:none;
+    /* drawing: the rule crosses the top and the tab fades up behind it */
+    body.single-result.solo-drawing .nation{
+      border-color:var(--line);
+      transition:border-color .5s ease .12s;
     }
+    body.single-result.solo-drawing .nation > summary{
+      opacity:1;
+      transform:translateY(0);
+      transition:opacity .5s ease .2s, transform .5s cubic-bezier(.4,0,.2,1) .2s;
+    }
+
     body.single-result.solo-build .nation > summary{
       opacity:0;
       transform:translateY(-6px);
@@ -2871,10 +2904,11 @@
     /* Everything that returns the archive to rest goes through here, so
        the star can never end up a step behind the buttons it summoned. */
     function goHome(){
+      document.body.classList.remove('solo-drawing');
       document.body.classList.remove('dock-list');
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
-      document.body.classList.remove('solo-build', 'solo-snap');
+      document.body.classList.remove('solo-build', 'solo-snap', 'solo-drawing');
       soloId = null;
       if (!explore.hidden) endExplore(false);
       /* Rest is not "no bar" any more. The dock IS the bar, so the cross
@@ -3130,6 +3164,16 @@
       paintHint(term);
 
       // in explore the search regroups the field rather than the page
+      /* Typing is a question about the whole archive, and the field is
+         where the whole archive is. Answering it in the list meant the
+         reader typed from the field, was handed a list, and had to find
+         their way back. The field comes up instead. */
+      if (!exploreOn && term.length >= 2){
+        dockForced = true;
+        setFaceMode('explore');
+        setFace(0, true);
+        openExplore();
+      }
       if (exploreOn){ clusterSearch(term, false); return; }   // typing
 
       if (term && countMatches(term) === 0) return;   // hold what's there
@@ -3743,9 +3787,12 @@
            seconds the reader gets in regardless. */
         setTimeout(armReveal, 8000);
       }
-      // whatever the last visit chose, this one starts with the whole field
-      spiral.classList.remove('sp-chosen');
-      spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
+      /* The chosen garment is deliberately NOT released here. Coming back
+         from a record, the field returns around the garment the reader left
+         from — it stays lit while everything else fades up behind it, and
+         returnToExplore lets go of it a beat later. Clearing it here undid
+         that in the same frame. Entering explore fresh has nothing marked
+         to clear. */
       exploreClosing = false;
       explore.hidden = false;
       exploreOn = true;
@@ -4084,30 +4131,39 @@
         return;
       }
 
-      /* ONE move, and only if it is needed.
+      /* ONE move. The garment is taken to exactly the size it will be in
+         the record, so that when the record takes over there is nothing
+         left to resize — the refocus IS the resize.
 
-         The second press used to re-frame whatever the reader had pinched
-         to, which on a view already at the frame was a second zoom on top of
-         the first — the jitter. The view is only walked back when it is
-         actually somewhere else, and the record always waits for whatever
-         movement there is to finish before it starts.
+         It used to be two: the view re-framed to a fixed scale, and then the
+         card's slot animated from wherever the garment happened to be to
+         wherever the slot happened to be. Two shrinks in a row, the second
+         one arriving after the reader had already understood the first.
 
-         Either way the rest of the field goes first. They used to be on
-         screen at full strength right up to the moment explore was torn
-         down, and then vanish with it. */
-      const FRAME = maxScale() * 0.68;
-      const adrift = Math.abs(sc - FRAME) > FRAME * 0.04;
-
+         Meanwhile the rest of the field goes, so the handover is not a
+         screenful of garments blinking out with the overlay. */
       item.classList.add('sp-pick');
       spiral.classList.add('sp-chosen');
 
-      if (adrift){
-        glide(() => focusItem(item, FRAME), 560);
-        setTimeout(() => openRecord(item), 600);
-      } else {
-        setTimeout(() => openRecord(item), 340);   // the field's own fade
-      }
+      const img  = item.querySelector('img');
+      const now  = (img || item).getBoundingClientRect().width;
+      const want = recordSlotWidth();
+      let target = now > 4 ? sc * (want / now) : maxScale() * 0.68;
+      target = Math.min(target, maxScale());
+
+      glide(() => focusItem(item, target), 620);
+      setTimeout(() => openRecord(item), 660);
     });
+
+    /* What the garment will measure once the record has it: the build-state
+       card is min(80vw, 520px) and its slot fills that, less the card's own
+       rule. Read from the page rather than repeated as a number here — the
+       two would drift the first time the card's width changed. */
+    function recordSlotWidth(){
+      const probe = catalogue.querySelector('.item');
+      const w = Math.min(window.innerWidth * 0.8, 520);
+      return Math.max(80, w - 3);
+    }
 
     /* ------------------------------------------------------------------
        EXPLORE → RECORD
@@ -4244,7 +4300,14 @@
       // the box closed → the tab arrives and the name types itself into it
       const NAME_MS = 26;
       soloTimers.push(setTimeout(() => {
+        /* solo-drawing runs the tab's arrival; solo-build leaving is what
+           hands it the resting state to land on. Both in the same frame, so
+           the rule, the border and the name are one movement rather than
+           three. */
+        document.body.classList.add('solo-drawing');
         document.body.classList.remove('solo-build');
+        soloTimers.push(setTimeout(
+          () => document.body.classList.remove('solo-drawing'), 900));
         if (!label) return;
         let i = 0;
         (function tick(){
@@ -4301,27 +4364,52 @@
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
     function returnToExplore(){
+      document.body.classList.remove('solo-drawing');
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
-      spiral.classList.remove('sp-chosen');
-      spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
-      document.body.classList.remove('solo-build', 'solo-snap');
+      document.body.classList.remove('solo-snap', 'solo-drawing');
+      /* The way back is the way in, run backwards.
+
+         The record closes the way it opened: the tab lets go, the card
+         folds back to the square the garment stood in, and only then does
+         the field come back — with the garment it left from still the one
+         thing on screen, at the size it was. Cutting straight to the field
+         threw away the thread the reader was holding.
+
+         Reduced motion gets the destination without the journey. */
       const card = catalogue.querySelector('.item:not([hidden])');
-      if (card && !REDUCED){
-        card.classList.add('unbuild');
-        setTimeout(() => card.classList.remove('unbuild'), 320);
-      }
       const item = lastExploreItem;
       lastExploreItem = null;
-      soloId = null;
-      q.value = '';
-      filter();
-      syncGhost();
-      setBrowsing(false);
-      dockForced = true;
-      navBtn.setAttribute('aria-pressed', 'true');
-      updateDock();
-      openExplore();
+
+      const land = () => {
+        soloId = null;
+        q.value = '';
+        filter();
+        syncGhost();
+        setBrowsing(false);
+        dockForced = true;
+        navBtn.setAttribute('aria-pressed', 'true');
+        updateDock();
+        openExplore();
+        if (item) focusItem(item);
+        // the field comes back around the garment that was chosen, which is
+        // still lit — everything else fades up behind it
+        setTimeout(() => {
+          spiral.classList.remove('sp-chosen');
+          spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
+        }, 60);
+      };
+
+      if (!card || REDUCED){ land(); return; }
+
+      // 1. the record folds away and the card returns to its square
+      document.body.classList.add('solo-build');
+      card.classList.add('framed');
+      // 2. the tab lets go of it
+      soloTimers.push(setTimeout(() => card.classList.remove('framed'), 380));
+      // 3. and the field takes it back
+      soloTimers.push(setTimeout(land, 620));
+      return;
       if (item) focusItem(item);
     }
 
