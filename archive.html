@@ -1279,6 +1279,11 @@
     #spiral{ position:relative; }
     #spiral .sp-item{ transition:opacity .34s ease, filter .9s ease; }
 
+    /* display:flex beats the [hidden] attribute — the element selector wins
+       over the browser's own [hidden]{display:none}. Without this, setting
+       .hidden did nothing: the sheet stayed over the page, and once it took
+       pointer events it swallowed every press meant for a garment. */
+    #reveal[hidden]{ display:none !important; }
     #reveal{
       position:fixed;
       inset:0;
@@ -3498,6 +3503,10 @@
       revealed = true;
       document.body.classList.remove('gated');
       spiral.classList.remove('sp-waiting');
+      // stop taking presses immediately — the field underneath is live from
+      // this moment, and the fade out must not stand in front of it
+      revEl.classList.remove('ready');
+      revEl.style.pointerEvents = 'none';
       revEl.classList.add('going');
       setTimeout(() => { revEl.hidden = true; }, 520);
     }
