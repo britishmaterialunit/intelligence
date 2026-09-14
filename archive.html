@@ -1174,10 +1174,27 @@
        sees is one field appearing at once rather than seventy of them
        arriving in whatever order the network chose. */
     #spiral.sp-waiting .sp-item{
-      filter:grayscale(1) blur(7px) opacity(.28);
+      filter:grayscale(1) blur(9px) opacity(.22);
       transition:filter .9s ease;
       pointer-events:none;
     }
+    /* Blur alone still shows the shapes, and shapes resolving one by one is
+       the thing being hidden. A halftone laid over the field breaks what is
+       left into dots — the garments read as a printed ground rather than as
+       photographs part-way in. It is drawn, not loaded: a repeating radial
+       gradient costs nothing and scales to any screen. */
+    #spiral.sp-waiting::after{
+      content:"";
+      position:absolute;
+      left:-50vw; top:-50vh;
+      width:200vw; height:200vh;
+      pointer-events:none;
+      background-image:radial-gradient(circle at center, var(--bg) 0 38%, transparent 40%);
+      background-size:6px 6px;
+      opacity:.92;
+      z-index:3;
+    }
+    #spiral{ position:relative; }
     #spiral .sp-item{ transition:opacity .34s ease, filter .9s ease; }
 
     #reveal{
@@ -1225,15 +1242,18 @@
     #reveal.ready .rev-fill{ opacity:1; }
     #reveal.ready #revealBtn{ cursor:pointer; pointer-events:auto; }
     #reveal.ready #revealBtn:hover .rev-fill{ opacity:.55; }
-    .rev-note{
-      font-size:9px;
-      letter-spacing:.2em;
-      text-transform:uppercase;
-      color:#b4b4b4;
-      min-height:1.2em;
-      transition:opacity .4s ease;
-    }
     #reveal.going{ opacity:0; transition:opacity .5s ease; }
+
+    /* The bar is not usable while the field is still coming: typing into a
+       search that cannot show you what it finds is a dead end. It greys out
+       with the garments and comes back with them. The circle in the middle
+       is the exception — it is the other key to the gate, so it stays live. */
+    body.gated #dockSearch,
+    body.gated #dockLibrary{
+      opacity:.32;
+      pointer-events:none;
+    }
+    body.gated #dock{ transition:opacity .4s ease; }
     @media (prefers-reduced-motion:reduce){
       #reveal.drawing .rev-trace{ animation:none; }
       #spiral.sp-waiting .sp-item{ filter:grayscale(1) opacity(.3); }
@@ -1455,13 +1475,10 @@
       stroke-width:.5;
       transition:stroke .35s ease, opacity .3s ease;
     }
-    /* draws ONCE, on arrival, and holds the outline after — forwards is
-       what keeps it there; a loop makes the corner restless */
-    #siteHead.armed .hd-trace{ animation:hd-draw 2.6s ease-in-out forwards; }
-    @keyframes hd-draw{
-      from { stroke-dashoffset:var(--hd-len); }
-      to   { stroke-dashoffset:0; }
-    }
+    /* The corner mark no longer draws itself — see index.html. On this page
+       especially: the gate's mark is already drawing in the middle of the
+       screen, and a second one doing the same thing in the corner competes
+       with it. This one is simply there. */
     .hd-fill{
       fill:var(--ink);
       stroke:none;
@@ -1473,7 +1490,6 @@
        ground has begun to move: transition:none on the way in, the normal
        one on the way back out. A crossfade here is the change you can see. */
     #siteHead:hover .hd-trace{
-      animation-play-state:paused;
       opacity:0;
       transition:none;
     }
@@ -1533,7 +1549,6 @@
       }
     }
     @media (prefers-reduced-motion:reduce){
-      #siteHead.armed .hd-trace{ animation:none; stroke-dashoffset:0; }
     }
 
     /* ---------- OPERATIONS DEPARTURE ----------
@@ -1633,7 +1648,6 @@
           <path id="revFill" class="rev-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
         </svg>
       </button>
-      <div class="rev-note" id="revNote" aria-live="polite"></div>
     </div>
   </div>
 
@@ -3352,7 +3366,6 @@
        ============================================================ */
     const revEl   = document.getElementById('reveal');
     const revBtn  = document.getElementById('revealBtn');
-    const revNote = document.getElementById('revNote');
     const revTrace = document.getElementById('revTrace');
     let imgTotal = 0, imgDone = 0, revealed = false, revArmed = false;
 
@@ -3361,9 +3374,6 @@
       imgTotal++;
       const done = () => {
         imgDone++;
-        if (revNote && !revArmed){
-          revNote.textContent = `${imgDone} / ${imgTotal}`;
-        }
         if (imgDone >= imgTotal) armReveal();
       };
       if (img.complete && img.naturalWidth > 0){ done(); return; }
@@ -3375,17 +3385,22 @@
       if (revArmed || revealed) return;
       revArmed = true;
       revEl.classList.remove('drawing');
-      revEl.classList.add('ready');
-      revNote.textContent = 'Press to enter';
+      revEl.classList.add('ready');   // the mark fills: that is the invitation
     }
 
+    /* Two keys, one gate. The mark is the one the reader is looking at; the
+       circle is the one their hand is already on. Neither opens it before
+       the field is in — pressing early does nothing rather than letting the
+       reader into a half-drawn archive. */
     function openGate(){
-      if (revealed) return;
+      if (revealed || !revArmed) return;
       revealed = true;
+      document.body.classList.remove('gated');
       spiral.classList.remove('sp-waiting');
       revEl.classList.add('going');
       setTimeout(() => { revEl.hidden = true; }, 520);
     }
+    function gateShut(){ return !revealed && revEl && !revEl.hidden; }
 
     if (revBtn) revBtn.addEventListener('click', openGate);
 
@@ -3711,18 +3726,12 @@
          front of it again. */
       if (!revealed && !spiralBuilt){
         spiral.classList.add('sp-waiting');
+        document.body.classList.add('gated');
         revEl.hidden = false;
         revEl.classList.add('drawing');
         const len = revTrace.getTotalLength();
         revTrace.style.strokeDasharray = len;
         revEl.style.setProperty('--rev-len', len);
-        /* The count starts the moment the field is built rather than on the
-           first photograph to land — on a slow line that is several seconds
-           of a drawing mark over nothing, which reads as stuck. */
-        requestAnimationFrame(() => {
-          if (!revArmed && imgTotal) revNote.textContent = `${imgDone} / ${imgTotal}`;
-        });
-
         // nothing to wait for — no images in the document at all
         setTimeout(() => { if (imgTotal === 0) armReveal(); }, 400);
 
@@ -3874,6 +3883,10 @@
 
     dockExplore.addEventListener('click', e => {
       if (swiped){ swiped = false; return; }       // that was a swipe
+
+      // while the field is still arriving this button is the gate's key and
+      // nothing else — the views it would otherwise reach are not ready
+      if (gateShut()){ openGate(); return; }
 
       const face = currentFace();
 
@@ -4407,11 +4420,9 @@
     if (siteHead && hdTrace){
       // the mark's own length drives the keyframes, so they stay honest
       // whatever the path is: measure it, hand it to CSS, then arm
-      const hdLen = hdTrace.getTotalLength();
-      hdTrace.style.strokeDasharray  = hdLen;
-      hdTrace.style.strokeDashoffset = hdLen;
-      siteHead.style.setProperty('--hd-len', hdLen);
-      siteHead.classList.add('armed');
+      /* The corner mark does not draw any more, so nothing measures it and
+         nothing dashes it — a dash offset left behind by a removed animation
+         is a mark that never appears at all. */
     }
 
     let leaving = false;

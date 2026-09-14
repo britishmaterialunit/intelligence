@@ -344,7 +344,6 @@
       #siteFooter{ transition:none; --dot-r:4px; }
       #opsBtn, #opsSheet, #navRow{ transition:none; }
       /* same resting state, reached instantly: the drawn outline, unfilled */
-      #siteHead.armed .hd-trace{ animation-duration:.01s; }
       #siteHead{ transition:background-color .2s ease; }
       html{ scroll-behavior:auto; }
     }
@@ -399,15 +398,12 @@
       stroke-width:.5;
       transition:stroke .35s ease, opacity .3s ease;
     }
-    /* The hero's gesture at header scale: it draws ONCE, on arrival, and
-       then holds that drawn outline for good. forwards is what keeps it
-       there — a loop made the corner restless, and there is nothing in a
-       header worth re-animating every few seconds. */
-    #siteHead.armed .hd-trace{ animation:hd-draw 2.6s ease-in-out forwards; }
-    @keyframes hd-draw{
-      from { stroke-dashoffset:var(--hd-len); }
-      to   { stroke-dashoffset:0; }
-    }
+    /* The corner mark no longer draws itself. It was the third thing on
+       screen doing that gesture — the hero on arrival, the footer as it is
+       scrolled onto, and the archive's own gate — and a mark that redraws in
+       the corner of every page turns a signature into a tic. It is simply
+       there. The footer keeps the draw: that one is the reader arriving
+       somewhere, not passing something. */
     .hd-fill{
       fill:var(--ink);
       stroke:none;
@@ -419,7 +415,6 @@
        ground has begun to move: transition:none on the way in, the normal
        one on the way back out. A crossfade here is the change you can see. */
     #siteHead:hover .hd-trace{
-      animation-play-state:paused;
       opacity:0;
       transition:none;
     }
@@ -899,7 +894,7 @@
     <div class="p-role" id="pRole" data-text="Research Partner"></div>
     <h1 class="p-name" id="pName" data-text="Lambrino"></h1>
     <p class="p-line">Building the largest archive of military garments.</p>
-    <p class="p-body">Our partnership with Lambrino has been proudly established following a year of trade between both parties and sees two founders, one Englishman and one Welshman, build the foundation for the largest archive of military garments known to humankind. Windproof Smock will act as the working name as we navigate our way to developing the archive. It's a collaborative start to furthering research of militaria from British to Botswanan and sees BMU tie our methodology of reverse engineering and their own documentative approach. From here on we'll also now look forward towards strengthening our operational ties and together contribute to an ever-growing circular economy.</p>
+    <p class="p-body">Our partnership with Lambrino has been proudly established following a year of trade between both parties and sees two founders, one Englishman and one Welshman, build the foundation for the largest archive of military garments known to humankind. Windproof Smock will act as the working name as we navigate our way to developing the archive further and invite others to join the initiative. It's a collaborative start to furthering research of militaria in all kinds of methodologies and across a range of regions, from British to Botswanan. This sees BMU tie our methodology of reverse engineering garments and their own documentative approach combine and articulate itself differently in innovative ways, from product development to storytelling. From here on we'll also now look forward towards strengthening our operational ties and together contribute to an ever-growing circular economy, both industrially and educationally.</p>
   </main>
 
   <footer id="siteFooter">
@@ -1024,11 +1019,8 @@
     const siteHead = document.getElementById('siteHead');
     const hdTrace  = document.getElementById('hdTrace');
     if (siteHead && hdTrace){
-      const len = hdTrace.getTotalLength();
-      hdTrace.style.strokeDasharray  = len;
-      hdTrace.style.strokeDashoffset = len;
-      siteHead.style.setProperty('--hd-len', len);
-      siteHead.classList.add('armed');
+      /* No dash, no draw — see index.html. A dash offset left behind by a
+         removed animation is a mark that never appears at all. */
     }
 
     /* the mark goes home; the index tool runs between top and footer */
