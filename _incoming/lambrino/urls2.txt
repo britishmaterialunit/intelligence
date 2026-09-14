@@ -1,0 +1,40 @@
+# url	nation	name override
+https://lambrino.co.uk/products/british-army-mtp-camouflage-mtp-body-ubacs-combat-shirt		British Army 2010s MTP Camouflage UBACS Combat Shirt
+https://lambrino.co.uk/products/austrian-army-olive-drab-long-sleeve-field-shirt-1		Austrian Army 1980s Olive Drab Long Sleeve Field Shirt
+https://lambrino.co.uk/products/us-army-m81-woodland-camo-m65-cold-weather-field-coat-2		United States Army 1980s M81 Woodland Camouflage M65 Cold Weather Field Coat
+https://lambrino.co.uk/products/us-army-usmc-m81-woodland-camouflage-bdu-combat-jacket		United States Marine Corps 1980s M81 Woodland Camouflage BDU Combat Jacket
+https://lambrino.co.uk/products/us-air-force-womens-multicam-camouflage-combat-jacket-w-patches		United States Air Force 2010s Multicam Camouflage Combat Jacket
+https://lambrino.co.uk/products/british-royal-navy-rig-22-fr-operational-shirt		British Royal Navy 2010s Rig 22 FR Operational Shirt
+https://lambrino.co.uk/products/british-army-no-2-fad-dress-jacket-scottish-pattern-royal-regiment-of-scotland		British Army 2010s No.2 FAD Royal Regiment of Scotland Dress Jacket
+https://lambrino.co.uk/products/slovak-army-m97-camouflage-m65-jacket			
+https://lambrino.co.uk/products/usa-ucp-camo-ubacs-mandarin-collar-shirt		United States Army 2000s UCP Camouflage UBACS Mandarin Collar Shirt
+https://lambrino.co.uk/products/british-raf-gp-bomber-jacket-1		British Royal Air Force 1980s GP Thermal Liner Bomber Jacket
+https://lambrino.co.uk/products/british-raf-aircrew-faux-fur-thermal-pullover-base-layer-top		British Royal Air Force 1980s Aircrew Faux Fur Thermal Base Layer Pullover
+https://lambrino.co.uk/products/romanian-army-m2017-woodland-camouflage-polo-top-3		Romanian Army 2010s M2017 Woodland Camouflage Polo
+https://lambrino.co.uk/products/romanian-peoples-army-khaki-wool-greatcoat-6		Romanian People's Army 1970s Khaki Wool Greatcoat
+https://lambrino.co.uk/products/romanian-army-m1994-fleck-leaf-camouflage-parka-w-winter-liner		Romanian Army 1990s M1994 Fleck Leaf Camouflage Winter Liner Parka
+https://lambrino.co.uk/products/romanian-army-m1990-leaf-camouflage-long-sleeve-shirt-2		Romanian Army 1990s M1990 Leaf Camouflage Long Sleeve Shirt
+https://lambrino.co.uk/products/romanian-navy-m2017-blue-camouflage-polo-top-2		Romanian Navy 2010s M2017 Blue Camouflage Polo
+https://lambrino.co.uk/products/french-army-cce-camo-pullover-fleece		French Army 1990s CCE Camouflage Pullover Fleece
+https://lambrino.co.uk/products/german-army-khaki-thermal-coat-liner-1	west-german	West German Army 1970s Khaki Thermal Liner Coat
+https://lambrino.co.uk/products/greek-army-m65-olive-green-jacket-1			
+https://lambrino.co.uk/products/italian-army-olive-drab-roma-75-safari-jacket-11		Italian Army 1970s Roma 75 Olive Drab Safari Jacket
+https://lambrino.co.uk/products/british-royal-air-force-raincoat-trench-coat-10		British Royal Air Force 1980s Raincoat Trench Coat
+https://lambrino.co.uk/products/czechoslovak-army-vintage-orange-pajama-shirt-3		Czechoslovak Army 1980s Orange Pyjama Shirt
+https://lambrino.co.uk/products/dutch-navy-work-jacket		Dutch Navy 1980s Work Jacket
+https://lambrino.co.uk/products/dutch-army-m93-dpm-woodland-camouflage-combat-jacket		Dutch Army 1990s M93 DPM Woodland Camouflage Combat Jacket
+https://lambrino.co.uk/products/dutch-army-thermal-olive-brown-undershirt-norgie-pullover		Dutch Army 1990s Thermal Olive Brown Norgie Pullover
+https://lambrino.co.uk/products/british-army-mtp-camouflage-windproof-smock-12		British Army 2010s MTP Camouflage Windproof Smock
+https://lambrino.co.uk/products/british-army-no-1-dress-jacket-royal-signals-3		British Army 1980s No.1 Royal Signals Dress Jacket
+https://lambrino.co.uk/products/british-army-thermal-buffalo-pullover-smock-medium-5		British Army 1990s Thermal Buffalo Pullover Smock
+https://lambrino.co.uk/products/british-raf-wet-weather-coat-jacket		British Royal Air Force 1990s Wet Weather Coat Jacket
+https://lambrino.co.uk/products/british-army-desert-dpm-camouflage-combat-jacket-shirt-pattern-95		British Army 1990s S95 Desert DPM Camouflage Combat Jacket
+https://lambrino.co.uk/products/british-army-85-pattern-woodland-dpm-camo-combat-smock-7		British Army 1980s 85 Pattern Woodland DPM Camouflage Combat Smock
+https://lambrino.co.uk/products/british-army-s95-dpm-woodland-camo-ripstop-field-jacket		British Army 1990s S95 Woodland DPM Camouflage Ripstop Field Jacket
+https://lambrino.co.uk/products/austrian-army-olive-drab-lightweight-ripstop-jacket		Austrian Army 1990s Olive Drab Lightweight Ripstop Jacket
+https://lambrino.co.uk/products/belgian-army-m64-olive-green-shirt			
+https://lambrino.co.uk/products/british-army-desert-dpm-camouflage-body-armour-cover-vest		British Army 1990s Desert DPM Camouflage Body Armour Cover Vest
+https://lambrino.co.uk/products/british-army-dpm-woodland-camouflage-body-armour-cover-vest		British Army 1990s Woodland DPM Camouflage Body Armour Cover Vest
+https://lambrino.co.uk/products/british-army-mtp-camouflage-body-armour-cover		British Army 2010s MTP Camouflage Body Armour Cover Vest
+https://lambrino.co.uk/products/british-raf-mk3-fr-cold-weather-aircrew-trousers-w-3		British Royal Air Force 2000s MK3 FR Cold Weather Aircrew Trousers
+https://lambrino.co.uk/products/czechoslovak-army-m60-vz-63-cold-weather-thermal-trouser-liner-2		Czechoslovak Army 1960s M60 Vz63 Cold Weather Thermal Trouser Liner

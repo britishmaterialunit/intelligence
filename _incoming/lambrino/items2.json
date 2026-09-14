@@ -1,0 +1,314 @@
+[
+  {
+    "n": "british",
+    "name": "British Army 2010s MTP Camouflage UBACS Combat Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "BA2010MCUCS.png",
+    "ref": "BA2010MCUCS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "austrian",
+    "name": "Austrian Army 1980s Olive Drab Long Sleeve Field Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "AA1980ODLSFS.png",
+    "ref": "AA1980ODLSFS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "united-states",
+    "name": "United States Army 1980s M81 Woodland Camouflage M65 Cold Weather Field Coat",
+    "cat": "Jackets / Shirts",
+    "img": "USA1980M81WCM65CWFC.png",
+    "ref": "USA1980M81WCM65CWFC",
+    "src": "Lambrino"
+  },
+  {
+    "n": "united-states",
+    "name": "United States Marine Corps 1980s M81 Woodland Camouflage BDU Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "USMC1980M81WCBCJ.png",
+    "ref": "USMC1980M81WCBCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "united-states",
+    "name": "United States Air Force 2010s Multicam Camouflage Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "USAF2010MCCJ.png",
+    "ref": "USAF2010MCCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Royal Navy 2010s Rig 22 FR Operational Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "BRN2010R22FOS.png",
+    "ref": "BRN2010R22FOS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 2010s No.2 FAD Royal Regiment of Scotland Dress Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BA2010NFRROSDJ.png",
+    "ref": "BA2010NFRROSDJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "slovak",
+    "name": "Slovak Army 1990s M97 Camouflage M65 Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "SKA1990M97CM65J.png",
+    "ref": "SKA1990M97CM65J",
+    "src": "Lambrino"
+  },
+  {
+    "n": "united-states",
+    "name": "United States Army 2000s UCP Camouflage UBACS Mandarin Collar Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "USA2000UCUMCS.png",
+    "ref": "USA2000UCUMCS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Royal Air Force 1980s GP Thermal Liner Bomber Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BRAF1980GTLBJ.png",
+    "ref": "BRAF1980GTLBJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Royal Air Force 1980s Aircrew Faux Fur Thermal Base Layer Pullover",
+    "cat": "Jackets / Shirts",
+    "img": "BRAF1980AFFTBLP.png",
+    "ref": "BRAF1980AFFTBLP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "romanian",
+    "name": "Romanian Army 2010s M2017 Woodland Camouflage Polo",
+    "cat": "Jackets / Shirts",
+    "img": "ROA2010M2017WCP.png",
+    "ref": "ROA2010M2017WCP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "romanian",
+    "name": "Romanian People's Army 1970s Khaki Wool Greatcoat",
+    "cat": "Jackets / Shirts",
+    "img": "ROPA1970KWG.png",
+    "ref": "ROPA1970KWG",
+    "src": "Lambrino"
+  },
+  {
+    "n": "romanian",
+    "name": "Romanian Army 1990s M1994 Fleck Leaf Camouflage Winter Liner Parka",
+    "cat": "Jackets / Shirts",
+    "img": "ROA1990M1994FLCWLP.png",
+    "ref": "ROA1990M1994FLCWLP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "romanian",
+    "name": "Romanian Army 1990s M1990 Leaf Camouflage Long Sleeve Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "ROA1990M1990LCLSS.png",
+    "ref": "ROA1990M1990LCLSS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "romanian",
+    "name": "Romanian Navy 2010s M2017 Blue Camouflage Polo",
+    "cat": "Jackets / Shirts",
+    "img": "RON2010M2017BCP.png",
+    "ref": "RON2010M2017BCP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "french",
+    "name": "French Army 1990s CCE Camouflage Pullover Fleece",
+    "cat": "Jackets / Shirts",
+    "img": "FRA1990CCPF.png",
+    "ref": "FRA1990CCPF",
+    "src": "Lambrino"
+  },
+  {
+    "n": "west-german",
+    "name": "West German Army 1970s Khaki Thermal Liner Coat",
+    "cat": "Jackets / Shirts",
+    "img": "WGA1970KTLC.png",
+    "ref": "WGA1970KTLC",
+    "src": "Lambrino"
+  },
+  {
+    "n": "greek",
+    "name": "Greek Army 1960s M65 Olive Green Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "GRA1960M65OGJ.png",
+    "ref": "GRA1960M65OGJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "italian",
+    "name": "Italian Army 1970s Roma 75 Olive Drab Safari Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "IA1970R75ODSJ.png",
+    "ref": "IA1970R75ODSJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Royal Air Force 1980s Raincoat Trench Coat",
+    "cat": "Jackets / Shirts",
+    "img": "BRAF1980RTC.png",
+    "ref": "BRAF1980RTC",
+    "src": "Lambrino"
+  },
+  {
+    "n": "czechoslovak",
+    "name": "Czechoslovak Army 1980s Orange Pyjama Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "CSA1980OPS.png",
+    "ref": "CSA1980OPS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "dutch",
+    "name": "Dutch Navy 1980s Work Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "NLN1980WJ.png",
+    "ref": "NLN1980WJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "dutch",
+    "name": "Dutch Army 1990s M93 DPM Woodland Camouflage Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "NLA1990M93DWCCJ.png",
+    "ref": "NLA1990M93DWCCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "dutch",
+    "name": "Dutch Army 1990s Thermal Olive Brown Norgie Pullover",
+    "cat": "Jackets / Shirts",
+    "img": "NLA1990TOBNP.png",
+    "ref": "NLA1990TOBNP",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 2010s MTP Camouflage Windproof Smock",
+    "cat": "Jackets / Shirts",
+    "img": "BA2010MCWS.png",
+    "ref": "BA2010MCWS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 1980s No.1 Royal Signals Dress Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BA1980NRSDJ.png",
+    "ref": "BA1980NRSDJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 1990s Thermal Buffalo Pullover Smock",
+    "cat": "Jackets / Shirts",
+    "img": "BA1990TBPS.png",
+    "ref": "BA1990TBPS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Royal Air Force 1990s Wet Weather Coat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BRAF1990WWCJ.png",
+    "ref": "BRAF1990WWCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 1990s S95 Desert DPM Camouflage Combat Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BA1990S95DDCCJ.png",
+    "ref": "BA1990S95DDCCJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 1980s 85 Pattern Woodland DPM Camouflage Combat Smock",
+    "cat": "Jackets / Shirts",
+    "img": "BA198085PWDCCS.png",
+    "ref": "BA198085PWDCCS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 1990s S95 Woodland DPM Camouflage Ripstop Field Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "BA1990S95WDCRFJ.png",
+    "ref": "BA1990S95WDCRFJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "austrian",
+    "name": "Austrian Army 1990s Olive Drab Lightweight Ripstop Jacket",
+    "cat": "Jackets / Shirts",
+    "img": "AA1990ODLRJ.png",
+    "ref": "AA1990ODLRJ",
+    "src": "Lambrino"
+  },
+  {
+    "n": "belgian",
+    "name": "Belgian Army 1960s M64 Olive Green Shirt",
+    "cat": "Jackets / Shirts",
+    "img": "BEA1960M64OGS.png",
+    "ref": "BEA1960M64OGS",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 1990s Desert DPM Camouflage Body Armour Cover Vest",
+    "cat": "Bags / Webbing",
+    "img": "BA1990DDCBACV.png",
+    "ref": "BA1990DDCBACV",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 1990s Woodland DPM Camouflage Body Armour Cover Vest",
+    "cat": "Bags / Webbing",
+    "img": "BA1990WDCBACV.png",
+    "ref": "BA1990WDCBACV",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Army 2010s MTP Camouflage Body Armour Cover Vest",
+    "cat": "Bags / Webbing",
+    "img": "BA2010MCBACV.png",
+    "ref": "BA2010MCBACV",
+    "src": "Lambrino"
+  },
+  {
+    "n": "british",
+    "name": "British Royal Air Force 2000s MK3 FR Cold Weather Aircrew Trousers",
+    "cat": "Trousers / Coveralls",
+    "img": "BRAF2000MK3FCWAT.png",
+    "ref": "BRAF2000MK3FCWAT",
+    "src": "Lambrino"
+  },
+  {
+    "n": "czechoslovak",
+    "name": "Czechoslovak Army 1960s M60 Vz63 Cold Weather Thermal Trouser Liner",
+    "cat": "Trousers / Coveralls",
+    "img": "CSA1960M60VZ63CWTTL.png",
+    "ref": "CSA1960M60VZ63CWTTL",
+    "src": "Lambrino"
+  }
+]

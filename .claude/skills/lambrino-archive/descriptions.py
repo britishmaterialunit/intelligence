@@ -25,9 +25,17 @@ def get(url):
 
 
 def at_a_glance(body_html):
-    """The lines between 'At a glance' and 'Grades', in the shop's own order."""
-    text = html.unescape(re.sub(r'<[^>]+>', '\n', body_html or ''))
-    lines = [l.strip() for l in text.split('\n') if l.strip()]
+    """The lines between 'At a glance' and 'Grades', in the shop's own order.
+
+    Every tag used to become a line break, which split a bullet wherever the
+    shop had bolded part of it — "<b>4</b> Large Button Pockets" came out as
+    three lines, one of them just "4". Only the block-level tags end a line
+    now; the inline ones are dropped and their text joins up.
+    """
+    src = body_html or ''
+    src = re.sub(r'(?i)</(?:li|p|div|h\d|tr)>|<br\s*/?>', '\n', src)
+    text = html.unescape(re.sub(r'<[^>]+>', '', src))
+    lines = [re.sub(r'\s{2,}', ' ', l).strip() for l in text.split('\n') if l.strip()]
     out, on = [], False
     for l in lines:
         low = l.lower().rstrip(' -:')
@@ -49,6 +57,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--sources', required=True)
     ap.add_argument('--root', default='.')
+    ap.add_argument('--refresh', action='store_true',
+                    help='re-fetch records that already have a description')
     a = ap.parse_args()
 
     sources = json.load(open(a.sources))
@@ -59,11 +69,23 @@ def main():
             if f.endswith('.txt'):
                 where[os.path.splitext(f)[0]] = os.path.join(root, f)
 
-    done = missed = 0
+    done = missed = skipped = 0
     for code, url in sources.items():
         txt = where.get(code)
         if not txt:
             continue                      # removed from the archive since
+
+        # Already written. Re-fetching a record that is already on disk buys
+        # nothing and costs the shop a request — a re-run over a few dozen
+        # garments is what earns a 429, and then the handful that genuinely
+        # needed fetching fail along with the rest. Pass --refresh to override.
+        if not a.refresh:
+            body = open(txt, encoding='utf-8').read().split('Archive ref:', 1)[-1]
+            body = body.split('\n', 1)[-1].strip()
+            if body and not body.startswith('Placeholder record'):
+                skipped += 1
+                continue
+
         try:
             p = json.loads(get(url.rstrip('/') + '.json'))['product']
         except Exception as e:
@@ -87,7 +109,7 @@ def main():
         print(f'  {code:20} {len(lines)} lines')
         time.sleep(0.6)                   # the shop is someone else's server
 
-    print(f'\n{done} records written, {missed} missed')
+    print(f'\n{done} written, {skipped} already had one, {missed} missed')
 
 
 if __name__ == '__main__':

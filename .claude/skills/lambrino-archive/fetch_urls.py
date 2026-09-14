@@ -39,7 +39,7 @@ UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) BMU-archive/1.0'
 # against Italian) or where the label is two words (United States).
 NATIONS = {
     'austrian':      ('Austrian',      'A'),
-    'belgian':       ('Belgian',       'B'),
+    'belgian':       ('Belgian',       'BE'),   # 'B' belongs to British
     'british':       ('British',       'B'),
     'bulgarian':     ('Bulgarian',     'BU'),
     'chinese':       ('Chinese',       'C'),
@@ -248,6 +248,8 @@ def main():
         cat = d['cat']
         if re.search(r'\b(?:Rucksack|Bandolier|Chest Rig|Webbing|Bergen|Pouch)\b', name, re.I):
             cat = 'Bags / Webbing'      # a rig is not hardware, whatever the shop filed it under
+        elif re.search(r'\b(?:Trouser|Trousers|Coverall|Coveralls|Salopette)\b', name, re.I):
+            cat = 'Trousers / Coveralls'   # a trouser liner is trousers, not misc
         code = make_code(name, nation_key)
         folder = os.path.join(a.root, 'archive', nation_key,
                               naming.slug(cat), naming.slug(name))

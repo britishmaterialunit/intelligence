@@ -515,14 +515,52 @@
        arriving first, which is exactly backwards. It now waits for its own
        moment: the two boxes are drawn, and then the tab and its name arrive
        together. */
-    body.single-result .nation{ transition:border-color .45s ease; }
-    body.single-result .nation > summary{ transition:opacity .45s ease; }
-    body.single-result.solo-build .nation{ border-color:transparent; }
-    body.single-result.solo-build .nation > summary{ opacity:0; }
+    /* The tab does not appear, it arrives: the rule draws out from the
+       centre of the row, and the flag and name come up under it a beat
+       later. Switching it on with an opacity fade read as a box materialising
+       around a garment that was already settled. */
+    body.single-result .nation{
+      /* The border is the resting state — a garment reached by searching the
+         list has no build sequence to wait for, and stripping it by default
+         left that tab with no outline at all. Only the build takes it away,
+         and only for as long as the build runs. */
+      border-color:var(--line);
+      position:relative;
+      transition:border-color .01s linear .52s;
+    }
+    body.single-result .nation::before{
+      content:"";
+      position:absolute;
+      left:0; right:0; top:0;
+      height:1.5px;
+      background:var(--line);
+      transform:scaleX(1);
+      transform-origin:center;
+      transition:transform .54s cubic-bezier(.4,0,.2,1);
+      z-index:2;
+    }
+    body.single-result .nation > summary{
+      transition:opacity .42s ease .26s, transform .42s cubic-bezier(.4,0,.2,1) .26s;
+      transform:translateY(0);
+    }
+    body.single-result.solo-build .nation{
+      border-color:transparent;
+      transition:none;
+    }
+    body.single-result.solo-build .nation::before{
+      transform:scaleX(0);
+      transition:none;
+    }
+    body.single-result.solo-build .nation > summary{
+      opacity:0;
+      transform:translateY(-6px);
+      transition:none;
+    }
     /* the tab has to be gone on the first frame, not fade out over half a
        second while the garment is trying to arrive — this is the same trick
        .no-anim plays on the card, held for one reflow */
     body.solo-snap .nation,
+    body.solo-snap .nation::before,
     body.solo-snap .nation > summary{ transition:none !important; }
 
     /* the build state must arrive instantly, not animate into itself —
@@ -951,10 +989,18 @@
       width:150px;
       transform:translate(-50%, -50%);
       cursor:pointer;
-      opacity:0;
-      animation:spIn .5s ease forwards;
+      /* Rest is opaque and the entrance animates UP TO it, rather than rest
+         being transparent with a `forwards` animation left holding the
+         element at 1. A finished animation with a fill still owns the
+         property: every later attempt to fade one of these out was either
+         ignored, or — once the animation was called off — snapped straight
+         to the base value with nothing to transition from. Nothing owns
+         opacity here once the entrance is over. */
+      opacity:1;
+      animation:spIn .5s ease;
+      transition:opacity .34s ease;
     }
-    @keyframes spIn{ to{ opacity:1; } }
+    @keyframes spIn{ from{ opacity:0; } }
     .sp-item .sp-slot{
       width:150px; height:150px;
       display:flex;
@@ -975,6 +1021,23 @@
       opacity:.06;
       pointer-events:none;
       transition:opacity .5s ease;
+    }
+    /* Off the field entirely, not dimmed. A cluster gathers into the middle
+       of a space the rest of the archive is still standing in; at .06 they
+       are faint but they are still THERE, and the cluster lands on top of
+       them. Gone means gone. */
+    .sp-item.sp-gone{
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .45s ease;
+    }
+    /* One garment has been chosen and the record is coming. Everything else
+       leaves first, so the handover is not a field of garments blinking out
+       the instant explore is torn down. */
+    #spiral.sp-chosen .sp-item:not(.sp-pick){
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .34s ease;
     }
     .sp-item .sp-code{
       width:100%; height:100%;
@@ -1634,18 +1697,58 @@
        ============================================================ */
     const ITEMS = [
       /* ---------------- BRITISH ---------------- */
+      { n:"british", name:"British Army 1980s 85 Pattern Woodland DPM Camouflage Combat Smock", cat:"Jackets / Shirts",
+        img:"BA198085PWDCCS.png", ref:"BA198085PWDCCS" },
+      { n:"british", name:"British Army 1980s No.1 Royal Signals Dress Jacket", cat:"Jackets / Shirts",
+        img:"BA1980NRSDJ.png", ref:"BA1980NRSDJ" },
+      { n:"british", name:"British Army 1990s S95 Desert DPM Camouflage Combat Jacket", cat:"Jackets / Shirts",
+        img:"BA1990S95DDCCJ.png", ref:"BA1990S95DDCCJ" },
+      { n:"british", name:"British Army 1990s S95 Woodland DPM Camouflage Ripstop Field Jacket", cat:"Jackets / Shirts",
+        img:"BA1990S95WDCRFJ.png", ref:"BA1990S95WDCRFJ" },
+      { n:"british", name:"British Army 1990s Thermal Buffalo Pullover Smock", cat:"Jackets / Shirts",
+        img:"BA1990TBPS.png", ref:"BA1990TBPS" },
+      { n:"british", name:"British Army 2010s MTP Camouflage UBACS Combat Shirt", cat:"Jackets / Shirts",
+        img:"BA2010MCUCS.png", ref:"BA2010MCUCS" },
+      { n:"british", name:"British Army 2010s MTP Camouflage Windproof Smock", cat:"Jackets / Shirts",
+        img:"BA2010MCWS.png", ref:"BA2010MCWS" },
+      { n:"british", name:"British Army 2010s No.2 FAD Royal Regiment of Scotland Dress Jacket", cat:"Jackets / Shirts",
+        img:"BA2010NFRROSDJ.png", ref:"BA2010NFRROSDJ" },
+      { n:"british", name:"British Royal Air Force 1980s Aircrew Faux Fur Thermal Base Layer Pullover", cat:"Jackets / Shirts",
+        img:"BRAF1980AFFTBLP.png", ref:"BRAF1980AFFTBLP" },
+      { n:"british", name:"British Royal Air Force 1980s GP Thermal Liner Bomber Jacket", cat:"Jackets / Shirts",
+        img:"BRAF1980GTLBJ.png", ref:"BRAF1980GTLBJ" },
       { n:"british", name:"British Royal Air Force 1980s Overdyed Gabardine DPM Windproof Smock", cat:"Jackets / Shirts",
         img:"BRAF1980OGDWS.png", ref:"BRAF1980OGDWS" },
+      { n:"british", name:"British Royal Air Force 1980s Raincoat Trench Coat", cat:"Jackets / Shirts",
+        img:"BRAF1980RTC.png", ref:"BRAF1980RTC" },
+      { n:"british", name:"British Royal Air Force 1990s Wet Weather Coat Jacket", cat:"Jackets / Shirts",
+        img:"BRAF1990WWCJ.png", ref:"BRAF1990WWCJ" },
       { n:"british", name:"British Royal Air Force 2010s Flight Jacket", cat:"Jackets / Shirts",
         img:"BRAF2010FJ.png", ref:"BRAF2010FJ" },
       { n:"british", name:"British Royal Navy 1980s Blue Upper Deck Jacket", cat:"Jackets / Shirts",
         img:"BRN1980BUDJ.png", ref:"BRN1980BUDJ" },
+      { n:"british", name:"British Royal Navy 2010s Rig 22 FR Operational Shirt", cat:"Jackets / Shirts",
+        img:"BRN2010R22FOS.png", ref:"BRN2010R22FOS" },
+      { n:"british", name:"British Royal Air Force 2000s MK3 FR Cold Weather Aircrew Trousers", cat:"Trousers / Coveralls",
+        img:"BRAF2000MK3FCWAT.png", ref:"BRAF2000MK3FCWAT" },
+      { n:"british", name:"British Army 1990s Desert DPM Camouflage Body Armour Cover Vest", cat:"Bags / Webbing",
+        img:"BA1990DDCBACV.png", ref:"BA1990DDCBACV" },
+      { n:"british", name:"British Army 1990s Woodland DPM Camouflage Body Armour Cover Vest", cat:"Bags / Webbing",
+        img:"BA1990WDCBACV.png", ref:"BA1990WDCBACV", src:"Lambrino" },
+      { n:"british", name:"British Army 2010s MTP Camouflage Body Armour Cover Vest", cat:"Bags / Webbing",
+        img:"BA2010MCBACV.png", ref:"BA2010MCBACV" },
       /* ---------------- AUSTRIAN ---------------- */
+      { n:"austrian", name:"Austrian Army 1980s Olive Drab Long Sleeve Field Shirt", cat:"Jackets / Shirts",
+        img:"AA1980ODLSFS.png", ref:"AA1980ODLSFS" },
+      { n:"austrian", name:"Austrian Army 1990s Olive Drab Lightweight Ripstop Jacket", cat:"Jackets / Shirts",
+        img:"AA1990ODLRJ.png", ref:"AA1990ODLRJ" },
       { n:"austrian", name:"Austrian Army 2000s Olive Drab Anzug 03 Alpine Jacket", cat:"Jackets / Shirts",
         img:"AA2000ODA03AJ.png", ref:"AA2000ODA03AJ" },
       /* ---------------- BELGIAN ---------------- */
       { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Field Jacket", cat:"Jackets / Shirts",
-        img:"BA1960M64OGFJ.png", ref:"BA1960M64OGFJ" },
+        img:"BEA1960M64OGFJ.png", ref:"BEA1960M64OGFJ" },
+      { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Shirt", cat:"Jackets / Shirts",
+        img:"BEA1960M64OGS.png", ref:"BEA1960M64OGS", src:"Lambrino" },
       /* ---------------- BULGARIAN ---------------- */
       { n:"bulgarian", name:"Bulgarian People's Army 1970s Olive Green Cossack Shirt", cat:"Jackets / Shirts",
         img:"BUPA1970OGCS.png", ref:"BUPA1970OGCS" },
@@ -1658,14 +1761,24 @@
       /* ---------------- CZECHOSLOVAK ---------------- */
       { n:"czechoslovak", name:"Czechoslovak Army 1980s M85 Field Olive Green with Hood Parka", cat:"Jackets / Shirts",
         img:"CSA1980M85FOGWHP.png", ref:"CSA1980M85FOGWHP" },
+      { n:"czechoslovak", name:"Czechoslovak Army 1980s Orange Pyjama Shirt", cat:"Jackets / Shirts",
+        img:"CSA1980OPS.png", ref:"CSA1980OPS" },
+      { n:"czechoslovak", name:"Czechoslovak Army 1960s M60 Vz63 Cold Weather Thermal Trouser Liner", cat:"Trousers / Coveralls",
+        img:"CSA1960M60VZ63CWTTL.png", ref:"CSA1960M60VZ63CWTTL", src:"Lambrino" },
       /* ---------------- DANISH ---------------- */
       { n:"danish", name:"Danish Army 1990s M/84 Camouflage HMAK Jacket", cat:"Jackets / Shirts",
         img:"DA1990M84.png", ref:"DA1990M84" },
       { n:"danish", name:"Danish Civil Defence 1970s M71 Parka", cat:"Jackets / Shirts",
         img:"DCD1970M71P.png", ref:"DCD1970M71P" },
       /* ---------------- DUTCH ---------------- */
+      { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Combat Jacket", cat:"Jackets / Shirts",
+        img:"NLA1990M93DWCCJ.png", ref:"NLA1990M93DWCCJ" },
       { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Jacket", cat:"Jackets / Shirts",
         img:"NLA1990M93DWCJ.png", ref:"NLA1990M93DWCJ" },
+      { n:"dutch", name:"Dutch Army 1990s Thermal Olive Brown Norgie Pullover", cat:"Jackets / Shirts",
+        img:"NLA1990TOBNP.png", ref:"NLA1990TOBNP" },
+      { n:"dutch", name:"Dutch Navy 1980s Work Jacket", cat:"Jackets / Shirts",
+        img:"NLN1980WJ.png", ref:"NLN1980WJ" },
       { n:"dutch", name:"Dutch Army 1990s SPE Olive Green Chest Rig", cat:"Bags / Webbing",
         img:"NLA1990SOGCR.png", ref:"NLA1990SOGCR" },
       /* ---------------- EAST GERMAN ---------------- */
@@ -1677,9 +1790,13 @@
       /* ---------------- FRENCH ---------------- */
       { n:"french", name:"French Army 1990s CCE Camouflage F2 Jacket", cat:"Jackets / Shirts",
         img:"FRA1990CCF2J.png", ref:"FRA1990CCF2J" },
+      { n:"french", name:"French Army 1990s CCE Camouflage Pullover Fleece", cat:"Jackets / Shirts",
+        img:"FRA1990CCPF.png", ref:"FRA1990CCPF" },
       /* ---------------- GREEK ---------------- */
       { n:"greek", name:"Greek Army 1960s M65 Faux Fur Liner Jacket", cat:"Jackets / Shirts",
         img:"GRA1960M65FFLJ.png", ref:"GRA1960M65FFLJ" },
+      { n:"greek", name:"Greek Army 1960s M65 Olive Green Jacket", cat:"Jackets / Shirts",
+        img:"GRA1960M65OGJ.png", ref:"GRA1960M65OGJ" },
       /* ---------------- HUNGARIAN ---------------- */
       { n:"hungarian", name:"Hungarian People's Army 1970s Cold Weather Tank Liner Jacket", cat:"Jackets / Shirts",
         img:"HPA1970CWTLJ.png", ref:"HPA1970CWTLJ" },
@@ -1693,6 +1810,8 @@
       { n:"israeli", name:"Israeli Defense Force 1970s Green Battledress Ike Jacket", cat:"Jackets / Shirts",
         img:"ISDF1970GBIJ.png", ref:"ISDF1970GBIJ" },
       /* ---------------- ITALIAN ---------------- */
+      { n:"italian", name:"Italian Army 1970s Roma 75 Olive Drab Safari Jacket", cat:"Jackets / Shirts",
+        img:"IA1970R75ODSJ.png", ref:"IA1970R75ODSJ" },
       { n:"italian", name:"Italian Army 1990s Roma 90 Woodland Camouflage Combat Jacket", cat:"Jackets / Shirts",
         img:"IA1990R90WCCJ.png", ref:"IA1990R90WCCJ" },
       { n:"italian", name:"Italian Army 1960s Denim Alpini Mountain Rucksack", cat:"Bags / Webbing",
@@ -1707,6 +1826,16 @@
       { n:"portuguese", name:"Portuguese Army 1960s M63 Lizard Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
         img:"PTA1960M63LCLSS.png", ref:"PTA1960M63LCLSS" },
       /* ---------------- ROMANIAN ---------------- */
+      { n:"romanian", name:"Romanian Army 1990s M1990 Leaf Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
+        img:"ROA1990M1990LCLSS.png", ref:"ROA1990M1990LCLSS" },
+      { n:"romanian", name:"Romanian Army 1990s M1994 Fleck Leaf Camouflage Winter Liner Parka", cat:"Jackets / Shirts",
+        img:"ROA1990M1994FLCWLP.png", ref:"ROA1990M1994FLCWLP" },
+      { n:"romanian", name:"Romanian Army 2010s M2017 Woodland Camouflage Polo", cat:"Jackets / Shirts",
+        img:"ROA2010M2017WCP.png", ref:"ROA2010M2017WCP" },
+      { n:"romanian", name:"Romanian Navy 2010s M2017 Blue Camouflage Polo", cat:"Jackets / Shirts",
+        img:"RON2010M2017BCP.png", ref:"RON2010M2017BCP" },
+      { n:"romanian", name:"Romanian People's Army 1970s Khaki Wool Greatcoat", cat:"Jackets / Shirts",
+        img:"ROPA1970KWG.png", ref:"ROPA1970KWG" },
       { n:"romanian", name:"Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
         img:"ROP1990M1990BLCLSS.png", ref:"ROP1990M1990BLCLSS" },
       /* ---------------- SERBIAN ---------------- */
@@ -1715,6 +1844,8 @@
       /* ---------------- SLOVAK ---------------- */
       { n:"slovak", name:"Slovak Air Force 2000s Thermal Flight Jacket", cat:"Jackets / Shirts",
         img:"SKAF2000TFJ.png", ref:"SKAF2000TFJ" },
+      { n:"slovak", name:"Slovak Army 1990s M97 Camouflage M65 Jacket", cat:"Jackets / Shirts",
+        img:"SKA1990M97CM65J.png", ref:"SKA1990M97CM65J" },
       /* ---------------- SOVIET ---------------- */
       { n:"soviet", name:"Soviet Navy 1970s Yellow Dress Shirt", cat:"Jackets / Shirts",
         img:"SN1970YDS.png", ref:"SN1970YDS" },
@@ -1734,11 +1865,21 @@
         img:"USAF1990TCDCSCRCJ.png", ref:"USAF1990TCDCSCRCJ" },
       { n:"united-states", name:"United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket", cat:"Jackets / Shirts",
         img:"USAF2000DTSCBCJ.png", ref:"USAF2000DTSCBCJ" },
+      { n:"united-states", name:"United States Air Force 2010s Multicam Camouflage Combat Jacket", cat:"Jackets / Shirts",
+        img:"USAF2010MCCJ.png", ref:"USAF2010MCCJ" },
+      { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage M65 Cold Weather Field Coat", cat:"Jackets / Shirts",
+        img:"USA1980M81WCM65CWFC.png", ref:"USA1980M81WCM65CWFC" },
       { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage MVP Parka", cat:"Jackets / Shirts",
         img:"USA1980M81WCMP.png", ref:"USA1980M81WCMP" },
+      { n:"united-states", name:"United States Army 2000s UCP Camouflage UBACS Mandarin Collar Shirt", cat:"Jackets / Shirts",
+        img:"USA2000UCUMCS.png", ref:"USA2000UCUMCS" },
+      { n:"united-states", name:"United States Marine Corps 1980s M81 Woodland Camouflage BDU Combat Jacket", cat:"Jackets / Shirts",
+        img:"USMC1980M81WCBCJ.png", ref:"USMC1980M81WCBCJ" },
       /* ---------------- WEST GERMAN ---------------- */
       { n:"west-german", name:"West German Army 1960s Tracksuit Jacket", cat:"Jackets / Shirts",
         img:"WGA1960TJ.png", ref:"WGA1960TJ" },
+      { n:"west-german", name:"West German Army 1970s Khaki Thermal Liner Coat", cat:"Jackets / Shirts",
+        img:"WGA1970KTLC.png", ref:"WGA1970KTLC" },
       /* ---------------- YUGOSLAV ---------------- */
       { n:"yugoslav", name:"Yugoslav Army 1980s JNA M87 Oak Leaf Camouflage Shirt", cat:"Jackets / Shirts",
         img:"YA1980JM87OLCS.png", ref:"YA1980JM87OLCS" }
@@ -2879,7 +3020,7 @@
       paintHint(term);
 
       // in explore the search regroups the field rather than the page
-      if (exploreOn){ clusterSearch(term); return; }
+      if (exploreOn){ clusterSearch(term, false); return; }   // typing
 
       if (term && countMatches(term) === 0) return;   // hold what's there
 
@@ -2916,7 +3057,7 @@
       // in explore, enter gathers everything that answers the term and
       // settles on the group — a nation becomes that nation's cluster
       if (exploreOn){
-        clusterSearch(dq.value.trim().toLowerCase());
+        clusterSearch(dq.value.trim().toLowerCase(), true);   // choosing
         return;
       }
 
@@ -3281,40 +3422,64 @@
     }
 
     let clusterTimer = null;
-    function clusterSearch(term){
+    /* Typing is not the same act as choosing.
+
+       While the reader is still typing, the field holds its shape and the
+       view simply travels to the first garment that answers — one move, to
+       one garment. Regathering the whole spiral on every keystroke threw
+       everything about under someone who had not finished their word.
+
+       Pressing enter is the choosing. THAT regathers: the matches come into
+       a spiral of their own and everything else goes. */
+    function clusterSearch(term, gather){
       clearTimeout(clusterTimer);
       const els = [...spiral.children];
 
+      const slide = () => els.forEach(el => {
+        el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1)';
+      });
+      const settle = () => els.forEach(el => { el.style.transition = ''; });
+
       if (!term){
-        els.forEach(el => el.classList.remove('sp-dim'));
-        els.forEach(el => { el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1)'; });
+        els.forEach(el => el.classList.remove('sp-dim', 'sp-gone'));
+        slide();
         layoutSpiral(spiralMode);
         clusterTimer = setTimeout(() => {
           glide(() => fitSpiral(), 800);
-          els.forEach(el => { el.style.transition = ''; });
+          settle();
         }, 60);
         return;
       }
 
-      /* One letter is not a search. Half the field answers to it, and
-         regathering the whole spiral on the strength of it throws the
-         garments about while the reader is still mid-word. The field holds
-         exactly as it is until the term is worth moving for. */
-      if (term.length < 2) return;
+      if (term.length < 2) return;          // one letter is not a search yet
 
       const hit = els.filter(el => spiralMatch(el, term));
 
       /* Nothing answers this — "banana", or a nation the archive has never
-         held. Dimming the entire field to say so is a worse answer than
+         held. Dimming the whole field to say so is a worse answer than
          leaving it alone; the grey chip in the bar is where a suggestion
          belongs, not out here. */
       if (!hit.length) return;
 
-      els.forEach(el => {
-        el.classList.toggle('sp-dim', !hit.includes(el));
-        el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1)';
-      });
+      if (!gather){
+        // still typing: dim the rest where they stand and travel to the first
+        els.forEach(el => el.classList.toggle('sp-dim', !hit.includes(el)));
+        clusterTimer = setTimeout(() => glide(() => focusItem(hit[0], maxScale() * 0.55), 700), 40);
+        return;
+      }
 
+      /* Gathering. Every garment is laid back on its own spiral position
+         first — placing only the matches on top of a field that never moved
+         is what left garments sitting over one another. Then the matches are
+         drawn into the middle and the rest are taken off the field
+         altogether rather than dimmed, so nothing can overlap the cluster. */
+      slide();
+      layoutSpiral(spiralMode);
+      els.forEach(el => {
+        const on = hit.includes(el);
+        el.classList.toggle('sp-gone', !on);
+        el.classList.remove('sp-dim');
+      });
       hit.forEach((el, i) => {
         const r = SPACING * Math.sqrt(i + 0.5);
         const a = i * GOLDEN;
@@ -3323,7 +3488,7 @@
 
       clusterTimer = setTimeout(() => {
         glide(() => fitTo(hit), 800);
-        els.forEach(el => { el.style.transition = ''; });
+        settle();
       }, 60);
     }
 
@@ -3384,6 +3549,9 @@
     let atInitial = false;      // is the field sitting at its opening view?
 
     function openExplore(){
+      // whatever the last visit chose, this one starts with the whole field
+      spiral.classList.remove('sp-chosen');
+      spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
       exploreClosing = false;
       explore.hidden = false;
       exploreOn = true;
@@ -3672,18 +3840,29 @@
         return;
       }
 
-      /* The second press must begin from the framing the first press set.
-         Someone who has pinched in further since is not looking at the same
-         garment any more — the record would be handed a garment at the wrong
-         size and would have to jump to correct it. So the view is walked
-         back to the frame first, and the record follows once it has settled. */
+      /* ONE move, and only if it is needed.
+
+         The second press used to re-frame whatever the reader had pinched
+         to, which on a view already at the frame was a second zoom on top of
+         the first — the jitter. The view is only walked back when it is
+         actually somewhere else, and the record always waits for whatever
+         movement there is to finish before it starts.
+
+         Either way the rest of the field goes first. They used to be on
+         screen at full strength right up to the moment explore was torn
+         down, and then vanish with it. */
       const FRAME = maxScale() * 0.68;
-      if (Math.abs(sc - FRAME) > FRAME * 0.02){
-        glide(() => focusItem(item, FRAME), 520);
-        setTimeout(() => openRecord(item), 560);
-        return;
+      const adrift = Math.abs(sc - FRAME) > FRAME * 0.04;
+
+      item.classList.add('sp-pick');
+      spiral.classList.add('sp-chosen');
+
+      if (adrift){
+        glide(() => focusItem(item, FRAME), 560);
+        setTimeout(() => openRecord(item), 600);
+      } else {
+        setTimeout(() => openRecord(item), 340);   // the field's own fade
       }
-      openRecord(item);
     });
 
     /* ------------------------------------------------------------------
@@ -3800,12 +3979,21 @@
         const box = drawFrame(item, { x:0, y:0, w:r.width, h:r.height }, BOX_MS);
 
         soloTimers.push(setTimeout(() => {
-          // the card's own border takes over from the drawn line, crossfading
-          // so there is never two of them, nor a gap with neither
+          /* The card's own border takes the drawn line's place in ONE frame.
+
+             It used to crossfade over a third of a second, and for that
+             third of a second both lines were on screen — the SVG stroke and
+             the border, a pixel apart, reading as a single line that thickens
+             and then thins again. That was the second stroke animation: not a
+             second animation at all, two lines pretending to be one.
+
+             Swapped instead of blended. The border is already the same
+             weight and colour, so there is nothing to see. */
+          item.classList.add('no-anim');       // no border-color transition
           item.classList.add('framed');
-          box.style.transition = 'opacity .34s ease';
-          box.style.opacity = '0';
-          soloTimers.push(setTimeout(() => box.remove(), 380));
+          void item.offsetWidth;
+          box.remove();
+          item.classList.remove('no-anim');
         }, BOX_MS + HANDOVER));
       }, from ? 780 : 40));   // with a handover running, the box waits for it
 
@@ -3871,6 +4059,8 @@
     function returnToExplore(){
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
+      spiral.classList.remove('sp-chosen');
+      spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
       document.body.classList.remove('solo-build', 'solo-snap');
       const card = catalogue.querySelector('.item:not([hidden])');
       if (card && !REDUCED){
