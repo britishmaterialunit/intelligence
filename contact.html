@@ -20,14 +20,14 @@
   <meta name="twitter:title" content="MarshalOS — Book | British Material Unit" />
   <meta name="twitter:description" content="A demo of MarshalOS, a day in Unit U, or half an hour to talk it through." />
 
-  <title>Book — MarshalOS, Unit U or a meeting | BMU</title>
+  <title>Contact — MarshalOS, Unit U or a meeting | BMU</title>
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
     "url": "https://britishmaterialunit.com/contact",
-    "name": "Book \u2014 MarshalOS, Unit U or a meeting | BMU",
+    "name": "Contact \u2014 MarshalOS, Unit U or a meeting | BMU",
     "description": "A demo of MarshalOS, a day in Unit U, or half an hour to talk it through.",
     "isPartOf": { "@id": "https://britishmaterialunit.com/#website" },
     "about": { "@type": "Organization", "name": "MarshalOS" }
@@ -213,6 +213,19 @@
       transition:opacity 1s ease;
     }
     .foot-fill.visible{ opacity:1; }
+
+    /* The footer mark answers to a hover the way the header's does: it fills
+       solid and the drawn outline stands down, both in one frame. The header
+       fills white because its ground goes near-black; this one is on the page
+       itself, so it fills in ink. Same gesture, the colour the ground asks
+       for. Applied here rather than per page — this block is the one the
+       partner pages are built from. */
+    .foot-head{ cursor:default; }
+    .foot-head:hover .foot-fill{ opacity:1; transition:none; }
+    .foot-head:hover .foot-trace{ opacity:0; transition:none; }
+    @media (hover:none){
+      .foot-head:hover .foot-trace{ opacity:1; }
+    }
 
     /* flex-centres the text inside its reserved height so it sits on the
        mark's centre line rather than riding above it while it types */
@@ -893,13 +906,13 @@
 
         <div class="book-tabs" role="tablist" aria-label="What to book">
           <button type="button" class="book-tab" role="tab" id="tabMarshal"
-                  aria-selected="true"  data-note="MarshalOS demo" data-head="MarshalOS"
+                  aria-selected="true"  data-note="MarshalOS demo" data-head="MarshalOS" data-role="Demo"
                   data-blurb="A walk through how MarshalOS reads a garment, what it returns, and how it fits a production run you already have in mind.">MarshalOS</button>
           <button type="button" class="book-tab" role="tab" id="tabUnit"
-                  aria-selected="false" data-note="Unit U studio booking" data-head="Unit U"
+                  aria-selected="false" data-note="Unit U studio booking" data-head="Unit U" data-role="Visit"
                   data-blurb="The open-studio: the floor, the machines and the surplus on it. Tell us what you are making and we will have the material out.">Unit U</button>
           <button type="button" class="book-tab" role="tab" id="tabMeet"
-                  aria-selected="false" data-note="General meeting" data-head="Meeting"
+                  aria-selected="false" data-note="General meeting" data-head="Meeting" data-role="Book"
                   data-blurb="Half an hour to talk it through — sourcing, a production run, a partnership, or something none of these boxes covers yet.">Meeting</button>
         </div>
 
@@ -947,6 +960,8 @@
         <div class="foot-col">
           <h3>Services</h3>
           <span>Sourcing</span>
+          <span>Waste Disposals</span>
+          <span>Remanufacturing</span>
           <span>Product Development</span>
           <span>R&amp;D</span>
         </div>
@@ -1013,10 +1028,10 @@
     const headIsCycled = !!document.querySelector('.book-tab');
 
     if (REDUCED){
-      roleEl.textContent = ROLE;
+      if (!headIsCycled) roleEl.textContent = ROLE;
       if (!headIsCycled) nameEl.textContent = NAME;
     } else if (headIsCycled){
-      bmuType(ROLE, roleEl, 26);
+      // both lines belong to the tabs on this page — see the tab script
     } else {
       bmuType(ROLE, roleEl, 26, () => setTimeout(() => bmuType(NAME, nameEl, 48), 160));
     }
@@ -1143,30 +1158,39 @@
          it is selected. Retyped rather than swapped, because that is how
          every other heading on this site arrives. */
       const head = document.getElementById('pName');
-      let headRun = 0;
+      const role = document.getElementById('pRole');
+      let headRun = 0, roleRun = 0;
 
-      function setHead(text){
-        if (head.textContent === text) return;
-        const tok = ++headRun;
-        if (REDUCED){ head.textContent = text; return; }
-        head.dataset.run = 'unwind-' + tok;     // stop whatever was typing
+      /* Unwritten, then written — the same gesture the rest of the site
+         uses to change a line. A straight swap would be the one snap on a
+         page where everything else is typed. */
+      function retype(el, text, runRef, speed){
+        if (el.textContent === text) return runRef;
+        const tok = ++runRef.n;
+        if (REDUCED){ el.textContent = text; return runRef; }
+        el.dataset.run = 'unwind-' + tok;     // stop whatever was typing
         (function back(){
-          if (tok !== headRun) return;
-          const t = head.textContent;
+          if (tok !== runRef.n) return;
+          const t = el.textContent;
           if (t.length){
-            head.textContent = t.slice(0, -1);
-            setTimeout(back, 18);
+            el.textContent = t.slice(0, -1);
+            setTimeout(back, speed.out);
           } else {
-            bmuType(text, head, 48);
+            bmuType(text, el, speed.in);
           }
         })();
+        return runRef;
       }
+
+      const headRef = { n:0 }, roleRef = { n:0 };
+      function setHead(text){ retype(head, text, headRef, { out:18, in:48 }); }
+      function setRole(text){ retype(role, text, roleRef, { out:14, in:30 }); }
 
       function select(tab, quiet){
         tabs.forEach(t => t.setAttribute('aria-selected', String(t === tab)));
         // `quiet` on the first paint: the page's arrival is already typing
         // this heading, and two typewriters in one element interleave
-        if (!quiet) setHead(tab.dataset.head);
+        if (!quiet){ setRole(tab.dataset.role); setHead(tab.dataset.head); }
         note.textContent = tab.dataset.blurb;
         const next = BOOK_URL + '?notes=' + encodeURIComponent(tab.dataset.note);
         // only reload when it actually changes — a reload the reader did not

@@ -214,6 +214,19 @@
     }
     .foot-fill.visible{ opacity:1; }
 
+    /* The footer mark answers to a hover the way the header's does: it fills
+       solid and the drawn outline stands down, both in one frame. The header
+       fills white because its ground goes near-black; this one is on the page
+       itself, so it fills in ink. Same gesture, the colour the ground asks
+       for. Applied here rather than per page — this block is the one the
+       partner pages are built from. */
+    .foot-head{ cursor:default; }
+    .foot-head:hover .foot-fill{ opacity:1; transition:none; }
+    .foot-head:hover .foot-trace{ opacity:0; transition:none; }
+    @media (hover:none){
+      .foot-head:hover .foot-trace{ opacity:1; }
+    }
+
     /* flex-centres the text inside its reserved height so it sits on the
        mark's centre line rather than riding above it while it types */
     .foot-slogan{
@@ -918,6 +931,8 @@
         <div class="foot-col">
           <h3>Services</h3>
           <span>Sourcing</span>
+          <span>Waste Disposals</span>
+          <span>Remanufacturing</span>
           <span>Product Development</span>
           <span>R&amp;D</span>
         </div>
@@ -984,10 +999,10 @@
     const headIsCycled = !!document.querySelector('.book-tab');
 
     if (REDUCED){
-      roleEl.textContent = ROLE;
+      if (!headIsCycled) roleEl.textContent = ROLE;
       if (!headIsCycled) nameEl.textContent = NAME;
     } else if (headIsCycled){
-      bmuType(ROLE, roleEl, 26);
+      // both lines belong to the tabs on this page — see the tab script
     } else {
       bmuType(ROLE, roleEl, 26, () => setTimeout(() => bmuType(NAME, nameEl, 48), 160));
     }

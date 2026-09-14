@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Repository | British Material Unit (BMU)</title>
+  <link rel="canonical" href="https://britishmaterialunit.com/" />
+  <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
+
+  <!-- Repository is a state of the home page, not a document of its own.
+       Opening it there puts /repository in the address bar without a
+       navigation, so this page is only ever reached cold — a shared link, a
+       reload, a bookmark — and its one job is to hand the reader back to
+       the state they were promised.
+
+       replace(), not href: the reader should not have to press Back twice
+       to get out of a redirect they never saw. -->
+  <meta name="robots" content="noindex, follow" />
+  <script>
+    window.location.replace('/#repository' + window.location.search);
+  </script>
+  <noscript><meta http-equiv="refresh" content="0; url=/#repository" /></noscript>
+
+  <style>
+    body{
+      margin:0;
+      min-height:100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#ffffff;
+      color:#222;
+      font-family:Helvetica, Arial, sans-serif;
+      font-size:13px;
+      letter-spacing:.08em;
+    }
+    a{ color:#222; }
+  </style>
+</head>
+<body>
+  <!-- seen only if the redirect cannot run -->
+  <p>Taking you to <a href="/#repository">the repository</a>.</p>
+</body>
+</html>

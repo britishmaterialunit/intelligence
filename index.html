@@ -607,6 +607,17 @@
     }
     #opsSheet.content-in .ops-body{ opacity:1; }
 
+    /* What the unit does, before what it thinks. The partner pages lead on
+       a name at this weight; inside the sheet it is the same gesture at the
+       size the box can carry, and the whitepaper reads on underneath it. */
+    .ops-head{
+      white-space:pre-wrap;
+      font-size:clamp(15px, 2.1vw, 21px);
+      line-height:1.25;
+      letter-spacing:-.005em;
+      margin:0 0 18px;
+      min-height:2.5em;
+    }
     .ops-paper{
       white-space:pre-wrap;
       min-height:2em;
@@ -833,6 +844,19 @@
       transition:opacity 1s ease;
     }
     .foot-fill.visible{ opacity:1; }
+
+    /* The footer mark answers to a hover the way the header's does: it fills
+       solid and the drawn outline stands down, both in one frame. The header
+       fills white because its ground goes near-black; this one is on the page
+       itself, so it fills in ink. Same gesture, the colour the ground asks
+       for. Applied here rather than per page — this block is the one the
+       partner pages are built from. */
+    .foot-head{ cursor:default; }
+    .foot-head:hover .foot-fill{ opacity:1; transition:none; }
+    .foot-head:hover .foot-trace{ opacity:0; transition:none; }
+    @media (hover:none){
+      .foot-head:hover .foot-trace{ opacity:1; }
+    }
 
     /* flex-centres the text inside its reserved height so it sits on the
        mark's centre line rather than riding above it while it types */
@@ -1308,6 +1332,7 @@
 
         <div id="opsSheet" aria-hidden="true">
           <div class="ops-body">
+            <div id="opsHead" class="ops-head"></div>
             <div id="opsPaper" class="ops-paper"></div>
             <div id="opsNews" class="ops-news">
               <h2>Relations &amp; Partnerships</h2>
@@ -2363,6 +2388,8 @@
         <div class="foot-col">
           <h3>Services</h3>
           <span>Sourcing</span>
+          <span>Waste Disposals</span>
+          <span>Remanufacturing</span>
           <span>Product Development</span>
           <span>R&amp;D</span>
         </div>
@@ -2611,8 +2638,13 @@
     const opsBtn   = document.getElementById('opsBtn');
     const opsClose = document.getElementById('opsClose');
     const opsSheet = document.getElementById('opsSheet');
+    const opsHead  = document.getElementById('opsHead');
     const opsPaper = document.getElementById('opsPaper');
     const opsNews  = document.getElementById('opsNews');
+
+    const OPS_HEAD =
+`We remanufacture defence textiles into new garments.
+We're solving circularity within defence textile waste.`;
 
     const WHITEPAPER =
 `British Material Unit (BMU) — Whitepaper
@@ -2713,13 +2745,20 @@ Per operation we create design systems which secure textiles and their material 
         if (opsState !== 'open') return;
         opsSheet.classList.add('content-in');
         if (!paperTyped){
-          opsPaper.classList.add('ops-caret');
-          bmuType(WHITEPAPER, opsPaper, 9, () => {
-            paperTyped = true;
-            opsPaper.classList.remove('ops-caret');
-            opsNews.classList.add('visible');
+          // the headline lands first, at its own pace, then the paper runs on
+          opsHead.classList.add('ops-caret');
+          bmuType(OPS_HEAD, opsHead, 18, () => {
+            if (opsState !== 'open') return;
+            opsHead.classList.remove('ops-caret');
+            opsPaper.classList.add('ops-caret');
+            bmuType(WHITEPAPER, opsPaper, 9, () => {
+              paperTyped = true;
+              opsPaper.classList.remove('ops-caret');
+              opsNews.classList.add('visible');
+            });
           });
         } else {
+          opsHead.textContent  = OPS_HEAD;
           opsPaper.textContent = WHITEPAPER;
           opsNews.classList.add('visible');
         }
@@ -2735,6 +2774,7 @@ Per operation we create design systems which secure textiles and their material 
       // retract: content fades, then the box draws back up into the bar
       opsSheet.classList.remove('content-in');
       opsNews.classList.remove('visible');
+      opsHead.classList.remove('ops-caret');
       opsPaper.classList.remove('ops-caret');
       opsBtn.style.height = barH() + 'px';   // the box draws back down into the bar
       opsBtn.setAttribute('aria-expanded', 'false');
@@ -2815,6 +2855,32 @@ Per operation we create design systems which secure textiles and their material 
        They share the state machine and differ only in what that something
        is, so there is one set of transitions to keep honest, not two. */
     let joinMode  = 'join';  // join | repo
+    /* Set by the footer's own links. The row of buttons, the converge, the
+       unwriting of the masthead — none of it is a decision the reader still
+       has to be walked through once they have picked the destination by
+       name. Cleared as soon as it is spent. */
+    let joinFast  = false;
+
+    /* Join and Repository are states of this page, but they are also
+       destinations — the footer links to them, and a reader who has opened
+       one should be able to send that link or reload into it. So once the
+       state has settled the URL is put where it belongs, WITHOUT a
+       navigation: nothing is torn down, nothing reloads, and the page the
+       reader is looking at is untouched.
+
+       /join and /repository are real pages too. They exist for the reader
+       who arrives at one cold, and they do the only sensible thing — hand
+       straight back here with the state asked for in the hash. */
+    function claimUrl(path){
+      try {
+        if (location.pathname !== path) history.pushState({ bmu:path }, '', path);
+      } catch(_){}
+    }
+    function releaseUrl(){
+      try {
+        if (location.pathname !== '/') history.pushState({ bmu:'/' }, '', '/');
+      } catch(_){}
+    }
     let joinState = 'off';   // off | opening | ready | sending | sent | closing
     let joinRun   = 0;       // bumped on every open/close, so a stale
                              // typewriter run stops instead of fighting
@@ -2918,14 +2984,43 @@ Per operation we create design systems which secure textiles and their material 
         scrollCue.setAttribute('aria-label', isRepo ? 'Leave Repository' : 'Leave Join');
       }, 540);
 
-      later(joinSequence, 700);
+      later(joinSequence, joinFast ? 240 : 700);
     }
 
     function joinSequence(){
       const tok = joinRun;
       const live = () => tok === joinRun && joinState !== 'off';
+
+      /* Arriving from the footer, the reader has already named the thing
+         they want. Unwriting the masthead letter by letter first is the
+         page taking its time over a decision that has been made — so the
+         copy fades out of the way instead and the address starts typing.
+
+         Operations keeps the slow route either way: the masthead is not
+         replaced there, it stays above the sheet, so there is nothing to
+         get out of the way and nothing to hurry. */
+      if (joinFast){
+        joinFast = false;
+        textOutput.style.transition = 'opacity .32s ease';
+        textOutput.style.opacity = '0';
+        setTimeout(() => {
+          textContent.textContent = '';
+          textOutput.style.opacity = '';
+          textOutput.style.transition = '';
+          if (!live()) return;
+          joinBody(live);
+        }, 340);
+        return;
+      }
+
       bmuUntype(textContent, 7, () => {
         if (!live()) return;
+        joinBody(live);
+      });
+    }
+
+    /* Everything after the masthead has gone, however it went. */
+    function joinBody(live){
         if (joinMode === 'repo'){ repoSequence(live); return; }
         joinPanel.classList.add('on');
         joinPanel.setAttribute('aria-hidden', 'false');
@@ -2941,6 +3036,7 @@ Per operation we create design systems which secure textiles and their material 
                in it, so waiting on the slide before accepting a keystroke
                would contradict what the field is telling the reader */
             joinState = 'ready';
+            claimUrl('/join');
             try { joinInput.focus({ preventScroll:true }); } catch(_){}
             raiseJoinButton();
             /* .typable is only the fast width transition for tracking what
@@ -2951,7 +3047,6 @@ Per operation we create design systems which secure textiles and their material 
             }, 640);
           });
         }, live);
-      }, live);
     }
 
     /* ---- REPOSITORY ------------------------------------------------
@@ -2988,6 +3083,7 @@ Per operation we create design systems which secure textiles and their material 
           if (!live()) return;
           repoNote.innerHTML = REPO_NOTE_HTML;
           repoNote.classList.add('in');
+          claimUrl('/repository');
           /* the note is the last thing to land and it changes the panel's
              height — measure the lift again against the finished panel */
           raiseJoinButton();
@@ -2999,6 +3095,8 @@ Per operation we create design systems which secure textiles and their material 
        button widens back out to the full row, and only then does it come
        down into its own slot with the other four sliding out of it. */
     function closeJoin(){
+      joinFast = false;
+      releaseUrl();
       if (joinState === 'off' || joinState === 'closing') return;
       joinState = 'closing';
       joinRun++;
@@ -3200,11 +3298,11 @@ Per operation we create design systems which secure textiles and their material 
     }));
     const footJoin = document.getElementById('footJoin');
     if (footJoin) footJoin.addEventListener('click', fromFooter(() => {
-      if (joinState === 'off' && opsState === 'closed') openJoin();
+      if (joinState === 'off' && opsState === 'closed'){ joinFast = true; openJoin(); }
     }));
     const footRepo = document.getElementById('footRepo');
     if (footRepo) footRepo.addEventListener('click', fromFooter(() => {
-      if (joinState === 'off' && opsState === 'closed') openRepo();
+      if (joinState === 'off' && opsState === 'closed'){ joinFast = true; openRepo(); }
     }));
 
     /* ---- the address copies itself ---------------------------------
@@ -3402,6 +3500,13 @@ Per operation we create design systems which secure textiles and their material 
       navRow.classList.add('visible');
       document.body.classList.add('entered');
     }
+
+    /* Back out of /join or /repository closes the panel rather than leaving
+       the reader on a page whose URL says one thing and whose screen says
+       another. */
+    window.addEventListener('popstate', () => {
+      if (location.pathname === '/' && joinState !== 'off') closeJoin();
+    });
 
     (function arrival(){
       const want = location.hash.slice(1).toLowerCase();

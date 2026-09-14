@@ -64,31 +64,13 @@
     /* ---------- fixed bottom bar ----------
        On arrival the archive is only this: a search bar and its footer
        line. Tabs, explore and the dock are all summoned from here. */
-    #bottomBar{
+    /* the page's own line, under everything */
+    #foot{
       position:fixed;
-      left:50%;
-      bottom:0;
-      transform:translateX(-50%);
-      width:min(90vw, 880px);
-      z-index:70;
-      padding:12px 0 14px;
-      background:var(--bg);
-    }
-    #bottomBar #foot{ margin-top:10px; }
-    #bottomBar{
-      transition:transform .72s cubic-bezier(.35,0,.2,1), opacity .55s ease;
-    }
-    /* explore takes the screen: the main bar drops away and the dock's
-       own bar becomes the only instrument */
-    body.exploring #bottomBar,
-    body.dock-open #bottomBar,
-    /* the dock came with the reader out of explore and is the bar they are
-       holding — handing back a second one would put two on the page */
-    body.dock-list #bottomBar,
-    body.tab-open #bottomBar{
-      transform:translateX(-50%) translateY(130%);
-      opacity:0;
-      pointer-events:none;
+      left:0; right:0;
+      bottom:10px;
+      text-align:center;
+      z-index:1;
     }
 
     /* the catalogue only exists once the reader asks for it */
@@ -1186,6 +1168,77 @@
     #dqFlag[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
     #dqExplore img{ display:block; width:13px; height:13px; }
 
+    /* ---------- THE FIELD, ARRIVING ----------
+       Held back rather than assembled in public: every garment greyed and
+       softened until the last photograph has landed, so what the reader
+       sees is one field appearing at once rather than seventy of them
+       arriving in whatever order the network chose. */
+    #spiral.sp-waiting .sp-item{
+      filter:grayscale(1) blur(7px) opacity(.28);
+      transition:filter .9s ease;
+      pointer-events:none;
+    }
+    #spiral .sp-item{ transition:opacity .34s ease, filter .9s ease; }
+
+    #reveal{
+      position:fixed;
+      inset:0;
+      z-index:60;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      pointer-events:none;
+    }
+    #revealBtn{
+      border:0;
+      background:none;
+      padding:10px;
+      line-height:0;
+      cursor:default;
+      pointer-events:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    /* header and footer scale — it is a mark, not a splash screen */
+    #revealBtn svg{ height:17px; width:auto; display:block; overflow:visible; }
+    .rev-trace{
+      fill:none;
+      stroke:var(--ink);
+      stroke-width:.5;
+    }
+    .rev-fill{
+      fill:var(--ink);
+      stroke:none;
+      opacity:0;
+      transition:opacity .5s ease;
+    }
+    /* the mark draws itself for as long as the photographs are landing */
+    #reveal.drawing .rev-trace{ animation:rev-draw 2.2s ease-in-out infinite; }
+    @keyframes rev-draw{
+      0%   { stroke-dashoffset:var(--rev-len); }
+      55%  { stroke-dashoffset:0; }
+      100% { stroke-dashoffset:0; opacity:.25; }
+    }
+    /* landed: it fills, and becomes the way in */
+    #reveal.ready .rev-trace{ animation:none; opacity:0; transition:opacity .4s ease; }
+    #reveal.ready .rev-fill{ opacity:1; }
+    #reveal.ready #revealBtn{ cursor:pointer; pointer-events:auto; }
+    #reveal.ready #revealBtn:hover .rev-fill{ opacity:.55; }
+    .rev-note{
+      font-size:9px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color:#b4b4b4;
+      min-height:1.2em;
+      transition:opacity .4s ease;
+    }
+    #reveal.going{ opacity:0; transition:opacity .5s ease; }
+    @media (prefers-reduced-motion:reduce){
+      #reveal.drawing .rev-trace{ animation:none; }
+      #spiral.sp-waiting .sp-item{ filter:grayscale(1) opacity(.3); }
+    }
+
     /* ---------- LABEL SUGGESTION ----------
        The archive answers to four things and four only: nation, division,
        date and garment type. Rather than leave anyone guessing at that, the
@@ -1328,11 +1381,13 @@
       left:50%; top:50%;
       transform:translate(-50%, calc(-50% + 10px));
       z-index:130;
-      padding:22px 34px;
+      /* a note, not an announcement — it was carrying the weight of a
+         dialogue for a sentence that says there is nothing to show */
+      padding:13px 20px;
       background:var(--bg);
       border:1.5px solid var(--line);
-      font-size:13px;
-      letter-spacing:.09em;
+      font-size:10px;
+      letter-spacing:.14em;
       text-transform:uppercase;
       color:var(--ink);
       white-space:nowrap;
@@ -1565,27 +1620,38 @@
   <!-- EXPLORE — every garment in the archive as one spiral -->
   <div id="explore" hidden aria-hidden="true">
     <div id="spiral"></div>
+
+    <!-- Seventy-odd photographs do not arrive together, and watching them
+         pop in one at a time is the archive assembling itself in front of
+         the reader. They are held back as a grey field instead, with the
+         mark drawing over them; once the last one has landed the mark fills
+         and becomes the way in. -->
+    <div id="reveal" hidden>
+      <button type="button" id="revealBtn" aria-label="Enter the archive">
+        <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+          <path id="revTrace" class="rev-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+          <path id="revFill" class="rev-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+        </svg>
+      </button>
+      <div class="rev-note" id="revNote" aria-live="polite"></div>
+    </div>
   </div>
 
   <!-- the search bar is the page's fixed furniture; everything else
        is summoned from it -->
-  <div id="bottomBar">
-    <form class="search" role="search" onsubmit="return false;">
-      <label for="q" class="sr-only" hidden>Search the archive</label>
-      <img class="icon" src="/searchicon.svg" alt="" aria-hidden="true" width="16" height="16" />
-      <div class="ghost" id="ghost" aria-hidden="true"></div>
-      <input id="q" type="search" autocomplete="off" spellcheck="false"
-             placeholder="Search the archive" aria-label="Search the archive" />
-      <button type="button" class="clear" id="clearQ" aria-label="Clear search">✕</button>
-      <button type="button" class="flagtoggle" id="flagBtn" aria-label="Browse nations" aria-pressed="false">
-        <img src="/flags/ukflag.png" alt="" aria-hidden="true">
-      </button>
-      <button type="button" class="navtoggle" id="navBtn" aria-label="Explore" aria-pressed="false">
-        <img src="/navigate.svg" alt="" aria-hidden="true" width="13" height="13">
-      </button>
-    </form>
-    <footer id="foot">British Material Unit (BMU) — Archive</footer>
-  </div>
+  <!-- The archive had two search bars: this one, and the dock's. The dock's
+       is now the only one — it is what the reader is handed on arrival and
+       it travels with them between the field and the list. What is left here
+       is the page's footer line, and the four controls the rest of the
+       script still speaks to, kept out of sight rather than deleted: `q` is
+       where the filter reads its term from, and the two buttons are the same
+       actions the dock's own tools now carry. -->
+  <!-- What is left of the old main search bar. The dock's bar replaced it
+       outright; this single field is where filter() reads its term from, and
+       the dock writes to it. Nothing here is ever shown or focused. -->
+  <input id="q" type="hidden" value="" />
+
+  <footer id="foot">British Material Unit (BMU) — Archive</footer>
 
   <div id="dock" aria-hidden="true">
     <div id="dockSearch" class="dock-sq" role="button" tabindex="0" aria-label="Search the archive">
@@ -2079,9 +2145,17 @@
 
     /* ---------- search ---------- */
     const q          = document.getElementById('q');
-    const clearQ     = document.getElementById('clearQ');
-    const navBtn     = document.getElementById('navBtn');
-    const searchForm = document.querySelector('.search');
+    /* The old bar's three controls are gone with it. Their jobs live on the
+       dock now — dqFlag for nations, dqExplore for the field, the cross for
+       rest — but a dozen places still reported state to them. Rather than
+       thread a null check through every one, they answer to a stub that
+       swallows what it is told. It is the smallest honest shim: nothing
+       reads these back. */
+    const RETIRED = { setAttribute(){}, addEventListener(){}, classList:{ toggle(){}, add(){}, remove(){} }, style:{} };
+    const clearQ     = RETIRED;
+    const navBtn     = RETIRED;
+    const flagBtn    = RETIRED;
+    const searchForm = RETIRED;
     const countEl = document.getElementById('count');
     const emptyEl = document.getElementById('empty');
     const savedBtn      = document.getElementById('savedBtn');
@@ -2427,7 +2501,6 @@
     });
 
     q.addEventListener('input', filter);
-    clearQ.addEventListener('click', resetPage);
     q.addEventListener('keydown', e => { if (e.key === 'Escape') resetPage(); });
     filter();
 
@@ -2437,7 +2510,6 @@
        with a blinking caret, deletes it again, moves to the next.
        Sits behind the input and yields the moment anything is typed.
        ============================================================ */
-    const ghost   = document.getElementById('ghost');
     const NAME_POOL = [...new Set(ITEMS.map(p => p.name))];
     const CAMO_POOL = ['DPM','MTP','Desert DPM','Vegetato','M/84','Woodland','Flecktarn','OG','Gulf Camouflage'];
     const NATION_POOL = NATIONS.filter(n => n.flag).map(n => n.label);
@@ -2452,13 +2524,8 @@
       return NAME_POOL;
     }
 
-    const gText  = document.createTextNode('');
-    const gCaret = document.createElement('span');
-    gCaret.className = 'caret';
-    ghost.append(gText, gCaret);
-
-    /* the dock's bar carries the same running suggestion, so it prompts
-       the same way the main bar does rather than sitting blank */
+    /* One bar, one suggestion. gText was the old bar's copy and everything
+       written to it was mirrored across; the mirror is the only one left. */
     const dghost  = document.getElementById('dghost');
     const dgText  = document.createTextNode('');
     const dgCaret = document.createElement('span');
@@ -2475,21 +2542,29 @@
     const TYPE_MS = 45, DELETE_MS = 25, HOLD_MS = 3800, GAP_MS = 320;
     let sIdx = 0, sPos = 0, sPhase = 'typing', sTimer = null;
 
-    function ghostVisible(){ return q.value === ''; }
+    /* The dock's bar is the only one now, so the suggestion runs while THAT
+       is empty. Reading the old bar's value here left the suggestion
+       cycling behind a field the reader had already typed into. */
+    function ghostVisible(){
+      return document.getElementById('dq').value === '' && q.value === '';
+    }
 
     /* The suggestion is a full garment name and the bar is narrow on a
        phone. Measure the run each tick and dim it as it closes on the
        right-hand icons, so it dissolves instead of colliding. */
     const ghostRange = document.createRange();
     function ghostFade(){
-      const cs = getComputedStyle(ghost);
-      const room = ghost.clientWidth
+      // measured against the bar on screen, not the retired one, which has
+      // no width at all and made every suggestion read as overflowing
+      const host = dghost;
+      const cs = getComputedStyle(host);
+      const room = host.clientWidth
                  - parseFloat(cs.paddingLeft)
                  - parseFloat(cs.paddingRight);
       if (room <= 0) return;
-      ghostRange.selectNodeContents(gText);
+      ghostRange.selectNodeContents(dgText);
       const used = ghostRange.getBoundingClientRect().width / room;
-      ghost.style.opacity = used <= 0.78
+      dghost.style.opacity = used <= 0.78
         ? '1'
         : Math.max(0.1, 1 - (used - 0.78) / 0.3).toFixed(2);
     }
@@ -2502,26 +2577,21 @@
       if (sPhase === 'typing'){
         if (sPos < word.length){
           sPos++;
-          gText.nodeValue = word.slice(0, sPos);
-          mirrorGhost(gText.nodeValue);
+          mirrorGhost(word.slice(0, sPos));
           ghostFade();
-          gCaret.classList.remove('blink');
           sTimer = setTimeout(suggestTick, TYPE_MS);
         } else {
           sPhase = 'holding';
-          gCaret.classList.add('blink');       // blink at the end of the suggestion
           dgCaret.classList.add('blink');
           sTimer = setTimeout(suggestTick, HOLD_MS);
         }
       } else if (sPhase === 'holding'){
         sPhase = 'deleting';
-        gCaret.classList.remove('blink');
         sTimer = setTimeout(suggestTick, DELETE_MS);
       } else {
         if (sPos > 0){
           sPos--;
-          gText.nodeValue = word.slice(0, sPos);
-          mirrorGhost(gText.nodeValue);
+          mirrorGhost(word.slice(0, sPos));
           ghostFade();
           sTimer = setTimeout(suggestTick, DELETE_MS);
         } else {
@@ -2535,11 +2605,11 @@
     function startSuggestions(){
       if (REDUCED){
         // no motion: rotate the whole suggestion on a slow timer
-        gCaret.remove();
-        gText.nodeValue = SUGGESTIONS[0];
+        dgCaret.remove();
+        mirrorGhost(SUGGESTIONS[0]);
         setInterval(() => {
           sIdx = (sIdx + 1) % SUGGESTIONS.length;
-          if (ghostVisible()) gText.nodeValue = SUGGESTIONS[sIdx];
+          if (ghostVisible()) mirrorGhost(SUGGESTIONS[sIdx]);
         }, 3200);
         return;
       }
@@ -2547,15 +2617,19 @@
     }
 
     /* the suggestion yields as soon as there is real input to read */
-    function syncGhost(){ ghost.hidden = q.value !== ''; }
+    /* Read off the DOM rather than the `dq` binding: this runs once during
+       setup, and the dock's own consts are declared further down the file.
+       The old version read `q`, which was declared above it — the swap put
+       it in front of a let that had not been reached yet. */
+    function syncGhost(){
+      const el = document.getElementById('dq');
+      dghost.hidden = !!(el && el.value);
+    }
     q.addEventListener('input', syncGhost);
-    clearQ.addEventListener('click', () => setTimeout(syncGhost, 0));
     q.addEventListener('keydown', e => { if (e.key === 'Escape') setTimeout(syncGhost, 0); });
     syncGhost();
 
     /* the real caret takes over while the field is focused */
-    q.addEventListener('focus', () => gCaret.style.visibility = 'hidden');
-    q.addEventListener('blur',  () => gCaret.style.visibility = '');
 
     /* ============================================================
        REQUESTS
@@ -2789,10 +2863,12 @@
       document.body.classList.remove('solo-build', 'solo-snap');
       soloId = null;
       if (!explore.hidden) endExplore(false);
-      dockForced = false;
+      /* Rest is not "no bar" any more. The dock IS the bar, so the cross
+         puts the reader back in front of it with an empty field and the
+         question in the middle of the screen — the state the page used to
+         open on, now that there is only one instrument to come back to. */
+      dockForced = true;
       navBtn.setAttribute('aria-pressed', 'false');
-      collapseDock();
-      updateDock();
 
       nationsOpen = false;
       flagBtn.setAttribute('aria-pressed', 'false');
@@ -2804,7 +2880,13 @@
       dq.value = '';
       filter();
       syncGhost();
+      setFaceMode('explore');
       setFace(0, true);
+      openDock();
+      dq.value = '';
+      dghost.hidden = false;
+      paintHint('');
+      updateDock();
       showPrompt();
     }
 
@@ -3096,7 +3178,6 @@
     /* ============================================================
        NATIONS — the tabs are hidden until the flag asks for them
        ============================================================ */
-    const flagBtn = document.getElementById('flagBtn');
 
     /* ---------- the question on the bare page ----------
        Re-typed every time the archive comes back to rest, so returning
@@ -3258,6 +3339,56 @@
       spiral.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
     }
 
+    /* ============================================================
+       THE FIELD ARRIVING
+       Seventy-odd photographs, each a megabyte, do not land together. Left
+       alone they pop in one at a time and the reader watches the archive
+       assemble itself. So the field is held grey and soft until the last
+       one is in, with the mark drawing over it; then the mark fills and is
+       the way in.
+
+       A garment that fails to load counts as landed. One broken image must
+       not leave the whole field behind a gate that never opens.
+       ============================================================ */
+    const revEl   = document.getElementById('reveal');
+    const revBtn  = document.getElementById('revealBtn');
+    const revNote = document.getElementById('revNote');
+    const revTrace = document.getElementById('revTrace');
+    let imgTotal = 0, imgDone = 0, revealed = false, revArmed = false;
+
+    function watchLoad(img){
+      if (!img) return;
+      imgTotal++;
+      const done = () => {
+        imgDone++;
+        if (revNote && !revArmed){
+          revNote.textContent = `${imgDone} / ${imgTotal}`;
+        }
+        if (imgDone >= imgTotal) armReveal();
+      };
+      if (img.complete && img.naturalWidth > 0){ done(); return; }
+      img.addEventListener('load',  done, { once:true });
+      img.addEventListener('error', done, { once:true });   // broken counts as landed
+    }
+
+    function armReveal(){
+      if (revArmed || revealed) return;
+      revArmed = true;
+      revEl.classList.remove('drawing');
+      revEl.classList.add('ready');
+      revNote.textContent = 'Press to enter';
+    }
+
+    function openGate(){
+      if (revealed) return;
+      revealed = true;
+      spiral.classList.remove('sp-waiting');
+      revEl.classList.add('going');
+      setTimeout(() => { revEl.hidden = true; }, 520);
+    }
+
+    if (revBtn) revBtn.addEventListener('click', openGate);
+
     function buildSpiral(){
       if (spiralBuilt) return;
       spiralBuilt = true;
@@ -3282,6 +3413,7 @@
             .split(/[^a-z0-9]+/).filter(Boolean).join('|');
           el.dataset.alias  = (nation.alias || []).join('|');
           spiral.appendChild(el);
+          watchLoad(el.querySelector('img'));
         });
       });
 
@@ -3449,10 +3581,18 @@
       clearTimeout(clusterTimer);
       const els = [...spiral.children];
 
+      /* The move is 800ms. Clearing the transition at 60ms — which is what
+         this used to do, alongside the glide — took the property's
+         transition away mid-flight, and a property whose transition is
+         removed jumps straight to its final value. That was the cluster
+         appearing rather than gathering. The tidy-up now waits for the move
+         it is tidying up after. */
+      const MOVE_MS = 800;
       const slide = () => els.forEach(el => {
-        el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1)';
+        el.style.transition = `left ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), top ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), opacity .45s ease`;
       });
-      const settle = () => els.forEach(el => { el.style.transition = ''; });
+      const settle = () => setTimeout(
+        () => els.forEach(el => { el.style.transition = ''; }), MOVE_MS + 80);
 
       if (!term){
         els.forEach(el => el.classList.remove('sp-dim', 'sp-gone'));
@@ -3565,6 +3705,35 @@
     function openExplore(){
       // the list's dressing does not belong to the field
       document.body.classList.remove('dock-list');
+
+      /* The gate is shown once, on the first visit to the field. Coming
+         back to a field that is already loaded should not put a door in
+         front of it again. */
+      if (!revealed && !spiralBuilt){
+        spiral.classList.add('sp-waiting');
+        revEl.hidden = false;
+        revEl.classList.add('drawing');
+        const len = revTrace.getTotalLength();
+        revTrace.style.strokeDasharray = len;
+        revEl.style.setProperty('--rev-len', len);
+        /* The count starts the moment the field is built rather than on the
+           first photograph to land — on a slow line that is several seconds
+           of a drawing mark over nothing, which reads as stuck. */
+        requestAnimationFrame(() => {
+          if (!revArmed && imgTotal) revNote.textContent = `${imgDone} / ${imgTotal}`;
+        });
+
+        // nothing to wait for — no images in the document at all
+        setTimeout(() => { if (imgTotal === 0) armReveal(); }, 400);
+
+        /* A gate that never opens is worse than one that opens early.
+           `loading="lazy"` means the browser is entitled to hold back a
+           photograph it considers off-screen, and in a transformed spiral
+           its idea of off-screen is not ours — so a count that never
+           completes is a real outcome, not a hypothetical. After eight
+           seconds the reader gets in regardless. */
+        setTimeout(armReveal, 8000);
+      }
       // whatever the last visit chose, this one starts with the whole field
       spiral.classList.remove('sp-chosen');
       spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
@@ -3763,6 +3932,28 @@
       }
 
       if (!savedIds.length){ flashNoData(); return; }   // nothing kept to gather
+
+      /* In the list the bookmark opens the Saved tab, because that is what
+         "my garments" looks like in a list — a section of its own with the
+         rest shut. Morphing a spiral the reader is not looking at answered
+         a question nobody had asked. */
+      if (explore.hidden){
+        savedOnly = !savedOnly;
+        soloId = null;
+        nationsOpen = true;
+        document.body.classList.add('browsing');
+        document.body.classList.toggle('library', savedOnly);
+        paintSaved();
+        filter();
+        if (savedOnly) savedTab.open = true;
+        countEl.textContent = savedOnly
+          ? `${savedIds.length} ${savedIds.length === 1 ? 'garment' : 'garments'} saved`
+          : `${allItems.length} garments`;
+        dockLibrary.setAttribute('aria-pressed', savedOnly ? 'true' : 'false');
+        syncChrome();
+        return;
+      }
+
       const next = spiralMode === 'saved' ? 'spiral' : 'saved';
       morphLayout(next);
       dockLibrary.setAttribute('aria-pressed', next === 'saved' ? 'true' : 'false');
@@ -4251,6 +4442,8 @@
     openExplore();
     openDock();
     updateDock();
+    showPrompt();
+    startSuggestions();   // the running suggestion is the bar's own prompt
   </script>
 </body>
 </html>
