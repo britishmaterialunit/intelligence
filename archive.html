@@ -532,8 +532,10 @@
     body.single-result .nation::before{
       content:"";
       position:absolute;
-      left:0; right:0; top:-1.5px;
-      height:1.5px;
+      /* sits ON the top edge, not above it — it is standing in for that
+         border while it draws, not adding a second line over it */
+      left:-1px; right:-1px; top:-1px;
+      height:1px;
       background:var(--line);
       transform:scaleX(0);
       transform-origin:center;
@@ -558,9 +560,14 @@
       border-color:transparent;
       transition:none;
     }
-    /* drawing: the rule crosses the top and the tab fades up behind it */
+    /* Drawing: the three other edges fade up, but the TOP stays transparent
+       for as long as the rule is crossing it. The rule and the border are
+       the same line in the same place — both up at once is the thick line
+       above the tab, not a heavier stroke but two of them. The top edge
+       arrives only when the rule has finished and gone. */
     body.single-result.solo-drawing .nation{
       border-color:var(--line);
+      border-top-color:transparent;
       transition:border-color .5s ease .12s;
     }
     body.single-result.solo-drawing .nation > summary{
@@ -1201,6 +1208,48 @@
     #dqFlag[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
     #dqExplore img{ display:block; width:13px; height:13px; }
 
+    /* ---------- CLOSING A RECORD ----------
+       Reversing the build turned out to be the wrong idea: run backwards,
+       a sequence built to introduce something reads as a stutter. The
+       record closes the way a window shuts instead — the body rolls up into
+       the tab's own header, the header goes, and the garment is uncovered
+       from the middle outwards as the field comes back. */
+    body.solo-closing .nation > .nbody{
+      display:grid;
+      grid-template-rows:0fr;
+      transition:grid-template-rows .44s cubic-bezier(.4,0,.2,1);
+    }
+    body.solo-closing .nation > .nbody > *{
+      min-height:0;
+      overflow:hidden;
+      opacity:0;
+      transition:opacity .28s ease;
+    }
+    body.solo-closing .nation{
+      transition:border-color .3s ease .3s;
+      border-color:transparent;
+    }
+    body.solo-closing .nation > summary{
+      opacity:0;
+      transform:translateY(-6px);
+      transition:opacity .3s ease .26s, transform .3s ease .26s;
+    }
+
+    /* Uncovered from the middle out, both edges at once — the opposite
+       gesture to a box being drawn around it. */
+    .sp-item.sp-parting{
+      animation:sp-part .62s cubic-bezier(.4,0,.2,1) both;
+    }
+    @keyframes sp-part{
+      from { clip-path:inset(0 50% 0 50%); }
+      to   { clip-path:inset(0 0 0 0); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      body.solo-closing .nation > .nbody,
+      body.solo-closing .nation > summary{ transition:none; }
+      .sp-item.sp-parting{ animation:none; }
+    }
+
     /* ---------- THE FIELD, ARRIVING ----------
        Held back rather than assembled in public: every garment greyed and
        softened until the last photograph has landed, so what the reader
@@ -1273,8 +1322,15 @@
     /* landed: it fills, and becomes the way in */
     #reveal.ready .rev-trace{ animation:none; opacity:0; transition:opacity .4s ease; }
     #reveal.ready .rev-fill{ opacity:1; }
-    #reveal.ready #revealBtn{ cursor:pointer; pointer-events:auto; }
-    #reveal.ready #revealBtn:hover .rev-fill{ opacity:.55; }
+    /* The whole sheet takes the press once the field is in, not just the
+       mark. The mark is what SAYS press me; making it the only thing that
+       can be pressed left the click landing on the overlay behind it — the
+       press and the release resolved to different elements and the browser
+       handed the click to their common ancestor, which was the explore
+       overlay. A target that spans the screen cannot be missed. */
+    #reveal.ready{ pointer-events:auto; cursor:pointer; }
+    #reveal.ready #revealBtn{ cursor:pointer; pointer-events:none; }
+    #reveal.ready:hover .rev-fill{ opacity:.55; }
     #reveal.going{ opacity:0; transition:opacity .5s ease; }
 
     /* The bar is not usable while the field is still coming: typing into a
@@ -2904,6 +2960,7 @@
     /* Everything that returns the archive to rest goes through here, so
        the star can never end up a step behind the buttons it summoned. */
     function goHome(){
+      document.body.classList.remove('solo-closing');
       document.body.classList.remove('solo-drawing');
       document.body.classList.remove('dock-list');
       soloTimers.forEach(clearTimeout);
@@ -3446,7 +3503,9 @@
     }
     function gateShut(){ return !revealed && revEl && !revEl.hidden; }
 
-    if (revBtn) revBtn.addEventListener('click', openGate);
+    // pointerup rather than click: it fires on the element under the pointer
+    // and does not care where the press began
+    if (revEl) revEl.addEventListener('pointerup', openGate);
 
     function buildSpiral(){
       if (spiralBuilt) return;
@@ -4102,6 +4161,11 @@
     let panId = null, panX = 0, panY = 0;
     explore.addEventListener('pointerdown', e => {
       if (e.target.closest('.sp-item')) return;
+      /* The gate lives inside this overlay, and capturing the pointer here
+         means the button inside it never receives the click — the press
+         lands, the pan takes the pointer, and no click is ever delivered.
+         Anything belonging to the gate is not a pan. */
+      if (e.target.closest('#reveal')) return;
       panId = e.pointerId; panX = e.clientX; panY = e.clientY;
       explore.setPointerCapture(panId);
       explore.classList.add('grabbing');
@@ -4364,6 +4428,7 @@
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
     function returnToExplore(){
+      document.body.classList.remove('solo-closing');
       document.body.classList.remove('solo-drawing');
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
@@ -4382,6 +4447,7 @@
       lastExploreItem = null;
 
       const land = () => {
+        document.body.classList.remove('solo-closing');
         soloId = null;
         q.value = '';
         filter();
@@ -4390,10 +4456,20 @@
         dockForced = true;
         navBtn.setAttribute('aria-pressed', 'true');
         updateDock();
+
+        /* The view is put where it belongs BEFORE the field is shown.
+           Unhiding explore and then moving it means one painted frame at the
+           old transform — that frame is the flicker on the way back. */
         openExplore();
-        if (item) focusItem(item);
-        // the field comes back around the garment that was chosen, which is
-        // still lit — everything else fades up behind it
+        if (item){
+          spiral.style.transition = 'none';
+          focusItem(item);
+          void spiral.offsetWidth;          // commit it unanimated
+          spiral.style.transition = '';
+          item.classList.add('sp-parting');  // uncovered from the middle out
+          soloTimers.push(setTimeout(() => item.classList.remove('sp-parting'), 700));
+        }
+        // and the rest of the field comes up behind it
         setTimeout(() => {
           spiral.classList.remove('sp-chosen');
           spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
@@ -4402,13 +4478,9 @@
 
       if (!card || REDUCED){ land(); return; }
 
-      // 1. the record folds away and the card returns to its square
-      document.body.classList.add('solo-build');
-      card.classList.add('framed');
-      // 2. the tab lets go of it
-      soloTimers.push(setTimeout(() => card.classList.remove('framed'), 380));
-      // 3. and the field takes it back
-      soloTimers.push(setTimeout(land, 620));
+      // the window shuts: the body rolls up into the header, then both go
+      document.body.classList.add('solo-closing');
+      soloTimers.push(setTimeout(land, 560));
       return;
       if (item) focusItem(item);
     }
