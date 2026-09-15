@@ -347,6 +347,23 @@
       transform:translateY(-14px);
       pointer-events:none;
     }
+    /* Going down, the row lifts away — the footer is rising and it gets out
+       of the way upwards. Coming back it used to retrace that: it appeared
+       ABOVE its place and settled downwards, which is the footer's motion
+       played backwards rather than the row's own. It comes up from below
+       instead, the way something returning to a shelf does. A transition
+       cannot do this — it is symmetrical by definition — so the return is
+       an animation of its own. */
+    body.entered #navStack.returning{
+      animation:nav-return .5s cubic-bezier(.4,0,.2,1) both;
+    }
+    @keyframes nav-return{
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:none; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      body.entered #navStack.returning{ animation:none; }
+    }
 
     .bm-button{
       display:block;
@@ -995,26 +1012,48 @@
 
     /* The one thing in the footer asking to be pressed, so it is the one
        thing wearing a box. Bold and title-cased, as the partner names are. */
+    /* The same measure as a button on the home page's row, and starting on
+       the same left edge as the address and the address line above it — it
+       belongs to that column, not floating in the middle of it.
+
+       Pressing is not a colour change: the box runs outwards to the right
+       and the arrow arrives in the room it made. The rule is the thing that
+       moves, which is the gesture the rest of the site is built on. */
     .foot-talk{
-      /* centred between the address and the contact line rather than
-         hanging off the left edge of the column */
-      align-self:center;
+      align-self:flex-start;
       display:inline-flex;
       align-items:center;
-      gap:9px;
-      margin-top:6px;
-      margin-bottom:0;
-      padding:6px 12px;
+      justify-content:flex-start;
+      gap:0;
+      /* the measure of a button on the home page's row. min-width as well
+         as width: the column it sits in is a flex container and was sizing
+         it to its own text regardless of what width asked for. */
+      width:134px;
+      min-width:134px;
+      flex:none;
+      margin:6px 0 0;
+      padding:7px 12px;
       border:1.5px solid var(--line);
       color:var(--ink);
       text-decoration:none;
       font-size:12px;
       font-weight:700;
       letter-spacing:.01em;
-      transition:background-color .3s ease, color .3s ease;
+      white-space:nowrap;
+      overflow:hidden;
+      transition:width .42s cubic-bezier(.4,0,.2,1);
     }
-    .foot-talk:hover{ background:var(--line); color:var(--bg); }
-    .foot-talk svg{ width:12px; height:12px; display:block; flex:none; }
+    .foot-talk:hover{ width:170px; min-width:170px; }
+    .foot-talk svg{
+      width:12px; height:12px;
+      display:block;
+      flex:none;
+      margin-left:8px;
+      opacity:0;
+      transform:translateX(-6px);
+      transition:opacity .3s ease .12s, transform .42s cubic-bezier(.4,0,.2,1) .06s;
+    }
+    .foot-talk:hover svg{ opacity:1; transform:none; }
     .talk-arrow{
       fill:none;
       stroke:currentColor;
@@ -2596,6 +2635,7 @@
     let opsFooterPass = false;
 
     /* ---------- FOOTER: revealed on scroll, once entered ---------- */
+    const navStack   = document.getElementById('navStack');
     const siteFooter = document.getElementById('siteFooter');
     const footTrace  = document.getElementById('footTrace');
     const footFill   = document.getElementById('footFill');
@@ -2654,7 +2694,15 @@
         const vh = window.innerHeight;
         const r  = siteFooter.getBoundingClientRect();
         const inView = r.top < vh * 0.88 && r.bottom > 0;
+        const wasAtFooter = document.body.classList.contains('at-footer');
         document.body.classList.toggle('at-footer', inView);
+        if (wasAtFooter && !inView && navStack){
+          // leaving the footer: the row comes back up into its place
+          navStack.classList.remove('returning');
+          void navStack.offsetWidth;
+          navStack.classList.add('returning');
+          setTimeout(() => navStack.classList.remove('returning'), 560);
+        }
         if (window.bmuSyncHeadTool) window.bmuSyncHeadTool();
 
         /* Measured against how far this footer can actually rise, not a fixed

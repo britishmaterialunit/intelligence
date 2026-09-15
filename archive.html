@@ -827,7 +827,11 @@
       display:flex;
       align-items:center;
       gap:7px;
-      margin-bottom:9px;
+      /* the chosen dot grows, and the panel it sits in clips its own
+         overflow for the slide — the row is given the room to grow into
+         rather than losing a third of the first circle to the edge */
+      margin:3px 0 9px;
+      padding:3px 4px;
     }
     .req-dot{
       width:11px; height:11px;
@@ -1394,27 +1398,32 @@
     #revealBtn svg{ height:17px; width:auto; display:block; overflow:visible; }
     .rev-trace{
       fill:none;
-      stroke:var(--ink);
+      /* the page's black, not the softer ink — this mark is the one thing
+         on screen while the field arrives, and it should read as solidly
+         as it will when it fills */
+      stroke:var(--line);
       stroke-width:.5;
     }
     .rev-fill{
-      fill:var(--ink);
+      fill:var(--line);
       stroke:none;
       opacity:0;
       transition:opacity .5s ease;
     }
     /* the mark draws itself for as long as the photographs are landing */
     #reveal.drawing .rev-trace{ animation:rev-draw 2.2s ease-in-out infinite; }
+    /* It draws and holds. The old last frame faded it to a quarter, which
+       is what made the mark look grey until something was hovered over. */
     @keyframes rev-draw{
-      0%   { stroke-dashoffset:var(--rev-len); }
-      55%  { stroke-dashoffset:0; }
-      100% { stroke-dashoffset:0; opacity:.25; }
+      0%   { stroke-dashoffset:var(--rev-len); opacity:1; }
+      55%  { stroke-dashoffset:0; opacity:1; }
+      100% { stroke-dashoffset:0; opacity:1; }
     }
     /* Landed: it fills, in the page's own black rather than the softer ink
        the outline is drawn in. Grey said "still working"; this says "press
        me", which is the only thing left to do. */
     #reveal.ready .rev-trace{ animation:none; opacity:0; transition:opacity .4s ease; }
-    #reveal.ready .rev-fill{ opacity:1; fill:var(--line); }
+    #reveal.ready .rev-fill{ opacity:1; }
     /* The whole sheet takes the press once the field is in, not just the
        mark. The mark is what SAYS press me; making it the only thing that
        can be pressed left the click landing on the overlay behind it — the
@@ -1572,6 +1581,93 @@
         padding-right:78px;
       }
       #prompt{ font-size:13px; }
+    }
+
+    /* The shelf arriving in the list: it rises from under the tab above it
+       rather than appearing at the top of the page, so it reads as being
+       pulled out of the archive rather than dropped on top of it. */
+    #savedTab.rising{
+      animation:saved-rise .52s cubic-bezier(.4,0,.2,1) both;
+    }
+    @keyframes saved-rise{
+      from { opacity:0; transform:translateY(22px) scaleY(.92); transform-origin:top center; }
+      to   { opacity:1; transform:none; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      #savedTab.rising{ animation:none; }
+    }
+
+    /* ---------- GROUPING A NATION'S GARMENTS ----------
+       Opens on all of them in one run, with a plus offering the three ways
+       they can be split. The plus slides aside and becomes a minus while
+       the choices are out, so the control reads as a thing that has opened
+       rather than a thing that has changed. */
+    .facet-bar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:2px 2px 14px;
+    }
+    .facet-title{
+      font-size:9.5px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+      transition:color .3s ease;
+    }
+    .facet-bar.on .facet-title{ color:var(--ink); }
+
+    .facet-toggle{
+      width:16px; height:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+      border:none;
+      background:none;
+      cursor:pointer;
+      color:#c4c4c4;
+      font-family:var(--font);
+      font-size:13px;
+      line-height:1;
+      transition:color .3s ease, transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .facet-toggle:hover{ color:var(--ink); }
+    /* it travels to the far side of the row as it opens */
+    .facet-bar.on .facet-toggle{
+      color:var(--ink);
+      transform:translateX(var(--facet-shift, 190px));
+    }
+
+    .facet-opts{
+      display:inline-flex;
+      align-items:center;
+      gap:14px;
+      opacity:0;
+      transform:translateX(-8px);
+      transition:opacity .34s ease, transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .facet-opts[hidden]{ display:none; }
+    .facet-bar.on .facet-opts{ opacity:1; transform:none; }
+
+    .facet-opt{
+      padding:0;
+      border:none;
+      background:none;
+      cursor:pointer;
+      font-family:var(--font);
+      font-size:9.5px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+      transition:color .25s ease;
+    }
+    .facet-opt:hover{ color:var(--ink); }
+    .facet-opt[aria-pressed="true"]{ color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+    .facet-reset{ color:#c4c4c4; }
+
+    @media (prefers-reduced-motion:reduce){
+      .facet-toggle, .facet-opts{ transition:none; }
     }
 
     /* ---------- THE COLLECTION'S DOOR ---------- */
@@ -2093,185 +2189,185 @@
     const ITEMS = [
       /* ---------------- BRITISH ---------------- */
       { n:"british", name:"British Army 1980s No.1 Royal Signals Dress Jacket", cat:"Jackets",
-        img:"BA1980NRSDJ.png", ref:"BA1980NRSDJ" },
+        img:"BA1980NRSDJ.png", ref:"BA1980NRSDJ", mat:"Wool" },
       { n:"british", name:"British Army 1990s S95 Desert DPM Camouflage Combat Jacket", cat:"Jackets",
-        img:"BA1990S95DDCCJ.png", ref:"BA1990S95DDCCJ" },
+        img:"BA1990S95DDCCJ.png", ref:"BA1990S95DDCCJ", mat:"Cotton" },
       { n:"british", name:"British Army 1990s S95 Woodland DPM Camouflage Ripstop Field Jacket", cat:"Jackets",
-        img:"BA1990S95WDCRFJ.png", ref:"BA1990S95WDCRFJ" },
+        img:"BA1990S95WDCRFJ.png", ref:"BA1990S95WDCRFJ", mat:"Ripstop" },
       { n:"british", name:"British Army 2010s No.2 FAD Royal Regiment of Scotland Dress Jacket", cat:"Jackets",
-        img:"BA2010NFRROSDJ.png", ref:"BA2010NFRROSDJ" },
+        img:"BA2010NFRROSDJ.png", ref:"BA2010NFRROSDJ", mat:"Wool" },
       { n:"british", name:"British Royal Navy 1980s Blue Upper Deck Jacket", cat:"Jackets",
-        img:"BRN1980BUDJ.png", ref:"BRN1980BUDJ" },
+        img:"BRN1980BUDJ.png", ref:"BRN1980BUDJ", mat:"Cotton" },
       { n:"british", name:"British Army 2010s MTP Camouflage UBACS Combat Shirt", cat:"Shirts",
-        img:"BA2010MCUCS.png", ref:"BA2010MCUCS" },
+        img:"BA2010MCUCS.png", ref:"BA2010MCUCS", mat:"Cotton" },
       { n:"british", name:"British Royal Navy 2010s Rig 22 FR Operational Shirt", cat:"Shirts",
-        img:"BRN2010R22FOS.png", ref:"BRN2010R22FOS" },
+        img:"BRN2010R22FOS.png", ref:"BRN2010R22FOS", mat:"Unlisted" },
       { n:"british", name:"British Army 1980s 85 Pattern Woodland DPM Camouflage Combat Smock", cat:"Smocks",
-        img:"BA198085PWDCCS.png", ref:"BA198085PWDCCS" },
+        img:"BA198085PWDCCS.png", ref:"BA198085PWDCCS", mat:"Cotton" },
       { n:"british", name:"British Army 1990s Thermal Buffalo Pullover Smock", cat:"Smocks",
-        img:"BA1990TBPS.png", ref:"BA1990TBPS" },
+        img:"BA1990TBPS.png", ref:"BA1990TBPS", mat:"Polyester" },
       { n:"british", name:"British Army 2010s MTP Camouflage Windproof Smock", cat:"Smocks",
-        img:"BA2010MCWS.png", ref:"BA2010MCWS" },
+        img:"BA2010MCWS.png", ref:"BA2010MCWS", mat:"Unlisted" },
       { n:"british", name:"British Royal Air Force 1980s Raincoat Trench Coat", cat:"Coats",
-        img:"BRAF1980RTC.png", ref:"BRAF1980RTC" },
+        img:"BRAF1980RTC.png", ref:"BRAF1980RTC", mat:"Wool" },
       { n:"british", name:"British Royal Air Force 1990s Wet Weather Coat Jacket", cat:"Coats",
-        img:"BRAF1990WWCJ.png", ref:"BRAF1990WWCJ" },
+        img:"BRAF1990WWCJ.png", ref:"BRAF1990WWCJ", mat:"Polyamide" },
       { n:"british", name:"British Royal Air Force 1980s Aircrew Faux Fur Thermal Base Layer Pullover", cat:"Pullovers",
-        img:"BRAF1980AFFTBLP.png", ref:"BRAF1980AFFTBLP" },
+        img:"BRAF1980AFFTBLP.png", ref:"BRAF1980AFFTBLP", mat:"Unlisted" },
       { n:"british", name:"British Royal Air Force 1980s GP Thermal Liner Bomber Jacket", cat:"Liners",
-        img:"BRAF1980GTLBJ.png", ref:"BRAF1980GTLBJ" },
+        img:"BRAF1980GTLBJ.png", ref:"BRAF1980GTLBJ", mat:"Polyester" },
       { n:"british", name:"British Royal Air Force 2000s MK3 FR Cold Weather Aircrew Trousers", cat:"Trousers",
-        img:"BRAF2000MK3FCWAT.png", ref:"BRAF2000MK3FCWAT" },
+        img:"BRAF2000MK3FCWAT.png", ref:"BRAF2000MK3FCWAT", mat:"Unlisted" },
       { n:"british", name:"British Army 1990s Desert DPM Camouflage Body Armour Cover Vest", cat:"Armour Covers",
-        img:"BA1990DDCBACV.png", ref:"BA1990DDCBACV" },
+        img:"BA1990DDCBACV.png", ref:"BA1990DDCBACV", mat:"Cotton" },
       { n:"british", name:"British Army 1990s Woodland DPM Camouflage Body Armour Cover Vest", cat:"Armour Covers",
-        img:"BA1990WDCBACV.png", ref:"BA1990WDCBACV", src:"Lambrino" },
+        img:"BA1990WDCBACV.png", ref:"BA1990WDCBACV", mat:"Unlisted", src:"Lambrino" },
       { n:"british", name:"British Army 2010s MTP Camouflage Body Armour Cover Vest", cat:"Armour Covers",
-        img:"BA2010MCBACV.png", ref:"BA2010MCBACV" },
+        img:"BA2010MCBACV.png", ref:"BA2010MCBACV", mat:"Cotton" },
       /* ---------------- AUSTRIAN ---------------- */
       { n:"austrian", name:"Austrian Army 1990s Olive Drab Lightweight Ripstop Jacket", cat:"Jackets",
-        img:"AA1990ODLRJ.png", ref:"AA1990ODLRJ" },
+        img:"AA1990ODLRJ.png", ref:"AA1990ODLRJ", mat:"Polyester" },
       { n:"austrian", name:"Austrian Army 2000s Olive Drab Anzug 03 Alpine Jacket", cat:"Jackets",
-        img:"AA2000ODA03AJ.png", ref:"AA2000ODA03AJ" },
+        img:"AA2000ODA03AJ.png", ref:"AA2000ODA03AJ", mat:"Cotton" },
       { n:"austrian", name:"Austrian Army 1980s Olive Drab Long Sleeve Field Shirt", cat:"Shirts",
-        img:"AA1980ODLSFS.png", ref:"AA1980ODLSFS" },
+        img:"AA1980ODLSFS.png", ref:"AA1980ODLSFS", mat:"Polyester" },
       /* ---------------- BELGIAN ---------------- */
       { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Field Jacket", cat:"Jackets",
-        img:"BEA1960M64OGFJ.png", ref:"BEA1960M64OGFJ" },
+        img:"BEA1960M64OGFJ.png", ref:"BEA1960M64OGFJ", mat:"Cotton" },
       { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Shirt", cat:"Shirts",
-        img:"BEA1960M64OGS.png", ref:"BEA1960M64OGS", src:"Lambrino" },
+        img:"BEA1960M64OGS.png", ref:"BEA1960M64OGS", mat:"Unlisted", src:"Lambrino" },
       /* ---------------- BULGARIAN ---------------- */
       { n:"bulgarian", name:"Bulgarian People's Army 1970s Olive Green Cossack Shirt", cat:"Shirts",
-        img:"BUPA1970OGCS.png", ref:"BUPA1970OGCS" },
+        img:"BUPA1970OGCS.png", ref:"BUPA1970OGCS", mat:"Cotton" },
       /* ---------------- CHINESE ---------------- */
       { n:"chinese", name:"Chinese People's Liberation Army 1980s Type 81 Olive Green AK Bandolier Chest Rig", cat:"Webbing",
-        img:"CPLA1980T81OGABCR.png", ref:"CPLA1980T81OGABCR" },
+        img:"CPLA1980T81OGABCR.png", ref:"CPLA1980T81OGABCR", mat:"Cotton" },
       /* ---------------- CZECH ---------------- */
       { n:"czech", name:"Czech Army 1990s Cold Weather Liner Jacket", cat:"Liners",
-        img:"CZA1990CWLJ.png", ref:"CZA1990CWLJ" },
+        img:"CZA1990CWLJ.png", ref:"CZA1990CWLJ", mat:"Unlisted" },
       /* ---------------- CZECHOSLOVAK ---------------- */
       { n:"czechoslovak", name:"Czechoslovak Army 1980s Orange Pyjama Shirt", cat:"Shirts",
-        img:"CSA1980OPS.png", ref:"CSA1980OPS" },
+        img:"CSA1980OPS.png", ref:"CSA1980OPS", mat:"Cotton" },
       { n:"czechoslovak", name:"Czechoslovak Army 1980s M85 Field Olive Green with Hood Parka", cat:"Parkas",
-        img:"CSA1980M85FOGWHP.png", ref:"CSA1980M85FOGWHP" },
+        img:"CSA1980M85FOGWHP.png", ref:"CSA1980M85FOGWHP", mat:"Cotton" },
       { n:"czechoslovak", name:"Czechoslovak Army 1960s M60 Vz63 Cold Weather Thermal Trouser Liner", cat:"Liners",
-        img:"CSA1960M60VZ63CWTTL.png", ref:"CSA1960M60VZ63CWTTL", src:"Lambrino" },
+        img:"CSA1960M60VZ63CWTTL.png", ref:"CSA1960M60VZ63CWTTL", mat:"Unlisted", src:"Lambrino" },
       /* ---------------- DANISH ---------------- */
       { n:"danish", name:"Danish Civil Defence 1970s M71 Parka", cat:"Parkas",
-        img:"DCD1970M71P.png", ref:"DCD1970M71P" },
+        img:"DCD1970M71P.png", ref:"DCD1970M71P", mat:"Cotton" },
       /* ---------------- DUTCH ---------------- */
       { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Combat Jacket", cat:"Jackets",
-        img:"NLA1990M93DWCCJ.png", ref:"NLA1990M93DWCCJ" },
+        img:"NLA1990M93DWCCJ.png", ref:"NLA1990M93DWCCJ", mat:"Cotton" },
       { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Jacket", cat:"Jackets",
-        img:"NLA1990M93DWCJ.png", ref:"NLA1990M93DWCJ" },
+        img:"NLA1990M93DWCJ.png", ref:"NLA1990M93DWCJ", mat:"Cotton" },
       { n:"dutch", name:"Dutch Navy 1980s Work Jacket", cat:"Jackets",
-        img:"NLN1980WJ.png", ref:"NLN1980WJ" },
+        img:"NLN1980WJ.png", ref:"NLN1980WJ", mat:"Cotton" },
       { n:"dutch", name:"Dutch Army 1990s Thermal Olive Brown Norgie Pullover", cat:"Pullovers",
-        img:"NLA1990TOBNP.png", ref:"NLA1990TOBNP" },
+        img:"NLA1990TOBNP.png", ref:"NLA1990TOBNP", mat:"Cotton" },
       { n:"dutch", name:"Dutch Army 1990s SPE Olive Green Chest Rig", cat:"Webbing",
-        img:"NLA1990SOGCR.png", ref:"NLA1990SOGCR" },
+        img:"NLA1990SOGCR.png", ref:"NLA1990SOGCR", mat:"Nylon" },
       /* ---------------- EAST GERMAN ---------------- */
       { n:"east-german", name:"East German Army 1960s NVA Raindrop Strichmuster Camouflage Jacket", cat:"Jackets",
-        img:"EGA1960NRSCJ.png", ref:"EGA1960NRSCJ" },
+        img:"EGA1960NRSCJ.png", ref:"EGA1960NRSCJ", mat:"Cotton" },
       /* ---------------- FINNISH ---------------- */
       { n:"finnish", name:"Finnish Army 1960s M64 NBC Smock", cat:"Smocks",
-        img:"FA1960M64NS.png", ref:"FA1960M64NS" },
+        img:"FA1960M64NS.png", ref:"FA1960M64NS", mat:"Unlisted" },
       /* ---------------- FRENCH ---------------- */
       { n:"french", name:"French Army 1990s CCE Camouflage F2 Jacket", cat:"Jackets",
-        img:"FRA1990CCF2J.png", ref:"FRA1990CCF2J" },
+        img:"FRA1990CCF2J.png", ref:"FRA1990CCF2J", mat:"Cotton" },
       { n:"french", name:"French Army 1990s CCE Camouflage Pullover Fleece", cat:"Fleeces",
-        img:"FRA1990CCPF.png", ref:"FRA1990CCPF" },
+        img:"FRA1990CCPF.png", ref:"FRA1990CCPF", mat:"Polyester" },
       /* ---------------- GREEK ---------------- */
       { n:"greek", name:"Greek Army 1960s M65 Olive Green Jacket", cat:"Jackets",
-        img:"GRA1960M65OGJ.png", ref:"GRA1960M65OGJ" },
+        img:"GRA1960M65OGJ.png", ref:"GRA1960M65OGJ", mat:"Cotton" },
       { n:"greek", name:"Greek Army 1960s M65 Faux Fur Liner Jacket", cat:"Liners",
-        img:"GRA1960M65FFLJ.png", ref:"GRA1960M65FFLJ" },
+        img:"GRA1960M65FFLJ.png", ref:"GRA1960M65FFLJ", mat:"Unlisted" },
       /* ---------------- HUNGARIAN ---------------- */
       { n:"hungarian", name:"Hungarian People's Army 1970s Cold Weather Tank Liner Jacket", cat:"Liners",
-        img:"HPA1970CWTLJ.png", ref:"HPA1970CWTLJ" },
+        img:"HPA1970CWTLJ.png", ref:"HPA1970CWTLJ", mat:"Cotton" },
       /* ---------------- IRAQI ---------------- */
       { n:"iraqi", name:"Iraqi Army 1980s Desert DPM Camouflage Combat Jacket", cat:"Jackets",
-        img:"IQA1980DDCCJ.png", ref:"IQA1980DDCCJ" },
+        img:"IQA1980DDCCJ.png", ref:"IQA1980DDCCJ", mat:"Cotton" },
       /* ---------------- IRISH ---------------- */
       { n:"irish", name:"Irish Army 1980s Green Dress Jacket", cat:"Jackets",
-        img:"IRA1980GDJ.png", ref:"IRA1980GDJ" },
+        img:"IRA1980GDJ.png", ref:"IRA1980GDJ", mat:"Wool" },
       /* ---------------- ISRAELI ---------------- */
       { n:"israeli", name:"Israeli Defense Force 1970s Green Battledress Ike Jacket", cat:"Jackets",
-        img:"ISDF1970GBIJ.png", ref:"ISDF1970GBIJ" },
+        img:"ISDF1970GBIJ.png", ref:"ISDF1970GBIJ", mat:"Wool" },
       /* ---------------- ITALIAN ---------------- */
       { n:"italian", name:"Italian Army 1970s Roma 75 Olive Drab Safari Jacket", cat:"Jackets",
-        img:"IA1970R75ODSJ.png", ref:"IA1970R75ODSJ" },
+        img:"IA1970R75ODSJ.png", ref:"IA1970R75ODSJ", mat:"Cotton" },
       { n:"italian", name:"Italian Army 1990s Roma 90 Woodland Camouflage Combat Jacket", cat:"Jackets",
-        img:"IA1990R90WCCJ.png", ref:"IA1990R90WCCJ" },
+        img:"IA1990R90WCCJ.png", ref:"IA1990R90WCCJ", mat:"Cotton" },
       { n:"italian", name:"Italian Army 1960s Denim Alpini Mountain Rucksack", cat:"Bags",
-        img:"IA1960DAMR.png", ref:"IA1960DAMR" },
+        img:"IA1960DAMR.png", ref:"IA1960DAMR", mat:"Cotton" },
       /* ---------------- NORWEGIAN ---------------- */
       { n:"norwegian", name:"Norwegian Army 1950s M51 Thermal Liner Parka", cat:"Parkas",
-        img:"NA1950M51TLP.png", ref:"NA1950M51TLP" },
+        img:"NA1950M51TLP.png", ref:"NA1950M51TLP", mat:"Wool" },
       /* ---------------- POLISH ---------------- */
       { n:"polish", name:"Polish Army 1990s WZ93 Pantera Camouflage Windproof Winter Liner Parka", cat:"Parkas",
-        img:"PA1990WZ93PCWWLP.png", ref:"PA1990WZ93PCWWLP" },
+        img:"PA1990WZ93PCWWLP.png", ref:"PA1990WZ93PCWWLP", mat:"Cotton" },
       /* ---------------- PORTUGUESE ---------------- */
       { n:"portuguese", name:"Portuguese Army 1960s M63 Lizard Camouflage Long Sleeve Shirt", cat:"Shirts",
-        img:"PTA1960M63LCLSS.png", ref:"PTA1960M63LCLSS" },
+        img:"PTA1960M63LCLSS.png", ref:"PTA1960M63LCLSS", mat:"Cotton" },
       /* ---------------- ROMANIAN ---------------- */
       { n:"romanian", name:"Romanian Army 1990s M1990 Leaf Camouflage Long Sleeve Shirt", cat:"Shirts",
-        img:"ROA1990M1990LCLSS.png", ref:"ROA1990M1990LCLSS" },
+        img:"ROA1990M1990LCLSS.png", ref:"ROA1990M1990LCLSS", mat:"Cotton" },
       { n:"romanian", name:"Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt", cat:"Shirts",
-        img:"ROP1990M1990BLCLSS.png", ref:"ROP1990M1990BLCLSS" },
+        img:"ROP1990M1990BLCLSS.png", ref:"ROP1990M1990BLCLSS", mat:"Cotton" },
       { n:"romanian", name:"Romanian Army 1990s M1994 Fleck Leaf Camouflage Winter Liner Parka", cat:"Parkas",
-        img:"ROA1990M1994FLCWLP.png", ref:"ROA1990M1994FLCWLP" },
+        img:"ROA1990M1994FLCWLP.png", ref:"ROA1990M1994FLCWLP", mat:"Cotton" },
       { n:"romanian", name:"Romanian People's Army 1970s Khaki Wool Greatcoat", cat:"Greatcoats",
-        img:"ROPA1970KWG.png", ref:"ROPA1970KWG" },
+        img:"ROPA1970KWG.png", ref:"ROPA1970KWG", mat:"Wool" },
       { n:"romanian", name:"Romanian Army 2010s M2017 Woodland Camouflage Polo", cat:"Polos",
-        img:"ROA2010M2017WCP.png", ref:"ROA2010M2017WCP" },
+        img:"ROA2010M2017WCP.png", ref:"ROA2010M2017WCP", mat:"Cotton" },
       { n:"romanian", name:"Romanian Navy 2010s M2017 Blue Camouflage Polo", cat:"Polos",
-        img:"RON2010M2017BCP.png", ref:"RON2010M2017BCP" },
+        img:"RON2010M2017BCP.png", ref:"RON2010M2017BCP", mat:"Cotton" },
       /* ---------------- SERBIAN ---------------- */
       { n:"serbian", name:"Serbian Army 1990s M93 Oak Leaf Camouflage Thermal Liner Parka", cat:"Parkas",
-        img:"SBA1990M93OLCTLP.png", ref:"SBA1990M93OLCTLP" },
+        img:"SBA1990M93OLCTLP.png", ref:"SBA1990M93OLCTLP", mat:"Cotton" },
       /* ---------------- SLOVAK ---------------- */
       { n:"slovak", name:"Slovak Air Force 2000s Thermal Flight Jacket", cat:"Jackets",
-        img:"SKAF2000TFJ.png", ref:"SKAF2000TFJ" },
+        img:"SKAF2000TFJ.png", ref:"SKAF2000TFJ", mat:"Cotton" },
       { n:"slovak", name:"Slovak Army 1990s M97 Camouflage M65 Jacket", cat:"Jackets",
-        img:"SKA1990M97CM65J.png", ref:"SKA1990M97CM65J" },
+        img:"SKA1990M97CM65J.png", ref:"SKA1990M97CM65J", mat:"Cotton" },
       /* ---------------- SOVIET ---------------- */
       { n:"soviet", name:"Soviet Navy 1970s Yellow Dress Shirt", cat:"Shirts",
-        img:"SN1970YDS.png", ref:"SN1970YDS" },
+        img:"SN1970YDS.png", ref:"SN1970YDS", mat:"Cotton" },
       { n:"soviet", name:"Soviet Red Army 1970s Brown Wool Greatcoat", cat:"Greatcoats",
-        img:"SRA1970BWG.png", ref:"SRA1970BWG" },
+        img:"SRA1970BWG.png", ref:"SRA1970BWG", mat:"Wool" },
       /* ---------------- SPANISH ---------------- */
       { n:"spanish", name:"Spanish Army 2000s M09 Pixel Leaf Camouflage Ripstop Jacket", cat:"Jackets",
-        img:"SPA2000M09PLCRJ.png", ref:"SPA2000M09PLCRJ" },
+        img:"SPA2000M09PLCRJ.png", ref:"SPA2000M09PLCRJ", mat:"Cotton" },
       /* ---------------- SWEDISH ---------------- */
       { n:"swedish", name:"Swedish Army 1940s M39 Wool Jacket", cat:"Jackets",
-        img:"SWA1940M39WJ.png", ref:"SWA1940M39WJ" },
+        img:"SWA1940M39WJ.png", ref:"SWA1940M39WJ", mat:"Wool" },
       /* ---------------- SWISS ---------------- */
       { n:"swiss", name:"Swiss Army 1980s TAZ83 Alpenflage Camouflage Field Shirt", cat:"Shirts",
-        img:"CHA1980TAZ83ACFS.png", ref:"CHA1980TAZ83ACFS" },
+        img:"CHA1980TAZ83ACFS.png", ref:"CHA1980TAZ83ACFS", mat:"Cotton" },
       /* ---------------- UNITED STATES ---------------- */
       { n:"united-states", name:"United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket", cat:"Jackets",
-        img:"USAF1990TCDCSCRCJ.png", ref:"USAF1990TCDCSCRCJ" },
+        img:"USAF1990TCDCSCRCJ.png", ref:"USAF1990TCDCSCRCJ", mat:"Cotton" },
       { n:"united-states", name:"United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket", cat:"Jackets",
-        img:"USAF2000DTSCBCJ.png", ref:"USAF2000DTSCBCJ" },
+        img:"USAF2000DTSCBCJ.png", ref:"USAF2000DTSCBCJ", mat:"Cotton" },
       { n:"united-states", name:"United States Air Force 2010s Multicam Camouflage Combat Jacket", cat:"Jackets",
-        img:"USAF2010MCCJ.png", ref:"USAF2010MCCJ" },
+        img:"USAF2010MCCJ.png", ref:"USAF2010MCCJ", mat:"Cotton" },
       { n:"united-states", name:"United States Marine Corps 1980s M81 Woodland Camouflage BDU Combat Jacket", cat:"Jackets",
-        img:"USMC1980M81WCBCJ.png", ref:"USMC1980M81WCBCJ" },
+        img:"USMC1980M81WCBCJ.png", ref:"USMC1980M81WCBCJ", mat:"Cotton" },
       { n:"united-states", name:"United States Army 2000s UCP Camouflage UBACS Mandarin Collar Shirt", cat:"Shirts",
-        img:"USA2000UCUMCS.png", ref:"USA2000UCUMCS" },
+        img:"USA2000UCUMCS.png", ref:"USA2000UCUMCS", mat:"Cotton" },
       { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage MVP Parka", cat:"Parkas",
-        img:"USA1980M81WCMP.png", ref:"USA1980M81WCMP" },
+        img:"USA1980M81WCMP.png", ref:"USA1980M81WCMP", mat:"Nylon" },
       { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage M65 Cold Weather Field Coat", cat:"Coats",
-        img:"USA1980M81WCM65CWFC.png", ref:"USA1980M81WCM65CWFC" },
+        img:"USA1980M81WCM65CWFC.png", ref:"USA1980M81WCM65CWFC", mat:"Cotton" },
       /* ---------------- WEST GERMAN ---------------- */
       { n:"west-german", name:"West German Army 1960s Tracksuit Jacket", cat:"Jackets",
-        img:"WGA1960TJ.png", ref:"WGA1960TJ" },
+        img:"WGA1960TJ.png", ref:"WGA1960TJ", mat:"Cotton" },
       { n:"west-german", name:"West German Army 1970s Khaki Thermal Liner Coat", cat:"Liners",
-        img:"WGA1970KTLC.png", ref:"WGA1970KTLC" },
+        img:"WGA1970KTLC.png", ref:"WGA1970KTLC", mat:"Polyester" },
       /* ---------------- YUGOSLAV ---------------- */
       { n:"yugoslav", name:"Yugoslav Army 1980s JNA M87 Oak Leaf Camouflage Shirt", cat:"Shirts",
-        img:"YA1980JM87OLCS.png", ref:"YA1980JM87OLCS" }
+        img:"YA1980JM87OLCS.png", ref:"YA1980JM87OLCS", mat:"Cotton" }
     ];
 
     /* ---------- category order within each nation ----------
@@ -2346,6 +2442,12 @@
       }
     }
 
+    /* The fabric each garment is cut from, read off its own record when the
+       page was built — the record's opening sentence names it, which the
+       title usually does not. Unlisted where the record does not say;
+       nothing is inferred. */
+    function MATERIAL_OF(p){ return p.mat || 'Unlisted'; }
+
     NATIONS.forEach(nation => {
       const mine = ITEMS.filter(p => p.n === nation.key);
       if (!mine.length) return;
@@ -2370,15 +2472,36 @@
         `<div class="nbody"></div>`;
       const body = details.querySelector('.nbody');
 
+      /* How this nation's garments are grouped. It opens on ALL of them in
+         one run — the sectioned version stacks a shelf of one on a shelf of
+         one on a shelf of one, which is a lot of headings for very little
+         archive. The switch offers the three facets the records actually
+         carry, and Reset puts them back in one run. */
+      const bar = document.createElement('div');
+      bar.className = 'facet-bar';
+      bar.innerHTML =
+        `<span class="facet-title">Garments</span>` +
+        `<button type="button" class="facet-toggle" aria-expanded="false" aria-label="Group these garments">` +
+          `<span class="facet-sign" aria-hidden="true">+</span>` +
+        `</button>` +
+        `<span class="facet-opts" hidden>` +
+          `<button type="button" class="facet-opt" data-facet="type">Type</button>` +
+          `<button type="button" class="facet-opt" data-facet="material">Material</button>` +
+          `<button type="button" class="facet-opt" data-facet="date">Date</button>` +
+          `<button type="button" class="facet-opt facet-reset" data-facet="">Reset</button>` +
+        `</span>`;
+      body.appendChild(bar);
+
+      /* Built as one section holding everything, in the shelf order the
+         archive keeps them in. Grouping is something the reader asks for,
+         not the state the tab arrives in. */
       cats.forEach(section => {
         const group = document.createElement('section');
         group.className = 'group';
-        if (showLabels){
-          const label = document.createElement('div');
-          label.className = 'section-label';
-          label.textContent = section;
-          group.appendChild(label);
-        }
+        /* No heading on arrival. The tab opens on every garment in one run
+           and the switch above adds the headings when one is asked for —
+           a shelf of one stacked on a shelf of one is more headings than
+           archive. */
 
         const grid = document.createElement('div');
         grid.className = 'grid';
@@ -2391,6 +2514,13 @@
           const el = document.createElement('article');
           el.className = 'item';
           const blob = [p.name, nation.label, p.cat, p.ref, p.src].filter(Boolean).join(' ').toLowerCase();
+          /* What this garment can be sorted under, read off the record
+             rather than guessed at the moment of sorting. Date comes from
+             the name, material from the record's first line — the one the
+             prose opens with — and type is the shelf it already sits on. */
+          el.dataset.type = p.cat;
+          el.dataset.date = (p.name.match(/\b(?:1[89]|20)\d0s\b/) || ['Undated'])[0];
+          el.dataset.material = MATERIAL_OF(p);
           el.dataset.search = blob;
           el.dataset.words  = blob.split(/[^a-z0-9]+/).filter(Boolean).join('|');
           el.dataset.alias  = (nation.alias || []).join('|');
@@ -2811,6 +2941,126 @@
     }
 
     /* ============================================================
+       GROUPING A NATION'S GARMENTS
+       The tab opens on every garment in one run. The switch regroups them
+       by the facets the records already carry — the shelf they sit on, the
+       fabric named in the title, the decade — and Reset puts them back.
+
+       The cards are moved, not rebuilt: every listener already on them
+       stays attached, and a garment keeps whatever state it was in.
+       ============================================================ */
+    function facetOf(el, facet){
+      if (facet === 'type')     return el.dataset.type || 'Unclassified';
+      if (facet === 'material') return el.dataset.material || 'Unlisted';
+      if (facet === 'date')     return el.dataset.date || 'Undated';
+      return '';
+    }
+
+    function regroup(details, facet){
+      const body   = details.querySelector('.nbody');
+      const bar    = body.querySelector('.facet-bar');
+      const title  = bar.querySelector('.facet-title');
+      const cards  = [...body.querySelectorAll('.item')];
+      if (!cards.length) return;
+
+      // every existing section goes; the cards themselves are kept
+      body.querySelectorAll('.group').forEach(g => g.remove());
+
+      const make = (heading) => {
+        const g = document.createElement('section');
+        g.className = 'group';
+        if (heading){
+          const l = document.createElement('div');
+          l.className = 'section-label';
+          l.textContent = heading;
+          g.appendChild(l);
+        }
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        g.appendChild(grid);
+        body.appendChild(g);
+        return grid;
+      };
+
+      if (!facet){
+        // all of them, in one run, under no heading at all
+        const grid = make(null);
+        cards.forEach(c => grid.appendChild(c));
+        title.textContent = 'Garments';
+        bar.querySelectorAll('.facet-opt').forEach(b => b.setAttribute('aria-pressed', 'false'));
+        details.dataset.facet = '';
+        return;
+      }
+
+      const groups = new Map();
+      cards.forEach(c => {
+        const k = facetOf(c, facet);
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(c);
+      });
+
+      /* Dates run oldest first; everything else runs by size, biggest
+         shelf at the top — a list of ones under a list of twelve reads as
+         an afterthought either way round, but at least this way the
+         substance comes first. */
+      const keys = [...groups.keys()].sort((a, b) =>
+        facet === 'date' ? a.localeCompare(b)
+                         : groups.get(b).length - groups.get(a).length || a.localeCompare(b));
+
+      keys.forEach(k => {
+        const grid = make(keys.length > 1 ? k : null);
+        groups.get(k).forEach(c => grid.appendChild(c));
+      });
+
+      // the heading becomes what the reader chose to see them by
+      title.textContent = keys.length === 1 ? keys[0] : facet[0].toUpperCase() + facet.slice(1);
+      bar.querySelectorAll('.facet-opt').forEach(b =>
+        b.setAttribute('aria-pressed', b.dataset.facet === facet ? 'true' : 'false'));
+      details.dataset.facet = facet;
+    }
+
+    /* One listener for every tab: the bar is the same shape in each. */
+    catalogue.addEventListener('click', e => {
+      const toggle = e.target.closest('.facet-toggle');
+      const opt    = e.target.closest('.facet-opt');
+      if (!toggle && !opt) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const bar     = e.target.closest('.facet-bar');
+      const details = e.target.closest('.nation');
+      if (!bar || !details) return;
+
+      if (toggle){
+        const opening = !bar.classList.contains('on');
+        const opts = bar.querySelector('.facet-opts');
+        if (opening){
+          opts.hidden = false;
+          // how far the sign has to travel to clear the choices it reveals
+          requestAnimationFrame(() => {
+            bar.style.setProperty('--facet-shift', Math.round(opts.scrollWidth + 10) + 'px');
+            bar.classList.add('on');
+            bar.querySelector('.facet-sign').textContent = '−';
+            bar.querySelector('.facet-toggle').setAttribute('aria-expanded', 'true');
+          });
+        } else {
+          bar.classList.remove('on');
+          bar.querySelector('.facet-sign').textContent = '+';
+          bar.querySelector('.facet-toggle').setAttribute('aria-expanded', 'false');
+          setTimeout(() => { opts.hidden = true; }, 420);
+        }
+        return;
+      }
+
+      regroup(details, opt.dataset.facet);
+      // choosing closes the row: the sign walks back and the choices go
+      bar.classList.remove('on');
+      bar.querySelector('.facet-sign').textContent = '+';
+      bar.querySelector('.facet-toggle').setAttribute('aria-expanded', 'false');
+      setTimeout(() => { bar.querySelector('.facet-opts').hidden = true; }, 420);
+    });
+
+    /* ============================================================
        THE COLLECTION'S DOOR
        Keeping is free. Opening the shelf asks for an address once, and
        sends us the shelf with it — the same two facts a request sends, at
@@ -2934,8 +3184,14 @@
         flashNoData();
         return;
       }
-      // closing the shelf needs nobody's name; opening it does
-      if (!savedOnly){ openJoinGate(() => savedBtn.click()); if (!hasJoined()) return; }
+      /* Closing the shelf needs nobody's name; opening it does. The gate is
+         only raised when there is actually a name to ask for — calling it
+         when already joined ran its callback, which pressed this button,
+         which called the gate again, for ever. */
+      if (!savedOnly && !hasJoined()){
+        openJoinGate(() => savedBtn.click());
+        return;
+      }
       savedOnly = !savedOnly;
       soloId = null;
       nationsOpen = true;
@@ -2943,7 +3199,14 @@
       document.body.classList.toggle('library', savedOnly);
       paintSaved();
       filter();
-      if (savedOnly){ savedTab.open = true; }
+      if (savedOnly){
+        savedTab.open = true;
+        // rises first, then opens — the two beats the reader asked for
+        savedTab.classList.remove('rising');
+        void savedTab.offsetWidth;
+        savedTab.classList.add('rising');
+        setTimeout(() => savedTab.classList.remove('rising'), 560);
+      }
       countEl.textContent = savedOnly
         ? `${savedIds.length} ${savedIds.length === 1 ? 'garment' : 'garments'}`
         : `${allItems.length} garments`;
@@ -4519,7 +4782,10 @@
          rest shut. Morphing a spiral the reader is not looking at answered
          a question nobody had asked. */
       if (explore.hidden){
-        if (!savedOnly){ openJoinGate(() => dockLibrary.click()); if (!hasJoined()) return; }
+        if (!savedOnly && !hasJoined()){
+          openJoinGate(() => dockLibrary.click());
+          return;
+        }
         savedOnly = !savedOnly;
         soloId = null;
         nationsOpen = true;
@@ -4536,9 +4802,9 @@
         return;
       }
 
-      if (spiralMode !== 'saved'){
+      if (spiralMode !== 'saved' && !hasJoined()){
         openJoinGate(() => dockLibrary.click());
-        if (!hasJoined()) return;
+        return;
       }
       const next = spiralMode === 'saved' ? 'spiral' : 'saved';
       morphLayout(next);
