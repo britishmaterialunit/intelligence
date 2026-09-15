@@ -76,7 +76,12 @@
       left:0; right:0;
       bottom:10px;
       text-align:center;
-      z-index:1;
+      /* Above the explore overlay, which is a full-screen white ground and
+         was simply painting over it — the line is the page's own signature
+         and belongs under the bar in every view, not only the ones where
+         nothing happens to be covering it. Still below the dock. */
+      z-index:65;
+      pointer-events:none;
     }
 
     /* the catalogue only exists once the reader asks for it */
@@ -1660,9 +1665,6 @@
 
     /* Centred on the header, belonging to neither side — see index.html */
     .hd-op{
-      position:absolute;
-      left:50%; top:50%;
-      transform:translate(-50%, -50%);
       display:block;
       line-height:0;
       padding:8px;
@@ -1678,7 +1680,7 @@
       stroke-linecap:round;
       stroke-linejoin:round;
     }
-    .hd-op:hover{ color:var(--ink); transform:translate(-50%, -50%) scale(1.12); }
+    .hd-op:hover{ color:var(--ink); transform:scale(1.12); }
     #siteHead:hover .hd-op{ color:#fff; }
     #siteHead .hd-inner{ position:relative; }
 
@@ -1740,18 +1742,17 @@
       </svg>
     </a>
 
-    <!-- Operation Upcycle, reachable from anywhere on the site -->
-    <a class="hd-op" id="hdOpUp" href="https://www.operationupcycle.co.uk"
-       target="_blank" rel="noopener noreferrer" aria-label="Operation Upcycle">
-      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-        <g class="ico-stroke">
-          <path d="M8 13.4 V3.2"/>
-          <path d="M3.5 7.7 L8 3.1 L12.5 7.7"/>
-        </g>
-      </svg>
-    </a>
-
     <nav class="hd-tools" aria-label="Leave the archive">
+      <!-- Operation Upcycle, reachable from anywhere on the site -->
+      <a class="hd-op" id="hdOpUp" href="https://www.operationupcycle.co.uk"
+         target="_blank" rel="noopener noreferrer" aria-label="Operation Upcycle">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <g class="ico-stroke">
+            <path d="M8 13.4 V3.2"/>
+            <path d="M3.5 7.7 L8 3.1 L12.5 7.7"/>
+          </g>
+        </svg>
+      </a>
       <a class="hd-ico" id="hdHome" href="/" aria-label="Back to the site">
         <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
           <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
@@ -4561,8 +4562,10 @@
       lastExploreItem = null;
 
       const land = () => {
-        document.body.classList.remove('solo-closing', 'solo-shutting');
-      document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
+        /* The closing classes come off LAST, after the catalogue has been put
+           away. Removing them first restored the tab to full opacity and full
+           width for the frame before setBrowsing hid the shell — the tab
+           flashed back into place on its way out. That was the flicker. */
         soloId = null;
         q.value = '';
         filter();
@@ -4588,6 +4591,10 @@
            the blink was that wipe starting before the field had painted. */
         explore.classList.add('ex-returning');
         soloTimers.push(setTimeout(() => explore.classList.remove('ex-returning'), 560));
+
+        // safe now: the shell is down and nothing of the tab can be seen
+        document.body.classList.remove('solo-closing', 'solo-shutting');
+        document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
         // and the rest of the field comes up behind it
         setTimeout(() => {
           spiral.classList.remove('sp-chosen');
