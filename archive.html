@@ -3096,9 +3096,7 @@
        FormSubmit needs no account and no key: the address below IS the
        endpoint. The very first request sent to a new address bounces back
        a confirmation link that has to be clicked once; after that they
-       arrive straight in the inbox. The mail client is kept as the way
-       out if the post fails — offline, blocked, or the service down —
-       so a request is never simply lost.
+       arrive straight in the inbox.
        ============================================================ */
     const REQUEST_TO  = 'hello@britishmaterialunit.com';
     const REQUEST_URL = 'https://formsubmit.co/ajax/' + REQUEST_TO;
@@ -3231,25 +3229,27 @@
         const subject = `Archive request — ${qty} × ${name}`;
 
         /* The keys are what the email is laid out by, so they are written
-           the way they should read in the inbox rather than as code. */
+           the way they should read in the inbox rather than as code — and
+           in the same words the collection email uses, so the two arrive
+           looking like two of the same thing rather than two formats.
+           Email, then why, then what: the order they want reading in. */
+        const shelf = savedNames();
         const payload = {
           _subject: subject,
           _template: 'table',
           _captcha: 'false',
+          Email:    addr,
+          Reason:   'Requested a garment',
           Garment:  name,
-          Quantity: String(qty),
-          Email:    addr
+          Quantity: String(qty)
         };
         if (ref) payload['Archive ref'] = ref;
 
-        /* Whatever else is on their shelf goes with it. A request is the
-           one moment we know both who they are and what they have been
-           gathering, and the two together say far more than the one garment
-           they happened to press the button on. */
-        const shelf = savedNames();
-        payload['Also saved'] = shelf.length
-          ? shelf.join('\n')
-          : '(nothing else saved)';
+        /* Whatever is on their shelf goes with it. A request is the one
+           moment we know both who they are and what they have been
+           gathering, and the two together say far more than the single
+           garment they happened to press the button on. */
+        payload.Collection = shelf.length ? shelf.join('\n') : '(empty)';
 
         msg.classList.remove('err');
         msg.textContent = 'Sending…';
@@ -3266,33 +3266,16 @@
             throw new Error(out.message || 'rejected');
           }
           msg.textContent = `Request sent — ${qty} × ${name}. We will be in touch at ${addr}.`;
-          person.value = '';
-          email.value  = '';
+          email.value = '';
         } catch (_){
-          /* The request did not go. It used to open the reader's mail client
-             at this point, which is what sends someone to their email rather
-             than to a sent request — and it fired for the commonest reason
-             of all, which is that the endpoint is simply not confirmed yet.
+          /* The post is the way requests are sent — there is no second one.
+             This used to hand over a mail draft, which told the reader the
+             form had failed and made them finish the job by hand; the form
+             works, and offering an escape from it reads as not trusting it.
 
-             It says so instead, and offers the draft as something to press
-             rather than somewhere it drags them. */
+             The button comes back and the line says to go again. */
           msg.classList.add('err');
-          msg.innerHTML = '';
-          msg.append('Could not send. ');
-          const shelfLines = savedNames();
-          const body =
-            `Garment: ${name}\n` +
-            (ref ? `Archive ref: ${ref}\n` : '') +
-            `Quantity: ${qty}\n` +
-            `Email: ${addr}\n\n` +
-            `Also saved:\n` +
-            (shelfLines.length ? shelfLines.join('\n') : '(nothing else saved)') + '\n';
-          const a = document.createElement('a');
-          a.href = `mailto:${REQUEST_TO}?subject=${encodeURIComponent(subject)}` +
-                   `&body=${encodeURIComponent(body)}`;
-          a.textContent = 'Send it by email instead';
-          a.style.textDecoration = 'underline';
-          msg.append(a);
+          msg.textContent = 'Please try again.';
         } finally {
           send.disabled = false;
         }
