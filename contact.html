@@ -213,6 +213,15 @@
       transition:opacity 1s ease;
     }
     .foot-fill.visible{ opacity:1; }
+    /* The drawn outline hands over to the fill rather than staying underneath
+       it. Both together put a stroke around every filled edge, which is what
+       made the mark read heavy at rest — and why hovering, which dropped the
+       outline, appeared to thin it. It is the thinner one all the time now;
+       the draw still runs, it just steps aside when the fill arrives. */
+    #siteFooter.filled .foot-trace{
+      opacity:0;
+      transition:opacity .8s ease;
+    }
 
     /* The footer mark answers to a hover the way the header's does: it fills
        solid and the drawn outline stands down, both in one frame. The header
@@ -221,11 +230,11 @@
        for. Applied here rather than per page — this block is the one the
        partner pages are built from. */
     .foot-head{ cursor:default; }
+    /* Hovering brings the fill forward early if the draw has not finished;
+       once it has, there is nothing for a hover to change — which is the
+       point. The mark looks the same whether or not the pointer is on it. */
     .foot-head:hover .foot-fill{ opacity:1; transition:none; }
     .foot-head:hover .foot-trace{ opacity:0; transition:none; }
-    @media (hover:none){
-      .foot-head:hover .foot-trace{ opacity:1; }
-    }
 
     /* flex-centres the text inside its reserved height so it sits on the
        mark's centre line rather than riding above it while it types */
@@ -458,6 +467,35 @@
     body.at-footer #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
     /* --- explore + index, top right --- */
+    /* Centred on the header rather than placed in either group: it belongs
+       to neither the mark on the left nor our own tools on the right.
+       Absolute, so adding it cannot shift the two things already there. */
+    .hd-op{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+      display:block;
+      line-height:0;
+      padding:8px;
+      color:#999;
+      transition:color .3s ease, transform .3s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-op svg{ display:block; width:14px; height:14px; }
+    /* its own stroke rule: .ico-stroke is scoped to .hd-ico, so without this
+       the arrow rendered as a filled black blob rather than a drawn line */
+    .hd-op .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .hd-op:hover{ color:var(--ink); transform:translate(-50%, -50%) scale(1.12); }
+    #siteHead:hover .hd-op{ color:#fff; }
+    .hd-inner{ position:relative; }
+
     .hd-tools{ display:flex; align-items:center; gap:18px; }
     .hd-ico{
       display:block;
@@ -863,6 +901,19 @@
       </svg>
     </a>
 
+    <!-- Operation Upcycle, reachable from anywhere on the site. It is the
+         only outward link in the chrome, so it sits on the centre line
+         rather than among our own tools on the right. -->
+    <a class="hd-op" id="hdOpUp" href="https://www.operationupcycle.co.uk"
+       target="_blank" rel="noopener noreferrer" aria-label="Operation Upcycle">
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <g class="ico-stroke">
+          <path d="M8 13.4 V3.2"/>
+          <path d="M3.5 7.7 L8 3.1 L12.5 7.7"/>
+        </g>
+      </svg>
+    </a>
+
     <nav class="hd-tools" aria-label="Explore">
       <a class="hd-ico" id="hdExplore" href="/archive" aria-label="Explore the archive">
         <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
@@ -958,7 +1009,7 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <span>R&amp;D</span>
+          <span>Research &amp; Development</span>
         </div>
 
         <div class="foot-col foot-id">
@@ -1088,7 +1139,10 @@
         shown = true;
         siteFooter.classList.add('in');
         setTimeout(() => siteFooter.classList.add('settled'), 1500);
-        const fill = () => footFill.classList.add('visible');
+        const fill = () => {
+          footFill.classList.add('visible');
+          siteFooter.classList.add('filled');   // the outline steps aside
+        };
         // a fallback, so the mark can never be left invisible if
         // animationend does not arrive
         footTrace.addEventListener('animationend', fill, { once:true });

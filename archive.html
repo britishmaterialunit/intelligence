@@ -254,6 +254,16 @@
       gap:16px;
       margin-bottom:26px;
     }
+    /* The bookmark belongs to a garment that has been named. It was on
+       screen from the first frame of the build — offering to keep something
+       the reader had not been shown yet — so it waits for the tab to say
+       what it is. */
+    body.single-result.solo-build .count-row,
+    body.single-result.solo-drawing .count-row{
+      opacity:0;
+      pointer-events:none;
+    }
+    body.single-result .count-row{ transition:opacity .45s ease; }
     #savedBtn{
       display:flex;
       align-items:center;
@@ -552,9 +562,16 @@
       transform:scaleX(1);
       transition:transform .54s cubic-bezier(.4,0,.2,1);
     }
+    /* The rule hands over to the border, and for one frame between
+       solo-drawing coming off and the border's own transition starting there
+       was neither — the line blinked out at the top. It is held until the
+       border has finished arriving, and only then goes. */
+    body.single-result .nation::before{
+      transition:opacity .01s linear .5s;
+    }
     body.single-result .nation > summary{
-      transition:opacity .5s ease .18s, transform .5s cubic-bezier(.4,0,.2,1) .18s;
-      transform:translateY(0);
+      transition:opacity .5s ease .18s;
+      transform:none;
     }
     body.single-result.solo-build .nation{
       border-color:transparent;
@@ -572,13 +589,17 @@
     }
     body.single-result.solo-drawing .nation > summary{
       opacity:1;
-      transform:translateY(0);
-      transition:opacity .5s ease .2s, transform .5s cubic-bezier(.4,0,.2,1) .2s;
+      transform:none;
+      transition:opacity .5s ease .2s;
     }
 
     body.single-result.solo-build .nation > summary{
       opacity:0;
-      transform:translateY(-6px);
+      /* Held in place, not lifted. Moving the summary moved the row below it
+         — the box the reader is watching being drawn stepped sideways and
+         down at the exact moment the tab began. The tab arrives by fading;
+         nothing it does changes the space it occupies. */
+      transform:none;
       transition:none;
     }
     /* the tab has to be gone on the first frame, not fade out over half a
@@ -1097,7 +1118,11 @@
       --dock-w:min(94vw, 880px);
       position:fixed;
       left:50%;
-      bottom:112px;                 /* clears the fixed search bar */
+      /* ONE height, every state. The bar used to sit at 112 / 34 / 26 / 24
+         depending on what was open, so it stepped up and down as the reader
+         moved between views — and the page's stamp underneath it appeared to
+         come and go with it. It clears the stamp and stays put. */
+      bottom:34px;
       transform:translateX(-50%) translateY(14px);
       z-index:80;
       display:flex;
@@ -1122,10 +1147,6 @@
     #dock.dragging{ transition:none; cursor:grabbing; }
 
     /* with the main bar gone the dock drops to the bottom edge */
-    body.tab-open #dock:not(.moved){ bottom:26px; }
-    /* Riding under the list rather than over the page: with the dock kept
-       on there is no main bar beneath it to clear, so it sits close. */
-    body.dock-list #dock:not(.moved){ bottom:24px; }
     /* and the list needs room to scroll clear of it */
     body.dock-list{ padding-bottom:110px; }
 
@@ -1209,45 +1230,67 @@
     #dqExplore img{ display:block; width:13px; height:13px; }
 
     /* ---------- CLOSING A RECORD ----------
-       Reversing the build turned out to be the wrong idea: run backwards,
-       a sequence built to introduce something reads as a stutter. The
-       record closes the way a window shuts instead — the body rolls up into
-       the tab's own header, the header goes, and the garment is uncovered
-       from the middle outwards as the field comes back. */
-    body.solo-closing .nation > .nbody{
-      display:grid;
-      grid-template-rows:0fr;
-      transition:grid-template-rows .44s cubic-bezier(.4,0,.2,1);
-    }
-    body.solo-closing .nation > .nbody > *{
-      min-height:0;
-      overflow:hidden;
-      opacity:0;
-      transition:opacity .28s ease;
-    }
-    body.solo-closing .nation{
-      transition:border-color .3s ease .3s;
-      border-color:transparent;
-    }
-    body.solo-closing .nation > summary{
-      opacity:0;
-      transform:translateY(-6px);
-      transition:opacity .3s ease .26s, transform .3s ease .26s;
+       Four beats, in this order:
+
+         1. the record and the garment contract and slide up UNDER the tab's
+            own header — the header is a lid, and they go beneath it
+         2. at the same time the header, now holding nothing, travels down to
+            the middle of the screen
+         3. it closes from both ends into nothing
+         4. and the field comes back around the garment that was chosen
+
+       What was here before ran the opening backwards, which read as a cut to
+       a half-shut tab, a header scrolling away, and the garment blinking in.
+       Nothing is reversed now; this is its own movement. */
+
+    /* The open state, declared FIRST so the closing state below it wins on
+       source order — the two have the same specificity, and with this one
+       last the body simply never collapsed. */
+    body.single-result .nation > .nbody{
+      max-height:2000px;
+      transition:max-height .46s cubic-bezier(.4,0,.2,1),
+                 opacity .3s ease,
+                 transform .46s cubic-bezier(.4,0,.2,1);
     }
 
-    /* Uncovered from the middle out, both edges at once — the opposite
-       gesture to a box being drawn around it. */
-    .sp-item.sp-parting{
-      animation:sp-part .62s cubic-bezier(.4,0,.2,1) both;
+    /* 1. the body goes under the lid */
+    body.solo-closing .nation > .nbody{
+      overflow:hidden;
+      max-height:0;
+      opacity:0;
+      transform:translateY(-14px) scale(.96);
+      transform-origin:top center;
+      transition:max-height .46s cubic-bezier(.4,0,.2,1),
+                 opacity .3s ease,
+                 transform .46s cubic-bezier(.4,0,.2,1);
     }
-    @keyframes sp-part{
-      from { clip-path:inset(0 50% 0 50%); }
-      to   { clip-path:inset(0 0 0 0); }
+
+
+    /* 2. the lid travels to the middle of the screen */
+    body.solo-closing .nation{
+      transform:translateY(var(--lid-drop, 0px));
+      transition:transform .5s cubic-bezier(.4,0,.2,1) .18s;
+      will-change:transform;
     }
+
+    /* 3. and closes from both ends */
+    body.solo-shutting .nation{
+      transform:translateY(var(--lid-drop, 0px)) scaleX(0);
+      opacity:0;
+      transition:transform .42s cubic-bezier(.6,0,.3,1),
+                 opacity .3s ease .16s;
+    }
+    body.solo-shutting .nation > summary{ opacity:0; transition:opacity .22s ease; }
+
+    /* 4. the field returns, and the garment it returns to is already lit */
+    #explore.ex-returning{ animation:ex-return .5s ease both; }
+    @keyframes ex-return{ from{ opacity:0; } to{ opacity:1; } }
+
     @media (prefers-reduced-motion:reduce){
+      body.solo-closing .nation,
       body.solo-closing .nation > .nbody,
-      body.solo-closing .nation > summary{ transition:none; }
-      .sp-item.sp-parting{ animation:none; }
+      body.solo-shutting .nation{ transition:none; }
+      #explore.ex-returning{ animation:none; }
     }
 
     /* ---------- THE FIELD, ARRIVING ----------
@@ -1265,18 +1308,21 @@
        left into dots — the garments read as a printed ground rather than as
        photographs part-way in. It is drawn, not loaded: a repeating radial
        gradient costs nothing and scales to any screen. */
-    #spiral.sp-waiting::after{
+    /* Over the whole viewport, not over the spiral. The spiral is scaled and
+       panned, so a screen laid inside it is scaled with it — at the zoom the
+       field opens on, its edges fell inside the screen and the garments
+       nearest the rim stayed sharp. This one is fixed to the glass and
+       covers it whatever the field is doing underneath. */
+    body.gated #explore::after{
       content:"";
-      position:absolute;
-      left:-50vw; top:-50vh;
-      width:200vw; height:200vh;
+      position:fixed;
+      inset:0;
       pointer-events:none;
       background-image:radial-gradient(circle at center, var(--bg) 0 38%, transparent 40%);
       background-size:6px 6px;
-      opacity:.92;
+      opacity:.95;
       z-index:3;
     }
-    #spiral{ position:relative; }
     #spiral .sp-item{ transition:opacity .34s ease, filter .9s ease; }
 
     /* display:flex beats the [hidden] attribute — the element selector wins
@@ -1324,9 +1370,11 @@
       55%  { stroke-dashoffset:0; }
       100% { stroke-dashoffset:0; opacity:.25; }
     }
-    /* landed: it fills, and becomes the way in */
+    /* Landed: it fills, in the page's own black rather than the softer ink
+       the outline is drawn in. Grey said "still working"; this says "press
+       me", which is the only thing left to do. */
     #reveal.ready .rev-trace{ animation:none; opacity:0; transition:opacity .4s ease; }
-    #reveal.ready .rev-fill{ opacity:1; }
+    #reveal.ready .rev-fill{ opacity:1; fill:var(--line); }
     /* The whole sheet takes the press once the field is in, not just the
        mark. The mark is what SAYS press me; making it the only thing that
        can be pressed left the click landing on the overlay behind it — the
@@ -1610,6 +1658,30 @@
     body.scrolled #siteHead:hover .hd-trace{ opacity:0; transition:none; }
     body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
+    /* Centred on the header, belonging to neither side — see index.html */
+    .hd-op{
+      position:absolute;
+      left:50%; top:50%;
+      transform:translate(-50%, -50%);
+      display:block;
+      line-height:0;
+      padding:8px;
+      color:#999;
+      transition:color .3s ease, transform .3s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-op svg{ display:block; width:14px; height:14px; }
+    .hd-op .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .hd-op:hover{ color:var(--ink); transform:translate(-50%, -50%) scale(1.12); }
+    #siteHead:hover .hd-op{ color:#fff; }
+    #siteHead .hd-inner{ position:relative; }
+
     .hd-tools{ display:flex; align-items:center; gap:18px; }
     .hd-ico{
       display:block;
@@ -1665,6 +1737,17 @@
       <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
         <path id="hdTrace" class="hd-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
         <path id="hdFill" class="hd-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+      </svg>
+    </a>
+
+    <!-- Operation Upcycle, reachable from anywhere on the site -->
+    <a class="hd-op" id="hdOpUp" href="https://www.operationupcycle.co.uk"
+       target="_blank" rel="noopener noreferrer" aria-label="Operation Upcycle">
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <g class="ico-stroke">
+          <path d="M8 13.4 V3.2"/>
+          <path d="M3.5 7.7 L8 3.1 L12.5 7.7"/>
+        </g>
       </svg>
     </a>
 
@@ -2965,7 +3048,8 @@
     /* Everything that returns the archive to rest goes through here, so
        the star can never end up a step behind the buttons it summoned. */
     function goHome(){
-      document.body.classList.remove('solo-closing');
+      document.body.classList.remove('solo-closing', 'solo-shutting');
+      document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
       document.body.classList.remove('solo-drawing');
       document.body.classList.remove('dock-list');
       soloTimers.forEach(clearTimeout);
@@ -3211,10 +3295,23 @@
       dockSearch.classList.add('has-hint');
     }
 
+    /* Taking the suggestion IS the choosing. It used to fill the box and
+       wait for a return key, which asked the reader to agree twice with
+       something they had just pressed — the chip is a destination, so it
+       travels. */
     function takeHint(){
       if (!dqHintFill) return false;
-      dq.value = dqHintFill;
-      dq.dispatchEvent(new Event('input', { bubbles:true }));
+      const term = dqHintFill;
+      dq.value = term;
+      dghost.hidden = true;
+      paintHint(term.toLowerCase());
+      if (!exploreOn){
+        dockForced = true;
+        setFaceMode('explore');
+        setFace(0, true);
+        openExplore();
+      }
+      clusterSearch(term.toLowerCase(), true);   // gather, do not merely dim
       dq.focus({ preventScroll:true });
       return true;
     }
@@ -4151,9 +4248,14 @@
       updateDock();
     }
 
-    /* ---------- zoom + pan ---------- */
+    /* ---------- zoom + pan ----------
+       Neither works while the gate is up. The field behind it is grey and
+       half-arrived, and zooming into a garment the reader cannot see is a
+       view of nothing they can act on — and it leaves the gate's mark
+       floating over a field that has moved underneath it. */
     explore.addEventListener('wheel', e => {
       e.preventDefault();
+      if (gateShut()) return;
       const rect = explore.getBoundingClientRect();
       const cx = e.clientX - rect.left - rect.width / 2;
       const cy = e.clientY - rect.top - rect.height / 2;
@@ -4169,6 +4271,7 @@
 
     let panId = null, panX = 0, panY = 0;
     explore.addEventListener('pointerdown', e => {
+      if (gateShut()) return;
       if (e.target.closest('.sp-item')) return;
       /* The gate lives inside this overlay, and capturing the pointer here
          means the button inside it never receives the click — the press
@@ -4194,6 +4297,7 @@
 
     // a garment opens on its own, centred; the tab's − brings you back
     spiral.addEventListener('click', e => {
+      if (gateShut()) return;        // nothing in the field is pressable yet
       const item = e.target.closest('.sp-item');
       if (!item) return;
 
@@ -4437,7 +4541,8 @@
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
     function returnToExplore(){
-      document.body.classList.remove('solo-closing');
+      document.body.classList.remove('solo-closing', 'solo-shutting');
+      document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
       document.body.classList.remove('solo-drawing');
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
@@ -4456,7 +4561,8 @@
       lastExploreItem = null;
 
       const land = () => {
-        document.body.classList.remove('solo-closing');
+        document.body.classList.remove('solo-closing', 'solo-shutting');
+      document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
         soloId = null;
         q.value = '';
         filter();
@@ -4475,9 +4581,13 @@
           focusItem(item);
           void spiral.offsetWidth;          // commit it unanimated
           spiral.style.transition = '';
-          item.classList.add('sp-parting');  // uncovered from the middle out
-          soloTimers.push(setTimeout(() => item.classList.remove('sp-parting'), 700));
         }
+        /* The whole field fades up together, the chosen garment among it and
+           already in the middle. It used to be uncovered on its own with a
+           wipe, which read as a second event after the tab had gone — and
+           the blink was that wipe starting before the field had painted. */
+        explore.classList.add('ex-returning');
+        soloTimers.push(setTimeout(() => explore.classList.remove('ex-returning'), 560));
         // and the rest of the field comes up behind it
         setTimeout(() => {
           spiral.classList.remove('sp-chosen');
@@ -4487,9 +4597,23 @@
 
       if (!card || REDUCED){ land(); return; }
 
-      // the window shuts: the body rolls up into the header, then both go
-      document.body.classList.add('solo-closing');
-      soloTimers.push(setTimeout(land, 560));
+      const tab = card.closest('.nation');
+      if (!tab){ land(); return; }
+
+      /* How far the lid has to travel to reach the middle of the screen.
+         Measured, not guessed — the tab's height and the page's scroll both
+         move it, and a fixed number would land it somewhere different on
+         every viewport. */
+      const r = tab.getBoundingClientRect();
+      const drop = Math.round((window.innerHeight / 2) - (r.top + r.height / 2));
+      tab.style.setProperty('--lid-drop', drop + 'px');
+
+      document.body.classList.add('solo-closing');                 // 1 + 2
+      soloTimers.push(setTimeout(() => {
+        document.body.classList.add('solo-shutting');              // 3
+      }, 680));
+      // 4 — after the close has actually finished, not as it lands
+      soloTimers.push(setTimeout(land, 1160));
       return;
       if (item) focusItem(item);
     }

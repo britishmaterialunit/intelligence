@@ -516,6 +516,51 @@
     }
     .repo-note a:hover{ opacity:.6; }
 
+    /* ---------- EARLY ACCESS ----------
+       Join's twin in every respect but its ground: the box runs the same
+       choreography, and once it is open the page itself goes olive under it.
+       The colour is the one the old early-access page was built on.
+
+       Laid over the page rather than set on body, so it can fade — a
+       background-color on body would arrive with the class rather than
+       coming up behind the panel the way it should. */
+    #earlyGround{
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background:#424831;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .9s ease;
+    }
+    body.early-open #earlyGround{ opacity:1; }
+
+    /* everything standing on that ground has to be legible against it */
+    body.early-open{ color:#fff; }
+    body.early-open .typewriter-text,
+    body.early-open #joinPanel,
+    body.early-open .join-lede{ color:#fff; }
+    body.early-open .bm-button{
+      color:#fff;
+      border-color:#fff;
+      background:transparent;
+    }
+    /* transparent, not white — the button's own ground is the page's white,
+       which on the olive read as a blank plate with the label lost inside it */
+    body.early-open #opsBtn{
+      background:transparent;
+      border-color:#fff;
+      color:#fff;
+    }
+    body.early-open #opsBtn:hover{ background:rgba(255,255,255,.12); }
+    body.early-open #opsLabel{ color:#fff; }
+    body.early-open .hd-trace{ stroke:#fff; }
+    body.early-open .hd-ico,
+    body.early-open .hd-op{ color:#e6e6e6; }
+    body.early-open #joinInput{ color:#fff; caret-color:#fff; }
+    body.early-open #joinSlide{ border-color:#fff; }
+    body.early-open #scrollCue path{ stroke:#fff; fill:#fff; }
+
     /* ---------- OPERATIONS BAR ---------- */
     #opsBtn{
       position:relative;
@@ -548,11 +593,13 @@
       height:var(--bar-h);
       line-height:calc(var(--bar-h) - 3px);
       padding-left:18px;
-      /* sentence case, as it reads on the closed bar — the box is a title,
-         and shouting it made it a different word from the button */
-      font-size:11px;
-      letter-spacing:.06em;
-      color:#888;
+      /* The same word at the same weight as the button it grew out of. It
+         was being set smaller and grey once the box opened, so the label
+         appeared to change into a different word at the moment the box
+         became a sheet. It is the same word: it should not move. */
+      font-size:13px;
+      letter-spacing:0;
+      color:#000;
     }
 
     .ops-close{
@@ -844,6 +891,15 @@
       transition:opacity 1s ease;
     }
     .foot-fill.visible{ opacity:1; }
+    /* The drawn outline hands over to the fill rather than staying underneath
+       it. Both together put a stroke around every filled edge, which is what
+       made the mark read heavy at rest — and why hovering, which dropped the
+       outline, appeared to thin it. It is the thinner one all the time now;
+       the draw still runs, it just steps aside when the fill arrives. */
+    #siteFooter.filled .foot-trace{
+      opacity:0;
+      transition:opacity .8s ease;
+    }
 
     /* The footer mark answers to a hover the way the header's does: it fills
        solid and the drawn outline stands down, both in one frame. The header
@@ -852,11 +908,11 @@
        for. Applied here rather than per page — this block is the one the
        partner pages are built from. */
     .foot-head{ cursor:default; }
+    /* Hovering brings the fill forward early if the draw has not finished;
+       once it has, there is nothing for a hover to change — which is the
+       point. The mark looks the same whether or not the pointer is on it. */
     .foot-head:hover .foot-fill{ opacity:1; transition:none; }
     .foot-head:hover .foot-trace{ opacity:0; transition:none; }
-    @media (hover:none){
-      .foot-head:hover .foot-trace{ opacity:1; }
-    }
 
     /* flex-centres the text inside its reserved height so it sits on the
        mark's centre line rather than riding above it while it types */
@@ -1089,6 +1145,35 @@
     body.at-footer #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
     /* --- explore + index, top right --- */
+    /* Centred on the header rather than placed in either group: it belongs
+       to neither the mark on the left nor our own tools on the right.
+       Absolute, so adding it cannot shift the two things already there. */
+    .hd-op{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+      display:block;
+      line-height:0;
+      padding:8px;
+      color:#999;
+      transition:color .3s ease, transform .3s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-op svg{ display:block; width:14px; height:14px; }
+    /* its own stroke rule: .ico-stroke is scoped to .hd-ico, so without this
+       the arrow rendered as a filled black blob rather than a drawn line */
+    .hd-op .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .hd-op:hover{ color:var(--ink); transform:translate(-50%, -50%) scale(1.12); }
+    #siteHead:hover .hd-op{ color:#fff; }
+    .hd-inner{ position:relative; }
+
     .hd-tools{ display:flex; align-items:center; gap:18px; }
     .hd-ico{
       display:block;
@@ -1243,6 +1328,19 @@
       </svg>
     </a>
 
+    <!-- Operation Upcycle, reachable from anywhere on the site. It is the
+         only outward link in the chrome, so it sits on the centre line
+         rather than among our own tools on the right. -->
+    <a class="hd-op" id="hdOpUp" href="https://www.operationupcycle.co.uk"
+       target="_blank" rel="noopener noreferrer" aria-label="Operation Upcycle">
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <g class="ico-stroke">
+          <path d="M8 13.4 V3.2"/>
+          <path d="M3.5 7.7 L8 3.1 L12.5 7.7"/>
+        </g>
+      </svg>
+    </a>
+
     <nav class="hd-tools" aria-label="Explore">
       <a class="hd-ico" id="hdExplore" href="/archive" aria-label="Explore the archive">
         <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
@@ -1269,6 +1367,9 @@
     </nav>
    </div>
   </header>
+
+  <!-- the ground Early Access opens onto; see #earlyGround -->
+  <div id="earlyGround" aria-hidden="true"></div>
 
   <main id="page">
     <div class="container">
@@ -1314,7 +1415,7 @@
     <div id="navStack">
     <nav id="navRow" aria-label="Join, Early Access, Operations, Repository, Archive">
       <div id="joinBtn" class="bm-button" role="button" tabindex="0" aria-label="Join">Join</div>
-      <a href="/earlyaccess" class="bm-button">Early Access</a>
+      <div id="earlyBtn" class="bm-button" role="button" tabindex="0" aria-label="Early Access">Early Access</div>
 
       <!-- ONE BOX. The sheet is a child of the bar, not a sibling: the bar
            carries the only border, and opening Operations does nothing but
@@ -2386,7 +2487,7 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <span>R&amp;D</span>
+          <span>Research &amp; Development</span>
         </div>
 
         <div class="foot-col foot-id">
@@ -2503,7 +2604,11 @@
         footShown = true;
         siteFooter.classList.add('in');            // starts the trace + dots
         setTimeout(() => siteFooter.classList.add('settled'), 1500);
-        const fill = () => footFill.classList.add('visible');
+        const fill = () => {
+          footFill.classList.add('visible');
+          // the outline steps aside as the fill lands — see #siteFooter.filled
+          siteFooter.classList.add('filled');
+        };
         // same draw-then-fill as the hero, with a fallback so the mark
         // can never be left invisible if animationend does not arrive
         footTrace.addEventListener('animationend', fill, { once:true });
@@ -2847,7 +2952,11 @@ Per operation we create design systems which secure textiles and their material 
        one button, the intro copy is untyped, and something takes its place.
        They share the state machine and differ only in what that something
        is, so there is one set of transitions to keep honest, not two. */
-    let joinMode  = 'join';  // join | repo
+    /* join | repo | early. Early Access is Join's twin — the same panel, the
+       same field, the same address typing itself out — and differs only in
+       what it is asking for and where it lands. Giving it a page of its own
+       would have been a second copy of all of this to keep in step. */
+    let joinMode  = 'join';
     /* Set by the footer's own links. The row of buttons, the converge, the
        unwriting of the masthead — none of it is a decision the reader still
        has to be walked through once they have picked the destination by
@@ -2941,7 +3050,9 @@ Per operation we create design systems which secure textiles and their material 
 
     function openJoin(mode){
       if (joinState !== 'off' || opsState !== 'closed') return;
-      joinMode = (mode === 'repo') ? 'repo' : 'join';
+      joinMode = (mode === 'repo' || mode === 'early') ? mode : 'join';
+      // the ground rises as the box opens, not after it
+      document.body.classList.toggle('early-open', joinMode === 'early');
       joinState = 'opening';
       joinRun++;
       joinMsg.textContent = '';
@@ -2966,15 +3077,18 @@ Per operation we create design systems which secure textiles and their material 
         opsBtn.style.left  = ((rowW - w) / 2) + 'px';
         opsBtn.style.width = w + 'px';
         opsBtn.classList.add('join-solo');
-        const isRepo = joinMode === 'repo';
+        const isRepo  = joinMode === 'repo';
+        const isEarly = joinMode === 'early';
         /* In repo mode the button used to read "Repository" and do nothing —
            a label wearing a button's clothes. The repository itself is not
            built yet; the open-studio behind it is, so the button offers the
            thing that can actually be had today. */
-        opsLabel.textContent = isRepo ? 'Book Unit U' : 'Join';
-        opsBtn.setAttribute('aria-label', isRepo ? 'Book Unit U' : 'Send join request');
+        opsLabel.textContent = isRepo ? 'Book Unit U' : isEarly ? 'Early Access' : 'Join';
+        opsBtn.setAttribute('aria-label',
+          isRepo ? 'Book Unit U' : isEarly ? 'Request early access' : 'Send join request');
         scrollCue.classList.add('close-mode');
-        scrollCue.setAttribute('aria-label', isRepo ? 'Leave Repository' : 'Leave Join');
+        scrollCue.setAttribute('aria-label',
+          isRepo ? 'Leave Repository' : isEarly ? 'Leave Early Access' : 'Leave Join');
       }, 540);
 
       later(joinSequence, joinFast ? 240 : 700);
@@ -3029,7 +3143,7 @@ Per operation we create design systems which secure textiles and their material 
                in it, so waiting on the slide before accepting a keystroke
                would contradict what the field is telling the reader */
             joinState = 'ready';
-            claimUrl('/join');
+            claimUrl(joinMode === 'early' ? '/earlyaccess' : '/join');
             try { joinInput.focus({ preventScroll:true }); } catch(_){}
             raiseJoinButton();
             /* .typable is only the fast width transition for tracking what
@@ -3090,6 +3204,7 @@ Per operation we create design systems which secure textiles and their material 
     function closeJoin(){
       joinFast = false;
       releaseUrl();
+      document.body.classList.remove('early-open');
       if (joinState === 'off' || joinState === 'closing') return;
       joinState = 'closing';
       joinRun++;
@@ -3204,7 +3319,7 @@ Per operation we create design systems which secure textiles and their material 
         // the address itself is the whole message
         body: JSON.stringify({
           email: email,
-          _subject: 'BMU join request',
+          _subject: joinMode === 'early' ? 'BMU early access request' : 'BMU join request',
           _template: 'table',
           _captcha: 'false'
         })
@@ -3226,6 +3341,13 @@ Per operation we create design systems which secure textiles and their material 
       });
     }
 
+    const earlyBtn = document.getElementById('earlyBtn');
+    if (earlyBtn){
+      earlyBtn.addEventListener('click', () => openJoin('early'));
+      earlyBtn.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openJoin('early'); }
+      });
+    }
     joinBtn.addEventListener('click', () => openJoin('join'));
     joinBtn.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openJoin('join'); }
@@ -3475,6 +3597,7 @@ Per operation we create design systems which secure textiles and their material 
          #operations   inside, with the Operations sheet already open
          #join         inside, with Join already open
          #repository   inside, with Repository already open
+         #earlyaccess  inside, with Early Access already open
 
        Join, Operations and Repository are states of THIS page rather than
        documents of their own, which is why /join and the footer's links all
@@ -3503,7 +3626,8 @@ Per operation we create design systems which secure textiles and their material 
 
     (function arrival(){
       const want = location.hash.slice(1).toLowerCase();
-      const PANELS = { operations:() => openOps(), join:() => openJoin('join'), repository:() => openJoin('repo') };
+      const PANELS = { operations:() => openOps(), join:() => openJoin('join'),
+                       repository:() => openJoin('repo'), earlyaccess:() => openJoin('early') };
       if (want !== 'home' && want !== 'footer' && !PANELS[want]) return;
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       history.replaceState(null, '', location.pathname + location.search);
