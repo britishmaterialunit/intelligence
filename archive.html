@@ -268,6 +268,11 @@
       opacity:0;
       pointer-events:none;
     }
+    /* A garment opened from the field is two boxes and nothing else: the tab
+       and the record inside it. The tally and the shelf bookmark floating
+       above them belonged to a list that is not on screen. The garment's own
+       bookmark, inside the card, is untouched. */
+    body.solo-from-field .count-row{ display:none; }
     body.single-result .count-row{ transition:opacity .45s ease; }
     #savedBtn{
       display:flex;
@@ -816,26 +821,57 @@
       text-transform:uppercase;
       color:#888;
     }
-    .req-qty{ display:flex; align-items:center; }
-    .req-qty input[type=range]{
-      flex:1;
-      min-width:0;
-      height:16px;
-      accent-color:var(--line);
-      cursor:pointer;
+    /* Ten dots, thirty upwards in tens. Each fills as it is passed, so the
+       row reads as a quantity rather than as ten separate switches. */
+    .req-dots{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      margin-bottom:9px;
     }
-    /* the value is plain text centred in the space between the end of
-       the slider and the right edge of the card — no input chrome */
+    .req-dot{
+      width:11px; height:11px;
+      flex:none;
+      padding:0;
+      border:1.5px solid #c9c9c9;
+      border-radius:50%;
+      background:transparent;
+      cursor:pointer;
+      transition:background-color .28s ease, border-color .28s ease, transform .28s cubic-bezier(.3,1.4,.5,1);
+    }
+    .req-dot:hover{ border-color:var(--line); }
+    .req-dot.on{
+      background:var(--line);
+      border-color:var(--line);
+    }
+    /* the one just chosen lifts, so the eye follows the press */
+    .req-dot.tip{ transform:scale(1.35); }
+
+    .req-qty{ display:flex; align-items:center; gap:10px; }
     .req-qty .qtyval{
-      flex:0 0 54px;
-      text-align:center;
-      font-size:12px;
+      flex:0 0 auto;
+      font-size:13px;
       font-weight:bold;
       color:var(--ink);
       font-variant-numeric:tabular-nums;
     }
-    /* no heading above these — the placeholders carry them */
-    .req-name,
+    .req-any{
+      flex:1 1 auto;
+      min-width:0;
+      font-family:var(--font);
+      font-size:10.5px;
+      letter-spacing:.04em;
+      color:var(--ink);
+      background:transparent;
+      border:none;
+      border-bottom:1px solid #d8d8d8;
+      padding:3px 2px;
+      outline:none;
+      border-radius:0;
+      -webkit-appearance:none;
+    }
+    .req-any:focus{ border-bottom-color:var(--line); }
+    /* no heading above it — the placeholder carries it */
     .req-email{
       display:block;
       width:100%;
@@ -850,7 +886,6 @@
       border-radius:0;
       -webkit-appearance:none;
     }
-    .req-name:focus,
     .req-email:focus{ background:var(--faint); }
     .req-send[disabled]{ opacity:.45; cursor:default; }
     /* a field no person ever sees, and no person ever fills in — anything
@@ -1539,6 +1574,105 @@
       #prompt{ font-size:13px; }
     }
 
+    /* ---------- THE COLLECTION'S DOOR ---------- */
+    #joinGate{
+      position:fixed;
+      inset:0;
+      z-index:140;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(255,255,255,.55);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      opacity:0;
+      transition:opacity .4s ease;
+    }
+    #joinGate[hidden]{ display:none !important; }
+    #joinGate.on{ opacity:1; }
+
+    .jg-panel{
+      position:relative;
+      width:min(88vw, 420px);
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      padding:34px 30px 26px;
+      text-align:center;
+      transform:translateY(8px);
+      transition:transform .45s cubic-bezier(.4,0,.2,1);
+    }
+    #joinGate.on .jg-panel{ transform:none; }
+
+    .jg-lede{
+      font-size:12.5px;
+      letter-spacing:.02em;
+      min-height:1.4em;
+      margin-bottom:16px;
+    }
+    /* the grey field the address slides out of, as on the home page */
+    .jg-slide{
+      display:block;
+      width:100%;
+      background:var(--faint);
+      border:1.5px solid var(--faint);
+      transition:border-color .3s ease;
+    }
+    .jg-slide:focus-within{ border-color:var(--line); }
+    #jgInput{
+      width:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      font-family:var(--font);
+      font-size:11.5px;
+      letter-spacing:.04em;
+      color:var(--ink);
+      text-align:center;
+      padding:9px 8px;
+      border-radius:0;
+      -webkit-appearance:none;
+    }
+    .jg-send{
+      display:block;
+      width:100%;
+      margin-top:12px;
+      padding:9px 0;
+      font-family:var(--font);
+      font-size:9.5px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--bg);
+      background:var(--line);
+      border:1.5px solid var(--line);
+      cursor:pointer;
+      transition:opacity .3s ease;
+    }
+    .jg-send:hover{ opacity:.78; }
+    .jg-send[disabled]{ opacity:.45; cursor:default; }
+    .jg-msg{
+      margin-top:10px;
+      font-size:9.5px;
+      letter-spacing:.08em;
+      line-height:1.5;
+      color:#888;
+      min-height:1.3em;
+    }
+    .jg-close{
+      position:absolute;
+      top:8px; right:10px;
+      border:none;
+      background:none;
+      font-size:13px;
+      line-height:1;
+      color:#c4c4c4;
+      cursor:pointer;
+      padding:6px;
+    }
+    .jg-close:hover{ color:var(--ink); }
+    @media (prefers-reduced-motion:reduce){
+      #joinGate, .jg-panel{ transition:none; }
+    }
+
     /* ---------- NO DATA SAVED ----------
        A white plate on a black rule that lifts into the middle of the page,
        holds long enough to be read, and takes itself away. It never takes
@@ -1663,26 +1797,6 @@
     body.scrolled #siteHead:hover .hd-trace{ opacity:0; transition:none; }
     body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
-    /* Centred on the header, belonging to neither side — see index.html */
-    .hd-op{
-      display:block;
-      line-height:0;
-      padding:8px;
-      color:#999;
-      transition:color .3s ease, transform .3s ease;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .hd-op svg{ display:block; width:14px; height:14px; }
-    .hd-op .ico-stroke{
-      fill:none;
-      stroke:currentColor;
-      stroke-width:1.6;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-    }
-    .hd-op:hover{ color:var(--ink); transform:scale(1.12); }
-    #siteHead:hover .hd-op{ color:#fff; }
-    #siteHead .hd-inner{ position:relative; }
 
     .hd-tools{ display:flex; align-items:center; gap:18px; }
     .hd-ico{
@@ -1743,16 +1857,6 @@
     </a>
 
     <nav class="hd-tools" aria-label="Leave the archive">
-      <!-- Operation Upcycle, reachable from anywhere on the site -->
-      <a class="hd-op" id="hdOpUp" href="https://www.operationupcycle.co.uk"
-         target="_blank" rel="noopener noreferrer" aria-label="Operation Upcycle">
-        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <g class="ico-stroke">
-            <path d="M8 13.4 V3.2"/>
-            <path d="M3.5 7.7 L8 3.1 L12.5 7.7"/>
-          </g>
-        </svg>
-      </a>
       <a class="hd-ico" id="hdHome" href="/" aria-label="Back to the site">
         <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
           <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
@@ -1804,6 +1908,26 @@
   </div>
 
   <div id="prompt" aria-hidden="true"></div>
+
+  <!-- THE COLLECTION'S DOOR
+       Keeping garments is free and needs nobody's name. Opening the shelf
+       asks for one — it is the point at which a pile of bookmarks becomes
+       a collection worth writing to someone about. Copied from the home
+       page's Join: the address types itself out, the field slides from it.
+       Shown over a blurred archive so what is behind it is plainly still
+       there and still theirs. -->
+  <div id="joinGate" hidden aria-hidden="true">
+    <div class="jg-panel" role="dialog" aria-modal="true" aria-label="Join to open your collection">
+      <div class="jg-lede" id="jgLede"></div>
+      <div class="jg-slide" id="jgSlide">
+        <input id="jgInput" type="email" autocomplete="email" spellcheck="false"
+               placeholder="you@example.com" aria-label="Your email address" />
+      </div>
+      <button type="button" class="jg-send" id="jgSend">Join</button>
+      <div class="jg-msg" id="jgMsg" role="status" aria-live="polite"></div>
+      <button type="button" class="jg-close" id="jgClose" aria-label="Close">✕</button>
+    </div>
+  </div>
 
   <!-- The bookmark with nothing behind it. Says so on a plate of its own
        rather than opening an empty section or changing the count line,
@@ -1968,196 +2092,196 @@
        ============================================================ */
     const ITEMS = [
       /* ---------------- BRITISH ---------------- */
-      { n:"british", name:"British Army 1980s 85 Pattern Woodland DPM Camouflage Combat Smock", cat:"Jackets / Shirts",
-        img:"BA198085PWDCCS.png", ref:"BA198085PWDCCS" },
-      { n:"british", name:"British Army 1980s No.1 Royal Signals Dress Jacket", cat:"Jackets / Shirts",
+      { n:"british", name:"British Army 1980s No.1 Royal Signals Dress Jacket", cat:"Jackets",
         img:"BA1980NRSDJ.png", ref:"BA1980NRSDJ" },
-      { n:"british", name:"British Army 1990s S95 Desert DPM Camouflage Combat Jacket", cat:"Jackets / Shirts",
+      { n:"british", name:"British Army 1990s S95 Desert DPM Camouflage Combat Jacket", cat:"Jackets",
         img:"BA1990S95DDCCJ.png", ref:"BA1990S95DDCCJ" },
-      { n:"british", name:"British Army 1990s S95 Woodland DPM Camouflage Ripstop Field Jacket", cat:"Jackets / Shirts",
+      { n:"british", name:"British Army 1990s S95 Woodland DPM Camouflage Ripstop Field Jacket", cat:"Jackets",
         img:"BA1990S95WDCRFJ.png", ref:"BA1990S95WDCRFJ" },
-      { n:"british", name:"British Army 1990s Thermal Buffalo Pullover Smock", cat:"Jackets / Shirts",
-        img:"BA1990TBPS.png", ref:"BA1990TBPS" },
-      { n:"british", name:"British Army 2010s MTP Camouflage UBACS Combat Shirt", cat:"Jackets / Shirts",
-        img:"BA2010MCUCS.png", ref:"BA2010MCUCS" },
-      { n:"british", name:"British Army 2010s MTP Camouflage Windproof Smock", cat:"Jackets / Shirts",
-        img:"BA2010MCWS.png", ref:"BA2010MCWS" },
-      { n:"british", name:"British Army 2010s No.2 FAD Royal Regiment of Scotland Dress Jacket", cat:"Jackets / Shirts",
+      { n:"british", name:"British Army 2010s No.2 FAD Royal Regiment of Scotland Dress Jacket", cat:"Jackets",
         img:"BA2010NFRROSDJ.png", ref:"BA2010NFRROSDJ" },
-      { n:"british", name:"British Royal Air Force 1980s Aircrew Faux Fur Thermal Base Layer Pullover", cat:"Jackets / Shirts",
-        img:"BRAF1980AFFTBLP.png", ref:"BRAF1980AFFTBLP" },
-      { n:"british", name:"British Royal Air Force 1980s GP Thermal Liner Bomber Jacket", cat:"Jackets / Shirts",
-        img:"BRAF1980GTLBJ.png", ref:"BRAF1980GTLBJ" },
-      { n:"british", name:"British Royal Air Force 1980s Overdyed Gabardine DPM Windproof Smock", cat:"Jackets / Shirts",
-        img:"BRAF1980OGDWS.png", ref:"BRAF1980OGDWS" },
-      { n:"british", name:"British Royal Air Force 1980s Raincoat Trench Coat", cat:"Jackets / Shirts",
-        img:"BRAF1980RTC.png", ref:"BRAF1980RTC" },
-      { n:"british", name:"British Royal Air Force 1990s Wet Weather Coat Jacket", cat:"Jackets / Shirts",
-        img:"BRAF1990WWCJ.png", ref:"BRAF1990WWCJ" },
-      { n:"british", name:"British Royal Air Force 2010s Flight Jacket", cat:"Jackets / Shirts",
-        img:"BRAF2010FJ.png", ref:"BRAF2010FJ" },
-      { n:"british", name:"British Royal Navy 1980s Blue Upper Deck Jacket", cat:"Jackets / Shirts",
+      { n:"british", name:"British Royal Navy 1980s Blue Upper Deck Jacket", cat:"Jackets",
         img:"BRN1980BUDJ.png", ref:"BRN1980BUDJ" },
-      { n:"british", name:"British Royal Navy 2010s Rig 22 FR Operational Shirt", cat:"Jackets / Shirts",
+      { n:"british", name:"British Army 2010s MTP Camouflage UBACS Combat Shirt", cat:"Shirts",
+        img:"BA2010MCUCS.png", ref:"BA2010MCUCS" },
+      { n:"british", name:"British Royal Navy 2010s Rig 22 FR Operational Shirt", cat:"Shirts",
         img:"BRN2010R22FOS.png", ref:"BRN2010R22FOS" },
-      { n:"british", name:"British Royal Air Force 2000s MK3 FR Cold Weather Aircrew Trousers", cat:"Trousers / Coveralls",
+      { n:"british", name:"British Army 1980s 85 Pattern Woodland DPM Camouflage Combat Smock", cat:"Smocks",
+        img:"BA198085PWDCCS.png", ref:"BA198085PWDCCS" },
+      { n:"british", name:"British Army 1990s Thermal Buffalo Pullover Smock", cat:"Smocks",
+        img:"BA1990TBPS.png", ref:"BA1990TBPS" },
+      { n:"british", name:"British Army 2010s MTP Camouflage Windproof Smock", cat:"Smocks",
+        img:"BA2010MCWS.png", ref:"BA2010MCWS" },
+      { n:"british", name:"British Royal Air Force 1980s Raincoat Trench Coat", cat:"Coats",
+        img:"BRAF1980RTC.png", ref:"BRAF1980RTC" },
+      { n:"british", name:"British Royal Air Force 1990s Wet Weather Coat Jacket", cat:"Coats",
+        img:"BRAF1990WWCJ.png", ref:"BRAF1990WWCJ" },
+      { n:"british", name:"British Royal Air Force 1980s Aircrew Faux Fur Thermal Base Layer Pullover", cat:"Pullovers",
+        img:"BRAF1980AFFTBLP.png", ref:"BRAF1980AFFTBLP" },
+      { n:"british", name:"British Royal Air Force 1980s GP Thermal Liner Bomber Jacket", cat:"Liners",
+        img:"BRAF1980GTLBJ.png", ref:"BRAF1980GTLBJ" },
+      { n:"british", name:"British Royal Air Force 2000s MK3 FR Cold Weather Aircrew Trousers", cat:"Trousers",
         img:"BRAF2000MK3FCWAT.png", ref:"BRAF2000MK3FCWAT" },
-      { n:"british", name:"British Army 1990s Desert DPM Camouflage Body Armour Cover Vest", cat:"Bags / Webbing",
+      { n:"british", name:"British Army 1990s Desert DPM Camouflage Body Armour Cover Vest", cat:"Armour Covers",
         img:"BA1990DDCBACV.png", ref:"BA1990DDCBACV" },
-      { n:"british", name:"British Army 1990s Woodland DPM Camouflage Body Armour Cover Vest", cat:"Bags / Webbing",
+      { n:"british", name:"British Army 1990s Woodland DPM Camouflage Body Armour Cover Vest", cat:"Armour Covers",
         img:"BA1990WDCBACV.png", ref:"BA1990WDCBACV", src:"Lambrino" },
-      { n:"british", name:"British Army 2010s MTP Camouflage Body Armour Cover Vest", cat:"Bags / Webbing",
+      { n:"british", name:"British Army 2010s MTP Camouflage Body Armour Cover Vest", cat:"Armour Covers",
         img:"BA2010MCBACV.png", ref:"BA2010MCBACV" },
       /* ---------------- AUSTRIAN ---------------- */
-      { n:"austrian", name:"Austrian Army 1980s Olive Drab Long Sleeve Field Shirt", cat:"Jackets / Shirts",
-        img:"AA1980ODLSFS.png", ref:"AA1980ODLSFS" },
-      { n:"austrian", name:"Austrian Army 1990s Olive Drab Lightweight Ripstop Jacket", cat:"Jackets / Shirts",
+      { n:"austrian", name:"Austrian Army 1990s Olive Drab Lightweight Ripstop Jacket", cat:"Jackets",
         img:"AA1990ODLRJ.png", ref:"AA1990ODLRJ" },
-      { n:"austrian", name:"Austrian Army 2000s Olive Drab Anzug 03 Alpine Jacket", cat:"Jackets / Shirts",
+      { n:"austrian", name:"Austrian Army 2000s Olive Drab Anzug 03 Alpine Jacket", cat:"Jackets",
         img:"AA2000ODA03AJ.png", ref:"AA2000ODA03AJ" },
+      { n:"austrian", name:"Austrian Army 1980s Olive Drab Long Sleeve Field Shirt", cat:"Shirts",
+        img:"AA1980ODLSFS.png", ref:"AA1980ODLSFS" },
       /* ---------------- BELGIAN ---------------- */
-      { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Field Jacket", cat:"Jackets / Shirts",
+      { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Field Jacket", cat:"Jackets",
         img:"BEA1960M64OGFJ.png", ref:"BEA1960M64OGFJ" },
-      { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Shirt", cat:"Jackets / Shirts",
+      { n:"belgian", name:"Belgian Army 1960s M64 Olive Green Shirt", cat:"Shirts",
         img:"BEA1960M64OGS.png", ref:"BEA1960M64OGS", src:"Lambrino" },
       /* ---------------- BULGARIAN ---------------- */
-      { n:"bulgarian", name:"Bulgarian People's Army 1970s Olive Green Cossack Shirt", cat:"Jackets / Shirts",
+      { n:"bulgarian", name:"Bulgarian People's Army 1970s Olive Green Cossack Shirt", cat:"Shirts",
         img:"BUPA1970OGCS.png", ref:"BUPA1970OGCS" },
       /* ---------------- CHINESE ---------------- */
-      { n:"chinese", name:"Chinese People's Liberation Army 1980s Type 81 Olive Green AK Bandolier Chest Rig", cat:"Bags / Webbing",
+      { n:"chinese", name:"Chinese People's Liberation Army 1980s Type 81 Olive Green AK Bandolier Chest Rig", cat:"Webbing",
         img:"CPLA1980T81OGABCR.png", ref:"CPLA1980T81OGABCR" },
       /* ---------------- CZECH ---------------- */
-      { n:"czech", name:"Czech Army 1990s Cold Weather Liner Jacket", cat:"Jackets / Shirts",
+      { n:"czech", name:"Czech Army 1990s Cold Weather Liner Jacket", cat:"Liners",
         img:"CZA1990CWLJ.png", ref:"CZA1990CWLJ" },
       /* ---------------- CZECHOSLOVAK ---------------- */
-      { n:"czechoslovak", name:"Czechoslovak Army 1980s M85 Field Olive Green with Hood Parka", cat:"Jackets / Shirts",
-        img:"CSA1980M85FOGWHP.png", ref:"CSA1980M85FOGWHP" },
-      { n:"czechoslovak", name:"Czechoslovak Army 1980s Orange Pyjama Shirt", cat:"Jackets / Shirts",
+      { n:"czechoslovak", name:"Czechoslovak Army 1980s Orange Pyjama Shirt", cat:"Shirts",
         img:"CSA1980OPS.png", ref:"CSA1980OPS" },
-      { n:"czechoslovak", name:"Czechoslovak Army 1960s M60 Vz63 Cold Weather Thermal Trouser Liner", cat:"Trousers / Coveralls",
+      { n:"czechoslovak", name:"Czechoslovak Army 1980s M85 Field Olive Green with Hood Parka", cat:"Parkas",
+        img:"CSA1980M85FOGWHP.png", ref:"CSA1980M85FOGWHP" },
+      { n:"czechoslovak", name:"Czechoslovak Army 1960s M60 Vz63 Cold Weather Thermal Trouser Liner", cat:"Liners",
         img:"CSA1960M60VZ63CWTTL.png", ref:"CSA1960M60VZ63CWTTL", src:"Lambrino" },
       /* ---------------- DANISH ---------------- */
-      { n:"danish", name:"Danish Army 1990s M/84 Camouflage HMAK Jacket", cat:"Jackets / Shirts",
-        img:"DA1990M84.png", ref:"DA1990M84" },
-      { n:"danish", name:"Danish Civil Defence 1970s M71 Parka", cat:"Jackets / Shirts",
+      { n:"danish", name:"Danish Civil Defence 1970s M71 Parka", cat:"Parkas",
         img:"DCD1970M71P.png", ref:"DCD1970M71P" },
       /* ---------------- DUTCH ---------------- */
-      { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Combat Jacket", cat:"Jackets / Shirts",
+      { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Combat Jacket", cat:"Jackets",
         img:"NLA1990M93DWCCJ.png", ref:"NLA1990M93DWCCJ" },
-      { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Jacket", cat:"Jackets / Shirts",
+      { n:"dutch", name:"Dutch Army 1990s M93 DPM Woodland Camouflage Jacket", cat:"Jackets",
         img:"NLA1990M93DWCJ.png", ref:"NLA1990M93DWCJ" },
-      { n:"dutch", name:"Dutch Army 1990s Thermal Olive Brown Norgie Pullover", cat:"Jackets / Shirts",
-        img:"NLA1990TOBNP.png", ref:"NLA1990TOBNP" },
-      { n:"dutch", name:"Dutch Navy 1980s Work Jacket", cat:"Jackets / Shirts",
+      { n:"dutch", name:"Dutch Navy 1980s Work Jacket", cat:"Jackets",
         img:"NLN1980WJ.png", ref:"NLN1980WJ" },
-      { n:"dutch", name:"Dutch Army 1990s SPE Olive Green Chest Rig", cat:"Bags / Webbing",
+      { n:"dutch", name:"Dutch Army 1990s Thermal Olive Brown Norgie Pullover", cat:"Pullovers",
+        img:"NLA1990TOBNP.png", ref:"NLA1990TOBNP" },
+      { n:"dutch", name:"Dutch Army 1990s SPE Olive Green Chest Rig", cat:"Webbing",
         img:"NLA1990SOGCR.png", ref:"NLA1990SOGCR" },
       /* ---------------- EAST GERMAN ---------------- */
-      { n:"east-german", name:"East German Army 1960s NVA Raindrop Strichmuster Camouflage Jacket", cat:"Jackets / Shirts",
+      { n:"east-german", name:"East German Army 1960s NVA Raindrop Strichmuster Camouflage Jacket", cat:"Jackets",
         img:"EGA1960NRSCJ.png", ref:"EGA1960NRSCJ" },
       /* ---------------- FINNISH ---------------- */
-      { n:"finnish", name:"Finnish Army 1960s M64 NBC Smock", cat:"Jackets / Shirts",
+      { n:"finnish", name:"Finnish Army 1960s M64 NBC Smock", cat:"Smocks",
         img:"FA1960M64NS.png", ref:"FA1960M64NS" },
       /* ---------------- FRENCH ---------------- */
-      { n:"french", name:"French Army 1990s CCE Camouflage F2 Jacket", cat:"Jackets / Shirts",
+      { n:"french", name:"French Army 1990s CCE Camouflage F2 Jacket", cat:"Jackets",
         img:"FRA1990CCF2J.png", ref:"FRA1990CCF2J" },
-      { n:"french", name:"French Army 1990s CCE Camouflage Pullover Fleece", cat:"Jackets / Shirts",
+      { n:"french", name:"French Army 1990s CCE Camouflage Pullover Fleece", cat:"Fleeces",
         img:"FRA1990CCPF.png", ref:"FRA1990CCPF" },
       /* ---------------- GREEK ---------------- */
-      { n:"greek", name:"Greek Army 1960s M65 Faux Fur Liner Jacket", cat:"Jackets / Shirts",
-        img:"GRA1960M65FFLJ.png", ref:"GRA1960M65FFLJ" },
-      { n:"greek", name:"Greek Army 1960s M65 Olive Green Jacket", cat:"Jackets / Shirts",
+      { n:"greek", name:"Greek Army 1960s M65 Olive Green Jacket", cat:"Jackets",
         img:"GRA1960M65OGJ.png", ref:"GRA1960M65OGJ" },
+      { n:"greek", name:"Greek Army 1960s M65 Faux Fur Liner Jacket", cat:"Liners",
+        img:"GRA1960M65FFLJ.png", ref:"GRA1960M65FFLJ" },
       /* ---------------- HUNGARIAN ---------------- */
-      { n:"hungarian", name:"Hungarian People's Army 1970s Cold Weather Tank Liner Jacket", cat:"Jackets / Shirts",
+      { n:"hungarian", name:"Hungarian People's Army 1970s Cold Weather Tank Liner Jacket", cat:"Liners",
         img:"HPA1970CWTLJ.png", ref:"HPA1970CWTLJ" },
       /* ---------------- IRAQI ---------------- */
-      { n:"iraqi", name:"Iraqi Army 1980s Desert DPM Camouflage Combat Jacket", cat:"Jackets / Shirts",
+      { n:"iraqi", name:"Iraqi Army 1980s Desert DPM Camouflage Combat Jacket", cat:"Jackets",
         img:"IQA1980DDCCJ.png", ref:"IQA1980DDCCJ" },
       /* ---------------- IRISH ---------------- */
-      { n:"irish", name:"Irish Army 1980s Green Dress Jacket", cat:"Jackets / Shirts",
+      { n:"irish", name:"Irish Army 1980s Green Dress Jacket", cat:"Jackets",
         img:"IRA1980GDJ.png", ref:"IRA1980GDJ" },
       /* ---------------- ISRAELI ---------------- */
-      { n:"israeli", name:"Israeli Defense Force 1970s Green Battledress Ike Jacket", cat:"Jackets / Shirts",
+      { n:"israeli", name:"Israeli Defense Force 1970s Green Battledress Ike Jacket", cat:"Jackets",
         img:"ISDF1970GBIJ.png", ref:"ISDF1970GBIJ" },
       /* ---------------- ITALIAN ---------------- */
-      { n:"italian", name:"Italian Army 1970s Roma 75 Olive Drab Safari Jacket", cat:"Jackets / Shirts",
+      { n:"italian", name:"Italian Army 1970s Roma 75 Olive Drab Safari Jacket", cat:"Jackets",
         img:"IA1970R75ODSJ.png", ref:"IA1970R75ODSJ" },
-      { n:"italian", name:"Italian Army 1990s Roma 90 Woodland Camouflage Combat Jacket", cat:"Jackets / Shirts",
+      { n:"italian", name:"Italian Army 1990s Roma 90 Woodland Camouflage Combat Jacket", cat:"Jackets",
         img:"IA1990R90WCCJ.png", ref:"IA1990R90WCCJ" },
-      { n:"italian", name:"Italian Army 1960s Denim Alpini Mountain Rucksack", cat:"Bags / Webbing",
+      { n:"italian", name:"Italian Army 1960s Denim Alpini Mountain Rucksack", cat:"Bags",
         img:"IA1960DAMR.png", ref:"IA1960DAMR" },
       /* ---------------- NORWEGIAN ---------------- */
-      { n:"norwegian", name:"Norwegian Army 1950s M51 Thermal Liner Parka", cat:"Jackets / Shirts",
+      { n:"norwegian", name:"Norwegian Army 1950s M51 Thermal Liner Parka", cat:"Parkas",
         img:"NA1950M51TLP.png", ref:"NA1950M51TLP" },
       /* ---------------- POLISH ---------------- */
-      { n:"polish", name:"Polish Army 1990s WZ93 Pantera Camouflage Windproof Winter Liner Parka", cat:"Jackets / Shirts",
+      { n:"polish", name:"Polish Army 1990s WZ93 Pantera Camouflage Windproof Winter Liner Parka", cat:"Parkas",
         img:"PA1990WZ93PCWWLP.png", ref:"PA1990WZ93PCWWLP" },
       /* ---------------- PORTUGUESE ---------------- */
-      { n:"portuguese", name:"Portuguese Army 1960s M63 Lizard Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
+      { n:"portuguese", name:"Portuguese Army 1960s M63 Lizard Camouflage Long Sleeve Shirt", cat:"Shirts",
         img:"PTA1960M63LCLSS.png", ref:"PTA1960M63LCLSS" },
       /* ---------------- ROMANIAN ---------------- */
-      { n:"romanian", name:"Romanian Army 1990s M1990 Leaf Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
+      { n:"romanian", name:"Romanian Army 1990s M1990 Leaf Camouflage Long Sleeve Shirt", cat:"Shirts",
         img:"ROA1990M1990LCLSS.png", ref:"ROA1990M1990LCLSS" },
-      { n:"romanian", name:"Romanian Army 1990s M1994 Fleck Leaf Camouflage Winter Liner Parka", cat:"Jackets / Shirts",
-        img:"ROA1990M1994FLCWLP.png", ref:"ROA1990M1994FLCWLP" },
-      { n:"romanian", name:"Romanian Army 2010s M2017 Woodland Camouflage Polo", cat:"Jackets / Shirts",
-        img:"ROA2010M2017WCP.png", ref:"ROA2010M2017WCP" },
-      { n:"romanian", name:"Romanian Navy 2010s M2017 Blue Camouflage Polo", cat:"Jackets / Shirts",
-        img:"RON2010M2017BCP.png", ref:"RON2010M2017BCP" },
-      { n:"romanian", name:"Romanian People's Army 1970s Khaki Wool Greatcoat", cat:"Jackets / Shirts",
-        img:"ROPA1970KWG.png", ref:"ROPA1970KWG" },
-      { n:"romanian", name:"Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt", cat:"Jackets / Shirts",
+      { n:"romanian", name:"Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt", cat:"Shirts",
         img:"ROP1990M1990BLCLSS.png", ref:"ROP1990M1990BLCLSS" },
+      { n:"romanian", name:"Romanian Army 1990s M1994 Fleck Leaf Camouflage Winter Liner Parka", cat:"Parkas",
+        img:"ROA1990M1994FLCWLP.png", ref:"ROA1990M1994FLCWLP" },
+      { n:"romanian", name:"Romanian People's Army 1970s Khaki Wool Greatcoat", cat:"Greatcoats",
+        img:"ROPA1970KWG.png", ref:"ROPA1970KWG" },
+      { n:"romanian", name:"Romanian Army 2010s M2017 Woodland Camouflage Polo", cat:"Polos",
+        img:"ROA2010M2017WCP.png", ref:"ROA2010M2017WCP" },
+      { n:"romanian", name:"Romanian Navy 2010s M2017 Blue Camouflage Polo", cat:"Polos",
+        img:"RON2010M2017BCP.png", ref:"RON2010M2017BCP" },
       /* ---------------- SERBIAN ---------------- */
-      { n:"serbian", name:"Serbian Army 1990s M93 Oak Leaf Camouflage Thermal Liner Parka", cat:"Jackets / Shirts",
+      { n:"serbian", name:"Serbian Army 1990s M93 Oak Leaf Camouflage Thermal Liner Parka", cat:"Parkas",
         img:"SBA1990M93OLCTLP.png", ref:"SBA1990M93OLCTLP" },
       /* ---------------- SLOVAK ---------------- */
-      { n:"slovak", name:"Slovak Air Force 2000s Thermal Flight Jacket", cat:"Jackets / Shirts",
+      { n:"slovak", name:"Slovak Air Force 2000s Thermal Flight Jacket", cat:"Jackets",
         img:"SKAF2000TFJ.png", ref:"SKAF2000TFJ" },
-      { n:"slovak", name:"Slovak Army 1990s M97 Camouflage M65 Jacket", cat:"Jackets / Shirts",
+      { n:"slovak", name:"Slovak Army 1990s M97 Camouflage M65 Jacket", cat:"Jackets",
         img:"SKA1990M97CM65J.png", ref:"SKA1990M97CM65J" },
       /* ---------------- SOVIET ---------------- */
-      { n:"soviet", name:"Soviet Navy 1970s Yellow Dress Shirt", cat:"Jackets / Shirts",
+      { n:"soviet", name:"Soviet Navy 1970s Yellow Dress Shirt", cat:"Shirts",
         img:"SN1970YDS.png", ref:"SN1970YDS" },
-      { n:"soviet", name:"Soviet Red Army 1970s Brown Wool Greatcoat", cat:"Jackets / Shirts",
+      { n:"soviet", name:"Soviet Red Army 1970s Brown Wool Greatcoat", cat:"Greatcoats",
         img:"SRA1970BWG.png", ref:"SRA1970BWG" },
       /* ---------------- SPANISH ---------------- */
-      { n:"spanish", name:"Spanish Army 2000s M09 Pixel Leaf Camouflage Ripstop Jacket", cat:"Jackets / Shirts",
+      { n:"spanish", name:"Spanish Army 2000s M09 Pixel Leaf Camouflage Ripstop Jacket", cat:"Jackets",
         img:"SPA2000M09PLCRJ.png", ref:"SPA2000M09PLCRJ" },
       /* ---------------- SWEDISH ---------------- */
-      { n:"swedish", name:"Swedish Army 1940s M39 Wool Jacket", cat:"Jackets / Shirts",
+      { n:"swedish", name:"Swedish Army 1940s M39 Wool Jacket", cat:"Jackets",
         img:"SWA1940M39WJ.png", ref:"SWA1940M39WJ" },
       /* ---------------- SWISS ---------------- */
-      { n:"swiss", name:"Swiss Army 1980s TAZ83 Alpenflage Camouflage Field Shirt", cat:"Jackets / Shirts",
+      { n:"swiss", name:"Swiss Army 1980s TAZ83 Alpenflage Camouflage Field Shirt", cat:"Shirts",
         img:"CHA1980TAZ83ACFS.png", ref:"CHA1980TAZ83ACFS" },
       /* ---------------- UNITED STATES ---------------- */
-      { n:"united-states", name:"United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket", cat:"Jackets / Shirts",
+      { n:"united-states", name:"United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket", cat:"Jackets",
         img:"USAF1990TCDCSCRCJ.png", ref:"USAF1990TCDCSCRCJ" },
-      { n:"united-states", name:"United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket", cat:"Jackets / Shirts",
+      { n:"united-states", name:"United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket", cat:"Jackets",
         img:"USAF2000DTSCBCJ.png", ref:"USAF2000DTSCBCJ" },
-      { n:"united-states", name:"United States Air Force 2010s Multicam Camouflage Combat Jacket", cat:"Jackets / Shirts",
+      { n:"united-states", name:"United States Air Force 2010s Multicam Camouflage Combat Jacket", cat:"Jackets",
         img:"USAF2010MCCJ.png", ref:"USAF2010MCCJ" },
-      { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage M65 Cold Weather Field Coat", cat:"Jackets / Shirts",
-        img:"USA1980M81WCM65CWFC.png", ref:"USA1980M81WCM65CWFC" },
-      { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage MVP Parka", cat:"Jackets / Shirts",
-        img:"USA1980M81WCMP.png", ref:"USA1980M81WCMP" },
-      { n:"united-states", name:"United States Army 2000s UCP Camouflage UBACS Mandarin Collar Shirt", cat:"Jackets / Shirts",
-        img:"USA2000UCUMCS.png", ref:"USA2000UCUMCS" },
-      { n:"united-states", name:"United States Marine Corps 1980s M81 Woodland Camouflage BDU Combat Jacket", cat:"Jackets / Shirts",
+      { n:"united-states", name:"United States Marine Corps 1980s M81 Woodland Camouflage BDU Combat Jacket", cat:"Jackets",
         img:"USMC1980M81WCBCJ.png", ref:"USMC1980M81WCBCJ" },
+      { n:"united-states", name:"United States Army 2000s UCP Camouflage UBACS Mandarin Collar Shirt", cat:"Shirts",
+        img:"USA2000UCUMCS.png", ref:"USA2000UCUMCS" },
+      { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage MVP Parka", cat:"Parkas",
+        img:"USA1980M81WCMP.png", ref:"USA1980M81WCMP" },
+      { n:"united-states", name:"United States Army 1980s M81 Woodland Camouflage M65 Cold Weather Field Coat", cat:"Coats",
+        img:"USA1980M81WCM65CWFC.png", ref:"USA1980M81WCM65CWFC" },
       /* ---------------- WEST GERMAN ---------------- */
-      { n:"west-german", name:"West German Army 1960s Tracksuit Jacket", cat:"Jackets / Shirts",
+      { n:"west-german", name:"West German Army 1960s Tracksuit Jacket", cat:"Jackets",
         img:"WGA1960TJ.png", ref:"WGA1960TJ" },
-      { n:"west-german", name:"West German Army 1970s Khaki Thermal Liner Coat", cat:"Jackets / Shirts",
+      { n:"west-german", name:"West German Army 1970s Khaki Thermal Liner Coat", cat:"Liners",
         img:"WGA1970KTLC.png", ref:"WGA1970KTLC" },
       /* ---------------- YUGOSLAV ---------------- */
-      { n:"yugoslav", name:"Yugoslav Army 1980s JNA M87 Oak Leaf Camouflage Shirt", cat:"Jackets / Shirts",
+      { n:"yugoslav", name:"Yugoslav Army 1980s JNA M87 Oak Leaf Camouflage Shirt", cat:"Shirts",
         img:"YA1980JM87OLCS.png", ref:"YA1980JM87OLCS" }
     ];
 
-    /* ---------- category order within each nation ---------- */
-    const CATS = ["Jackets / Shirts","Trousers / Coveralls","Bags / Webbing","Pouches / Cases","Headwear","Footwear","Sleep / Shelter / Field","Hardware / Misc","Unclassified"];
+    /* ---------- category order within each nation ----------
+       One noun per shelf. "Jackets / Shirts" was one shelf holding a dress
+       jacket, a pyjama shirt, a greatcoat and a thermal liner — a slash is
+       two categories nobody separated, not one with a wide name. */
+    const CATS = ["Jackets", "Shirts", "Smocks", "Parkas", "Coats", "Greatcoats",
+                  "Fleeces", "Pullovers", "Polos", "Liners", "Vests", "Coveralls",
+                  "Trousers", "Armour Covers", "Webbing", "Bags", "Pouches",
+                  "Headwear", "Footwear", "Hardware", "Unclassified"];
 
     function slugBase(name){
       return name.toLowerCase()
@@ -2289,12 +2413,16 @@
               <div class="req-panel"><div class="req-inner">
                 <div class="req-row">
                   <label>Quantity</label>
+                  <!-- Ten steps, thirty upwards. A slider invited 137, which
+                       is not a number anyone orders in; the dots say what the
+                       shape of an order is before a number is chosen. -->
+                  <div class="req-dots" role="group" aria-label="Quantity"></div>
                   <div class="req-qty">
-                    <input type="range" class="req-range" min="1" max="500" step="1" value="100" aria-label="Quantity">
-                    <span class="qtyval" aria-hidden="true">100</span>
+                    <span class="qtyval" aria-live="polite">30</span>
+                    <input type="text" class="req-any" inputmode="numeric"
+                           placeholder="or enter any amount" aria-label="Or enter any amount">
                   </div>
                 </div>
-                <input type="text" class="req-name" placeholder="Your name" autocomplete="name" aria-label="Your name">
                 <input type="email" class="req-email" placeholder="you@example.com" autocomplete="email" aria-label="Your email">
                 <input type="text" class="req-hp" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
                 <button type="button" class="req-send">Send request</button>
@@ -2528,10 +2656,37 @@
       if (!Array.isArray(savedIds)) savedIds = [];
     } catch { savedIds = []; }
 
+    /* A collection can outlive the garments in it: the archive is edited,
+       and a reader's shelf then holds ids for things that no longer exist.
+       Those were counting towards the tally and opening an empty section.
+       The list is pruned against what is actually here, once, on arrival. */
+    function pruneSaved(){
+      const real = new Set(ITEMS.map(p => `${p.n}/${slugBase(p.name)}`));
+      const kept = savedIds.filter(id => real.has(id));
+      if (kept.length !== savedIds.length){
+        savedIds = kept;
+        persistSaved();
+      }
+    }
+
     function persistSaved(){
       try { localStorage.setItem(SAVED_KEY, JSON.stringify(savedIds)); } catch {}
     }
     function isSaved(id){ return savedIds.includes(id); }
+
+    /* The shelf, written out for an email: the garment's own name and ref,
+       in the order they were kept. Reads as a list a person could act on
+       rather than a row of internal ids. */
+    function savedNames(){
+      return savedIds.map(id => {
+        const el = allItems.find(x => x.dataset.id === id);
+        if (!el) return null;
+        const n = el.querySelector('.name');
+        const r = el.querySelector('.ref');
+        const ref = r ? r.textContent.split('—')[0].trim() : '';
+        return n ? (ref ? `${n.textContent} (${ref})` : n.textContent) : null;
+      }).filter(Boolean);
+    }
     function toggleSaved(id){
       const i = savedIds.indexOf(id);
       if (i === -1) savedIds.push(id); else savedIds.splice(i, 1);
@@ -2655,6 +2810,107 @@
       window.scrollTo({ top:0, behavior:REDUCED ? 'auto' : 'smooth' });
     }
 
+    /* ============================================================
+       THE COLLECTION'S DOOR
+       Keeping is free. Opening the shelf asks for an address once, and
+       sends us the shelf with it — the same two facts a request sends, at
+       the other end of the same interest. Once joined it never asks again.
+       ============================================================ */
+    const JOIN_KEY   = 'bmu.archive.joined';
+    const JOIN_LEDE  = 'Join to open your collection.';
+    const gateEl     = document.getElementById('joinGate');
+    const jgLede     = document.getElementById('jgLede');
+    const jgInput    = document.getElementById('jgInput');
+    const jgSend     = document.getElementById('jgSend');
+    const jgMsg      = document.getElementById('jgMsg');
+    const jgClose    = document.getElementById('jgClose');
+    let gateAfter    = null;      // what the reader was trying to reach
+
+    function hasJoined(){
+      try { return !!localStorage.getItem(JOIN_KEY); } catch { return false; }
+    }
+
+    function openJoinGate(then){
+      if (hasJoined()){ then(); return; }
+      gateAfter = then;
+      gateEl.hidden = false;
+      gateEl.setAttribute('aria-hidden', 'false');
+      jgMsg.textContent = '';
+      jgSend.disabled = false;
+      requestAnimationFrame(() => gateEl.classList.add('on'));
+      // the line writes itself, as it does on the home page
+      bmuTypeInto(JOIN_LEDE, jgLede, 26, () => {
+        try { jgInput.focus({ preventScroll:true }); } catch(_){}
+      });
+    }
+
+    function closeJoinGate(){
+      gateEl.classList.remove('on');
+      gateAfter = null;
+      setTimeout(() => {
+        gateEl.hidden = true;
+        gateEl.setAttribute('aria-hidden', 'true');
+        jgLede.textContent = '';
+      }, 420);
+    }
+
+    /* the archive's own small typewriter — the page has no other */
+    function bmuTypeInto(text, el, delay, done){
+      let i = 0;
+      el.textContent = '';
+      (function tick(){
+        if (i < text.length){
+          el.textContent += text.charAt(i++);
+          setTimeout(tick, delay);
+        } else if (done){ done(); }
+      })();
+    }
+
+    async function submitJoinGate(){
+      const addr = jgInput.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)){
+        jgMsg.textContent = 'Enter a valid email address.';
+        try { jgInput.focus({ preventScroll:true }); } catch(_){}
+        return;
+      }
+      jgSend.disabled = true;
+      jgMsg.textContent = 'Sending…';
+
+      const shelf = savedNames();
+      const payload = {
+        _subject: `Archive collection — ${shelf.length} garment${shelf.length === 1 ? '' : 's'}`,
+        _template: 'table',
+        _captcha: 'false',
+        Email: addr,
+        Reason: 'Opened a saved collection',
+        Collection: shelf.length ? shelf.join('\n') : '(empty)'
+      };
+
+      try {
+        const res = await fetch(REQUEST_URL, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(res.status);
+      } catch(_){
+        /* The address is what the gate is for, and we have it. Failing to
+           post it must not stand between the reader and their own shelf. */
+      }
+      try { localStorage.setItem(JOIN_KEY, addr); } catch(_){}
+      jgMsg.textContent = 'Joined.';
+      const then = gateAfter;
+      setTimeout(() => { closeJoinGate(); if (then) then(); }, 520);
+    }
+
+    jgSend.addEventListener('click', submitJoinGate);
+    jgInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter'){ e.preventDefault(); submitJoinGate(); }
+      if (e.key === 'Escape'){ e.preventDefault(); closeJoinGate(); }
+    });
+    jgClose.addEventListener('click', closeJoinGate);
+    gateEl.addEventListener('click', e => { if (e.target === gateEl) closeJoinGate(); });
+
     /* The plate that answers an empty library. Pressing again restarts the
        hold rather than stacking a second timer behind the first. */
     const noData = document.getElementById('noData');
@@ -2678,6 +2934,8 @@
         flashNoData();
         return;
       }
+      // closing the shelf needs nobody's name; opening it does
+      if (!savedOnly){ openJoinGate(() => savedBtn.click()); if (!hasJoined()) return; }
       savedOnly = !savedOnly;
       soloId = null;
       nationsOpen = true;
@@ -2865,9 +3123,9 @@
       // the text goes in the inner box: writing to the panel itself would
       // throw away the wrapper the slide collapses against
       const infoBody = el.querySelector('.info-inner');
-      const range    = el.querySelector('.req-range');
       const val      = el.querySelector('.qtyval');
-      const person   = el.querySelector('.req-name');
+      const dots     = el.querySelector('.req-dots');
+      const anyQty   = el.querySelector('.req-any');
       const email    = el.querySelector('.req-email');
       const honey    = el.querySelector('.req-hp');
       const send     = el.querySelector('.req-send');
@@ -2898,7 +3156,13 @@
              material, the closures, the measurements, the dating. */
           const raw = (await res.text()).trim();
           const cut = raw.indexOf('\n\n', raw.indexOf('Archive ref:'));
-          infoBody.textContent = cut === -1 ? raw : raw.slice(cut + 2).trim();
+          let body = cut === -1 ? raw : raw.slice(cut + 2).trim();
+          /* The record keeps the shop's original list under a rule so the
+             prose can always be checked against its source. The panel shows
+             the prose; the list is for us, not for the reader. */
+          const rule = body.indexOf('\n---\n');
+          if (rule !== -1) body = body.slice(0, rule).trim();
+          infoBody.textContent = body;
         } catch {
           infoBody.textContent = 'No record filed for this garment yet.';
         }
@@ -2913,19 +3177,49 @@
         setState('info');
       });
 
-      range.addEventListener('input', () => { val.textContent = range.value; });
+      /* Thirty upwards in tens. Ten dots covers the run anyone actually asks
+         for; past that the field at the end takes any number at all. */
+      const STEP = 10, BASE = 30, DOTS = 10;
+      let qty = BASE;
+
+      for (let i = 0; i < DOTS; i++){
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'req-dot';
+        b.dataset.n = BASE + i * STEP;
+        b.setAttribute('aria-label', `${b.dataset.n}`);
+        dots.appendChild(b);
+      }
+
+      function paintDots(n){
+        [...dots.children].forEach(b => {
+          const v = +b.dataset.n;
+          b.classList.toggle('on', v <= n);
+          b.classList.toggle('tip', v === n);
+          b.setAttribute('aria-pressed', v <= n ? 'true' : 'false');
+        });
+        val.textContent = n;
+      }
+
+      function setQty(n, fromField){
+        qty = Math.max(1, Math.round(n) || BASE);
+        if (!fromField) anyQty.value = '';
+        paintDots(qty);
+      }
+
+      dots.addEventListener('click', e => {
+        const b = e.target.closest('.req-dot');
+        if (b) setQty(+b.dataset.n);
+      });
+      anyQty.addEventListener('input', () => {
+        const n = parseInt(anyQty.value.replace(/[^0-9]/g, ''), 10);
+        if (!isNaN(n) && n > 0){ setQty(n, true); }
+      });
+      setQty(BASE);
 
       send.addEventListener('click', async () => {
-        const qty  = range.value;
-        const who  = person.value.trim();
         const addr = email.value.trim();
 
-        if (!who){
-          msg.textContent = 'Enter your name.';
-          msg.classList.add('err');
-          person.focus({ preventScroll:true });
-          return;
-        }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)){
           msg.textContent = 'Enter a valid email address.';
           msg.classList.add('err');
@@ -2944,10 +3238,18 @@
           _captcha: 'false',
           Garment:  name,
           Quantity: String(qty),
-          Name:     who,
           Email:    addr
         };
         if (ref) payload['Archive ref'] = ref;
+
+        /* Whatever else is on their shelf goes with it. A request is the
+           one moment we know both who they are and what they have been
+           gathering, and the two together say far more than the one garment
+           they happened to press the button on. */
+        const shelf = savedNames();
+        payload['Also saved'] = shelf.length
+          ? shelf.join('\n')
+          : '(nothing else saved)';
 
         msg.classList.remove('err');
         msg.textContent = 'Sending…';
@@ -2967,19 +3269,30 @@
           person.value = '';
           email.value  = '';
         } catch (_){
-          /* Nothing was sent. Rather than leave the reader holding a dead
-             button, hand them the same request as a mail draft. */
+          /* The request did not go. It used to open the reader's mail client
+             at this point, which is what sends someone to their email rather
+             than to a sent request — and it fired for the commonest reason
+             of all, which is that the endpoint is simply not confirmed yet.
+
+             It says so instead, and offers the draft as something to press
+             rather than somewhere it drags them. */
+          msg.classList.add('err');
+          msg.innerHTML = '';
+          msg.append('Could not send. ');
+          const shelfLines = savedNames();
           const body =
             `Garment: ${name}\n` +
             (ref ? `Archive ref: ${ref}\n` : '') +
             `Quantity: ${qty}\n` +
-            `Name: ${who}\n` +
-            `Email: ${addr}\n`;
-          window.location.href =
-            `mailto:${REQUEST_TO}?subject=${encodeURIComponent(subject)}` +
-            `&body=${encodeURIComponent(body)}`;
-          msg.classList.add('err');
-          msg.textContent = 'Could not send from here — opening your mail app instead.';
+            `Email: ${addr}\n\n` +
+            `Also saved:\n` +
+            (shelfLines.length ? shelfLines.join('\n') : '(nothing else saved)') + '\n';
+          const a = document.createElement('a');
+          a.href = `mailto:${REQUEST_TO}?subject=${encodeURIComponent(subject)}` +
+                   `&body=${encodeURIComponent(body)}`;
+          a.textContent = 'Send it by email instead';
+          a.style.textDecoration = 'underline';
+          msg.append(a);
         } finally {
           send.disabled = false;
         }
@@ -3049,6 +3362,7 @@
     /* Everything that returns the archive to rest goes through here, so
        the star can never end up a step behind the buttons it summoned. */
     function goHome(){
+      document.body.classList.remove('solo-from-field');
       document.body.classList.remove('solo-closing', 'solo-shutting');
       document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
       document.body.classList.remove('solo-drawing');
@@ -3324,19 +3638,23 @@
       paintHint(term);
 
       // in explore the search regroups the field rather than the page
-      /* Typing is a question about the whole archive, and the field is
-         where the whole archive is. Answering it in the list meant the
-         reader typed from the field, was handed a list, and had to find
-         their way back. The field comes up instead. */
-      if (!exploreOn && term.length >= 2){
-        dockForced = true;
-        setFaceMode('explore');
-        setFace(0, true);
-        openExplore();
-      }
+      /* The answer appears where the reader is standing. Typing in the field
+         moves the field; typing in the list narrows the list. Dragging them
+         between the two — which is what forcing explore open did — takes the
+         view away from someone who chose it. */
       if (exploreOn){ clusterSearch(term, false); return; }   // typing
 
       if (term && countMatches(term) === 0) return;   // hold what's there
+
+      /* Typing on the bare page — the state the cross lands on, with the
+         question in the middle and nothing else — brings up the LIST. That
+         screen is a question being asked, and a list is the shape of an
+         answer to it; opening the field instead would put the reader
+         somewhere they would then have to leave to read anything. */
+      if (term.length >= 2 && !nationsOpen && !savedOnly && !soloId){
+        nationsOpen = true;
+        setBrowsing(true);
+      }
 
       q.value = dq.value;
       filter();
@@ -3519,12 +3837,18 @@
     }
 
     flagBtn.addEventListener('click', () => {
-      // inside explore the flag regroups the field by nation instead
+      /* One nation cluster per flag was thirty-one groups nobody asked for.
+         There are three clusters in this archive and only three: OUR shelf,
+         everything camouflaged, and whatever the reader has kept. The flag
+         is the first of them. */
       if (!explore.hidden){
-        const next = spiralMode === 'clusters' ? 'spiral' : 'clusters';
-        morphLayout(next);
-        flagBtn.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
-        dqFlag.setAttribute('aria-pressed', next === 'clusters' ? 'true' : 'false');
+        const on = dqFlag.getAttribute('aria-pressed') === 'true';
+        dqFlag.setAttribute('aria-pressed', on ? 'false' : 'true');
+        flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
+        dq.value = on ? '' : 'British';
+        dghost.hidden = dq.value !== '';
+        paintHint(dq.value.trim().toLowerCase());
+        clusterSearch(on ? '' : 'british', true);
         return;
       }
       const on = !nationsOpen;
@@ -3573,16 +3897,34 @@
     const revTrace = document.getElementById('revTrace');
     let imgTotal = 0, imgDone = 0, revealed = false, revArmed = false;
 
+    /* `load` fires when the bytes have arrived, not when the picture can be
+       drawn — the browser still has to decode a megabyte of PNG, and on a
+       slower machine that is where the delay actually is. Waiting on
+       decode() instead is the difference between "downloaded" and "will
+       paint this frame", and it is why the gate used to open onto a field
+       that was still resolving.
+
+       `loading="lazy"` also lets the browser decline to fetch a picture it
+       considers off-screen, so every image is told to load eagerly first —
+       otherwise the count could never complete. */
     function watchLoad(img){
       if (!img) return;
       imgTotal++;
+      img.loading = 'eager';
       const done = () => {
         imgDone++;
         if (imgDone >= imgTotal) armReveal();
       };
-      if (img.complete && img.naturalWidth > 0){ done(); return; }
-      img.addEventListener('load',  done, { once:true });
-      img.addEventListener('error', done, { once:true });   // broken counts as landed
+      const settle = () => {
+        if (typeof img.decode === 'function'){
+          img.decode().then(done, done);     // a failed decode still counts
+        } else {
+          done();
+        }
+      };
+      if (img.complete && img.naturalWidth > 0){ settle(); return; }
+      img.addEventListener('load',  settle, { once:true });
+      img.addEventListener('error', done,   { once:true });   // broken counts as landed
     }
 
     function armReveal(){
@@ -3931,6 +4273,12 @@
       // the list's dressing does not belong to the field
       document.body.classList.remove('dock-list');
 
+      /* A reader who was looking at their own shelf should find it again.
+         Coming back to the field from the saved list used to drop them into
+         all seventy-five, which is not where they were — the collection is a
+         place, and leaving a garment in it should not leave the place. */
+      const wantSaved = savedOnly && savedIds.length;
+
       /* The gate is shown once, on the first visit to the field. Coming
          back to a field that is already loaded should not put a door in
          front of it again. */
@@ -3948,10 +4296,10 @@
         /* A gate that never opens is worse than one that opens early.
            `loading="lazy"` means the browser is entitled to hold back a
            photograph it considers off-screen, and in a transformed spiral
-           its idea of off-screen is not ours — so a count that never
-           completes is a real outcome, not a hypothetical. After eight
-           seconds the reader gets in regardless. */
-        setTimeout(armReveal, 8000);
+           a picture can still fail in a way that fires neither event. This
+           is the last resort, set long enough that it is not reached on any
+           connection that is merely slow. */
+        setTimeout(armReveal, 20000);
       }
       /* The chosen garment is deliberately NOT released here. Coming back
          from a record, the field returns around the garment the reader left
@@ -3963,6 +4311,10 @@
       explore.hidden = false;
       exploreOn = true;
       explore.setAttribute('aria-hidden', 'false');
+      if (wantSaved){
+        // gathered once the spiral has been built and laid out below
+        setTimeout(() => gatherSaved(), 40);
+      }
       dockExplore.setAttribute('aria-pressed', 'true');
       document.body.classList.add('exploring');
       document.body.style.overflow = 'hidden';
@@ -4121,10 +4473,23 @@
       // the circle always returns explore to how it opens: the single
       // spiral, pulled back to fit — it is not a way out
       if (explore.hidden){ dockForced = true; openExplore(); return; }
-      if (spiralMode !== 'spiral'){
-        morphLayout('spiral');
-        flagBtn.setAttribute('aria-pressed', 'false');
+
+      /* Standing in a cluster, the circle is the way OUT of it — back to
+         every garment in the archive. It used to zoom out of the cluster
+         while leaving the cluster in place, which read as the view fighting
+         itself: the field pulled back but the garments it had set aside
+         never came home. The term goes, the field is rebuilt whole, and
+         only then is it fitted. */
+      const clustered = document.querySelector('#spiral .sp-gone, #spiral .sp-dim');
+      if (clustered || dq.value.trim() || spiralMode !== 'spiral'){
+        dq.value = '';
+        q.value = '';
+        dghost.hidden = false;
+        paintHint('');
         dqFlag.setAttribute('aria-pressed', 'false');
+        flagBtn.setAttribute('aria-pressed', 'false');
+        if (spiralMode !== 'spiral') morphLayout('spiral');
+        clusterSearch('', true);          // every garment back on the field
         return;
       }
       if (atInitial){
@@ -4157,13 +4522,21 @@
         return;
       }
 
-      if (!savedIds.length){ flashNoData(); return; }   // nothing kept to gather
+      if (!savedIds.length){
+        // the shelf is empty, or everything on it has since left the archive
+        savedOnly = false;
+        document.body.classList.remove('library');
+        dockLibrary.setAttribute('aria-pressed', 'false');
+        flashNoData();
+        return;
+      }
 
       /* In the list the bookmark opens the Saved tab, because that is what
          "my garments" looks like in a list — a section of its own with the
          rest shut. Morphing a spiral the reader is not looking at answered
          a question nobody had asked. */
       if (explore.hidden){
+        if (!savedOnly){ openJoinGate(() => dockLibrary.click()); if (!hasJoined()) return; }
         savedOnly = !savedOnly;
         soloId = null;
         nationsOpen = true;
@@ -4180,6 +4553,10 @@
         return;
       }
 
+      if (spiralMode !== 'saved'){
+        openJoinGate(() => dockLibrary.click());
+        if (!hasJoined()) return;
+      }
       const next = spiralMode === 'saved' ? 'spiral' : 'saved';
       morphLayout(next);
       dockLibrary.setAttribute('aria-pressed', next === 'saved' ? 'true' : 'false');
@@ -4214,6 +4591,46 @@
        with it. The main bar used to be handed back here, which put a second
        search bar on a page that already had one open; the dock stays and
        sits under the tabs instead. From the list it goes back to explore. */
+    /* The third cluster: whatever the reader has kept. Gathered the same way
+       the other two are, so all three behave alike. */
+    function gatherSaved(){
+      const els = [...spiral.children];
+      const keep = els.filter(el => isSaved(el.dataset.id));
+      if (!keep.length) return;
+      els.forEach(el => {
+        el.classList.toggle('sp-gone', !keep.includes(el));
+        el.classList.remove('sp-dim');
+        el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1), opacity .45s ease';
+      });
+      layoutSpiral(spiralMode);
+      keep.forEach((el, i) => {
+        const r = SPACING * Math.sqrt(i + 0.5);
+        const a = i * GOLDEN;
+        place(el, Math.cos(a) * r, Math.sin(a) * r);
+      });
+      setTimeout(() => {
+        glide(() => fitTo(keep), 800);
+        setTimeout(() => els.forEach(el => { el.style.transition = ''; }), 880);
+      }, 60);
+      dockLibrary.setAttribute('aria-pressed', 'true');
+    }
+
+    /* The second of the three clusters. Everything the archive holds that is
+       camouflaged, whatever nation cut it — the one grouping that crosses
+       every shelf, and the reason the nation-by-nation version was noise. */
+    function gatherCamouflage(){
+      if (explore.hidden){
+        dockForced = true;
+        setFaceMode('explore');
+        setFace(0, true);
+        openExplore();
+      }
+      dq.value = 'Camouflage';
+      dghost.hidden = true;
+      paintHint('camouflage');
+      clusterSearch('camouflage', true);
+    }
+
     dqExplore.addEventListener('click', e => {
       e.stopPropagation();
       if (explore.hidden){ openExplore(); return; }
@@ -4356,6 +4773,7 @@
        layout comes to it.
        ------------------------------------------------------------------ */
     function openRecord(item){
+      document.body.classList.add('solo-from-field');
       const img = item.querySelector('img');
       const from = (img || item).getBoundingClientRect();
 
@@ -4542,6 +4960,7 @@
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
     function returnToExplore(){
+      document.body.classList.remove('solo-from-field');
       document.body.classList.remove('solo-closing', 'solo-shutting');
       document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
       document.body.classList.remove('solo-drawing');
@@ -4741,6 +5160,7 @@
     if (hdHome)  hdHome.addEventListener('click',  e => { e.preventDefault(); leaveTo('/#home'); });
     if (hdIndex) hdIndex.addEventListener('click', e => { e.preventDefault(); leaveTo('/#footer'); });
 
+    pruneSaved();
     paintSaved();
 
     /* Explore IS the archive's front door now, and its own bar is where the

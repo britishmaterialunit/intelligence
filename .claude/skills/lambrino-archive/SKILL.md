@@ -50,6 +50,23 @@ Everything after "Grades -" is condition and sales patter for one particular
 item on one particular day. It does not belong in an archive record and the
 parser stops there.
 
+Then turn the lists into sentences:
+
+```bash
+python3 .claude/skills/lambrino-archive/prose.py --root .
+```
+
+A shop writes "At a glance" as fragments, which is right for a product page
+and wrong for an archive record. This rewrites each one as prose using ONLY
+what the bullets already say — grouped into what it is made of, what pattern
+it carries, how it is built, what it measures and where it came from. No
+fact is added and nothing unrecognised is dropped; anything the grouping
+cannot place is kept verbatim.
+
+The source list stays in the file under a `---` rule, so the rewrite can
+always be checked against what it came from. The page shows only the prose.
+`--dry-run` prints without writing — always read a dozen before committing.
+
 **A whole collection** — the bulk path below, with its review checkpoint.
 
 Both share `naming.py`. After either, rebuild the page's arrays from what is
