@@ -347,24 +347,6 @@
       transform:translateY(-14px);
       pointer-events:none;
     }
-    /* Going down, the row lifts away — the footer is rising and it gets out
-       of the way upwards. Coming back it used to retrace that: it appeared
-       ABOVE its place and settled downwards, which is the footer's motion
-       played backwards rather than the row's own. It comes up from below
-       instead, the way something returning to a shelf does. A transition
-       cannot do this — it is symmetrical by definition — so the return is
-       an animation of its own. */
-    body.entered #navStack.returning{
-      animation:nav-return .5s cubic-bezier(.4,0,.2,1) both;
-    }
-    @keyframes nav-return{
-      from { opacity:0; transform:translateY(16px); }
-      to   { opacity:1; transform:none; }
-    }
-    @media (prefers-reduced-motion:reduce){
-      body.entered #navStack.returning{ animation:none; }
-    }
-
     .bm-button{
       display:block;
       flex:1 1 0;
@@ -1019,19 +1001,20 @@
        Pressing is not a colour change: the box runs outwards to the right
        and the arrow arrives in the room it made. The rule is the thing that
        moves, which is the gesture the rest of the site is built on. */
+    /* No fixed measure. The box is cut to "Let's Talk" and nothing else, so
+       it reads as a label that happens to be pressable rather than a sixth
+       copy of the home row's button. align-self:flex-start in a column flex
+       parent is what shrink-wraps it; there is no width here to keep in step
+       with the type. */
     .foot-talk{
       align-self:flex-start;
       display:inline-flex;
       align-items:center;
-      justify-content:flex-start;
-      gap:0;
-      /* the measure of a button on the home page's row. min-width as well
-         as width: the column it sits in is a flex container and was sizing
-         it to its own text regardless of what width asked for. */
-      width:134px;
-      min-width:134px;
       flex:none;
-      margin:6px 0 0;
+      /* the top gap carries the collapsed mail-message row above it as well,
+         so the two numbers differ to put the box the same distance from
+         hello@ above as from Unit U below */
+      margin:7px 0 12px;
       padding:7px 12px;
       border:1.5px solid var(--line);
       color:var(--ink);
@@ -1040,20 +1023,35 @@
       font-weight:700;
       letter-spacing:.01em;
       white-space:nowrap;
-      overflow:hidden;
-      transition:width .42s cubic-bezier(.4,0,.2,1);
     }
-    .foot-talk:hover{ width:170px; min-width:170px; }
+    /* The well is the only thing with a width, and the box is sized from it:
+       growing the well from nothing grows the box, so the rule runs outwards
+       and the arrow arrives in exactly the room it made — never a gap left
+       over between the arrow and the right edge, at any point in the run.
+       The curve is a ramp rather than a symmetrical ease: it leaves quickly
+       and settles slowly, which is what reads as smooth on a short travel. */
+    .talk-well{
+      width:0;
+      overflow:hidden;
+      display:flex;
+      justify-content:flex-end;
+      transition:width .5s cubic-bezier(.16,1,.3,1);
+    }
+    .foot-talk:hover .talk-well,
+    .foot-talk:focus-visible .talk-well{ width:20px; }
     .foot-talk svg{
       width:12px; height:12px;
       display:block;
       flex:none;
       margin-left:8px;
       opacity:0;
-      transform:translateX(-6px);
-      transition:opacity .3s ease .12s, transform .42s cubic-bezier(.4,0,.2,1) .06s;
+      transition:opacity .34s ease .1s;
     }
-    .foot-talk:hover svg{ opacity:1; transform:none; }
+    .foot-talk:hover svg,
+    .foot-talk:focus-visible svg{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){
+      .talk-well{ transition:none; }
+    }
     .talk-arrow{
       fill:none;
       stroke:currentColor;
@@ -2544,12 +2542,14 @@
                line sits on the same baseline as the last service. -->
           <a class="foot-talk" href="/contact">
             <span>Let's Talk</span>
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <g class="talk-arrow">
-                <path d="M4.5 11.5 L11.5 4.5"/>
-                <path d="M5.8 4.5 H11.5 V10.2"/>
-              </g>
-            </svg>
+            <span class="talk-well">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <g class="talk-arrow">
+                  <path d="M4.5 11.5 L11.5 4.5"/>
+                  <path d="M5.8 4.5 H11.5 V10.2"/>
+                </g>
+              </svg>
+            </span>
           </a>
           <address class="foot-addr">Unit U, Wrexham Road<br />SS15 6PX, England<br />United Kingdom</address>
         </div>
@@ -2694,15 +2694,7 @@
         const vh = window.innerHeight;
         const r  = siteFooter.getBoundingClientRect();
         const inView = r.top < vh * 0.88 && r.bottom > 0;
-        const wasAtFooter = document.body.classList.contains('at-footer');
         document.body.classList.toggle('at-footer', inView);
-        if (wasAtFooter && !inView && navStack){
-          // leaving the footer: the row comes back up into its place
-          navStack.classList.remove('returning');
-          void navStack.offsetWidth;
-          navStack.classList.add('returning');
-          setTimeout(() => navStack.classList.remove('returning'), 560);
-        }
         if (window.bmuSyncHeadTool) window.bmuSyncHeadTool();
 
         /* Measured against how far this footer can actually rise, not a fixed

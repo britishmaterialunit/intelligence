@@ -396,7 +396,13 @@
       border-bottom:1.5px solid var(--line);
       padding-bottom:7px;
     }
-    .group:first-child > .section-label{ margin-top:0; }
+    /* first-of-type, not first-child: the facet bar is the first thing in
+       the tab body now, so the first section is no longer its parent's first
+       child and this rule had quietly stopped matching — every heading,
+       including the top one, was carrying its full 26px above it and sitting
+       a clear 40px under the switch line. The bar and the heading under it
+       are one piece of furniture and read as one. */
+    .group:first-of-type > .section-label{ margin-top:0; }
 
     .grid{
       display:grid;
@@ -486,6 +492,19 @@
        The card turns on its side so the record and the request form open
        beside the garment instead of pushing down below it. */
     body.single-result .section-label{ display:none; }
+    /* The switch groups a nation's garments, and a record opened on its own
+       has one garment in it. Offering a way to sort one card by material was
+       offering a control with nothing to act on, so it belongs to the list
+       and only to the list. */
+    body.single-result .facet-bar,
+    body.solo-from-field .facet-bar{ display:none; }
+
+    /* How far the record has to sit down the page for its garment to land
+       exactly where the field was already holding it. Measured at the
+       handover, not guessed — see beginSoloBuild. Scoped to records opened
+       from the field, because it is only there that a garment is already
+       somewhere on the glass when the record is built. */
+    body.solo-from-field #catalogue{ padding-top:var(--solo-drop, 0px); }
     body.single-result .item .tag{ display:none; }
     body.single-result .nation > summary .qty{ display:none; }
     /* .qty was the spacer holding the sign right; without it the sign
@@ -826,12 +845,21 @@
     .req-dots{
       display:flex;
       align-items:center;
-      gap:7px;
-      /* the chosen dot grows, and the panel it sits in clips its own
-         overflow for the slide — the row is given the room to grow into
-         rather than losing a third of the first circle to the edge */
+      /* Laid out from the width there is rather than from a fixed gap.
+         Ten circles at a fixed 7px apart came to 211px, and the panel that
+         holds them clips its own overflow for the slide — in any card
+         narrower than that the tenth dot was cut in half by the edge. Spread
+         between the two ends instead and the row fits whatever it is given,
+         closing the gaps rather than running off the side. The cap keeps a
+         wide card from spacing them out into ten separate switches. */
+      justify-content:space-between;
+      gap:0;
+      max-width:212px;
+      /* the chosen dot grows 1.35x, and it grows about its own centre — the
+         padding is the room the first and last have to grow into, so neither
+         end is clipped at the moment it is pressed */
       margin:3px 0 9px;
-      padding:3px 4px;
+      padding:3px 6px;
     }
     .req-dot{
       width:11px; height:11px;
@@ -875,22 +903,28 @@
       -webkit-appearance:none;
     }
     .req-any:focus{ border-bottom-color:var(--line); }
-    /* no heading above it — the placeholder carries it */
+    /* no heading above it — the placeholder carries it.
+       The same grey field the join panel asks for an address in: the two are
+       the same question asked in two places, and a black-ruled white box here
+       against a grey one there read as two different kinds of field. Grey at
+       rest, and the rule comes up black when it is being typed into. */
     .req-email{
       display:block;
       width:100%;
       margin-top:12px;
       font-family:var(--font);
       font-size:11px;
+      letter-spacing:.04em;
       color:var(--ink);
-      background:var(--bg);
-      border:1.5px solid var(--line);
-      padding:7px 8px;
+      background:var(--faint);
+      border:1.5px solid var(--faint);
+      padding:9px 8px;
       outline:none;
       border-radius:0;
       -webkit-appearance:none;
+      transition:border-color .3s ease;
     }
-    .req-email:focus{ background:var(--faint); }
+    .req-email:focus{ border-color:var(--line); }
     .req-send[disabled]{ opacity:.45; cursor:default; }
     /* a field no person ever sees, and no person ever fills in — anything
        that arrives with it filled is a bot, and is dropped */
@@ -1063,6 +1097,26 @@
     }
     #explore[hidden]{ display:none; }
     #explore.grabbing{ cursor:grabbing; }
+
+    /* A drag across this field is a pan, and the browser was reading it as
+       a text drag as well: every garment it swept over came back covered in
+       selection blue, as though the reader had highlighted a paragraph. The
+       photographs are not copy, so they do not select and they do not drag
+       out of the page — a press on one opens it, which is the only thing a
+       press on a garment means here. */
+    #explore, #explore *{
+      -webkit-user-select:none;
+      user-select:none;
+    }
+    /* every image on this page, not a list of the ones noticed so far:
+       none of them is a thing to drag out or highlight */
+    img{
+      -webkit-user-drag:none;
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-touch-callout:none;
+    }
+    #explore ::selection{ background:transparent; }
 
     #spiral{
       position:absolute;
@@ -1326,6 +1380,15 @@
     }
     body.solo-shutting .nation > summary{ opacity:0; transition:opacity .22s ease; }
 
+    /* The field fades up OVER the page, so for the length of that fade
+       whatever is underneath shows through it. On the way out of a record
+       that is the whole list: the filter() that clears the record rebuilds
+       every card, and setBrowsing's fold-away runs on its own timer after.
+       A screenful of garments appeared behind the fade and was then folded
+       up — the flash on the way out, and the flicker chasing it. Nothing
+       behind the fade is meant to be read, so nothing behind it is shown. */
+    body.field-returning #catalogue{ visibility:hidden; }
+
     /* 4. the field returns, and the garment it returns to is already lit */
     #explore.ex-returning{ animation:ex-return .5s ease both; }
     @keyframes ex-return{ from{ opacity:0; } to{ opacity:1; } }
@@ -1363,7 +1426,11 @@
       inset:0;
       pointer-events:none;
       background-image:radial-gradient(circle at center, var(--bg) 0 38%, transparent 40%);
-      background-size:6px 6px;
+      /* 6px read as a coarse screen at this scale — the garments showed
+         through it as shapes rather than as dots. Dividing the cell by 1.6
+         puts 1.6x the dots across every axis, which is the density at which
+         the field stops being photographs and becomes a printed ground. */
+      background-size:3.75px 3.75px;
       opacity:.95;
       z-index:3;
     }
@@ -1402,7 +1469,10 @@
          on screen while the field arrives, and it should read as solidly
          as it will when it fills */
       stroke:var(--line);
-      stroke-width:.5;
+      /* the footer mark's weight. .5 drew a noticeably heavier outline than
+         the same mark at the foot of the home page, so the two readings of
+         one logo did not match. */
+      stroke-width:.35;
     }
     .rev-fill{
       fill:var(--line);
@@ -1432,7 +1502,13 @@
        overlay. A target that spans the screen cannot be missed. */
     #reveal.ready{ pointer-events:auto; cursor:pointer; }
     #reveal.ready #revealBtn{ cursor:pointer; pointer-events:none; }
-    #reveal.ready:hover .rev-fill{ opacity:.55; }
+    /* There was a hover dim here, and it was why the filled mark read grey.
+       The sheet that takes the press spans the whole screen, so the pointer
+       is inside it from the moment the field lands — :hover was on
+       permanently, and the mark only went black when the cursor left the
+       page altogether. The mark is black once it is filled and stays that
+       way; the sheet being pressable is said by the cursor, not by fading
+       the one thing the reader is looking at. */
     #reveal.going{ opacity:0; transition:opacity .5s ease; }
 
     /* The bar is not usable while the field is still coming: typing into a
@@ -1606,7 +1682,7 @@
       display:flex;
       align-items:center;
       gap:10px;
-      padding:2px 2px 14px;
+      padding:2px 2px 8px;
     }
     .facet-title{
       font-size:9.5px;
@@ -2488,7 +2564,7 @@
           `<button type="button" class="facet-opt" data-facet="type">Type</button>` +
           `<button type="button" class="facet-opt" data-facet="material">Material</button>` +
           `<button type="button" class="facet-opt" data-facet="date">Date</button>` +
-          `<button type="button" class="facet-opt facet-reset" data-facet="">Reset</button>` +
+          `<button type="button" class="facet-opt facet-reset" data-facet="" hidden>All</button>` +
         `</span>`;
       body.appendChild(bar);
 
@@ -2542,7 +2618,10 @@
               ${p.ref ? `<span class="ref">${esc(p.ref)}${p.src ? ` — ${esc(p.src)}` : ''}</span>` : ''}
               <div class="req-panel"><div class="req-inner">
                 <div class="req-row">
-                  <label>Quantity</label>
+                  <!-- No heading. Ten circles above a running number, inside
+                       a panel opened by a button that says Request, can only
+                       be a quantity; the label was naming what the control
+                       was already saying. -->
                   <!-- Ten steps, thirty upwards. A slider invited 137, which
                        is not a number anyone orders in; the dots say what the
                        shape of an order is before a number is chosen. -->
@@ -2550,7 +2629,7 @@
                   <div class="req-qty">
                     <span class="qtyval" aria-live="polite">30</span>
                     <input type="text" class="req-any" inputmode="numeric"
-                           placeholder="or enter any amount" aria-label="Or enter any amount">
+                           placeholder="or enter units" aria-label="Or enter a number of units">
                   </div>
                 </div>
                 <input type="email" class="req-email" placeholder="you@example.com" autocomplete="email" aria-label="Your email">
@@ -2589,6 +2668,15 @@
         }
         setNationOpen(details, !details.open);
       });
+
+      /* Built per shelf above, then folded into one run here. Hiding the
+         headings was not enough: each shelf kept its own grid, so a shelf of
+         two left the rest of that row empty and the next shelf started on a
+         fresh line — the garments were still sectioned, just silently. This
+         is the same merge the switch performs for All, so the tab's resting
+         state and the state All returns it to are one code path and cannot
+         drift apart. Four across, every garment in the nation in one run. */
+      regroup(details, '');
 
       catalogue.appendChild(details);
     });
@@ -2960,6 +3048,7 @@
       const body   = details.querySelector('.nbody');
       const bar    = body.querySelector('.facet-bar');
       const title  = bar.querySelector('.facet-title');
+      const reset  = bar.querySelector('.facet-reset');
       const cards  = [...body.querySelectorAll('.item')];
       if (!cards.length) return;
 
@@ -2988,6 +3077,10 @@
         cards.forEach(c => grid.appendChild(c));
         title.textContent = 'Garments';
         bar.querySelectorAll('.facet-opt').forEach(b => b.setAttribute('aria-pressed', 'false'));
+        /* Nothing to go back to: this IS all of them. Offering All here was
+           offering a control that could only leave the tab exactly as it
+           already was. */
+        reset.hidden = true;
         details.dataset.facet = '';
         return;
       }
@@ -3016,6 +3109,8 @@
       title.textContent = keys.length === 1 ? keys[0] : facet[0].toUpperCase() + facet.slice(1);
       bar.querySelectorAll('.facet-opt').forEach(b =>
         b.setAttribute('aria-pressed', b.dataset.facet === facet ? 'true' : 'false'));
+      // the way back out, offered only now that there is something to leave
+      reset.hidden = false;
       details.dataset.facet = facet;
     }
 
@@ -3036,9 +3131,24 @@
         const opts = bar.querySelector('.facet-opts');
         if (opening){
           opts.hidden = false;
-          // how far the sign has to travel to clear the choices it reveals
+          /* How far the sign has to travel to clear the choices it reveals.
+
+             Measured between the two elements rather than from the width of
+             one of them. It used to be opts.scrollWidth + 10, which ignored
+             the sign's own 16px and the 10px gap before the choices start —
+             the minus landed 16px short and sat on top of the last option.
+             Right edge of the choices to left edge of the sign, plus a gap,
+             is the distance whatever is in the row. Read before .on is added
+             so nothing is transformed yet. */
           requestAnimationFrame(() => {
-            bar.style.setProperty('--facet-shift', Math.round(opts.scrollWidth + 10) + 'px');
+            /* offsetLeft/offsetWidth, not getBoundingClientRect: the choices
+               are still carrying their translateX(-8px) entry offset at this
+               point, and a measured rect includes it — the shift came out
+               8px short and the sign settled that much into the last word.
+               Offset geometry is the resting layout and ignores transforms. */
+            const sign = bar.querySelector('.facet-toggle');
+            bar.style.setProperty('--facet-shift',
+              Math.round(opts.offsetLeft + opts.offsetWidth - sign.offsetLeft + 12) + 'px');
             bar.classList.add('on');
             bar.querySelector('.facet-sign').textContent = '−';
             bar.querySelector('.facet-toggle').setAttribute('aria-expanded', 'true');
@@ -3609,6 +3719,7 @@
        the star can never end up a step behind the buttons it summoned. */
     function goHome(){
       document.body.classList.remove('solo-from-field');
+      document.body.style.removeProperty('--solo-drop');
       document.body.classList.remove('solo-closing', 'solo-shutting');
       document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
       document.body.classList.remove('solo-drawing');
@@ -5022,6 +5133,7 @@
        layout comes to it.
        ------------------------------------------------------------------ */
     function openRecord(item){
+      document.body.style.removeProperty('--solo-drop');
       document.body.classList.add('solo-from-field');
       const img = item.querySelector('img');
       const from = (img || item).getBoundingClientRect();
@@ -5035,12 +5147,20 @@
       if (tab) tab.open = true;
       filter();
       syncChrome();
-      /* Scrolled, not jumped. This used to snap the page to the top the
-         instant explore closed, which read as the record arriving by
-         teleport. Nothing at all happens if the page is already there. */
-      if (window.scrollY > 0){
-        window.scrollTo({ top:0, behavior:REDUCED ? 'auto' : 'smooth' });
-      }
+      /* Instant, and BEFORE the handover is measured.
+
+         This was a smooth scroll, and it was the reason the garment drifted
+         upwards on opening. beginSoloBuild measures where the card's slot
+         is; with a smooth scroll still in flight that measurement is of a
+         position the page is in the middle of leaving, so the transform was
+         anchored to a destination that then slid out from under it. The
+         garment had already been brought to the centre at the record's own
+         size by the press before this — there is nothing left for it to do
+         but stay where it is.
+
+         Nothing is lost by jumping: explore is a fixed sheet over the page,
+         so wherever the document was scrolled to was never on screen. */
+      window.scrollTo(0, 0);
       beginSoloBuild(from);
     }
 
@@ -5071,23 +5191,83 @@
          what moves around it. */
       const slot = item.querySelector('.slot');
       if (from && slot){
-        const to = slot.getBoundingClientRect();
-        if (to.width > 4){
-          const k  = from.width / to.width;
-          const dx = (from.left + from.width  / 2) - (to.left + to.width  / 2);
-          const dy = (from.top  + from.height / 2) - (to.top  + to.height / 2);
+        /* Hold the garment exactly where the field left it, from this frame
+           onwards — nothing is allowed to be painted with it anywhere else. */
+        const pin = (rect) => {
+          const k  = from.width / rect.width;
+          const dx = (from.left + from.width  / 2) - (rect.left + rect.width  / 2);
+          const dy = (from.top  + from.height / 2) - (rect.top  + rect.height / 2);
           slot.style.transition = 'none';
           slot.style.transformOrigin = 'center center';
           slot.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
           slot.style.zIndex = '4';
+        };
+
+        const first = slot.getBoundingClientRect();
+        if (first.width > 4){
+          pin(first);
+
           requestAnimationFrame(() => requestAnimationFrame(() => {
-            slot.style.transition = 'transform .82s cubic-bezier(.4,0,.2,1)';
+            /* Now, and only now, is the build layout settled.
+
+               The card's width transition and the slot's own flex-basis were
+               still running when the first measurement was taken, so the
+               resting position it reported was some way off where the slot
+               actually came to rest — a drop measured from it corrected less
+               than half the gap, and the garment still crawled the rest of
+               the way up. Measured again here it is the real one.
+
+               Cleared, measured and re-pinned inside a single task: the
+               browser paints between tasks, never in the middle of one, so
+               the garment is never on screen untransformed.
+
+               The drop is what puts the record where the garment is instead
+               of moving the garment to the record. The press that opened this
+               has already brought it to the middle of the screen at the size
+               the record shows it, so there is nothing left for it to do but
+               stay there — and what travels is the page, once, before any of
+               this is visible. */
             slot.style.transform = 'none';
-            soloTimers.push(setTimeout(() => {
-              slot.style.transition = '';
-              slot.style.transform = '';
-              slot.style.zIndex = '';
-            }, 900));
+
+            /* Closed in on rather than solved in one go. The shell this sits
+               in is centred while the page is short, so half of any padding
+               added to it is taken straight back by the centring — a drop of
+               exactly the gap moved the record exactly half the gap, and the
+               garment still crawled the rest. Rather than encode that ratio
+               here, where it would be wrong the moment the page grew past a
+               screen, the gap is measured, closed, and measured again until
+               there is none. It settles in a handful of passes and every one
+               of them is inside this same task, so none of it is painted. */
+            const want = from.top + from.height / 2;
+            let applied = 0;
+            for (let pass = 0; pass < 8; pass++){
+              const r = slot.getBoundingClientRect();
+              const gap = want - (r.top + r.height / 2);
+              if (Math.abs(gap) < 0.5) break;
+              applied += gap;
+              if (applied <= 0){       // the slot already rests below the garment
+                applied = 0;
+                document.body.style.removeProperty('--solo-drop');
+                break;
+              }
+              document.body.style.setProperty('--solo-drop', Math.round(applied) + 'px');
+            }
+
+            const rest = slot.getBoundingClientRect();
+            if (rest.width > 4) pin(rest);
+            void slot.offsetWidth;            // commit it with no transition
+
+            /* Whatever is left after the drop — nothing, on a garment that
+               was centred, and the real distance on one that was not. */
+            requestAnimationFrame(() => {
+              slot.style.transition = 'transform .82s cubic-bezier(.4,0,.2,1)';
+              slot.style.transform = 'none';
+              soloTimers.push(setTimeout(() => {
+                slot.style.transition = '';
+                slot.style.transform = '';
+                slot.style.zIndex = '';
+              }, 900));
+            });
           }));
         }
       }
@@ -5209,7 +5389,11 @@
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
     function returnToExplore(){
-      document.body.classList.remove('solo-from-field');
+      /* solo-from-field is NOT dropped here. It is what hides the tally and
+         the bookmark on a record opened from the field, and taking it off at
+         the top of the close meant they faded back in and rode the card all
+         the way out — a save button appearing on a card that is leaving.
+         It comes off in land(), once the shell is down. */
       document.body.classList.remove('solo-closing', 'solo-shutting');
       document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
       document.body.classList.remove('solo-drawing');
@@ -5234,6 +5418,9 @@
            away. Removing them first restored the tab to full opacity and full
            width for the frame before setBrowsing hid the shell — the tab
            flashed back into place on its way out. That was the flicker. */
+        document.body.classList.add('field-returning');
+        document.body.classList.remove('solo-from-field');
+        document.body.style.removeProperty('--solo-drop');
         soloId = null;
         q.value = '';
         filter();
@@ -5259,6 +5446,12 @@
            the blink was that wipe starting before the field had painted. */
         explore.classList.add('ex-returning');
         soloTimers.push(setTimeout(() => explore.classList.remove('ex-returning'), 560));
+        /* Held until the fade is over AND setBrowsing's own 420ms fold has
+           run, so the list is already closed by the time it can be seen
+           again. Deliberately not in soloTimers: those are cleared wholesale
+           on the next state change, and a cleared timer here would leave the
+           catalogue hidden for good. */
+        setTimeout(() => document.body.classList.remove('field-returning'), 680);
 
         // safe now: the shell is down and nothing of the tab can be seen
         document.body.classList.remove('solo-closing', 'solo-shutting');
