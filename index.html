@@ -719,15 +719,15 @@
     /* What the unit does, before what it thinks. The partner pages lead on
        a name at this weight; inside the sheet it is the same gesture at the
        size the box can carry, and the whitepaper reads on underneath it. */
+    /* Two statements, each set the way the partner boxes set theirs: the
+       word above, quiet and spaced, and the line it names underneath it in
+       the title's weight. They were one pre-wrapped block of two sentences
+       joined by em dashes, which is a different thing on the same page. */
     .ops-head{
       flex:none;
-      white-space:pre-wrap;
-      font-size:clamp(15px, 2.1vw, 21px);
-      line-height:1.25;
-      letter-spacing:-.005em;
       margin:0 0 18px;
-      min-height:2.5em;
     }
+    .ops-stat + .ops-stat{ margin-top:16px; }
     .ops-paper{
       white-space:pre-wrap;
       min-height:2em;
@@ -772,19 +772,23 @@
       transition:background-color .3s cubic-bezier(.4,0,.2,1);
     }
     .news-item:hover{ background:var(--faint); }
-    .news-item .ni-date{
+    /* The label over the line it names. It was written for the partner
+       boxes and it is what the Mission and the Strategy are set in too, so
+       it is no longer scoped to those boxes — one rule, one format, and the
+       two cannot drift apart by being described twice. */
+    .ni-date{
       font-size:10px;
       letter-spacing:.12em;
       text-transform:uppercase;
       color:#888;
     }
-    .news-item .ni-title{
+    .ni-title{
       display:block;
       margin-top:4px;
       font-size:13.5px;
       font-weight:bold;
     }
-    .news-item .ni-sub{
+    .ni-sub{
       display:block;
       margin-top:3px;
       font-size:12px;
@@ -2723,6 +2727,15 @@
       const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
       let n;
       while ((n = walk.nextNode())) runs.push({ node:n, text:n.nodeValue });
+
+      /* The room the finished copy needs, held open before the copy is taken
+         away. Emptied text nodes collapse their boxes to nothing, so what
+         was being typed grew line by line and pushed everything under it
+         down the page as it went. Measured here, with the writing still in
+         place, and let go of when it is back. */
+      const room = Math.ceil(element.getBoundingClientRect().height);
+      if (room) element.style.minHeight = room + 'px';
+
       runs.forEach(r => { r.node.nodeValue = ''; });
 
       const chars = runs.reduce((n, r) => n + r.text.length, 0);
@@ -2742,7 +2755,10 @@
           left -= take;
         }
         if (p < 1) requestAnimationFrame(frame);
-        else if (callback) callback();
+        else {
+          element.style.minHeight = '';
+          if (callback) callback();
+        }
       })(performance.now());
     }
 
@@ -2986,10 +3002,20 @@
        actually being opened for.
 
        No "we" on either. What the unit is for and how it goes about it are
-       statements about the work, not about us. */
+       statements about the work, not about us.
+
+       Set as label-over-line, the same format the partner boxes below use:
+       the word quiet and spaced above, the statement in the title's weight
+       underneath it. */
     const OPS_HEAD =
-`Mission — Solve circularity within defence textile waste.
-Strategy — Remanufacture defence textiles into new garments.`;
+      '<div class="ops-stat">' +
+        '<span class="ni-date">Mission</span>' +
+        '<span class="ni-title">Solve textile circularity in Defence.</span>' +
+      '</div>' +
+      '<div class="ops-stat">' +
+        '<span class="ni-date">Strategy</span>' +
+        '<span class="ni-title">Garment to garment remanufacturing via reverse engineering.</span>' +
+      '</div>';
 
     /* Read off --bar-h rather than the element: the bar IS the box now, so
        its offsetHeight is the expanded height once Operations is open. */
@@ -3102,14 +3128,14 @@ Strategy — Remanufacture defence textiles into new garments.`;
              out of the panel the caret would have sat blinking over an empty
              box waiting to type nothing. */
           opsHead.classList.add('ops-caret');
-          bmuType(OPS_HEAD, opsHead, 18, () => {
+          bmuTypeRich(opsHead, OPS_HEAD, 18, () => {
             if (opsState !== 'open') return;
             paperTyped = true;
             opsHead.classList.remove('ops-caret');
             opsNews.classList.add('visible');
           });
         } else {
-          opsHead.textContent = OPS_HEAD;
+          opsHead.innerHTML = OPS_HEAD;
           opsNews.classList.add('visible');
         }
       }, 1000);
