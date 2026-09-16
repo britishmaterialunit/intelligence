@@ -272,13 +272,10 @@
       cursor:pointer;
       transition:opacity 1s ease;
     }
-    /* stroke-width is in user units, so the box scales it: .46 in the
-       182-unit box lands on the same ~1px line the wordmark's 2.07 drew in
-       its 837-unit one. The join is mitred so the star's points stay sharp
-       while the line is still being drawn. */
+    /* stroke-width is in user units, so the tighter viewBox scales it up —
+       2.07 keeps the traced line the same weight it rendered at before */
     .animated-path{
-      fill:none; stroke:var(--ink); stroke-width:.46;
-      stroke-linejoin:miter; stroke-miterlimit:10;
+      fill:none; stroke:var(--ink); stroke-width:2.07;
       stroke-dasharray:9999; stroke-dashoffset:9999;
       animation:trace 7s ease-in-out forwards;
     }
@@ -1481,14 +1478,12 @@
   <main id="page">
     <div class="container">
       <div class="svg-wrapper">
-        <!-- The front door is the compass — the same eight-point star the
-             header carries into the archive, so the mark the reader first
-             draws is the one they then follow. The star is 100 units in a
-             182-unit box: centred, and sized to the wordmark's old presence
-             rather than filling the square edge to edge. -->
-        <svg id="animatedSvg" viewBox="-41 -41 182 182" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="British Material Unit — enter the site">
-          <path id="animatedPath" class="animated-path" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z" />
-          <path id="filledPath" class="filled-path" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z" />
+        <!-- viewBox is the mark's own bounding box (125,362 829x356) padded
+             by 4 units for the stroke. The old 0 0 1200 800 box left the
+             artwork sitting low and left of centre at every screen size. -->
+        <svg id="animatedSvg" viewBox="121 358 837 364" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="British Material Unit logo">
+          <path id="animatedPath" class="animated-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
+          <path id="filledPath" class="filled-path" d="M954.16,514.27h-.14v-.07h-285.12c.17-.12,208.21-151.59,208.39-151.72h-90.03l-90.56,65.98-.05.14c-3.49,2.55-10.97,8.01-14.51,10.59l14.51-10.59h0s-84.36,61.55-84.36,61.55v-127.67h-52.26v127.75h-.12v.03h-.05l-135.39-98.79c-36.24-25.82-74.21-28.96-74.21-28.96H125.48v52.52h228.09l41.92,22.86H125.48v52.26l343.62.09,34.15,24.06H125.48v52.37h377.77l-34.15,24.06-343.62.09v52.26h270.01l-41.92,22.86H125.48v52.52h224.78s37.97-3.14,74.21-28.96l135.39-98.79h.01v127.75h52.26v-127.74h.06l135.38,98.78c36.24,25.82,74.22,28.96,74.22,28.96h132.37v-52.52h-116.92c-19.24-2.14-51.04-13.05-72.12-28.78,0,0-96.32-70.49-96.32-70.49h285.36v-52.4Z" />
         </svg>
       </div>
       <div id="textOutput" class="typewriter-text">
