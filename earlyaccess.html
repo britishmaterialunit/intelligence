@@ -372,7 +372,7 @@
     .foot-base{
       margin-top:40px;
       padding-top:18px;
-      border-top:1px solid #e6e6e6;
+      border-top:1.5px solid #e6e6e6;
       display:flex;
       justify-content:space-between;
       align-items:baseline;
@@ -664,7 +664,6 @@
         font-size:min(12px, 2.42vw);
         padding:0 4px;
         letter-spacing:0;
-        border-width:1px;
       }
       /* the sheet is nearly the full width of a phone, so the faded
          buttons behind the bar would show through its edges — take them
@@ -1270,6 +1269,11 @@
            finished page is not right either. #blurb puts them back at the
            moment the mark hands over: the copy writing itself out, and the
            buttons arriving behind it. */
+        /* The home page is told to come up on this olive and start writing
+           on it, rather than arriving white a frame after this page has
+           gone. Same ground, uninterrupted — the mirror of the way the
+           olive rose over there before the reader was ever sent here. */
+        try { sessionStorage.setItem('bmu.ea.return', '1'); } catch {}
         document.body.classList.add('ea-leaving');
         setTimeout(() => { window.location.href = '/#blurb'; }, 420);
       });

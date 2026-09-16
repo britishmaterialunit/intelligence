@@ -162,7 +162,7 @@
     font-size:10.5px;line-height:1.55;color:var(--ink-soft);
   }
   #legend .row{display:flex;align-items:center;gap:9px;}
-  #legend .sw{width:16px;height:14px;border:1px solid var(--ink);display:inline-block;}
+  #legend .sw{width:16px;height:14px;border:1.5px solid var(--ink);display:inline-block;}
   #legend .sw.unlocked{background:#fff;}
   #legend .sw.locked{background:
     repeating-linear-gradient(45deg,var(--lock-fill) 0 3px,var(--lock-line) 3px 4px);}
@@ -193,7 +193,7 @@
   #panel h2{margin:7px 0 2px;font-size:18px;letter-spacing:.01em;}
   #panel .nation{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;}
   #panel .body{margin-top:13px;font-size:12.5px;line-height:1.6;}
-  #panel .meta{margin-top:13px;border-top:1px solid #e3e3e3;padding-top:11px;font-size:11.5px;line-height:1.8;}
+  #panel .meta{margin-top:13px;border-top:1.5px solid #e3e3e3;padding-top:11px;font-size:11.5px;line-height:1.8;}
   #panel .meta b{font-weight:bold;}
   #panel .close{position:absolute;top:11px;right:13px;cursor:pointer;font-size:15px;color:var(--ink-soft);line-height:1;}
   #panel .close:hover{color:var(--ink);}
@@ -230,6 +230,13 @@
        it — .65,0,.35,1 for the long ones, .6,0,.3,1 for a box closing — but
        every one of them is slow at both ends. Nothing here starts or stops
        abruptly. */
+    /* ---------- ONE LINE ----------
+       Every border, rule and outline on this site is 1.5px. It was not: the
+       buttons thinned to 1px on a phone, the rule over Relations was 1px
+       against the 1.5px boxes beneath it, the footer's base rule was 1px,
+       and in the archive the suggestion chip, the units field and the
+       placeholder plot were all drawn a third lighter than everything
+       around them. One stroke, one weight, everywhere. */
     :root{
       --ink:#222222;
       --line:#000000;
@@ -409,29 +416,6 @@
        of the screen, and it is the bar. The archive opens behind a bar that
        is already in place, because the reader put it there. */
 
-    /* ---------- AND BECOMING THE BAR ----------
-       The archive's search bar is wider than this row (880 less its two
-       tools against the row's 720) and sits at the foot of the screen, so
-       the last beat cannot be done inside the row at all: the box is taken
-       out of the flow and given the bar's own coordinates. It runs out to
-       the bar's width first, then falls to its place — and because it lands
-       on exactly the pixels the archive draws its bar at, the document that
-       opens behind it has nothing left to animate. The box the reader
-       pressed IS the bar they end up typing into. */
-    .bm-button.to-bar,
-    #opsBtn.to-bar{
-      position:fixed;
-      z-index:90;
-      background:var(--bg);
-      transition:left .58s cubic-bezier(.65,0,.35,1),
-                 top .58s cubic-bezier(.65,0,.35,1),
-                 width .58s cubic-bezier(.65,0,.35,1),
-                 height .58s cubic-bezier(.65,0,.35,1),
-                 line-height .58s cubic-bezier(.65,0,.35,1);
-    }
-    /* the word goes as the box stops being a button and starts being a
-       field — it lands empty, which is what a search bar is */
-    #opsBtn.to-bar #opsLabel{ opacity:0; transition:opacity .34s cubic-bezier(.4,0,.2,1); }
     /* nothing else on the page is pressable once it has been asked for */
     body.arch-leaving #navStack,
     body.arch-leaving #scrollCue{ pointer-events:none; }
@@ -764,7 +748,7 @@
     .ops-news{
       margin-top:auto;
       flex:none;
-      border-top:1px solid #000;
+      border-top:1.5px solid #000;
       padding-top:22px;
       opacity:0;
       transition:opacity .8s cubic-bezier(.4,0,.2,1);
@@ -1153,7 +1137,7 @@
     .foot-base{
       margin-top:40px;
       padding-top:18px;
-      border-top:1px solid #e6e6e6;
+      border-top:1.5px solid #e6e6e6;
       display:flex;
       justify-content:space-between;
       align-items:baseline;
@@ -1445,7 +1429,6 @@
         font-size:min(12px, 2.42vw);
         padding:0 4px;
         letter-spacing:0;
-        border-width:1px;
       }
       /* the sheet is nearly the full width of a phone, so the faded
          buttons behind the bar would show through its edges — take them
@@ -2685,16 +2668,47 @@
     animatedPath.style.strokeDasharray = traceLen;
     animatedPath.style.strokeDashoffset = traceLen;
 
+    /* ---------- THE TYPEWRITER ----------
+       Two things were wrong with writing a character at a time on a timer.
+
+       It ran at the device's mercy. A setTimeout of 20ms on a busy phone is
+       forty or sixty, so copy that takes two seconds to write on a desk took
+       five or six in a hand, and readers gave up half way through. It is
+       driven by the clock now: how much of the text should be showing is
+       worked out from how long it has actually been, so a line takes the
+       same time to write wherever it is read, however slow the frames are.
+
+       And it APPENDED. Two runs writing into one element interleaved their
+       characters and produced a word that is in neither text — the random
+       letters that appeared when somebody left half way through and came
+       back. Every frame writes a PREFIX of the real text instead, so what is
+       on screen is always the opening of something true and can never be a
+       word nobody wrote. Only the newest run may write to an element; the
+       one before it stops on its next frame. */
+    const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let typeSeq = 0;
+
     function bmuType(text, element, delay, callback, guard){
-      let i = 0;
+      if (!element){ if (callback) callback(); return; }
+      const run = ++typeSeq;
+      element.__typeRun = run;
+      if (REDUCED || !text){
+        element.textContent = text || '';
+        if (callback) callback();
+        return;
+      }
+      const total = Math.max(60, text.length * delay);
+      const t0 = performance.now();
       element.textContent = '';
-      (function type(){
+      (function frame(now){
+        if (element.__typeRun !== run) return;   // a newer run owns this element
         if (guard && !guard()) return;
-        if (i < text.length){
-          element.textContent += text.charAt(i++);
-          setTimeout(type, delay);
-        } else if (callback){ callback(); }
-      })();
+        const p = Math.min(1, (now - t0) / total);
+        const n = Math.round(p * text.length);
+        if (element.textContent.length !== n) element.textContent = text.slice(0, n);
+        if (p < 1) requestAnimationFrame(frame);
+        else if (callback) callback();
+      })(performance.now());
     }
 
     /* The same typewriter, for copy that has links in it. Typing HTML a
@@ -2711,28 +2725,50 @@
       while ((n = walk.nextNode())) runs.push({ node:n, text:n.nodeValue });
       runs.forEach(r => { r.node.nodeValue = ''; });
 
-      let i = 0, c = 0;
-      (function tick(){
+      const chars = runs.reduce((n, r) => n + r.text.length, 0);
+      const total = Math.max(60, chars * delay);
+      const t0 = performance.now();
+      const own = ++typeSeq;
+      element.__typeRun = own;
+      (function frame(now){
+        if (element.__typeRun !== own) return;
         if (guard && !guard()) return;
-        if (i >= runs.length){ if (callback) callback(); return; }
-        const run = runs[i];
-        run.node.nodeValue = run.text.slice(0, ++c);
-        if (c >= run.text.length){ i++; c = 0; }
-        setTimeout(tick, delay);
-      })();
+        const p = Math.min(1, (now - t0) / total);
+        let left = Math.round(p * chars);
+        // each run takes as much of the budget as it can and passes the rest on
+        for (const r of runs){
+          const take = Math.max(0, Math.min(r.text.length, left));
+          if (r.node.nodeValue.length !== take) r.node.nodeValue = r.text.slice(0, take);
+          left -= take;
+        }
+        if (p < 1) requestAnimationFrame(frame);
+        else if (callback) callback();
+      })(performance.now());
     }
 
     /* the typewriter run backwards — the intro copy is taken off the page
        the same way it was put on it */
     function bmuUntype(element, delay, callback, guard){
-      (function back(){
+      if (!element){ if (callback) callback(); return; }
+      const run = ++typeSeq;
+      element.__typeRun = run;
+      const text = element.textContent;
+      if (REDUCED || !text){
+        element.textContent = '';
+        if (callback) callback();
+        return;
+      }
+      const total = Math.max(60, text.length * delay);
+      const t0 = performance.now();
+      (function frame(now){
+        if (element.__typeRun !== run) return;
         if (guard && !guard()) return;
-        const t = element.textContent;
-        if (t.length){
-          element.textContent = t.slice(0, -1);
-          setTimeout(back, delay);
-        } else if (callback){ callback(); }
-      })();
+        const p = Math.min(1, (now - t0) / total);
+        const n = Math.round((1 - p) * text.length);
+        if (element.textContent.length !== n) element.textContent = text.slice(0, n);
+        if (p < 1) requestAnimationFrame(frame);
+        else if (callback) callback();
+      })(performance.now());
     }
 
     animatedPath.addEventListener('animationend', () => {
@@ -3281,29 +3317,17 @@ Strategy — Remanufacture defence textiles into new garments.`;
        10px gaps, sitting 34px off the foot (16px on a narrow screen) and
        46px tall. The box is sent to these pixels, so the archive opens with
        its bar already standing where the reader left it. */
-    const BAR_H = 46;
-    function barTarget(){
-      const dockW = Math.min(window.innerWidth * 0.94, 880);
-      const off   = window.innerWidth <= 640 ? 16 : 34;
-      return {
-        left:   Math.round((window.innerWidth - dockW) / 2),
-        width:  Math.round(dockW - 112),
-        top:    Math.round(window.innerHeight - off - BAR_H),
-        height: BAR_H
-      };
-    }
-
     /* ---------- LEAVING FOR THE ARCHIVE ----------
        The same opening every other button on this row plays: the other four
        driven into the Operations box, that box run out, and the word on it
-       replaced — Operations becomes Archive. Archive used to collapse the
-       row into its own slot instead, which made it the one button that
-       behaved differently from the rest.
+       replaced — Operations becomes Archive.
 
-       Where it parts company is the end. Join comes back down to a single
-       button because Join stays here. Archive does not stay: it runs out to
-       the archive's bar width, falls to the foot of the screen and is the
-       bar. Only then is /archive asked for. */
+       It used to carry on from there: out to the archive's bar width, down
+       to the foot of the screen, and it WAS the bar the archive opens on. A
+       clever seam, and a fussy one — a box crossing the whole screen and
+       changing shape twice on the way to a document that had not loaded
+       yet. It goes the way Early Access goes instead: down, and out. The
+       archive opens its own bar, in its own time. */
     function goArchive(ev){
       if (ev) ev.preventDefault();
       if (leaving) return;                       // asked twice is asked once
@@ -3321,42 +3345,38 @@ Strategy — Remanufacture defence textiles into new garments.`;
       navRow.classList.add('ops-engaged', 'join-mode');
       convergeButtons();
 
-      opsLabel.textContent = 'Archive';
-      opsBtn.setAttribute('aria-label', 'Archive');
+      if (!isStacked()){
+        flipPin();
+        opsBtn.style.left  = '0px';
+        opsBtn.style.width = '100%';
+      } else {
+        opsBtn.classList.add('expanding');
+      }
 
-      /* Out of the row's flow and onto the viewport's, in one step: the bar
-         it is going to be is wider than this row and nowhere near it, so
-         there is no version of this that can be done in the row. */
-      const box = opsBtn.getBoundingClientRect();
-      pinGhost();                                // a stand-in keeps the row's shape
-      opsBtn.classList.add('to-bar');
-      opsBtn.style.left   = Math.round(box.left) + 'px';
-      opsBtn.style.top    = Math.round(box.top) + 'px';
-      opsBtn.style.width  = Math.round(box.width) + 'px';
-      opsBtn.style.height = Math.round(box.height) + 'px';
-      opsBtn.style.lineHeight = Math.round(box.height - 3) + 'px';
-      void opsBtn.offsetWidth;                   // committed where it stood
-
-      const bar = barTarget();
-
-      // 1 — out to the bar's width, still at the row's height
-      opsBtn.style.left  = bar.left + 'px';
-      opsBtn.style.width = bar.width + 'px';
-
-      // 2 — and down into the bar's place
+      // ...and back down to one button, now reading Archive
       later(() => {
-        opsBtn.style.top    = bar.top + 'px';
-        opsBtn.style.height = bar.height + 'px';
-        opsBtn.style.lineHeight = (bar.height - 3) + 'px';
-      }, 560);
+        const rowW = navRow.getBoundingClientRect().width;
+        const w = soloWidth();
+        opsBtn.style.left  = ((rowW - w) / 2) + 'px';
+        opsBtn.style.width = w + 'px';
+        opsBtn.classList.add('join-solo');
+        opsLabel.textContent = 'Archive';
+        opsBtn.setAttribute('aria-label', 'Archive');
+      }, 540);
 
-      /* The archive is told the bar is already on screen. It does not need
-         to know where — it draws it at these pixels itself — only that it
-         must not play its own arrival over the top of one. */
-      try { sessionStorage.setItem('bmu.arch.handover', '1'); } catch {}
+      // and away: down the screen, fading as it goes
+      later(() => { driftOff(); }, 1080);
+      later(() => { window.location.href = '/archive'; }, 1460);
+    }
 
-      // handed over as the box comes to rest, not a second after it
-      later(() => { window.location.href = '/archive'; }, 1240);
+    /* The last beat both doors share: the box leaves the way the reader is
+       about to look — down — and fades as it travels. */
+    function driftOff(){
+      const r = opsBtn.getBoundingClientRect();
+      opsBtn.style.setProperty('--drift',
+        Math.max(80, Math.round(window.innerHeight - 24 - r.bottom)) + 'px');
+      void opsBtn.offsetWidth;
+      opsBtn.classList.add('drift-off');
     }
 
     /* ---------- LEAVING FOR EARLY ACCESS ----------
@@ -3383,9 +3403,14 @@ Strategy — Remanufacture defence textiles into new garments.`;
         return;
       }
       leaving = true;
-      // the ground rises with the unwriting, not after it
+      /* Both at once. The box used to wait for the copy to finish unwriting
+         itself before it so much as moved — a second and a half of a page
+         quietly deleting itself while the thing the reader actually pressed
+         sat there doing nothing. The unwriting is what the copy does while
+         the box goes; it is not a queue. */
       document.body.classList.add('early-open');
-      bmuUntype(textContent, 6, () => openJoin('early', '/earlyaccess'));
+      bmuUntype(textContent, 6);
+      openJoin('early', '/earlyaccess');
     }
 
     /* Put the row back. Coming back from either page — the browser's own back
@@ -3408,12 +3433,12 @@ Strategy — Remanufacture defence textiles into new garments.`;
       document.body.classList.remove('early-open');
       navRow.classList.remove('join-mode', 'ops-engaged');
       navRow.style.pointerEvents = '';
-      /* to-bar is cleared with the transition suppressed: restored from the
-         cache the box is sitting at the foot of the screen in the bar's
-         shape, and letting it animate home would play the departure
-         backwards in front of a reader who has already left and returned. */
+      /* Cleared with the transition suppressed: restored from the cache the
+         box is part way down the screen and faded out, and letting it
+         animate home would play the departure backwards in front of a
+         reader who has already left and returned. */
       opsBtn.style.transition = 'none';
-      opsBtn.classList.remove('expanding', 'join-solo', 'sending', 'sent', 'to-bar', 'drift-off');
+      opsBtn.classList.remove('expanding', 'join-solo', 'sending', 'sent', 'drift-off');
       opsBtn.style.removeProperty('--drift');
       opsBtn.style.transform = '';
       opsBtn.style.opacity = '';
@@ -3507,13 +3532,7 @@ Strategy — Remanufacture defence textiles into new garments.`;
            back down to one and read Early Access, it drifts off the bottom
            of the screen and fades, and the document changes while it is
            still going. */
-        later(() => {
-          const r = opsBtn.getBoundingClientRect();
-          opsBtn.style.setProperty('--drift',
-            Math.max(80, Math.round(window.innerHeight - 24 - r.bottom)) + 'px');
-          void opsBtn.offsetWidth;
-          opsBtn.classList.add('drift-off');
-        }, 1180);
+        later(driftOff, 1180);
         later(() => { window.location.href = goTo; }, 1560);
         return;
       }
@@ -4082,6 +4101,37 @@ Strategy — Remanufacture defence textiles into new garments.`;
         window.scrollTo(0, 0);
         logoSvg.classList.add('svg-faded');
         textOutput.classList.add('show-text');
+
+        /* Arriving from Early Access, this page comes up on the olive that
+           page was standing on and the writing starts on it — the same
+           ground, uninterrupted, the way the olive rose here before the
+           reader ever left. The colour lifts out from under the copy a beat
+           later rather than being swapped at the seam.
+
+           The flag is spent on arrival: a reload is a plain visit to a white
+           page. */
+        let olive = false;
+        try {
+          olive = sessionStorage.getItem('bmu.ea.return') === '1';
+          sessionStorage.removeItem('bmu.ea.return');
+        } catch {}
+        if (olive){
+          /* Already olive, not fading up to it. The ground has a .9s fade of
+             its own, which on arrival ran the wrong way round — the reader
+             left an olive page and watched the colour arrive on the next
+             one. It is put up with nothing animating, and only the way OUT
+             of it is a fade. */
+          const ground = document.getElementById('earlyGround');
+          if (ground) ground.style.transition = 'none';
+          document.body.classList.add('early-open');
+          if (ground){
+            void ground.offsetWidth;          // committed olive
+            ground.style.transition = '';
+          }
+          // long enough that the first words are read on the olive
+          setTimeout(() => document.body.classList.remove('early-open'), 620);
+        }
+
         bmuType(mainText, textContent, 20, () => {
           navRow.classList.add('visible');
           document.body.classList.add('entered');

@@ -47,6 +47,13 @@
        it — .65,0,.35,1 for the long ones, .6,0,.3,1 for a box closing — but
        every one of them is slow at both ends. Nothing here starts or stops
        abruptly. */
+    /* ---------- ONE LINE ----------
+       Every border, rule and outline on this site is 1.5px. It was not: the
+       buttons thinned to 1px on a phone, the rule over Relations was 1px
+       against the 1.5px boxes beneath it, the footer's base rule was 1px,
+       and in the archive the suggestion chip, the units field and the
+       placeholder plot were all drawn a third lighter than everything
+       around them. One stroke, one weight, everywhere. */
     :root{
       --ink:#222222;
       --line:#000000;
@@ -359,7 +366,7 @@
     .nation > summary .flag.none{
       width:20px;
       height:13px;
-      border:1px dashed rgba(0,0,0,.35);
+      border:1.5px dashed rgba(0,0,0,.35);
       background:transparent;
     }
     .nation > summary .n{ flex:none; }
@@ -568,8 +575,8 @@
       position:absolute;
       /* sits ON the top edge, not above it — it is standing in for that
          border while it draws, not adding a second line over it */
-      left:-1px; right:-1px; top:-1px;
-      height:1px;
+      left:-1.5px; right:-1.5px; top:-1.5px;
+      height:1.5px;
       background:var(--line);
       transform:scaleX(0);
       transform-origin:center;
@@ -930,7 +937,7 @@
       color:var(--ink);
       background:transparent;
       border:none;
-      border-bottom:1px solid #d8d8d8;
+      border-bottom:1.5px solid #d8d8d8;
       padding:3px 2px;
       outline:none;
       border-radius:0;
@@ -1158,8 +1165,22 @@
       top:50%;
       width:0; height:0;
       transform-origin:0 0;
-      will-change:transform;
     }
+    /* Promoted only while it is actually moving.
+
+       will-change:transform on this element permanently is what made a
+       zoomed garment soft. A promoted layer is rasterised once, at the size
+       it had when it was promoted, and every scale after that enlarges the
+       pixels it already drew rather than drawing new ones. A desktop
+       re-rasters on its own once things go quiet; a phone does not, which
+       is why the field was blurred there and the record — a different
+       element, never promoted — was sharp.
+
+       So it is promoted for the length of a move and let go of at the end,
+       and letting go is what redraws it at the size it has come to rest
+       at. The pixels are there: the cards are 150px of a 1000px
+       photograph. */
+    #spiral.gliding{ will-change:transform; }
     /* garments sit as isolated cut-outs, no frame — the cards are built
        large so zooming in resolves real detail rather than a blur */
     .sp-item{
@@ -1233,7 +1254,7 @@
     }
     .sp-item .sp-code{
       width:100%; height:100%;
-      border:1px dashed #f2f2f2;
+      border:1.5px dashed #f2f2f2;
       font-size:0;
     }
 
@@ -1612,12 +1633,6 @@
       pointer-events:none;
     }
     body.gated #dock{ transition:opacity .4s cubic-bezier(.4,0,.2,1); }
-    /* Except on the frame it arrives. Handed over from the home page, this
-       bar is the box the reader has just watched travel down the screen and
-       come to rest here — landing it already at a third of its strength
-       reads as the box not having survived the trip. It arrives solid and
-       settles into the gated state a beat later, with everything else. */
-    body.gated #dock.landed #dockSearch{ opacity:1; }
     @media (prefers-reduced-motion:reduce){
       #reveal.drawing .rev-trace{ animation:none; }
       #spiral.sp-waiting .sp-item{ filter:grayscale(1) opacity(.3); }
@@ -1638,7 +1653,7 @@
       gap:6px;
       padding:4px 9px;
       background:var(--faint);
-      border:1px solid #dcdcdc;
+      border:1.5px solid #dcdcdc;
       color:#9a9a9a;
       font-family:var(--font);
       font-size:10px;
@@ -1681,22 +1696,10 @@
                  background-color .34s cubic-bezier(.4,0,.2,1),
                  opacity .5s cubic-bezier(.4,0,.2,1);
     }
-    /* Arriving from the home page's Archive button.
-
-       The bar IS that button — it starts at its width and opens to its own,
-       on the width transition it already has. The two black tools were never
-       part of the button, so they wait behind its right edge and come out
-       once it has finished growing. Nothing here is a copy of anything: this
-       is the archive's own bar, opening. */
+    /* the two tools come out from behind the bar's right edge as it opens */
     #dockExplore, #dockLibrary{
       transition:opacity .34s cubic-bezier(.4,0,.2,1) .2s,
                  transform .44s cubic-bezier(.65,0,.35,1) .2s;
-    }
-    #dock.handing #dockExplore,
-    #dock.handing #dockLibrary{
-      opacity:0;
-      transform:translateX(-30px);
-      transition:none;
     }
 
     /* opened: fills the bar width less the arrow square and its gap */
@@ -1760,7 +1763,11 @@
     #dockLibrary[aria-pressed="true"] .bm{ fill:#fff; }
 
     @media (max-width:640px){
-      #dock{ bottom:16px; --dock-w:min(94vw, 880px); }
+      /* 34, not 16. The stamp under the bar is fixed at bottom:10 and the
+         bar was sitting on top of it on a phone — the one line that says
+         what this page is, printed underneath the bar and then covered by
+         it. One height on every screen, and the line is clear. */
+      #dock{ bottom:34px; --dock-w:min(94vw, 880px); }
       /* the narrow bar cannot spare 180px, so the chip shrinks with it */
       .dq-hint{ max-width:104px; font-size:9px; padding:3px 7px; gap:4px; }
       #dockSearch.has-hint #dq{ padding-right:212px; }
@@ -2305,7 +2312,8 @@
        the dock writes to it. Nothing here is ever shown or focused. -->
   <input id="q" type="hidden" value="" />
 
-  <footer id="foot">British Material Unit (BMU) — Archive</footer>
+  <!-- typed out under the bar once the page has settled, not printed -->
+  <footer id="foot"></footer>
 
   <div id="dock" aria-hidden="true">
     <div id="dockSearch" class="dock-sq" role="button" tabindex="0" aria-label="Search the archive">
@@ -2585,6 +2593,8 @@
       /* ---------------- SWEDISH ---------------- */
       { n:"swedish", name:"Swedish Army 1940s M39 Wool Jacket", cat:"Jackets",
         img:"SWA1940M39WJ.png", ref:"SWA1940M39WJ", mat:"Wool" },
+      { n:"swedish", name:"Swedish Army 1960s M51 Gas Mask Haversack", cat:"Bags",
+        img:"SWA1960M51GMH.png", ref:"SWA1960M51GMH", mat:"Cotton" },
       /* ---------------- SWISS ---------------- */
       { n:"swiss", name:"Swiss Army 1980s TAZ83 Alpenflage Camouflage Field Shirt", cat:"Shirts",
         img:"CHA1980TAZ83ACFS.png", ref:"CHA1980TAZ83ACFS", mat:"Cotton" },
@@ -2979,24 +2989,17 @@
         return;
       }
 
-      emptyLine.textContent = '';
-      let n = 0;
-      (function typeOut(){
-        if (n < NO_HITS.length){
-          emptyLine.textContent += NO_HITS.charAt(n++);
-          emptyTimers.push(setTimeout(typeOut, 34));
-        } else {
+      bmuWrite(emptyLine, NO_HITS, 34, () => {
+        emptyTimers.push(setTimeout(() => {
+          emptyLine.classList.add('drop');            // reel turns over
           emptyTimers.push(setTimeout(() => {
-            emptyLine.classList.add('drop');          // reel turns over
-            emptyTimers.push(setTimeout(() => {
-              flagStrip.hidden = false;
-              void flagStrip.offsetWidth;
-              flagStrip.classList.add('in');
-              measureRail();
-            }, 260));
-          }, 900));
-        }
-      })();
+            flagStrip.hidden = false;
+            void flagStrip.offsetWidth;
+            flagStrip.classList.add('in');
+            measureRail();
+          }, 260));
+        }, 900));
+      });
     }
 
     /* the ends only dissolve once there are more flags than fit */
@@ -3417,16 +3420,68 @@
       }, 420);
     }
 
+    /* ---------- THE TYPEWRITER ----------
+       Two things were wrong with writing a character at a time on a timer.
+
+       It ran at the device's mercy. A setTimeout of 20ms on a busy phone is
+       forty or sixty, so a line that takes two seconds to write on a desk
+       took five or six in a hand, and readers gave up half way through. It
+       is driven by the clock now: how much of the text should be showing is
+       worked out from how long it has actually been, so a line takes the
+       same time to write wherever it is read, however slow the frames are.
+
+       And it APPENDED. Two runs writing into one element interleaved their
+       characters and produced a word that is in neither text — the random
+       letters that appeared when somebody left half way through and came
+       back. Every frame writes a PREFIX of the real text instead, so what
+       is on screen is always the opening of something true and can never be
+       a word nobody wrote. Only the newest run may write to an element; the
+       one before it stops on its next frame. */
+    let typeSeq = 0;
+
+    function bmuWrite(el, text, msPerChar, done, guard){
+      if (!el){ if (done) done(); return; }
+      const run = ++typeSeq;
+      el.__typeRun = run;
+      if (REDUCED || !text){ el.textContent = text || ''; if (done) done(); return; }
+      const total = Math.max(60, text.length * msPerChar);
+      const t0 = performance.now();
+      el.textContent = '';
+      (function frame(now){
+        if (el.__typeRun !== run) return;        // a newer run owns this element
+        if (guard && !guard()) return;
+        const p = Math.min(1, (now - t0) / total);
+        const n = Math.round(p * text.length);
+        if (el.textContent.length !== n) el.textContent = text.slice(0, n);
+        if (p < 1) requestAnimationFrame(frame);
+        else if (done) done();
+      })(performance.now());
+    }
+
+    /* The same, run backwards. It erases what is actually in the element, so
+       an interrupted line unwrites the part of itself that got written. */
+    function bmuErase(el, msPerChar, done, guard){
+      if (!el){ if (done) done(); return; }
+      const run = ++typeSeq;
+      el.__typeRun = run;
+      const text = el.textContent;
+      if (REDUCED || !text){ el.textContent = ''; if (done) done(); return; }
+      const total = Math.max(60, text.length * msPerChar);
+      const t0 = performance.now();
+      (function frame(now){
+        if (el.__typeRun !== run) return;
+        if (guard && !guard()) return;
+        const p = Math.min(1, (now - t0) / total);
+        const n = Math.round((1 - p) * text.length);
+        if (el.textContent.length !== n) el.textContent = text.slice(0, n);
+        if (p < 1) requestAnimationFrame(frame);
+        else if (done) done();
+      })(performance.now());
+    }
+
     /* the archive's own small typewriter — the page has no other */
     function bmuTypeInto(text, el, delay, done){
-      let i = 0;
-      el.textContent = '';
-      (function tick(){
-        if (i < text.length){
-          el.textContent += text.charAt(i++);
-          setTimeout(tick, delay);
-        } else if (done){ done(); }
-      })();
+      bmuWrite(el, text, delay, done);
     }
 
     /* ---------- THE SHELF, KEPT IN STEP ----------
@@ -3992,54 +4047,6 @@
        far as the reader is concerned, so it is put in place here without the
        rise and the fade — playing those again would be the bar arriving twice.
        Read once and cleared: a reload is a plain visit. */
-    /* ---------- ARRIVING FROM THE HOME PAGE ----------
-
-       The reader has just watched a box on the home page run out to this
-       bar's width and fall to this bar's place. The pixels it came to rest
-       on are the pixels this stylesheet draws #dockSearch at, so there is
-       nothing here to animate and nothing to hand over but the fact that it
-       happened: the bar is put up at full width with its rise and its fade
-       suppressed, and as far as the reader is concerned it never moved,
-       because it is the box they pressed.
-
-       The two black tools were never part of that box. They wait behind the
-       bar's right edge and come out once it has settled.
-
-       Read once and cleared: a reload, or a visit by any other route, is a
-       plain visit and gets the bar's ordinary arrival. */
-    (function inheritDock(){
-      let handed = false;
-      try {
-        handed = !!sessionStorage.getItem('bmu.arch.handover');
-        sessionStorage.removeItem('bmu.arch.handover');
-      } catch {}
-      if (!handed) return;
-
-      dockForced = true;
-      dock.style.transition = 'none';
-      dockSearch.style.transition = 'none';
-      /* Open, not collapsed. The bar's resting state is a 46px black square
-         that opens out to its full width, and the end of this script opens
-         it — so without saying so here the reader would watch the bar they
-         had just put in place shrink to a square and grow back out of it.
-         It is put up open, at full width, with nothing to interpolate. */
-      dock.classList.add('show', 'handing', 'open', 'landed');
-      document.body.classList.add('dock-open');
-      void dock.offsetWidth;                // committed, already there
-
-      requestAnimationFrame(() => {
-        // the transitions are given back only once that width is the one
-        // the bar is already at, so nothing chases it
-        dock.style.transition = '';
-        dockSearch.style.transition = '';
-        requestAnimationFrame(() => {
-          dock.classList.remove('handing'); // and the two tools come out
-          // and the bar joins whatever state the page is actually in
-          setTimeout(() => dock.classList.remove('landed'), 900);
-        });
-      });
-    })();
-
     function updateDock(){
       /* Tabs opened by a term are not the reader reaching for the dock —
          they are the answer to what is still being typed into the main bar.
@@ -4425,19 +4432,10 @@
 
     function typeCount(){
       clearTimeout(countTimer);
-      const text = `${allItems.length} garments`;
-      countEl.textContent = '';
-      if (REDUCED){ countEl.textContent = text; return; }
       countTyping = true;
-      let i = 0;
-      (function tick(){
-        if (i < text.length){
-          countEl.textContent += text.charAt(i++);
-          countTimer = setTimeout(tick, 32);
-        } else {
-          countTyping = false;
-        }
-      })();
+      // the text is built from the archive, never read back off the screen —
+      // a line caught mid-write would otherwise shorten itself every time
+      bmuWrite(countEl, `${allItems.length} garments`, 32, () => { countTyping = false; });
     }
 
     /* the tally unwrites itself as the tabs fold away, so both halves of
@@ -4445,16 +4443,7 @@
     function untypeCount(){
       clearTimeout(countTimer);
       countTyping = true;
-      if (REDUCED){ countEl.textContent = ''; return; }
-      (function tick(){
-        const t = countEl.textContent;
-        if (t.length){
-          countEl.textContent = t.slice(0, -1);
-          countTimer = setTimeout(tick, 22);
-        } else {
-          countTyping = false;
-        }
-      })();
+      bmuErase(countEl, 22, () => { countTyping = false; });
     }
 
     function setBrowsing(on){
@@ -4519,14 +4508,30 @@
     let sc = 1, tx = 0, ty = 0;
 
     /* wraps a jump in a transition so the field travels rather than cuts */
+    /* The field is a composited layer for as long as it is moving and a
+       plain one the moment it stops — see #spiral.gliding. Dropping the
+       promotion is what makes the browser redraw the garments at the scale
+       they have actually arrived at, so a zoomed field is sharp instead of
+       being an enlargement of the pixels it had before the zoom. */
+    let rasterTimer = null;
+    function promote(ms){
+      clearTimeout(rasterTimer);
+      spiral.classList.add('gliding');
+      rasterTimer = setTimeout(() => spiral.classList.remove('gliding'), ms);
+    }
+
     function glide(fn, ms){
-      spiral.style.transition = `transform ${ms || 850}ms cubic-bezier(.4,0,.2,1)`;
+      const d = ms || 850;
+      spiral.style.transition = `transform ${d}ms cubic-bezier(.4,0,.2,1)`;
       fn();
-      setTimeout(() => { spiral.style.transition = ''; }, (ms || 850) + 60);
+      promote(d + 160);                 // held for the whole move, then redrawn
+      setTimeout(() => { spiral.style.transition = ''; }, d + 60);
     }
 
     function applyTransform(){
       spiral.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+      // a pinch or a drag moves it without a glide; it still has to settle
+      promote(280);
     }
 
     /* ============================================================
@@ -4736,34 +4741,81 @@
       }, 900);
     }
 
+    /* ---------- HOW A CLUSTER SITS ----------
+       The spiral is a good answer for seventy garments and a poor one for
+       three. Its first point is not the centre — it is √0.5 of a spacing out
+       along the axis — so a cluster of ONE sat off to the side of a screen
+       it was supposed to be the whole of, and a cluster of three read as a
+       scatter rather than as three things.
+
+       Small counts get a shape instead. One sits in the middle. Two sit side
+       by side. Three make a triad, and on up through the polygons — each on
+       a ring wide enough that neighbours clear each other by a full spacing,
+       and each turned so a point is at the top. Past six there is one in the
+       middle and the rest around it; past a dozen a ring is a worse picture
+       than a spiral and the spiral takes over.
+
+       Every cluster in the field goes through here, so a nation, a search, a
+       collection and the whole archive are all arranged by the same rule. */
+    function packOffsets(n){
+      if (n <= 0) return [];
+      if (n === 1) return [[0, 0]];
+      if (n === 2) return [[-SPACING / 2, 0], [SPACING / 2, 0]];
+
+      const TOP = -Math.PI / 2;                 // a point at the top
+      // neighbours exactly one spacing apart around the ring
+      const radiusFor = c => SPACING / (2 * Math.sin(Math.PI / c));
+      const ring = (count, radius) => {
+        const out = [];
+        for (let i = 0; i < count; i++){
+          const a = TOP + (Math.PI * 2 * i) / count;
+          out.push([Math.cos(a) * radius, Math.sin(a) * radius]);
+        }
+        return out;
+      };
+
+      if (n <= 6) return ring(n, radiusFor(n));
+
+      if (n <= 12){
+        // one in the middle, the rest around it — never closer to the
+        // middle one than the ring's own neighbours are to each other
+        const c = n - 1;
+        return [[0, 0]].concat(ring(c, Math.max(SPACING, radiusFor(c))));
+      }
+
+      const out = [];
+      for (let i = 0; i < n; i++){
+        const r = SPACING * Math.sqrt(i + 0.5);
+        const a = i * GOLDEN;
+        out.push([Math.cos(a) * r, Math.sin(a) * r]);
+      }
+      return out;
+    }
+
+    // how far a packed cluster reaches from its own middle
+    function packExtent(n){
+      return packOffsets(n).reduce((m, pt) => Math.max(m, Math.hypot(pt[0], pt[1])), 0);
+    }
+
     function layoutSpiral(mode){
       spiralMode = mode;
       const els = [...spiral.children];
 
       if (mode === 'spiral'){
-        els.forEach((el, i) => {
-          const r = SPACING * Math.sqrt(i + 0.5);
-          const a = i * GOLDEN;
-          place(el, Math.cos(a) * r, Math.sin(a) * r);
-        });
+        const pts = packOffsets(els.length);
+        els.forEach((el, i) => place(el, pts[i][0], pts[i][1]));
         return;
       }
 
       if (mode === 'saved'){
         const keep = els.filter(e => isSaved(e.dataset.id));
         const rest = els.filter(e => !isSaved(e.dataset.id));
-        keep.forEach((el, i) => {
-          const r = SPACING * Math.sqrt(i + 0.5);
-          const a = i * GOLDEN;
-          place(el, Math.cos(a) * r, Math.sin(a) * r);
-        });
+        const kept = packOffsets(keep.length);
+        keep.forEach((el, i) => place(el, kept[i][0], kept[i][1]));
         // everything unkept goes to its own cluster, well off the frame
         const away = SPACING * (Math.sqrt(els.length) + 16);
-        rest.forEach((el, i) => {
-          const r = SPACING * Math.sqrt(i + 0.5);
-          const a = i * GOLDEN;
-          place(el, away + Math.cos(a) * r, Math.sin(a) * r);
-        });
+        const out  = packOffsets(rest.length);
+        rest.forEach((el, i) => place(el, away + out[i][0], out[i][1]));
         return;
       }
 
@@ -4772,7 +4824,9 @@
         .filter(g => g.els.length)
         .sort((a, b) => b.els.length - a.els.length);
 
-      const radiusOf = g => SPACING * Math.sqrt(g.els.length) + SPACING * 0.6;
+      // measured off the shape the group will actually take, not guessed
+      // from its count — a triad and a spiral of three do not reach as far
+      const radiusOf = g => packExtent(g.els.length) + SPACING * 0.6;
       const big = radiusOf(groups[0]);
 
       groups.forEach((g, gi) => {
@@ -4786,11 +4840,8 @@
           cx = Math.cos(ang) * ring;
           cy = Math.sin(ang) * ring;
         }
-        g.els.forEach((el, i) => {
-          const r = SPACING * Math.sqrt(i + 0.5);
-          const a = i * GOLDEN;
-          place(el, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-        });
+        const pts = packOffsets(g.els.length);
+        g.els.forEach((el, i) => place(el, cx + pts[i][0], cy + pts[i][1]));
       });
     }
 
@@ -4904,11 +4955,8 @@
         el.classList.toggle('sp-grey',  !on && !!greyRest);
         el.classList.remove('sp-dim');
       });
-      hit.forEach((el, i) => {
-        const r = SPACING * Math.sqrt(i + 0.5);
-        const a = i * GOLDEN;
-        place(el, Math.cos(a) * r, Math.sin(a) * r);
-      });
+      const pts = packOffsets(hit.length);
+      hit.forEach((el, i) => place(el, pts[i][0], pts[i][1]));
 
       clusterTimer = setTimeout(() => {
         glide(() => fitTo(hit), 800);
@@ -5468,11 +5516,8 @@
         el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1)';
       });
       layoutSpiral(spiralMode);
-      keep.forEach((el, i) => {
-        const r = SPACING * Math.sqrt(i + 0.5);
-        const a = i * GOLDEN;
-        place(el, Math.cos(a) * r, Math.sin(a) * r);
-      });
+      const pts = packOffsets(keep.length);
+      keep.forEach((el, i) => place(el, pts[i][0], pts[i][1]));
       setTimeout(() => {
         glide(() => fitTo(keep), 800);
         setTimeout(() => els.forEach(el => { el.style.transition = ''; }), 880);
@@ -5870,8 +5915,16 @@
          with its flag, its title and its minimise. */
       const nameEl = item.querySelector('.name');
       const refEl  = item.querySelector('.ref');
-      const nameTx = nameEl ? nameEl.textContent : '';
-      const refTx  = refEl  ? refEl.textContent  : '';
+      /* Stashed the first time the card is seen, and read from the stash
+         ever after. Taking the text off the element means taking whatever
+         is on the element — and a record left half way through has a
+         half-written name on it, so the next open would write that, and
+         the one after would write half of THAT. The name got shorter every
+         time. */
+      if (nameEl && nameEl.dataset.full === undefined) nameEl.dataset.full = nameEl.textContent;
+      if (refEl  && refEl.dataset.full  === undefined) refEl.dataset.full  = refEl.textContent;
+      const nameTx = nameEl ? nameEl.dataset.full : '';
+      const refTx  = refEl  ? refEl.dataset.full  : '';
       /* Not emptied yet. The card is measured with its writing in it — see
          the sequence — because a card with an empty name is shorter than the
          one the reader ends up with, and a height taken from it would have
@@ -5916,16 +5969,7 @@
       const NAME_MS  = Math.max(8, Math.min(18, Math.round(560 / Math.max(1, nameTx.length))));
 
       // typed one after the other, the reference following the name
-      function writeOut(el, text, ms, done){
-        if (!el || !text){ if (done) done(); return; }
-        let i = 0;
-        (function tick(){
-          if (i < text.length){
-            el.textContent += text.charAt(i++);
-            soloTimers.push(setTimeout(tick, ms));
-          } else if (done) done();
-        })();
-      }
+      const writeOut = (el, text, ms, done) => bmuWrite(el, text, ms, done);
 
       soloTimers.push(setTimeout(() => {
         /* 2 — the card opens out, and the garment travels rather than
@@ -6423,17 +6467,58 @@
     pruneSaved();
     paintSaved();
 
-    /* Explore IS the archive's front door now, and its own bar is where the
-       searching happens. The page used to open on the bare search bar with
-       everything else summoned from it; opening straight into the field
-       means the first thing anyone sees is the garments. */
+    /* ---------- WHICH DOOR THE ARCHIVE OPENS ON ----------
+
+       On a desktop, the field. Explore IS the archive's front door and its
+       own bar is where the searching happens; opening straight into it
+       means the first thing anyone sees is the garments.
+
+       On a phone, the list. The field asks a phone to decode seventy-seven
+       photographs before it can show anything at all, and it was taking so
+       long that the archive read as broken. The list asks for none of them
+       — every nation arrives shut — and the garments are fetched a tab at a
+       time, by the reader, in the order they actually want them. The field
+       is one press away on the middle button, which opens on the circle so
+       that press is obvious.
+
+       The dock is left CLOSED here. Opening it puts the caret in the search
+       field, and a caret on a phone is a keyboard over half the screen
+       before the reader has asked for one. */
+    /* Narrow AND touched. Width alone is the wrong question: a desktop
+       window dragged narrow, or a page that happens to lay out before the
+       window has settled, would be sent to the list when it has all the
+       memory in the world for the field. A coarse pointer is the stable
+       half of the answer and does not change under the page's feet. */
+    const SMALL = window.matchMedia('(max-width: 760px)').matches
+               && window.matchMedia('(pointer: coarse)').matches;
+
     dockForced = true;
     setFaceMode('explore');
     setFace(0, true);
-    openExplore();
-    openDock();
-    updateDock();
+
+    if (SMALL){
+      nationsOpen = true;
+      setBrowsing(true);
+      document.body.classList.add('dock-list');
+      filter();
+      syncGhost();
+      collapseDock();
+      updateDock();
+    } else {
+      openExplore();
+      openDock();
+      updateDock();
+    }
     startSuggestions();   // the running suggestion is the bar's own prompt
+
+    /* The page signs itself, under the bar, in the same hand everything
+       else on the site is written in. It was printed there; the archive
+       types out its tally and its record and its empty line, and this is
+       the one piece of writing on the page that simply appeared. */
+    setTimeout(() => {
+      bmuWrite(document.getElementById('foot'),
+               'British Material Unit (BMU) — Archive', 26);
+    }, SMALL ? 420 : 900);
   </script>
 </body>
 </html>
