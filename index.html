@@ -1267,6 +1267,66 @@
     #siteHead:hover .hd-ico{ color:#fff; }
     .hd-ico:hover{ color:#fff; transform:scale(1.1); }
 
+    /* ---------- THE PRESS ----------
+       Everything pressable on this site answered on release. Between the
+       finger going down and coming up — a tenth of a second, longer on a
+       phone — nothing at all happened, and for that tenth of a second the
+       page was indistinguishable from a page that had stopped working.
+
+       So the answer moves to the press itself. Not a colour: this site has
+       no colour to spend, and a fill would say something different from what
+       the rules already say. The box takes the pressure instead — it gives
+       by a pixel and a half at most and comes straight back, which is what a
+       real thing does when you lean on it. Short and eased out, so the
+       release feels like letting go rather than like a second event.
+
+       The rule underneath goes to full black at the same moment, so a press
+       reads even where the scale is too small to see. */
+    .bm-button,
+    .foot-talk,
+    .hd-ico,
+    .foot-col a{
+      transition:transform .1s ease-out, opacity .18s ease, color .18s ease;
+    }
+    .bm-button:active,
+    .foot-talk:active{
+      transform:scale(.985);
+      border-color:var(--ink);
+    }
+    .hd-ico:active{ transform:scale(.92); }
+    .foot-col a:active{ color:var(--ink); }
+    /* the mark is the front door — it takes a press like one */
+    #animatedSvg .filled-path{ transition:transform .12s ease-out; transform-origin:center; }
+    #animatedSvg:active .filled-path{ transform:scale(.975); }
+
+    /* ---------- WHAT THE READER HAS ASKED FOR ----------
+       Reduced motion was already answered for. These are the other two
+       settings a reader can be carrying, and neither was being listened to.
+
+       Reduced transparency: a frosted surface becomes a solid one. The blur
+       is what costs the reader legibility, so the blur is what goes — the
+       layer keeps its job of separating what floats from what is read.
+
+       More contrast: this page is already black on white, so there is no
+       palette to strengthen. What there is to strengthen is the greys — the
+       secondary lines, the addresses, the labels — which are set light on
+       purpose and are the first thing to disappear for a reader who has
+       asked for contrast. They come up to the ink. Rules go solid with
+       them, because a hairline at 10% is not a boundary to anyone. */
+    @media (prefers-reduced-transparency: reduce){
+      .foot-talk, .bm-button{ backdrop-filter:none; }
+    }
+    @media (prefers-contrast: more){
+      :root{ --ink:#000; --line:#000; }
+      .foot-col a,
+      .foot-col span,
+      .foot-addr,
+      .foot-legal a,
+      .foot-org{ color:#000; }
+      .foot-base{ border-top-color:#000; }
+      .bm-button, .foot-talk{ border-width:2px; }
+    }
+
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
       :root{ --bar-h:30px; }

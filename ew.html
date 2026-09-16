@@ -70,7 +70,6 @@
       justify-content:center;
       padding:24px 0 40px;
     }
-
     /* ---------- FOOTER ---------- */
     /* scroll cue — only once the reader is in, gone once they arrive */
     #scrollCue{
@@ -316,19 +315,20 @@
        Pressing is not a colour change: the box runs outwards to the right
        and the arrow arrives in the room it made. The rule is the thing that
        moves, which is the gesture the rest of the site is built on. */
+    /* No fixed measure. The box is cut to "Let's Talk" and nothing else, so
+       it reads as a label that happens to be pressable rather than a sixth
+       copy of the home row's button. align-self:flex-start in a column flex
+       parent is what shrink-wraps it; there is no width here to keep in step
+       with the type. */
     .foot-talk{
       align-self:flex-start;
       display:inline-flex;
       align-items:center;
-      justify-content:flex-start;
-      gap:0;
-      /* the measure of a button on the home page's row. min-width as well
-         as width: the column it sits in is a flex container and was sizing
-         it to its own text regardless of what width asked for. */
-      width:134px;
-      min-width:134px;
       flex:none;
-      margin:6px 0 0;
+      /* the top gap carries the collapsed mail-message row above it as well,
+         so the two numbers differ to put the box the same distance from
+         hello@ above as from Unit U below */
+      margin:7px 0 12px;
       padding:7px 12px;
       border:1.5px solid var(--line);
       color:var(--ink);
@@ -337,20 +337,35 @@
       font-weight:700;
       letter-spacing:.01em;
       white-space:nowrap;
-      overflow:hidden;
-      transition:width .42s cubic-bezier(.4,0,.2,1);
     }
-    .foot-talk:hover{ width:170px; min-width:170px; }
+    /* The well is the only thing with a width, and the box is sized from it:
+       growing the well from nothing grows the box, so the rule runs outwards
+       and the arrow arrives in exactly the room it made — never a gap left
+       over between the arrow and the right edge, at any point in the run.
+       The curve is a ramp rather than a symmetrical ease: it leaves quickly
+       and settles slowly, which is what reads as smooth on a short travel. */
+    .talk-well{
+      width:0;
+      overflow:hidden;
+      display:flex;
+      justify-content:flex-end;
+      transition:width .5s cubic-bezier(.16,1,.3,1);
+    }
+    .foot-talk:hover .talk-well,
+    .foot-talk:focus-visible .talk-well{ width:20px; }
     .foot-talk svg{
       width:12px; height:12px;
       display:block;
       flex:none;
       margin-left:8px;
       opacity:0;
-      transform:translateX(-6px);
-      transition:opacity .3s ease .12s, transform .42s cubic-bezier(.4,0,.2,1) .06s;
+      transition:opacity .34s ease .1s;
     }
-    .foot-talk:hover svg{ opacity:1; transform:none; }
+    .foot-talk:hover svg,
+    .foot-talk:focus-visible svg{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){
+      .talk-well{ transition:none; }
+    }
     .talk-arrow{
       fill:none;
       stroke:currentColor;
@@ -565,6 +580,66 @@
     /* white on the black ground, so they pop rather than sink */
     #siteHead:hover .hd-ico{ color:#fff; }
     .hd-ico:hover{ color:#fff; transform:scale(1.1); }
+
+    /* ---------- THE PRESS ----------
+       Everything pressable on this site answered on release. Between the
+       finger going down and coming up — a tenth of a second, longer on a
+       phone — nothing at all happened, and for that tenth of a second the
+       page was indistinguishable from a page that had stopped working.
+
+       So the answer moves to the press itself. Not a colour: this site has
+       no colour to spend, and a fill would say something different from what
+       the rules already say. The box takes the pressure instead — it gives
+       by a pixel and a half at most and comes straight back, which is what a
+       real thing does when you lean on it. Short and eased out, so the
+       release feels like letting go rather than like a second event.
+
+       The rule underneath goes to full black at the same moment, so a press
+       reads even where the scale is too small to see. */
+    .bm-button,
+    .foot-talk,
+    .hd-ico,
+    .foot-col a{
+      transition:transform .1s ease-out, opacity .18s ease, color .18s ease;
+    }
+    .bm-button:active,
+    .foot-talk:active{
+      transform:scale(.985);
+      border-color:var(--ink);
+    }
+    .hd-ico:active{ transform:scale(.92); }
+    .foot-col a:active{ color:var(--ink); }
+    /* the mark is the front door — it takes a press like one */
+    #animatedSvg .filled-path{ transition:transform .12s ease-out; transform-origin:center; }
+    #animatedSvg:active .filled-path{ transform:scale(.975); }
+
+    /* ---------- WHAT THE READER HAS ASKED FOR ----------
+       Reduced motion was already answered for. These are the other two
+       settings a reader can be carrying, and neither was being listened to.
+
+       Reduced transparency: a frosted surface becomes a solid one. The blur
+       is what costs the reader legibility, so the blur is what goes — the
+       layer keeps its job of separating what floats from what is read.
+
+       More contrast: this page is already black on white, so there is no
+       palette to strengthen. What there is to strengthen is the greys — the
+       secondary lines, the addresses, the labels — which are set light on
+       purpose and are the first thing to disappear for a reader who has
+       asked for contrast. They come up to the ink. Rules go solid with
+       them, because a hairline at 10% is not a boundary to anyone. */
+    @media (prefers-reduced-transparency: reduce){
+      .foot-talk, .bm-button{ backdrop-filter:none; }
+    }
+    @media (prefers-contrast: more){
+      :root{ --ink:#000; --line:#000; }
+      .foot-col a,
+      .foot-col span,
+      .foot-addr,
+      .foot-legal a,
+      .foot-org{ color:#000; }
+      .foot-base{ border-top-color:#000; }
+      .bm-button, .foot-talk{ border-width:2px; }
+    }
 
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
@@ -972,7 +1047,6 @@
     </nav>
    </div>
   </header>
-
   <main id="partner">
     <div class="p-role" id="pRole" data-text="Industrial Partner"></div>
     <h1 class="p-name" id="pName" data-text="East West"></h1>
@@ -1027,12 +1101,14 @@
                line sits on the same baseline as the last service. -->
           <a class="foot-talk" href="/contact">
             <span>Let's Talk</span>
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <g class="talk-arrow">
-                <path d="M4.5 11.5 L11.5 4.5"/>
-                <path d="M5.8 4.5 H11.5 V10.2"/>
-              </g>
-            </svg>
+            <span class="talk-well">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <g class="talk-arrow">
+                  <path d="M4.5 11.5 L11.5 4.5"/>
+                  <path d="M5.8 4.5 H11.5 V10.2"/>
+                </g>
+              </svg>
+            </span>
           </a>
           <address class="foot-addr">Unit U, Wrexham Road<br />SS15 6PX, England<br />United Kingdom</address>
         </div>
@@ -1051,7 +1127,6 @@
 
     </div>
   </footer>
-
 
   <script>
     /* ---------- the name types itself, as it does everywhere else ----------
