@@ -35,6 +35,18 @@
   </script>
 
   <style>
+    /* ---------- HOW THINGS MOVE ----------
+       One curve, everywhere: cubic-bezier(.4,0,.2,1). It leaves at nothing,
+       runs through the middle, and arrives at nothing — slow, fast, slow.
+       `ease` and `linear` are gone from this file, and so are the handful of
+       curves that started fast (an expo ramp on the footer's box) or
+       finished fast, along with the overshoot springs. A page where one
+       thing eases and the next snaps reads as two pages.
+
+       A few movements keep a curve of their own where the distance asks for
+       it — .65,0,.35,1 for the long ones, .6,0,.3,1 for a box closing — but
+       every one of them is slow at both ends. Nothing here starts or stops
+       abruptly. */
     :root{
       --ink:#222222;
       --line:#000000;
@@ -158,7 +170,7 @@
     /* the suggestion dissolves as it runs up on the icons rather than
        being sliced off by them */
     .search .ghost{
-      transition:opacity .18s linear;
+      transition:opacity .18s cubic-bezier(.4,0,.2,1);
       -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 86px), transparent calc(100% - 62px));
               mask-image:linear-gradient(to right, #000 calc(100% - 86px), transparent calc(100% - 62px));
     }
@@ -199,7 +211,7 @@
       display:block;
       height:12px; width:auto;
       filter:grayscale(1) contrast(1000%) opacity(.32);
-      transition:filter .3s ease;
+      transition:filter .3s cubic-bezier(.4,0,.2,1);
     }
     .search .flagtoggle:hover img{ filter:grayscale(1) contrast(1000%); }
     .search .flagtoggle[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
@@ -220,7 +232,7 @@
       border:none;
       padding:0;
       cursor:pointer;
-      transition:opacity .28s ease, color .2s ease;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1);
     }
     .search .clear:hover,
     .search .navtoggle:hover{ color:var(--ink); }
@@ -230,7 +242,7 @@
     .search .navtoggle img{
       display:block; width:13px; height:13px;
       opacity:.3;
-      transition:opacity .3s ease;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
     }
     .search .navtoggle:hover img{ opacity:.65; }
     .search .navtoggle[aria-pressed="true"] img{ opacity:1; }
@@ -256,7 +268,7 @@
        above them belonged to a list that is not on screen. The garment's own
        bookmark, inside the card, is untouched. */
     body.solo-from-field .count-row{ display:none; }
-    body.single-result .count-row{ transition:opacity .45s ease; }
+    body.single-result .count-row{ transition:opacity .45s cubic-bezier(.4,0,.2,1); }
     #savedBtn{
       display:flex;
       align-items:center;
@@ -269,7 +281,7 @@
       font-family:var(--font);
       font-size:10px;
       letter-spacing:.16em;
-      transition:color .3s ease;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
     }
     #savedBtn:hover{ color:#777; }
     #savedBtn[aria-pressed="true"]{ color:var(--ink); }
@@ -280,10 +292,10 @@
       stroke:currentColor;
       stroke-width:1.4;
       stroke-linejoin:round;
-      transition:fill .35s ease, transform .3s cubic-bezier(.3,1.6,.5,1);
+      transition:fill .35s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.4,0,.2,1);
     }
     [aria-pressed="true"] > .bm{ fill:currentColor; }
-    .bm.pop{ animation:bmPop .45s cubic-bezier(.3,1.5,.5,1); }
+    .bm.pop{ animation:bmPop .45s cubic-bezier(.4,0,.2,1); }
     @keyframes bmPop{
       0%  { transform:scale(1); }
       45% { transform:scale(1.35); }
@@ -305,8 +317,8 @@
       transform-origin:top center;
     }
     /* tabs topple in like pages falling flat, and fold back on the way out */
-    body.browsing .nation{ animation:toppleIn .46s cubic-bezier(.2,.75,.3,1) backwards; }
-    body.closing-tabs .nation{ animation:toppleOut .34s cubic-bezier(.5,0,.75,.4) forwards; }
+    body.browsing .nation{ animation:toppleIn .46s cubic-bezier(.4,0,.2,1) backwards; }
+    body.closing-tabs .nation{ animation:toppleOut .34s cubic-bezier(.4,0,.2,1) forwards; }
     @keyframes toppleIn{
       from{ opacity:0; transform:perspective(760px) rotateX(-34deg) translateY(-16px); }
       to  { opacity:1; transform:none; }
@@ -329,7 +341,7 @@
       letter-spacing:.18em;
       text-transform:uppercase;
       font-weight:bold;
-      transition:background-color .3s ease;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1);
     }
     .nation > summary::-webkit-details-marker{ display:none; }
     .nation > summary:hover{ background:var(--faint); }
@@ -397,7 +409,7 @@
       background:var(--bg);
       display:flex;
       flex-direction:column;
-      transition:background-color .3s ease;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1);
     }
     .item:hover{ background:var(--faint); }
     /* .item sets display:flex, which outranks the UA rule for [hidden] —
@@ -450,7 +462,7 @@
       margin-top:1px;
       color:#c9c9c9;
       cursor:pointer;
-      transition:color .3s ease;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
     }
     .btn-save-inline:hover{ color:#888; }
     .btn-save-inline[aria-pressed="true"]{ color:var(--ink); }
@@ -509,13 +521,13 @@
       border-bottom:none;
       border-right:1.5px solid var(--line);
       transition:flex-basis .62s cubic-bezier(.4,0,.2,1),
-                 border-right-color .3s ease .28s;
+                 border-right-color .3s cubic-bezier(.4,0,.2,1) .28s;
     }
     body.single-result .item .meta{
       flex:1 1 auto;
       padding:16px 18px 18px;
       opacity:1;
-      transition:opacity .42s ease .2s,
+      transition:opacity .42s cubic-bezier(.4,0,.2,1) .2s,
                  flex-basis .62s cubic-bezier(.4,0,.2,1);
     }
 
@@ -545,7 +557,7 @@
          the drawing and the arriving are one movement. */
       border-color:var(--line);
       position:relative;
-      transition:border-color .5s ease;
+      transition:border-color .5s cubic-bezier(.4,0,.2,1);
     }
     /* The rule that draws the tab in. It sits ON the tab's own top border
        and is the same weight, so at rest the two stack and read as one
@@ -579,10 +591,10 @@
        was neither — the line blinked out at the top. It is held until the
        border has finished arriving, and only then goes. */
     body.single-result .nation::before{
-      transition:opacity .01s linear .5s;
+      transition:opacity .01s cubic-bezier(.4,0,.2,1) .5s;
     }
     body.single-result .nation > summary{
-      transition:opacity .5s ease .18s;
+      transition:opacity .5s cubic-bezier(.4,0,.2,1) .18s;
       transform:none;
     }
     body.single-result.solo-build .nation{
@@ -597,12 +609,12 @@
     body.single-result.solo-drawing .nation{
       border-color:var(--line);
       border-top-color:transparent;
-      transition:border-color .5s ease .12s;
+      transition:border-color .5s cubic-bezier(.4,0,.2,1) .12s;
     }
     body.single-result.solo-drawing .nation > summary{
       opacity:1;
       transform:none;
-      transition:opacity .5s ease .2s;
+      transition:opacity .5s cubic-bezier(.4,0,.2,1) .2s;
     }
 
     body.single-result.solo-build .nation > summary{
@@ -650,7 +662,7 @@
        what puts a number on the height for the length of the move. */
     body.single-result .item{ transition:width .62s cubic-bezier(.4,0,.2,1),
                                          height .62s cubic-bezier(.4,0,.2,1),
-                                         border-color .32s ease; }
+                                         border-color .32s cubic-bezier(.4,0,.2,1); }
     body.single-result .item.build .slot{
       flex-basis:100%;
       aspect-ratio:1 / 1;
@@ -708,7 +720,7 @@
        existing motions are simply let go of one at a time. */
     body.single-result .item.hold-name .name-row{ clip-path:inset(0 100% 0 0); }
     body.single-result .item.hold-mark .btn-save-inline{ opacity:0; }
-    body.single-result .item .btn-save-inline{ transition:opacity .3s ease; }
+    body.single-result .item .btn-save-inline{ transition:opacity .3s cubic-bezier(.4,0,.2,1); }
     body.single-result .item.hold-acts .actions .btn-line,
     body.single-result .item.hold-acts .req-send{ clip-path:inset(0 100% 0 0); }
     body.single-result .item.hold-rule .slot::after{ transform:scaleY(0); }
@@ -722,7 +734,7 @@
     body.single-result .item.hold-name .tag,
     body.single-result .item.hold-name .ref{ opacity:0; }
     body.single-result .item .tag,
-    body.single-result .item .ref{ transition:opacity .3s ease; }
+    body.single-result .item .ref{ transition:opacity .3s cubic-bezier(.4,0,.2,1); }
 
     body.single-result .item .name{ font-size:14px; }
     body.single-result .item:hover{ background:var(--bg); }
@@ -761,7 +773,7 @@
       stroke-width:1.5;
     }
     body.single-result .item{ position:relative; }
-    body.single-result .item.unbuild .meta{ animation:metaLeave .3s ease both; }
+    body.single-result .item.unbuild .meta{ animation:metaLeave .3s cubic-bezier(.4,0,.2,1) both; }
     @keyframes metaLeave{
       from{ opacity:1; transform:none; }
       to  { opacity:0; transform:translateX(14px); }
@@ -791,7 +803,7 @@
       background:var(--bg);
       border:1.5px solid var(--line);
       cursor:pointer;
-      transition:background-color .3s ease, color .3s ease;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1), color .3s cubic-bezier(.4,0,.2,1);
     }
     .btn-line:hover{ background:var(--faint); }
     .btn-save{
@@ -804,7 +816,7 @@
       border:1.5px solid var(--line);
       color:#c2c2c2;
       cursor:pointer;
-      transition:color .3s ease, background-color .3s ease;
+      transition:color .3s cubic-bezier(.4,0,.2,1), background-color .3s cubic-bezier(.4,0,.2,1);
     }
     .btn-save:hover{ background:var(--faint); color:#888; }
     .btn-save[aria-pressed="true"]{ color:var(--ink); }
@@ -829,14 +841,14 @@
       transition:grid-template-rows .42s cubic-bezier(.4,0,.2,1),
                  margin-top .42s cubic-bezier(.4,0,.2,1),
                  padding-top .42s cubic-bezier(.4,0,.2,1),
-                 border-top-color .3s ease;
+                 border-top-color .3s cubic-bezier(.4,0,.2,1);
     }
     .req-panel > *, .info-panel > *{
       min-height:0;                 /* the grid row has to be free to be 0 */
       overflow:hidden;
       opacity:0;
       transform:translateX(18px);
-      transition:opacity .3s ease, transform .42s cubic-bezier(.4,0,.2,1);
+      transition:opacity .3s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.4,0,.2,1);
     }
     .req-panel.open, .info-panel.open{
       grid-template-rows:1fr;
@@ -891,7 +903,7 @@
       border-radius:50%;
       background:transparent;
       cursor:pointer;
-      transition:background-color .28s ease, border-color .28s ease, transform .28s cubic-bezier(.3,1.4,.5,1);
+      transition:background-color .28s cubic-bezier(.4,0,.2,1), border-color .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1);
     }
     .req-dot:hover{ border-color:var(--line); }
     .req-dot.on{
@@ -944,7 +956,7 @@
       outline:none;
       border-radius:0;
       -webkit-appearance:none;
-      transition:border-color .3s ease;
+      transition:border-color .3s cubic-bezier(.4,0,.2,1);
     }
     .req-email:focus{ border-color:var(--line); }
     .req-send[disabled]{ opacity:.45; cursor:default; }
@@ -972,7 +984,7 @@
       background:var(--line);
       border:1.5px solid var(--line);
       cursor:pointer;
-      transition:opacity .3s ease;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
     }
     .req-send:hover{ opacity:.78; }
     .req-msg{
@@ -1056,7 +1068,7 @@
       cursor:pointer;
       font-family:var(--font);
       opacity:.75;
-      transition:opacity .25s ease, transform .25s ease;
+      transition:opacity .25s cubic-bezier(.4,0,.2,1), transform .25s cubic-bezier(.4,0,.2,1);
     }
     .flag-pick:hover{ opacity:1; transform:translateY(-2px); }
     .flag-pick img{ height:20px; width:auto; display:block; }
@@ -1093,7 +1105,7 @@
       background:var(--bg);
       cursor:pointer; text-align:center;
       white-space:nowrap;
-      transition:background-color .3s ease, color .3s ease;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1), color .3s cubic-bezier(.4,0,.2,1);
     }
     .bm-button:hover{ background:var(--faint); color:#444; }
 
@@ -1161,14 +1173,14 @@
          The field is one thing and it is either there or it is not; nothing
          owns opacity here. */
       opacity:1;
-      transition:opacity .34s ease;
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
     }
     .sp-item .sp-slot{
       width:150px; height:150px;
       display:flex;
       align-items:center;
       justify-content:center;
-      transition:transform .2s ease;
+      transition:transform .2s cubic-bezier(.4,0,.2,1);
     }
     .sp-item img{
       max-width:100%; max-height:100%;
@@ -1182,7 +1194,7 @@
     .sp-item.sp-dim{
       opacity:.06;
       pointer-events:none;
-      transition:opacity .5s ease;
+      transition:opacity .5s cubic-bezier(.4,0,.2,1);
     }
     /* Still there, and plainly not the subject. The nation clusters gather
        their garments into the middle and leave the rest of the archive
@@ -1194,7 +1206,7 @@
       opacity:.16;
       filter:grayscale(1);
       pointer-events:none;
-      transition:opacity .5s ease, filter .5s ease;
+      transition:opacity .5s cubic-bezier(.4,0,.2,1), filter .5s cubic-bezier(.4,0,.2,1);
     }
     /* Off the field entirely, not dimmed. A cluster gathers into the middle
        of a space the rest of the archive is still standing in; at .06 they
@@ -1203,15 +1215,21 @@
     .sp-item.sp-gone{
       opacity:0;
       pointer-events:none;
-      transition:opacity .45s ease;
+      transition:opacity .45s cubic-bezier(.4,0,.2,1);
     }
+    /* Put out, with nothing animating, so the field can be laid out behind
+       a blank screen and then brought back as one. !important because the
+       garments carry inline transitions of their own for the move, and the
+       whole point of this is to hold them at nothing while that is set up. */
+    #spiral.sp-blank .sp-item{ opacity:0 !important; transition:none !important; }
+
     /* One garment has been chosen and the record is coming. Everything else
        leaves first, so the handover is not a field of garments blinking out
        the instant explore is torn down. */
     #spiral.sp-chosen .sp-item:not(.sp-pick){
       opacity:0;
       pointer-events:none;
-      transition:opacity .34s ease;
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
     }
     .sp-item .sp-code{
       width:100%; height:100%;
@@ -1258,7 +1276,7 @@
       align-items:center;
       opacity:0;
       pointer-events:none;
-      transition:opacity .28s ease, transform .28s ease;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1);
       touch-action:none;
     }
     #dock.show{
@@ -1297,12 +1315,12 @@
       width:16px; height:16px;
       opacity:0;
       transform:translateY(120%);
-      transition:opacity .26s ease, transform .3s cubic-bezier(.4,0,.2,1);
+      transition:opacity .26s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.4,0,.2,1);
     }
     .face-stack .face.is-on{ opacity:1; transform:translateY(0); }
     .face-stack .face.is-out{ opacity:0; transform:translateY(-120%); }
     /* the periodic reminder that this button carries more than one tool */
-    #dockExplore.hinting .face.is-on{ animation:faceHint .9s ease; }
+    #dockExplore.hinting .face.is-on{ animation:faceHint .9s cubic-bezier(.4,0,.2,1); }
     @keyframes faceHint{
       0%,100%{ opacity:1; transform:translateY(0); }
       30%    { opacity:.25; transform:translateY(-22%); }
@@ -1324,7 +1342,7 @@
       cursor:pointer;
       opacity:0;
       pointer-events:none;
-      transition:opacity .26s ease;
+      transition:opacity .26s cubic-bezier(.4,0,.2,1);
       z-index:4;
     }
     .dghost{
@@ -1343,7 +1361,7 @@
       white-space:nowrap;
       overflow:hidden;
       opacity:0;
-      transition:opacity .2s linear;
+      transition:opacity .2s cubic-bezier(.4,0,.2,1);
       -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 112px), transparent calc(100% - 92px));
               mask-image:linear-gradient(to right, #000 calc(100% - 112px), transparent calc(100% - 92px));
     }
@@ -1353,7 +1371,7 @@
     #dqFlag{ right:64px; }
     #dqExplore{ right:36px; }
     #dock.open .dq-tool{ opacity:1; pointer-events:auto; }
-    #dqFlag img{ display:block; height:12px; width:auto; filter:grayscale(1) contrast(1000%) opacity(.35); transition:filter .3s ease; }
+    #dqFlag img{ display:block; height:12px; width:auto; filter:grayscale(1) contrast(1000%) opacity(.35); transition:filter .3s cubic-bezier(.4,0,.2,1); }
     #dqFlag[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
     /* Grey while the list holds the page, black while the field does — the
        same reading the flag beside it already gets. It was black in both,
@@ -1362,7 +1380,7 @@
     #dqExplore img{
       display:block; width:13px; height:13px;
       filter:grayscale(1) contrast(1000%) opacity(.35);
-      transition:filter .3s ease;
+      transition:filter .3s cubic-bezier(.4,0,.2,1);
     }
     body.exploring #dqExplore img{ filter:grayscale(1) contrast(1000%); }
 
@@ -1386,7 +1404,7 @@
     body.single-result .nation > .nbody{
       max-height:2000px;
       transition:max-height .46s cubic-bezier(.4,0,.2,1),
-                 opacity .3s ease,
+                 opacity .3s cubic-bezier(.4,0,.2,1),
                  transform .46s cubic-bezier(.4,0,.2,1);
     }
 
@@ -1412,7 +1430,7 @@
       transition:max-height .3s cubic-bezier(.4,0,.2,1),
                  padding-top .3s cubic-bezier(.4,0,.2,1),
                  padding-bottom .3s cubic-bezier(.4,0,.2,1),
-                 opacity .2s ease,
+                 opacity .2s cubic-bezier(.4,0,.2,1),
                  transform .3s cubic-bezier(.4,0,.2,1);
     }
     /* And the header's own rule goes with it. Once the body has gone that
@@ -1421,7 +1439,7 @@
        be protected from. One box, one outline, one name inside it. */
     body.solo-closing .nation[open] > summary{
       border-bottom-color:transparent;
-      transition:border-bottom-color .2s ease .12s;
+      transition:border-bottom-color .2s cubic-bezier(.4,0,.2,1) .12s;
     }
 
     /* 2. the lid — by now a single closed box with the name in it —
@@ -1444,9 +1462,9 @@
       transform:translateY(var(--lid-drop, 0px)) scaleX(0);
       opacity:0;
       transition:transform .42s cubic-bezier(.6,0,.3,1),
-                 opacity .3s ease .16s;
+                 opacity .3s cubic-bezier(.4,0,.2,1) .16s;
     }
-    body.solo-shutting .nation > summary{ opacity:0; transition:opacity .22s ease; }
+    body.solo-shutting .nation > summary{ opacity:0; transition:opacity .22s cubic-bezier(.4,0,.2,1); }
 
     /* The field fades up OVER the page, so for the length of that fade
        whatever is underneath shows through it. On the way out of a record
@@ -1458,7 +1476,7 @@
     body.field-returning #catalogue{ visibility:hidden; }
 
     /* 4. the field returns, and the garment it returns to is already lit */
-    #explore.ex-returning{ animation:ex-return .5s ease both; }
+    #explore.ex-returning{ animation:ex-return .5s cubic-bezier(.4,0,.2,1) both; }
     @keyframes ex-return{ from{ opacity:0; } to{ opacity:1; } }
 
     @media (prefers-reduced-motion:reduce){
@@ -1475,7 +1493,7 @@
        arriving in whatever order the network chose. */
     #spiral.sp-waiting .sp-item{
       filter:grayscale(1) blur(9px) opacity(.22);
-      transition:filter .9s ease;
+      transition:filter .9s cubic-bezier(.4,0,.2,1);
       pointer-events:none;
     }
     /* Blur alone still shows the shapes, and shapes resolving one by one is
@@ -1504,7 +1522,7 @@
       opacity:.95;
       z-index:3;
     }
-    #spiral .sp-item{ transition:opacity .34s ease, filter .9s ease; }
+    #spiral .sp-item{ transition:opacity .34s cubic-bezier(.4,0,.2,1), filter .9s cubic-bezier(.4,0,.2,1); }
 
     /* display:flex beats the [hidden] attribute — the element selector wins
        over the browser's own [hidden]{display:none}. Without this, setting
@@ -1551,7 +1569,7 @@
       fill:var(--line);
       stroke:none;
       opacity:0;
-      transition:opacity .5s ease;
+      transition:opacity .5s cubic-bezier(.4,0,.2,1);
     }
     /* the mark draws itself for as long as the photographs are landing */
     #reveal.drawing .rev-trace{ animation:rev-draw 2.2s ease-in-out infinite; }
@@ -1565,7 +1583,7 @@
     /* Landed: it fills, in the page's own black rather than the softer ink
        the outline is drawn in. Grey said "still working"; this says "press
        me", which is the only thing left to do. */
-    #reveal.ready .rev-trace{ animation:none; opacity:0; transition:opacity .4s ease; }
+    #reveal.ready .rev-trace{ animation:none; opacity:0; transition:opacity .4s cubic-bezier(.4,0,.2,1); }
     #reveal.ready .rev-fill{ opacity:1; }
     /* The whole sheet takes the press once the field is in, not just the
        mark. The mark is what SAYS press me; making it the only thing that
@@ -1582,7 +1600,7 @@
        page altogether. The mark is black once it is filled and stays that
        way; the sheet being pressable is said by the cursor, not by fading
        the one thing the reader is looking at. */
-    #reveal.going{ opacity:0; transition:opacity .5s ease; }
+    #reveal.going{ opacity:0; transition:opacity .5s cubic-bezier(.4,0,.2,1); }
 
     /* The bar is not usable while the field is still coming: typing into a
        search that cannot show you what it finds is a dead end. It greys out
@@ -1593,7 +1611,7 @@
       opacity:.32;
       pointer-events:none;
     }
-    body.gated #dock{ transition:opacity .4s ease; }
+    body.gated #dock{ transition:opacity .4s cubic-bezier(.4,0,.2,1); }
     /* Except on the frame it arrives. Handed over from the home page, this
        bar is the box the reader has just watched travel down the screen and
        come to rest here — landing it already at a third of its strength
@@ -1631,7 +1649,7 @@
       cursor:pointer;
       opacity:0;
       pointer-events:none;
-      transition:opacity .26s ease, color .22s ease, border-color .22s ease;
+      transition:opacity .26s cubic-bezier(.4,0,.2,1), color .22s cubic-bezier(.4,0,.2,1), border-color .22s cubic-bezier(.4,0,.2,1);
       z-index:5;
     }
     #dock.open .dq-hint.on{ opacity:1; pointer-events:auto; }
@@ -1660,8 +1678,8 @@
       overflow:hidden;
       justify-content:flex-start;
       transition:width .42s cubic-bezier(.65,0,.35,1),
-                 background-color .34s ease,
-                 opacity .5s ease;
+                 background-color .34s cubic-bezier(.4,0,.2,1),
+                 opacity .5s cubic-bezier(.4,0,.2,1);
     }
     /* Arriving from the home page's Archive button.
 
@@ -1671,7 +1689,7 @@
        once it has finished growing. Nothing here is a copy of anything: this
        is the archive's own bar, opening. */
     #dockExplore, #dockLibrary{
-      transition:opacity .34s ease .2s,
+      transition:opacity .34s cubic-bezier(.4,0,.2,1) .2s,
                  transform .44s cubic-bezier(.65,0,.35,1) .2s;
     }
     #dock.handing #dockExplore,
@@ -1693,7 +1711,7 @@
       left:14px;
       width:16px; height:16px;
       display:block;
-      transition:opacity .3s ease;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
     }
     #dockSearch .ico-b{ opacity:0; }
     #dock.open #dockSearch .ico-w{ opacity:0; }
@@ -1714,7 +1732,7 @@
       -webkit-appearance:none;
       opacity:0;
       pointer-events:none;
-      transition:opacity .26s ease;
+      transition:opacity .26s cubic-bezier(.4,0,.2,1);
     }
     #dq::placeholder{ color:#aaa; }
     #dock.open #dq{ opacity:1; pointer-events:auto; }
@@ -1732,7 +1750,7 @@
       cursor:pointer;
       opacity:0;
       pointer-events:none;
-      transition:opacity .26s ease, color .2s ease;
+      transition:opacity .26s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1);
     }
     #dock.open #dockClear{ opacity:1; pointer-events:auto; }
     #dockClear:hover{ color:var(--ink); }
@@ -1781,7 +1799,7 @@
        full strength and let go again, which is the same gesture the tabs use
        to say "this one". Long enough to find it, short enough not to sit
        there asking to be dismissed. */
-    .item.landed{ animation:landed 1.6s ease both; }
+    .item.landed{ animation:landed 1.6s cubic-bezier(.4,0,.2,1) both; }
     @keyframes landed{
       0%   { background:var(--faint); }
       45%  { background:var(--faint); }
@@ -1819,7 +1837,7 @@
       text-transform:uppercase;
       color:#9a9a9a;
       margin-right:var(--facet-gap);
-      transition:color .3s ease;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
     }
     .facet-bar.on .facet-title{ color:var(--ink); }
 
@@ -1834,7 +1852,7 @@
       font-family:var(--font);
       font-size:13px;
       line-height:1;
-      transition:color .3s ease;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
     }
     .facet-toggle:hover{ color:var(--ink); }
     .facet-bar.on .facet-toggle{ color:var(--ink); }
@@ -1851,7 +1869,7 @@
       width:0;
       overflow:hidden;
       opacity:0;
-      transition:width .44s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+      transition:width .44s cubic-bezier(.4,0,.2,1), opacity .3s cubic-bezier(.4,0,.2,1);
     }
     .facet-opts[hidden]{ display:none; }
     .facet-bar.on .facet-opts{ width:var(--facet-w, 0px); opacity:1; }
@@ -1868,7 +1886,7 @@
       letter-spacing:.16em;
       text-transform:uppercase;
       color:#9a9a9a;
-      transition:color .25s ease;
+      transition:color .25s cubic-bezier(.4,0,.2,1);
     }
     .facet-opt:hover{ color:var(--ink); }
     .facet-opt[aria-pressed="true"]{ color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
@@ -1892,7 +1910,7 @@
       backdrop-filter:blur(14px);
       -webkit-backdrop-filter:blur(14px);
       opacity:0;
-      transition:opacity .4s ease;
+      transition:opacity .4s cubic-bezier(.4,0,.2,1);
     }
     #joinGate[hidden]{ display:none !important; }
     #joinGate.on{ opacity:1; }
@@ -1921,7 +1939,7 @@
       width:100%;
       background:var(--faint);
       border:1.5px solid var(--faint);
-      transition:border-color .3s ease;
+      transition:border-color .3s cubic-bezier(.4,0,.2,1);
     }
     .jg-slide:focus-within{ border-color:var(--line); }
     #jgInput{
@@ -1951,7 +1969,7 @@
       background:var(--line);
       border:1.5px solid var(--line);
       cursor:pointer;
-      transition:opacity .3s ease;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
     }
     .jg-send:hover{ opacity:.78; }
     .jg-send[disabled]{ opacity:.45; cursor:default; }
@@ -2000,14 +2018,14 @@
       white-space:nowrap;
       pointer-events:none;
       opacity:0;
-      transition:opacity .3s ease, transform .42s cubic-bezier(.2,.75,.3,1);
+      transition:opacity .3s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.4,0,.2,1);
     }
     #noData.show{
       opacity:1;
       transform:translate(-50%, -50%);
     }
     @media (prefers-reduced-motion:reduce){
-      #noData{ transition:opacity .2s linear; }
+      #noData{ transition:opacity .2s cubic-bezier(.4,0,.2,1); }
       #noData, #noData.show{ transform:translate(-50%, -50%); }
     }
 
@@ -2028,9 +2046,10 @@
       display:flex;
       align-items:center;
       background:transparent;
-      transition:background-color .35s ease;
+      transition:background-color .35s cubic-bezier(.4,0,.2,1);
     }
-    #siteHead:hover{ background:#262626; }
+    #siteHead:hover,
+    #siteHead.head-lit{ background:#262626; }
 
     /* the HOME page's measure, not the archive's: the mark and the two
        tools have to land on exactly the same pixels on both pages, or
@@ -2049,7 +2068,7 @@
       display:block;
       line-height:0;
       text-decoration:none;
-      transition:opacity .45s ease;
+      transition:opacity .45s cubic-bezier(.4,0,.2,1);
       -webkit-tap-highlight-color:transparent;
     }
     .hd-mark svg{ height:17px; width:auto; display:block; overflow:visible; }
@@ -2060,7 +2079,7 @@
       fill:none;
       stroke:#999;
       stroke-width:.5;
-      transition:stroke .35s ease, opacity .3s ease;
+      transition:stroke .35s cubic-bezier(.4,0,.2,1), opacity .3s cubic-bezier(.4,0,.2,1);
     }
     /* The corner mark no longer draws itself — see index.html. On this page
        especially: the gate's mark is already drawing in the middle of the
@@ -2070,17 +2089,19 @@
       fill:var(--ink);
       stroke:none;
       opacity:0;
-      transition:opacity .35s ease, fill .35s ease;
+      transition:opacity .35s cubic-bezier(.4,0,.2,1), fill .35s cubic-bezier(.4,0,.2,1);
     }
     /* Activated, the header goes near-black and the mark fills solid white
        — not a white outline. Both halves switch in ONE frame, before the
        ground has begun to move: transition:none on the way in, the normal
        one on the way back out. A crossfade here is the change you can see. */
-    #siteHead:hover .hd-trace{
+    #siteHead:hover .hd-trace,
+    #siteHead.head-lit .hd-trace{
       opacity:0;
       transition:none;
     }
-    #siteHead:hover .hd-fill{
+    #siteHead:hover .hd-fill,
+    #siteHead.head-lit .hd-fill{
       opacity:1;
       fill:#fff;
       transition:none;
@@ -2096,12 +2117,15 @@
       opacity:0;
       pointer-events:none;
     }
-    body.scrolled #siteHead:hover .hd-mark{
+    body.scrolled #siteHead:hover .hd-mark,
+    body.scrolled #siteHead.head-lit .hd-mark{
       opacity:1;
       pointer-events:auto;
     }
-    body.scrolled #siteHead:hover .hd-trace{ opacity:0; transition:none; }
-    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
+    body.scrolled #siteHead:hover .hd-trace,
+    body.scrolled #siteHead.head-lit .hd-trace{ opacity:0; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill,
+    body.scrolled #siteHead.head-lit .hd-fill{ opacity:1; fill:#fff; transition:none; }
 
 
     .hd-tools{ display:flex; align-items:center; gap:18px; }
@@ -2114,7 +2138,7 @@
       background:none;
       cursor:pointer;
       color:#999;
-      transition:color .3s ease, transform .3s ease;
+      transition:color .3s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.4,0,.2,1);
       -webkit-tap-highlight-color:transparent;
     }
     .hd-ico svg{ display:block; width:15px; height:15px; }
@@ -2127,7 +2151,8 @@
       stroke-linejoin:round;
     }
     #hdHome svg{ width:13px; height:13px; }
-    #siteHead:hover .hd-ico{ color:#fff; }
+    #siteHead:hover .hd-ico,
+    #siteHead.head-lit .hd-ico{ color:#fff; }
     .hd-ico:hover{ color:#fff; transform:scale(1.1); }
 
     @media (max-width:640px){
@@ -2141,7 +2166,7 @@
 
     /* ---------- OPERATIONS DEPARTURE ----------
        Straight fade of the whole page, then hand over to index.html. */
-    body{ transition:opacity .3s ease; }
+    body{ transition:opacity .3s cubic-bezier(.4,0,.2,1); }
     body.leaving{ opacity:0; pointer-events:none; }
     @media (prefers-reduced-motion:reduce){
       body{ transition:none; }
@@ -2201,7 +2226,8 @@
           <span class="qty" id="savedTabQty">0</span>
           <span class="sign" aria-hidden="true"></span>
         </summary>
-        <div class="nbody"><div class="grid" id="savedGrid"></div></div>
+        <!-- filled by buildSavedTab: a filter bar and the kept garments -->
+        <div class="nbody"></div>
       </details>
 
       <main id="catalogue" aria-label="Military surplus archive"></main>
@@ -2701,26 +2727,7 @@
          one on a shelf of one, which is a lot of headings for very little
          archive. The switch offers the three facets the records actually
          carry, and Reset puts them back in one run. */
-      const bar = document.createElement('div');
-      bar.className = 'facet-bar';
-      /* Word, choices, sign — in that order in the markup, because that is
-         the order they read in on the page. The sign used to sit between the
-         word and the choices and be flown to the right of them by a measured
-         transform; with the choices in the middle it is simply pushed along
-         by the row opening, and lands one gap past the last of them without
-         anything being measured about where it should go. */
-      bar.innerHTML =
-        `<span class="facet-title">Garments</span>` +
-        `<span class="facet-opts" hidden>` +
-          `<button type="button" class="facet-opt" data-facet="type">Type</button>` +
-          `<button type="button" class="facet-opt" data-facet="material">Material</button>` +
-          `<button type="button" class="facet-opt" data-facet="date">Date</button>` +
-          `<button type="button" class="facet-opt facet-reset" data-facet="" hidden>All</button>` +
-        `</span>` +
-        `<button type="button" class="facet-toggle" aria-expanded="false" aria-label="Group these garments">` +
-          `<span class="facet-sign" aria-hidden="true">+</span>` +
-        `</button>`;
-      body.appendChild(bar);
+      body.appendChild(makeFacetBar());
 
       /* Built as one section holding everything, in the shelf order the
          archive keeps them in. Grouping is something the reader asks for,
@@ -2852,7 +2859,6 @@
     const emptyEl = document.getElementById('empty');
     const savedBtn      = document.getElementById('savedBtn');
     const savedTab      = document.getElementById('savedTab');
-    const savedGrid     = document.getElementById('savedGrid');
     const savedTabQty   = document.getElementById('savedTabQty');
     const savedCountEl  = document.getElementById('savedCount');
     const emptyLine  = document.getElementById('emptyLine');
@@ -3074,7 +3080,23 @@
     /* The tab is built from clones of the real cards, re-wired through the
        same path, so a saved garment behaves identically wherever it sits. */
     function buildSavedTab(){
-      savedGrid.innerHTML = '';
+      /* Rebuilt whole rather than emptied. The shelf now carries a filter
+         bar like every other tab, and regroup() rearranges a tab by throwing
+         its sections away and making new ones — so a grid held by id would
+         be gone the first time anything was grouped. The body is built from
+         nothing each time and nothing outside this function holds on to any
+         part of it. */
+      const body = savedTab.querySelector('.nbody');
+      body.innerHTML = '';
+      body.appendChild(makeFacetBar());
+      const group = document.createElement('section');
+      group.className = 'group';
+      const savedGrid = document.createElement('div');
+      savedGrid.className = 'grid';
+      group.appendChild(savedGrid);
+      body.appendChild(group);
+      savedTab.dataset.facet = '';
+
       savedIds.forEach(id => {
         const src = allItems.find(el => el.dataset.id === id);
         if (!src) return;
@@ -3190,6 +3212,34 @@
        The cards are moved, not rebuilt: every listener already on them
        stays attached, and a garment keeps whatever state it was in.
        ============================================================ */
+    /* One bar, wherever a tab needs one. It was written inline inside the
+       nation builder, which meant the one tab NOT built there — the shelf —
+       had no way of grouping what was on it, and the list lost its filter
+       the moment the reader opened their own collection.
+
+       Word, choices, sign — in that order in the markup, because that is the
+       order they read in on the page. The sign used to sit between the word
+       and the choices and be flown to the right of them by a measured
+       transform; with the choices in the middle it is simply pushed along by
+       the row opening, and lands one gap past the last of them without
+       anything being measured about where it should go. */
+    function makeFacetBar(){
+      const bar = document.createElement('div');
+      bar.className = 'facet-bar';
+      bar.innerHTML =
+        `<span class="facet-title">Garments</span>` +
+        `<span class="facet-opts" hidden>` +
+          `<button type="button" class="facet-opt" data-facet="type">Type</button>` +
+          `<button type="button" class="facet-opt" data-facet="material">Material</button>` +
+          `<button type="button" class="facet-opt" data-facet="date">Date</button>` +
+          `<button type="button" class="facet-opt facet-reset" data-facet="" hidden>All</button>` +
+        `</span>` +
+        `<button type="button" class="facet-toggle" aria-expanded="false" aria-label="Group these garments">` +
+          `<span class="facet-sign" aria-hidden="true">+</span>` +
+        `</button>`;
+      return bar;
+    }
+
     function facetOf(el, facet){
       if (facet === 'type')     return el.dataset.type || 'Unclassified';
       if (facet === 'material') return el.dataset.material || 'Unlisted';
@@ -3267,8 +3317,10 @@
       details.dataset.facet = facet;
     }
 
-    /* One listener for every tab: the bar is the same shape in each. */
-    catalogue.addEventListener('click', e => {
+    /* One listener for every tab: the bar is the same shape in each. It was
+       bound to the catalogue alone, and the shelf is not in the catalogue —
+       so the shelf's bar drew and then did nothing when it was pressed. */
+    function facetClick(e){
       const toggle = e.target.closest('.facet-toggle');
       const opt    = e.target.closest('.facet-opt');
       if (!toggle && !opt) return;
@@ -3317,7 +3369,9 @@
       bar.querySelector('.facet-sign').textContent = '+';
       bar.querySelector('.facet-toggle').setAttribute('aria-expanded', 'false');
       setTimeout(() => { bar.querySelector('.facet-opts').hidden = true; }, 420);
-    });
+    }
+    catalogue.addEventListener('click', facetClick);
+    savedTab.addEventListener('click', facetClick);
 
     /* ============================================================
        THE COLLECTION'S DOOR
@@ -4521,11 +4575,50 @@
       img.addEventListener('error', done,   { once:true });   // broken counts as landed
     }
 
+    /* The garments have landed. The mark is in the middle of a stroke when
+       that happens, and it used to be cut off wherever it had got to — the
+       outline vanished mid-letter and the filled mark appeared in its place.
+
+       It finishes instead. The loop is stopped where it stands, the stroke
+       is run on to its end from exactly there, and only then does the mark
+       fill. The run is timed from how much of the outline is left, so a
+       mark caught almost finished does not sit there drawing nothing for
+       half a second. */
     function armReveal(){
       if (revArmed || revealed) return;
       revArmed = true;
+
+      const len = revTrace.getTotalLength ? revTrace.getTotalLength() : 0;
+      const now = parseFloat(getComputedStyle(revTrace).strokeDashoffset);
+      const left = (len && !isNaN(now)) ? Math.min(Math.max(now, 0), len) : 0;
+
+      if (!left){                          // nothing left to draw
+        revEl.classList.remove('drawing');
+        revEl.classList.add('ready');
+        return;
+      }
+
+      const ms = Math.round(140 + 520 * (left / len));
+
+      // held where the loop had got to, with nothing animating
       revEl.classList.remove('drawing');
-      revEl.classList.add('ready');   // the mark fills: that is the invitation
+      revTrace.style.animation = 'none';
+      revTrace.style.strokeDashoffset = left + 'px';
+      void revTrace.offsetWidth;
+
+      // and run on to the end of the stroke
+      revTrace.style.transition = 'stroke-dashoffset ' + ms + 'ms cubic-bezier(.33,0,.2,1)';
+      revTrace.style.strokeDashoffset = '0';
+
+      setTimeout(() => {
+        if (revealed) return;
+        /* The outline hands over to the fill. The transition is named here
+           rather than left to the stylesheet, because the inline one set
+           above would otherwise still be the only thing on the element and
+           the outline would snap out. */
+        revTrace.style.transition = 'opacity .4s cubic-bezier(.4,0,.2,1)';
+        revEl.classList.add('ready');      // the mark fills: that is the invitation
+      }, ms + 60);
     }
 
     /* Two keys, one gate. The mark is the one the reader is looking at; the
@@ -4756,7 +4849,7 @@
          it is tidying up after. */
       const MOVE_MS = 800;
       const slide = () => els.forEach(el => {
-        el.style.transition = `left ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), top ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), opacity .45s ease`;
+        el.style.transition = `left ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), top ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1)`;
       });
       const settle = () => setTimeout(
         () => els.forEach(el => { el.style.transition = ''; }), MOVE_MS + 80);
@@ -4894,6 +4987,10 @@
     }
 
     let exploreClosing = false;
+    /* Raised only by the record's own return, and spent on the next arrival
+       in the field. It is what tells openExplore to leave the chosen
+       garment lit instead of clearing it with everything else. */
+    let holdChosen = false;
     let lastExploreItem = null;
     let atInitial = false;      // is the field sitting at its opening view?
 
@@ -4929,12 +5026,43 @@
            connection that is merely slow. */
         setTimeout(armReveal, 20000);
       }
-      /* The chosen garment is deliberately NOT released here. Coming back
-         from a record, the field returns around the garment the reader left
-         from — it stays lit while everything else fades up behind it, and
-         returnToExplore lets go of it a beat later. Clearing it here undid
-         that in the same frame. Entering explore fresh has nothing marked
-         to clear. */
+      /* Coming back from a record, the garment the reader left from stays
+         lit while the rest fade up behind it — returnToExplore asks for
+         that by setting holdChosen, and lets go of the mark a beat later.
+
+         Every OTHER way in is a fresh arrival at the archive and has to
+         look like one. A reader who opened a garment, left explore by the
+         glyph in the bar and browsed the list came back to a field still
+         wearing the record's picture: that one garment lit and the other
+         seventy-five at nothing, because the marks were only ever cleared
+         on the record's own return. Whatever the field was holding — a
+         chosen garment, a cluster, a term, a nation grouping — goes, and
+         the whole archive comes back. */
+      let reset = false;
+      if (holdChosen){
+        holdChosen = false;                 // spent on this one arrival
+      } else if (spiralBuilt && !wantSaved){
+        const dirty = spiralMode !== 'spiral'
+          || !!dq.value.trim()
+          || !!spiral.querySelector('.sp-pick, .sp-dim, .sp-gone, .sp-grey');
+        spiral.classList.remove('sp-chosen');
+        if (dirty){
+          reset = true;
+          dq.value = '';
+          q.value  = '';
+          if (dghost) dghost.hidden = false;
+          paintHint('');
+          dqFlag.setAttribute('aria-pressed', 'false');
+          flagBtn.setAttribute('aria-pressed', 'false');
+          savedOnly = false;
+          document.body.classList.remove('library');
+          spiral.querySelectorAll('.sp-item').forEach(el =>
+            el.classList.remove('sp-pick', 'sp-dim', 'sp-gone', 'sp-grey'));
+          if (spiralMode !== 'spiral') layoutSpiral('spiral');
+          syncLibraryMark();
+        }
+      }
+
       exploreClosing = false;
       explore.hidden = false;
       exploreOn = true;
@@ -4953,6 +5081,25 @@
       buildSpiral();
       [...spiral.children].forEach(el => { el.style.transition = ''; el.style.opacity = ''; });
       fitSpiral();
+      // a field that had to be put back is put back by fading in, not by
+      // appearing — the same return the circle's reset makes
+      if (reset) lightFieldUp(480);
+    }
+
+    /* The whole field up from nothing, together. fieldBackIn is for a move
+       that lays the garments out somewhere new and needs its own left/top
+       transitions left alone; this is for a field that is already where it
+       belongs and only has to be seen again. */
+    function lightFieldUp(ms){
+      const els = [...spiral.children];
+      if (!els.length) return;
+      spiral.classList.add('sp-blank');
+      void spiral.offsetWidth;                 // committed at nothing
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        els.forEach(el => { el.style.transition = 'opacity ' + ms + 'ms ease'; });
+        spiral.classList.remove('sp-blank');
+        setTimeout(() => els.forEach(el => { el.style.transition = ''; }), ms + 80);
+      }));
     }
 
     function endExplore(handBack){
@@ -4977,7 +5124,7 @@
       exploreClosing = true;
       if (REDUCED){ endExplore(true); return; }
       [...spiral.children].forEach(el => {
-        el.style.transition = 'opacity .3s ease';
+        el.style.transition = 'opacity .3s cubic-bezier(.4,0,.2,1)';
         setTimeout(() => { el.style.opacity = '0'; }, Math.random() * 520);
       });
       setTimeout(() => endExplore(true), 950);
@@ -5122,10 +5269,13 @@
         paintHint('');
         dqFlag.setAttribute('aria-pressed', 'false');
         flagBtn.setAttribute('aria-pressed', 'false');
-        if (spiralMode !== 'spiral') morphLayout('spiral');
         savedOnly = false;
         document.body.classList.remove('library');
-        clusterSearch('', true);          // every garment back on the field
+        // out, laid out whole, and back in together
+        fieldBackIn(() => {
+          if (spiralMode !== 'spiral') morphLayout('spiral');
+          clusterSearch('', true);        // every garment back on the field
+        });
         syncLibraryMark();
         return;
       }
@@ -5139,6 +5289,27 @@
         glide(() => fitSpiral());
       }
     });
+
+    /* Resetting to the whole archive. The field used to slide back to its
+       opening shape with whatever was already on screen staying on screen,
+       so what the reader saw was a shuffle rather than a return — the
+       garments that had been set aside faded in and the ones that had not
+       simply slid. Everything goes out first and comes back together.
+
+       Together, not one at a time: a stagger here is the ripple that was
+       taken out of the list-to-explore move, and it is the same mistake. */
+    function fieldBackIn(lay){
+      const els = [...spiral.children];
+      spiral.classList.add('sp-blank');
+      void spiral.offsetWidth;          // committed at nothing
+      lay();                            // lays the field out and sets its own transitions
+      // opacity is on the transition `lay` just set; letting the class go is
+      // what runs it
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        spiral.classList.remove('sp-blank');
+      }));
+      return els;
+    }
 
     /* ---------- where the circle travels to ----------
        Not a fresh coin toss each press. A coin toss on seventy-odd garments
@@ -5294,7 +5465,7 @@
       els.forEach(el => {
         el.classList.toggle('sp-gone', !keep.includes(el));
         el.classList.remove('sp-dim');
-        el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1), opacity .45s ease';
+        el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1)';
       });
       layoutSpiral(spiralMode);
       keep.forEach((el, i) => {
@@ -5327,8 +5498,17 @@
 
     dqExplore.addEventListener('click', e => {
       e.stopPropagation();
-      if (explore.hidden){ openExplore(); return; }
-      toList({ keepDock:true });
+      /* A record opened from the field has explore torn down behind it, but
+         as far as the reader is concerned they are still in the field —
+         the glyph is lit and it says "leave explore". Asking the overlay
+         whether it is up therefore gave the wrong answer here: the press
+         re-entered the field instead of leaving it, and it took two to
+         reach the list. A record counts as being in the field. */
+      const inField = !explore.hidden
+        || !!soloId
+        || document.body.classList.contains('single-result');
+      if (inField){ toList({ keepDock:true }); return; }
+      openExplore();
     });
 
     /* Everything that lands on the tab list goes through here, so the dock's
@@ -5344,6 +5524,15 @@
       soloId = null;
       savedOnly = false;
       document.body.classList.remove('library');
+      /* The record's own dressing goes with the record. solo-from-field
+         hides the tally, the bookmark and the filter bar while one garment
+         is standing on its own, and it was only ever taken off on the way
+         back to the field — so a reader who left a record for the LIST
+         arrived at a list with no filter on it. */
+      document.body.classList.remove('solo-from-field', 'solo-build',
+                                     'solo-drawing', 'solo-closing', 'solo-shutting');
+      document.body.style.removeProperty('--solo-drop');
+      clearHolds();
       q.value = '';
       dq.value = keepDock ? dq.value : '';
       filter();
@@ -5693,25 +5882,33 @@
 
       /* THE SEQUENCE.
 
-         Four beats, in the order the reader asks for the record:
+         Three beats, in the order the reader asks for the record:
 
            1. the field goes — done before this runs, by the press itself
            2. the garment slides left as the card opens out around it, into
               an empty right-hand half
-           3. that half is written into: the name types, then the reference,
-              then the mark that keeps it. Only then are the two containers
-              drawn around what has been written — the card's outline and the
-              rule between the garment and its record — and the Request and
-              Info boxes wipe in as that outline closes
+           3. that half is written into and drawn around AT THE SAME TIME:
+              the name types, the mark that keeps it comes in, and the two
+              containers are drawn around them — the card's outline and the
+              rule between the garment and its record. The Request and Info
+              boxes wipe in as that outline closes.
            4. and last, the tab: its box drawn, its flag and title up, and
               the minimise that shuts the whole thing again
+
+         The writing used to finish before the drawing began, which made two
+         events out of one arrival and put the reader through both.
 
          Everything is held back by a class and let go of on a clock, so the
          order is legible in one place instead of being distributed across
          the stylesheet as delays. */
       const BOX_MS   = 500;   // the two containers drawing
       const HANDOVER =  70;   // drawn line → the card's real border
-      const START    = from ? 780 : 40;
+      /* The garment has already been brought to the middle at the record's
+         own size by the press that opened this, so there is nothing for it
+         to wait for. It used to sit there for the better part of a second
+         while the handover settled — a stop between two movements that are
+         meant to be one. */
+      const START    = from ? 150 : 40;
       const OPEN_MS  = 620;   // the card's own .62s widening
       /* A long name should not take three times as long to write as a short
          one: the rate is set from the length so the writing lasts about the
@@ -5777,56 +5974,54 @@
           if (slot) slot.style.transition = '';
         }, OPEN_MS + 60));
 
-        // 3 — written into, as the space for it finishes opening
+        /* 3 — written into and drawn around, in the same breath. The card
+           has just finished opening, so the outline can be measured; it is
+           drawn in the room's coordinates rather than the card's, so it
+           stands still while everything inside it arrives. */
         soloTimers.push(setTimeout(() => {
-          item.classList.remove('hold-name');
-          writeOut(nameEl, nameTx, NAME_MS, () => {
-            writeOut(refEl, refTx, NAME_MS, () => {
-              soloTimers.push(setTimeout(() => {
-                item.classList.remove('hold-mark');       // and the mark that keeps it
+          const box = (() => {
+            const r = item.getBoundingClientRect();
+            return r.width > 4
+              ? drawFrame(item, {
+                  x: Math.round(r.left),
+                  y: Math.round(r.top),
+                  w: Math.round(r.width),
+                  h: Math.round(r.height)
+                }, BOX_MS, true)
+              : null;
+          })();
+          item.classList.remove('hold-rule');     // the rule between the two
+          item.classList.remove('hold-name');     // and the writing starts
 
-                /* the two containers, drawn around what has just been
-                   written. The outline is drawn in the room's coordinates
-                   rather than the card's, so it stands still. */
-                soloTimers.push(setTimeout(() => {
-                  const to  = item.getBoundingClientRect();
-                  const box = to.width > 4
-                    ? drawFrame(item, {
-                        x: Math.round(to.left),
-                        y: Math.round(to.top),
-                        w: Math.round(to.width),
-                        h: Math.round(to.height)
-                      }, BOX_MS, true)
-                    : null;
-                  item.classList.remove('hold-rule');     // the rule between the two
+          writeOut(nameEl, nameTx, NAME_MS, () => writeOut(refEl, refTx, NAME_MS));
 
-                  // the request and info boxes, as the outline closes
-                  soloTimers.push(setTimeout(
-                    () => item.classList.remove('hold-acts'), Math.round(BOX_MS * 0.55)));
+          // the mark that keeps it, in while the line is still going round
+          soloTimers.push(setTimeout(
+            () => item.classList.remove('hold-mark'), Math.round(BOX_MS * 0.45)));
 
-                  // the drawn line hands over to the card's own border
-                  soloTimers.push(setTimeout(() => {
-                    item.classList.add('no-anim');        // no border-color transition
-                    item.classList.add('framed');
-                    item.classList.remove('hold-edge');
-                    void item.offsetWidth;
-                    if (box) box.remove();
-                    item.classList.remove('no-anim');
+          // the request and info boxes, as the outline closes
+          soloTimers.push(setTimeout(
+            () => item.classList.remove('hold-acts'), Math.round(BOX_MS * 0.62)));
 
-                    /* 4 — and last the tab: its box drawn, the rule across
-                       the top, the flag and title up, and the minimise. */
-                    soloTimers.push(setTimeout(() => {
-                      document.body.classList.add('solo-drawing');
-                      document.body.classList.remove('solo-build');
-                      soloTimers.push(setTimeout(
-                        () => document.body.classList.remove('solo-drawing'), 900));
-                    }, 90));
-                  }, BOX_MS + HANDOVER));
-                }, 110));
-              }, 60));
-            });
-          });
-        }, OPEN_MS - 60));
+          // the drawn line hands over to the card's own border
+          soloTimers.push(setTimeout(() => {
+            item.classList.add('no-anim');        // no border-color transition
+            item.classList.add('framed');
+            item.classList.remove('hold-edge');
+            void item.offsetWidth;
+            if (box) box.remove();
+            item.classList.remove('no-anim');
+
+            /* 4 — and last the tab: its box drawn, the rule across the top,
+               the flag and title up, and the minimise. */
+            soloTimers.push(setTimeout(() => {
+              document.body.classList.add('solo-drawing');
+              document.body.classList.remove('solo-build');
+              soloTimers.push(setTimeout(
+                () => document.body.classList.remove('solo-drawing'), 900));
+            }, 90));
+          }, BOX_MS + HANDOVER));
+        }, OPEN_MS + 20));
       }, START));
     }
 
@@ -5909,6 +6104,7 @@
          was put where the field was holding it, and focusItem puts the field
          back around it — so what crosses over is only the furniture. */
       const showField = () => {
+        holdChosen = true;          // the garment just left stays lit
         openExplore();
         if (toAll){
           /* Asked for all of them rather than for the one just left. Any
@@ -6052,8 +6248,20 @@
        idle, and it does nothing at all unless the page is actually empty.
        ============================================================ */
     function listShowing(){
-      if (getComputedStyle(catalogue).visibility === 'hidden') return false;
-      if (catalogue.offsetParent === null) return false;
+      /* The shelf is a tab of its own and it lives OUTSIDE the catalogue —
+         and library mode hides the catalogue outright (body.library
+         #catalogue{display:none}). So asking the catalogue alone whether the
+         list was showing answered "no" at exactly the moment the reader
+         opened their own collection, and the watchdog below, finding
+         nothing on screen, took them to the field. The shelf is part of the
+         list; it counts. */
+      const up = el => el
+        && !el.hidden
+        && el.offsetParent !== null
+        && getComputedStyle(el).visibility !== 'hidden';
+
+      if (up(savedTab)) return true;
+      if (!up(catalogue)) return false;
       return !!catalogue.querySelector('.item:not([hidden]), .nation:not([hidden]) > summary');
     }
 
@@ -6171,11 +6379,29 @@
     const siteHead = document.getElementById('siteHead');
     const hdTrace  = document.getElementById('hdTrace');
     if (siteHead && hdTrace){
-      // the mark's own length drives the keyframes, so they stay honest
-      // whatever the path is: measure it, hand it to CSS, then arm
       /* The corner mark does not draw any more, so nothing measures it and
          nothing dashes it — a dash offset left behind by a removed animation
          is a mark that never appears at all. */
+
+      /* ---------- THE CURSOR LEAVES ----------
+         With the pointer off the page there is nobody to hover the header,
+         and it sits pale over whatever is underneath it. It fills instead:
+         the same near-black it takes under the cursor, so the mark and the
+         two tools read at full strength for anyone glancing at the tab, a
+         screenshot, or a second monitor.
+
+         mouseleave on the document fires when the pointer crosses the
+         viewport edge and nowhere else — moving between elements inside the
+         page does not reach it. A touch device never fires either of these,
+         so it simply never lights, which is right: there is no cursor to
+         have left. */
+      const litOff = () => siteHead.classList.remove('head-lit');
+      document.addEventListener('mouseleave', () => siteHead.classList.add('head-lit'));
+      document.addEventListener('mouseenter', litOff);
+      // a press anywhere is a pointer that is plainly back
+      document.addEventListener('pointerdown', litOff);
+      window.addEventListener('blur', () => siteHead.classList.add('head-lit'));
+      window.addEventListener('focus', litOff);
     }
 
     let leaving = false;
