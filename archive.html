@@ -2473,6 +2473,13 @@
     }
 
     /* ---------- render: nation dropdown > category group > grid ---------- */
+    /* -webkit-user-drag is a WebKit/Blink property and Firefox ignores it,
+       so the images are also refused at the event. A garment is opened by
+       pressing it; there is no drag on this page that means anything. */
+    document.addEventListener('dragstart', e => {
+      if (e.target && e.target.tagName === 'IMG') e.preventDefault();
+    });
+
     const catalogue = document.getElementById('catalogue');
     const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
