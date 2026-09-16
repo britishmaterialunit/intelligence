@@ -351,6 +351,15 @@
     @media (prefers-reduced-motion:reduce){
       .talk-well{ transition:none; }
     }
+    /* No pointer to hover with. On a phone the box never opened and the
+       arrow never arrived, so the one thing in the footer asking to be
+       pressed looked like a label that had stopped working — the whole
+       gesture was built on a state touch does not have. It arrives open
+       instead: full width, arrow in place, nothing to reveal. */
+    @media (hover: none){
+      .talk-well{ width:20px; transition:none; }
+      .foot-talk svg{ opacity:1; transition:none; }
+    }
     .talk-arrow{
       fill:none;
       stroke:currentColor;
@@ -749,28 +758,38 @@
     .foot-talk .talk-arrow{ stroke:#fff; }
 
     /* ---------- THE WAY OUT ----------
-       The same cross Join closes on, in the same corner, doing the same
-       thing: leaving. This is a document rather than a panel, so it cannot
-       simply close — it fades, and the home page is what is underneath. */
+       The cross Join closes on, in the place Join keeps it: the foot of the
+       screen, centred, where the scroll arrow and the cross have always
+       lived. It was in the top corner, which is a place this site does not
+       put anything. Same size, same weight, same distance off the bottom.
+
+       This is a document rather than a panel, so it cannot simply close —
+       it fades, and the home page is what it fades to. */
     #eaClose{
       position:fixed;
-      top:14px; right:56px;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%);
       z-index:92;
-      width:28px; height:28px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      width:16px; height:16px;
+      display:grid;
+      place-items:center;
       padding:0;
-      border:none;
+      border:0;
       background:none;
       font-family:var(--font);
-      font-size:16px;
+      font-size:15px;
       line-height:1;
       color:#c3cbb2;
+      opacity:.8;
       cursor:pointer;
-      transition:color .3s ease, transform .3s ease;
+      transition:opacity .3s ease, color .3s ease;
     }
-    #eaClose:hover{ color:#fff; transform:scale(1.1); }
+    #eaClose:hover{ opacity:1; color:#fff; }
+    #eaClose:focus-visible{ outline:1.5px solid #e6e6e6; outline-offset:4px; }
+    /* the mark stays 16px but the target does not — the same thumb allowance
+       the scroll cue makes, and for the same reason */
+    #eaClose::after{ content:''; position:absolute; inset:-13px; }
 
     /* The page goes before the navigation does, so what the reader watches
        is this page leaving rather than the next one arriving. */
@@ -781,11 +800,32 @@
     @media (prefers-reduced-motion:reduce){
       body.ea-leaving{ transition:none; }
     }
-    @media (max-width:640px){
-      #eaClose{ right:48px; top:10px; }
-    }
 
     #eaField{ position:relative; }
+
+    /* ---------- THE PAGE DRAWS ITSELF ----------
+       The reader has just watched a box travel down the home page and fade
+       out. What replaces it should not be a finished picture sitting there
+       waiting — it should still be arriving. So every piece on this page is
+       outlined before it is filled: the mark first, then the arrow, then
+       the pattern pieces, each one drawn along its own edge and only then
+       let to take its colour.
+
+       The dash lengths are measured and set in script, because they are the
+       geometry of each path and not something a stylesheet can know. All
+       this rule does is hold the fills back while that is happening. */
+    #eaField.draw-in .shape,
+    #eaField.draw-in .logo,
+    #eaField.draw-in #button1 > *{
+      fill:transparent;
+    }
+    #eaField .logo{ transition:fill .5s ease; }
+    #eaField #button1 > *{ transition:fill .5s ease; }
+    @media (prefers-reduced-motion:reduce){
+      #eaField.draw-in .shape,
+      #eaField.draw-in .logo,
+      #eaField.draw-in #button1 > *{ fill:inherit; }
+    }
 
     @media (prefers-reduced-motion:reduce){
       .shape, .button-shape{ transition:none; }
@@ -802,7 +842,7 @@
        the mark and the two tools each have to read on both grounds. -->
   <header id="siteHead">
    <div class="hd-inner">
-    <a class="hd-mark" id="hdMark" href="#" aria-label="British Material Unit — back to top">
+    <a class="hd-mark" id="hdMark" href="/#home" aria-label="British Material Unit — home">
       <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
         <path id="hdTrace" class="hd-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
         <path id="hdFill" class="hd-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
@@ -1129,6 +1169,56 @@
         e.stopPropagation();
         window.open("https://www.operationupcycle.co.uk", '_blank', 'noopener');
       });
+    })();
+
+    /* ---------- DRAWN, THEN FILLED ----------
+       Each piece is dashed to its own length, the dash is run off, and when
+       the last edge has closed the fills come up together. The mark leads,
+       the arrow follows it, and the pattern pieces come after — the order
+       the page is read in.
+
+       getTotalLength is on every SVG geometry element, so the rectangles
+       and the polygon are drawn the same way the paths are. Anything that
+       cannot report a length is left alone rather than left invisible. */
+    (function drawIn(){
+      const field = document.getElementById('eaField');
+      if (!field) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const marks = [
+        ...field.querySelectorAll('.logo'),
+        ...field.querySelectorAll('#button1 > *'),
+        ...field.querySelectorAll('.shape')
+      ].filter(el => {
+        if (typeof el.getTotalLength !== 'function') return false;
+        let len = 0;
+        try { len = el.getTotalLength(); } catch (_){ return false; }
+        if (!len) return false;
+        el.style.strokeDasharray  = len;
+        el.style.strokeDashoffset = len;
+        return true;
+      });
+      if (!marks.length) return;
+
+      field.classList.add('draw-in');
+
+      const DRAW = 900, STEP = 85;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        marks.forEach((el, i) => {
+          el.style.transition =
+            'stroke-dashoffset ' + DRAW + 'ms cubic-bezier(.4,0,.2,1) ' + (i * STEP) + 'ms';
+          el.style.strokeDashoffset = '0';
+        });
+        const last = (marks.length - 1) * STEP + DRAW;
+        setTimeout(() => {
+          field.classList.remove('draw-in');       // and the colour comes up
+          setTimeout(() => marks.forEach(el => {
+            el.style.transition = '';
+            el.style.strokeDasharray = '';
+            el.style.strokeDashoffset = '';
+          }), 700);
+        }, last);
+      }));
     })();
 
     /* The way out. The page fades and the home page is what it fades to —

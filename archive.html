@@ -687,6 +687,36 @@
       padding-right:0;
       overflow:hidden;
     }
+    /* ---------- THE RECORD IS DEALT OUT, NOT HANDED OVER ----------
+       The card used to arrive whole: the moment it widened, the name, the
+       rule, both borders and the two buttons were all already there, and the
+       tab came up behind them in the same frame. Everything the record has
+       to say, said at once.
+
+       These four holds are what let beginSoloBuild put them in an order. Each
+       one re-states the closed value the build state had, at the same
+       specificity as the rule that opens it and after it in the sheet, so
+       dropping the class is what opens it — and the transition that was
+       already on the property is what draws it. Nothing new animates; the
+       existing motions are simply let go of one at a time. */
+    body.single-result .item.hold-name .name-row{ clip-path:inset(0 100% 0 0); }
+    body.single-result .item.hold-mark .btn-save-inline{ opacity:0; }
+    body.single-result .item .btn-save-inline{ transition:opacity .3s ease; }
+    body.single-result .item.hold-acts .actions .btn-line,
+    body.single-result .item.hold-acts .req-send{ clip-path:inset(0 100% 0 0); }
+    body.single-result .item.hold-rule .slot::after{ transform:scaleY(0); }
+    /* The card's own outline is the build state's job while the card is
+       narrow; once it has opened out there is nothing holding it back, and
+       it appeared whole a beat before the line that is supposed to draw it.
+       Held transparent until that line has finished and handed over. */
+    body.single-result .item.hold-edge{ border-color:transparent; }
+    body.single-result .item.hold-edge.framed{ border-color:var(--line); }
+    /* the tag and the reference belong to the name, and arrive with it */
+    body.single-result .item.hold-name .tag,
+    body.single-result .item.hold-name .ref{ opacity:0; }
+    body.single-result .item .tag,
+    body.single-result .item .ref{ transition:opacity .3s ease; }
+
     body.single-result .item .name{ font-size:14px; }
     body.single-result .item:hover{ background:var(--bg); }
 
@@ -1554,6 +1584,12 @@
       pointer-events:none;
     }
     body.gated #dock{ transition:opacity .4s ease; }
+    /* Except on the frame it arrives. Handed over from the home page, this
+       bar is the box the reader has just watched travel down the screen and
+       come to rest here — landing it already at a third of its strength
+       reads as the box not having survived the trip. It arrives solid and
+       settles into the gated state a beat later, with everything else. */
+    body.gated #dock.landed #dockSearch{ opacity:1; }
     @media (prefers-reduced-motion:reduce){
       #reveal.drawing .rev-trace{ animation:none; }
       #spiral.sp-waiting .sp-item{ filter:grayscale(1) opacity(.3); }
@@ -1614,7 +1650,8 @@
       overflow:hidden;
       justify-content:flex-start;
       transition:width .42s cubic-bezier(.65,0,.35,1),
-                 background-color .34s ease;
+                 background-color .34s ease,
+                 opacity .5s ease;
     }
     /* Arriving from the home page's Archive button.
 
@@ -2103,12 +2140,13 @@
 </head>
 <body>
   <!-- SITE HEADER — the archive's way back to the site. The mark is the
-       front door and resets the home page; the star returns to it already
-       entered; the index drops the reader straight onto its footer, so
+       front door and the star both return to the home page already entered —
+       the reader has seen the mark draw once and does not need it again;
+       the index drops the reader straight onto its footer, so
        scrolling up is what brings the home page itself back. -->
   <header id="siteHead">
    <div class="hd-inner">
-    <a class="hd-mark" id="hdMark" href="/" aria-label="British Material Unit — home">
+    <a class="hd-mark" id="hdMark" href="/#home" aria-label="British Material Unit — home">
       <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
         <path id="hdTrace" class="hd-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
         <path id="hdFill" class="hd-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
@@ -3884,48 +3922,52 @@
        far as the reader is concerned, so it is put in place here without the
        rise and the fade — playing those again would be the bar arriving twice.
        Read once and cleared: a reload is a plain visit. */
-    /* Arrived from the home page's Archive button, which collapsed its row
-       into one box and handed over that box's width.
+    /* ---------- ARRIVING FROM THE HOME PAGE ----------
 
-       The bar does not rise and fade in here — as far as the reader is
-       concerned it is already on screen, because it is the box they were
-       just looking at. It is put in place at the button's width with nothing
-       animating, and then opened to its own width on the transition it
-       already carries. The two tools come out from behind its right edge
-       afterwards.
+       The reader has just watched a box on the home page run out to this
+       bar's width and fall to this bar's place. The pixels it came to rest
+       on are the pixels this stylesheet draws #dockSearch at, so there is
+       nothing here to animate and nothing to hand over but the fact that it
+       happened: the bar is put up at full width with its rise and its fade
+       suppressed, and as far as the reader is concerned it never moved,
+       because it is the box they pressed.
+
+       The two black tools were never part of that box. They wait behind the
+       bar's right edge and come out once it has settled.
 
        Read once and cleared: a reload, or a visit by any other route, is a
        plain visit and gets the bar's ordinary arrival. */
     (function inheritDock(){
-      let handedW = 0;
+      let handed = false;
       try {
-        handedW = parseInt(sessionStorage.getItem('bmu.arch.handover') || '', 10) || 0;
+        handed = !!sessionStorage.getItem('bmu.arch.handover');
         sessionStorage.removeItem('bmu.arch.handover');
       } catch {}
-      if (!handedW) return;
+      if (!handed) return;
 
       dockForced = true;
       dock.style.transition = 'none';
-      dock.classList.add('show', 'handing');
-
-      // the bar starts as the button: its width, and no travel to get there
       dockSearch.style.transition = 'none';
-      dockSearch.style.width = handedW + 'px';
-      void dockSearch.offsetWidth;          // committed at the button's width
-      /* The transition is restored in its own step, BEFORE the width is let
-         go of. Doing both at once means the style the browser compares
-         against still said transition:none, so there was nothing to
-         interpolate and the bar simply appeared at full width. */
-      dockSearch.style.transition = '';
-      dock.style.transition = '';
+      /* Open, not collapsed. The bar's resting state is a 46px black square
+         that opens out to its full width, and the end of this script opens
+         it — so without saying so here the reader would watch the bar they
+         had just put in place shrink to a square and grow back out of it.
+         It is put up open, at full width, with nothing to interpolate. */
+      dock.classList.add('show', 'handing', 'open', 'landed');
+      document.body.classList.add('dock-open');
+      void dock.offsetWidth;                // committed, already there
 
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        /* Cleared rather than set to a number: the width the bar opens to is
-           the archive's own, and it belongs in the stylesheet with the rest
-           of the bar's measure. */
-        dockSearch.style.width = '';
-        dock.classList.remove('handing');
-      }));
+      requestAnimationFrame(() => {
+        // the transitions are given back only once that width is the one
+        // the bar is already at, so nothing chases it
+        dock.style.transition = '';
+        dockSearch.style.transition = '';
+        requestAnimationFrame(() => {
+          dock.classList.remove('handing'); // and the two tools come out
+          // and the bar joins whatever state the page is actually in
+          setTimeout(() => dock.classList.remove('landed'), 900);
+        });
+      });
     })();
 
     function updateDock(){
@@ -3952,6 +3994,7 @@
       document.body.classList.remove('dock-list');
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
+      clearHolds();
       document.body.classList.remove('solo-build', 'solo-snap', 'solo-drawing');
       soloId = null;
       if (!explore.hidden) endExplore(false);
@@ -4545,13 +4588,19 @@
     function morphLayout(mode){
       if (morphing) return;
       morphing = true;
+      unframe();
 
       if (REDUCED){
         layoutSpiral(mode); fitSpiral(); morphing = false; return;
       }
 
       const els = [...spiral.children];
+      /* Whatever was set aside by a cluster comes back. gatherSaved hides
+         the unkept rather than moving them, so without this a move out of
+         the collection laid every garment back out and then showed only the
+         ones that were already showing. */
       els.forEach(el => {
+        el.classList.remove('sp-gone', 'sp-dim', 'sp-grey');
         el.style.transition = 'left .95s cubic-bezier(.45,.05,.2,1), top .95s cubic-bezier(.45,.05,.2,1)';
       });
       spiral.style.transition = 'transform .95s cubic-bezier(.45,.05,.2,1)';
@@ -4680,6 +4729,7 @@
        a spiral of their own and everything else goes. */
     function clusterSearch(term, gather, greyRest){
       clearTimeout(clusterTimer);
+      unframe();
       const els = [...spiral.children];
 
       /* The move is 800ms. Clearing the transition at 60ms — which is what
@@ -4781,13 +4831,31 @@
        garment; with the whole field showing it gathers what is kept. */
     function offerSave(el){
       focusedItem = el || null;
+      syncLibraryMark();
+    }
+
+    /* The reader has moved the field off the garment it was framed on — a
+       pan, a wheel, a cluster. The button is no longer that garment's keep
+       switch, and leaving it looking like one is what let a press fill the
+       mark without changing the view. */
+    function unframe(){
+      if (focusedItem) offerSave(null);
+    }
+
+    /* The mark is never set by hand at a call site. It is read off the view,
+       every time the view changes, so the two cannot disagree: with a
+       garment framed it shows whether that garment is kept; with the whole
+       field showing it shows whether the reader is standing in their own
+       collection. Filled means the collection — on either view. */
+    function syncLibraryMark(){
       if (!dockLibrary) return;
+      const framed = !!(focusedItem && focusedItem.isConnected);
       dockLibrary.setAttribute('aria-label',
-        focusedItem ? 'Save this garment' : 'Gather saved garments');
-      dockLibrary.setAttribute('aria-pressed',
-        focusedItem
-          ? (isSaved(focusedItem.dataset.id) ? 'true' : 'false')
-          : (spiralMode === 'saved' ? 'true' : 'false'));
+        framed ? 'Save this garment' : 'Gather saved garments');
+      const on = framed
+        ? isSaved(focusedItem.dataset.id)
+        : (explore.hidden ? savedOnly : spiralMode === 'saved');
+      dockLibrary.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
 
     /* measures the real extent so it frames clusters as well as the spiral */
@@ -5039,21 +5107,54 @@
         dqFlag.setAttribute('aria-pressed', 'false');
         flagBtn.setAttribute('aria-pressed', 'false');
         if (spiralMode !== 'spiral') morphLayout('spiral');
+        savedOnly = false;
+        document.body.classList.remove('library');
         clusterSearch('', true);          // every garment back on the field
+        syncLibraryMark();
         return;
       }
       if (atInitial){
-        // already home — press again and it travels to one at random
+        // already home — press again and it travels to one it has not shown
         const pool = [...spiral.children].filter(
           el => !el.classList.contains('sp-dim') && !el.classList.contains('sp-grey'));
-        if (pool.length){
-          const pick = pool[Math.floor(Math.random() * pool.length)];
-          glide(() => focusItem(pick, maxScale() * 0.68));
-        }
+        const pick = nextTravel(pool);
+        if (pick) glide(() => focusItem(pick, maxScale() * 0.68));
       } else {
         glide(() => fitSpiral());
       }
     });
+
+    /* ---------- where the circle travels to ----------
+       Not a fresh coin toss each press. A coin toss on seventy-odd garments
+       still hands back the one just shown often enough to read as the
+       button being broken — and twice running it plainly is. The field is
+       shuffled into a bag instead and dealt from, so every garment is shown
+       once before any is shown twice, and a refilled bag never opens on the
+       one the last bag closed with. */
+    let travelBag  = [];
+    let lastTravel = null;
+
+    function nextTravel(pool){
+      if (!pool.length) return null;
+      if (pool.length === 1) return (lastTravel = pool[0]);
+
+      // garments the field has since set aside are no longer dealable
+      const live = new Set(pool);
+      travelBag = travelBag.filter(el => live.has(el));
+
+      if (!travelBag.length){
+        travelBag = pool.slice();
+        for (let i = travelBag.length - 1; i > 0; i--){
+          const j = Math.floor(Math.random() * (i + 1));
+          [travelBag[i], travelBag[j]] = [travelBag[j], travelBag[i]];
+        }
+        // the seam between two bags is the one place a repeat can happen
+        if (travelBag[0] === lastTravel) travelBag.push(travelBag.shift());
+      }
+
+      lastTravel = travelBag.shift();
+      return lastTravel;
+    }
 
     /* every so often the middle button blinks, so the other tools on it
        are discoverable rather than hidden */
@@ -5062,14 +5163,13 @@
       e.stopPropagation();
 
       // a framed garment turns this into its keep switch
-      if (focusedItem){
+      if (focusedItem && focusedItem.isConnected){
         toggleSaved(focusedItem.dataset.id);
-        const on = isSaved(focusedItem.dataset.id);
-        dockLibrary.setAttribute('aria-pressed', on ? 'true' : 'false');
+        syncLibraryMark();
         const mark = dockLibrary.querySelector('.bm');
         mark.classList.remove('pop');
         void mark.offsetWidth;
-        if (on) mark.classList.add('pop');
+        if (isSaved(focusedItem.dataset.id)) mark.classList.add('pop');
         return;
       }
 
@@ -5077,7 +5177,7 @@
         // the shelf is empty, or everything on it has since left the archive
         savedOnly = false;
         document.body.classList.remove('library');
-        dockLibrary.setAttribute('aria-pressed', 'false');
+        syncLibraryMark();
         flashNoData();
         return;
       }
@@ -5102,18 +5202,31 @@
         countEl.textContent = savedOnly
           ? `${savedIds.length} ${savedIds.length === 1 ? 'garment' : 'garments'} saved`
           : `${allItems.length} garments`;
-        dockLibrary.setAttribute('aria-pressed', savedOnly ? 'true' : 'false');
+        if (savedOnly) reportShelf();
+        syncLibraryMark();
         syncChrome();
         return;
       }
 
-      if (spiralMode !== 'saved' && !hasJoined()){
+      /* On the field the button is one switch with two positions, and the
+         mark says which one it is in: filled is the collection, hollow is
+         the whole archive. It used to flip the mark and then ask
+         morphLayout to move the field — and morphLayout refuses while a
+         move is already running, so pressing twice quickly filled the mark
+         over a field that had not gone anywhere. Nothing is marked until
+         the move has actually been taken. */
+      if (morphing) return;                 // the field is already moving
+      const next = spiralMode === 'saved' ? 'spiral' : 'saved';
+      if (next === 'saved' && !hasJoined()){
         openJoinGate(() => dockLibrary.click());
         return;
       }
-      const next = spiralMode === 'saved' ? 'spiral' : 'saved';
       morphLayout(next);
-      dockLibrary.setAttribute('aria-pressed', next === 'saved' ? 'true' : 'false');
+      // the two views keep one answer to "am I in my collection?"
+      savedOnly = (next === 'saved');
+      document.body.classList.toggle('library', savedOnly);
+      if (savedOnly) reportShelf();
+      syncLibraryMark();
       if (next === 'spiral'){
         flagBtn.setAttribute('aria-pressed', 'false');
         dqFlag.setAttribute('aria-pressed', 'false');
@@ -5154,6 +5267,14 @@
       if (!keep.length) return;
       // back at the collection: tell us if it has moved since last time
       reportShelf();
+      /* The field is now standing in the collection, and everything that
+         asks "am I in the collection?" — the mark on the button, the switch
+         the next press reads, the state the list inherits — has to be told
+         so. This used to set the mark alone, so the next press computed its
+         move from a spiralMode that still said 'spiral'. */
+      spiralMode = 'saved';
+      savedOnly = true;
+      document.body.classList.add('library');
       els.forEach(el => {
         el.classList.toggle('sp-gone', !keep.includes(el));
         el.classList.remove('sp-dim');
@@ -5169,7 +5290,7 @@
         glide(() => fitTo(keep), 800);
         setTimeout(() => els.forEach(el => { el.style.transition = ''; }), 880);
       }, 60);
-      dockLibrary.setAttribute('aria-pressed', 'true');
+      syncLibraryMark();
     }
 
     /* The second of the three clusters. Everything the archive holds that is
@@ -5277,6 +5398,7 @@
       ty = cy - (cy - ty) * (next / sc);
       sc = next;
       atInitial = false;
+      unframe();
       applyTransform();
     }, { passive:false });
 
@@ -5298,6 +5420,7 @@
       tx += e.clientX - panX; ty += e.clientY - panY;
       panX = e.clientX; panY = e.clientY;
       atInitial = false;
+      unframe();
       applyTransform();
     });
     ['pointerup','pointercancel'].forEach(t => explore.addEventListener(t, e => {
@@ -5400,6 +5523,15 @@
     /* Applied in the same tick as the render, so the settled two-column
        state is never painted first — that flash was the whole problem. */
     let soloTimers = [];
+
+    /* The record is dealt out one hold at a time, and a reader who shuts it
+       half way through leaves whichever holds had not been let go of still
+       on the card. They only bite under body.single-result, so nothing shows
+       — but a card carrying them is a card in a state nothing set. */
+    const SOLO_HOLDS = ['hold-name', 'hold-mark', 'hold-acts', 'hold-rule', 'hold-edge'];
+    function clearHolds(){
+      catalogue.querySelectorAll('.item').forEach(el => el.classList.remove(...SOLO_HOLDS));
+    }
 
     function beginSoloBuild(from){
       const item = catalogue.querySelector('.item:not([hidden])');
@@ -5505,90 +5637,117 @@
         }
       }
 
-      // the name is written after the frame closes, not before
-      const label = item.closest('.nation')
-        ? item.closest('.nation').querySelector('summary .n')
-        : null;
-      const full = label ? label.textContent : '';
-      if (label) label.textContent = '';
+      /* The tab's own title is not typed any more — the garment's name is,
+         and two things typing one after the other in the same opening is
+         the page saying the same trick twice. The tab arrives whole, last,
+         with its flag, its title and its minimise. */
+      const nameEl = item.querySelector('.name');
+      const refEl  = item.querySelector('.ref');
+      const nameTx = nameEl ? nameEl.textContent : '';
+      const refTx  = refEl  ? refEl.textContent  : '';
+      if (nameEl) nameEl.textContent = '';
+      if (refEl)  refEl.textContent  = '';
 
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
 
       /* THE SEQUENCE.
 
-         It used to be four beats and the first two were the same beat told
-         twice: the garment alone with no box, then a line drawn around the
-         card it would sit in, and only after that had finished did anything
-         else happen. Half a second of a rectangle being drawn around a
-         garment that was not going anywhere, before the record was so much
-         as mentioned.
+         Four beats, in the order the reader asks for the record:
 
-         Three now, and the drawing is folded into the opening:
+           1. the field goes — done before this runs, by the press itself
+           2. the garment slides left as the card opens out around it, into
+              an empty right-hand half
+           3. that half is written into: the name types, then the reference,
+              then the mark that keeps it. Only then are the two containers
+              drawn around what has been written — the card's outline and the
+              rule between the garment and its record — and the Request and
+              Info boxes wipe in as that outline closes
+           4. and last, the tab: its box drawn, its flag and title up, and
+              the minimise that shuts the whole thing again
 
-           1. the garment, held exactly where the field left it
-           2. everything at once — the box is drawn in the room at the size
-              the card is about to be, the tab arrives with the name typing
-              into it, and the card opens: the garment settling left and the
-              record expanding in on the right, into the box being drawn
-              around them both
-           3. the drawn line steps aside for the card's own border
-
-         The box stands still while the card grows into it, which is why it
-         is measured in the room's coordinates and not the card's. */
-      const BOX_MS   = 620;   // the card's own .62s opening — one movement
+         Everything is held back by a class and let go of on a clock, so the
+         order is legible in one place instead of being distributed across
+         the stylesheet as delays. */
+      const BOX_MS   = 500;   // the two containers drawing
       const HANDOVER =  70;   // drawn line → the card's real border
       const START    = from ? 780 : 40;
-      const NAME_MS  = 26;
+      const OPEN_MS  = 620;   // the card's own .62s widening
+      /* A long name should not take three times as long to write as a short
+         one: the rate is set from the length so the writing lasts about the
+         same beat whatever is being written. */
+      const NAME_MS  = Math.max(8, Math.min(18, Math.round(560 / Math.max(1, nameTx.length))));
+
+      // typed one after the other, the reference following the name
+      function writeOut(el, text, ms, done){
+        if (!el || !text){ if (done) done(); return; }
+        let i = 0;
+        (function tick(){
+          if (i < text.length){
+            el.textContent += text.charAt(i++);
+            soloTimers.push(setTimeout(tick, ms));
+          } else if (done) done();
+        })();
+      }
 
       soloTimers.push(setTimeout(() => {
-        /* Where the card is about to be. Cleared of the build state, read,
-           and put straight back inside one task — the browser paints between
-           tasks and never inside one, so the open card is never on screen
-           before it opens. */
-        item.classList.add('no-anim');
+        /* 2 — the card opens out. Everything it will hold is held back:
+           the writing, the mark, the two buttons, the rule and both
+           borders. What moves is the card's width and the garment inside
+           it, and nothing else. */
+        item.classList.add('hold-name', 'hold-mark', 'hold-acts', 'hold-rule', 'hold-edge');
         item.classList.remove('build');
-        const to = item.getBoundingClientRect();
-        item.classList.add('build');
-        void item.offsetWidth;
-        item.classList.remove('no-anim');
 
-        const box = to.width > 4
-          ? drawFrame(item, {
-              x: Math.round(to.left),
-              y: Math.round(to.top),
-              w: Math.round(to.width),
-              h: Math.round(to.height)
-            }, BOX_MS, true)
-          : null;
-
-        /* All of it in this one frame: the rule, the border, the name and
-           the card opening. Anything staged after this is a second event the
-           reader has to wait through. */
-        document.body.classList.add('solo-drawing');
-        document.body.classList.remove('solo-build');
-        item.classList.remove('build');
-        soloTimers.push(setTimeout(
-          () => document.body.classList.remove('solo-drawing'), 900));
-
-        if (label){
-          let i = 0;
-          (function tick(){
-            if (i < full.length){
-              label.textContent += full.charAt(i++);
-              soloTimers.push(setTimeout(tick, NAME_MS));
-            }
-          })();
-        }
-
-        // the drawn line hands over to the card's own border, in one frame
+        // 3 — written into, as the space for it finishes opening
         soloTimers.push(setTimeout(() => {
-          item.classList.add('no-anim');       // no border-color transition
-          item.classList.add('framed');
-          void item.offsetWidth;
-          if (box) box.remove();
-          item.classList.remove('no-anim');
-        }, BOX_MS + HANDOVER));
+          item.classList.remove('hold-name');
+          writeOut(nameEl, nameTx, NAME_MS, () => {
+            writeOut(refEl, refTx, NAME_MS, () => {
+              soloTimers.push(setTimeout(() => {
+                item.classList.remove('hold-mark');       // and the mark that keeps it
+
+                /* the two containers, drawn around what has just been
+                   written. The outline is drawn in the room's coordinates
+                   rather than the card's, so it stands still. */
+                soloTimers.push(setTimeout(() => {
+                  const to  = item.getBoundingClientRect();
+                  const box = to.width > 4
+                    ? drawFrame(item, {
+                        x: Math.round(to.left),
+                        y: Math.round(to.top),
+                        w: Math.round(to.width),
+                        h: Math.round(to.height)
+                      }, BOX_MS, true)
+                    : null;
+                  item.classList.remove('hold-rule');     // the rule between the two
+
+                  // the request and info boxes, as the outline closes
+                  soloTimers.push(setTimeout(
+                    () => item.classList.remove('hold-acts'), Math.round(BOX_MS * 0.55)));
+
+                  // the drawn line hands over to the card's own border
+                  soloTimers.push(setTimeout(() => {
+                    item.classList.add('no-anim');        // no border-color transition
+                    item.classList.add('framed');
+                    item.classList.remove('hold-edge');
+                    void item.offsetWidth;
+                    if (box) box.remove();
+                    item.classList.remove('no-anim');
+
+                    /* 4 — and last the tab: its box drawn, the rule across
+                       the top, the flag and title up, and the minimise. */
+                    soloTimers.push(setTimeout(() => {
+                      document.body.classList.add('solo-drawing');
+                      document.body.classList.remove('solo-build');
+                      soloTimers.push(setTimeout(
+                        () => document.body.classList.remove('solo-drawing'), 900));
+                    }, 90));
+                  }, BOX_MS + HANDOVER));
+                }, 110));
+              }, 60));
+            });
+          });
+        }, OPEN_MS - 60));
       }, START));
     }
 
@@ -5645,6 +5804,7 @@
       document.body.classList.remove('solo-drawing');
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
+      clearHolds();
       document.body.classList.remove('solo-snap', 'solo-drawing');
       /* The way back is the way in, run backwards.
 
@@ -5952,7 +6112,7 @@
     const hdMark  = document.getElementById('hdMark');
     const hdHome  = document.getElementById('hdHome');
     const hdIndex = document.getElementById('hdIndex');
-    if (hdMark)  hdMark.addEventListener('click',  e => { e.preventDefault(); leaveTo('/'); });
+    if (hdMark)  hdMark.addEventListener('click',  e => { e.preventDefault(); leaveTo('/#home'); });
     if (hdHome)  hdHome.addEventListener('click',  e => { e.preventDefault(); leaveTo('/#home'); });
     if (hdIndex) hdIndex.addEventListener('click', e => { e.preventDefault(); leaveTo('/#footer'); });
 
