@@ -90,23 +90,6 @@
     body.library #catalogue{ display:none; }
     #savedTab .bm{ width:16px; height:16px; flex:none; fill:currentColor; stroke:currentColor; }
 
-    /* the empty page asks a question rather than sitting blank */
-    #prompt{
-      position:fixed;
-      left:50%; top:46%;
-      transform:translate(-50%, -50%);
-      z-index:20;
-      font-size:15px;
-      letter-spacing:.04em;
-      color:#999;
-      white-space:nowrap;
-      pointer-events:none;
-      transition:opacity .4s ease;
-    }
-    body.browsing #prompt, body.exploring #prompt{ opacity:0; }
-    /* the plate answers the same question the prompt is asking, in the
-       same place — the prompt stands down rather than showing through it */
-    body.no-data #prompt{ opacity:0; }
 
     /* ---------- search ---------- */
     .search{
@@ -1133,18 +1116,14 @@
       width:150px;
       transform:translate(-50%, -50%);
       cursor:pointer;
-      /* Rest is opaque and the entrance animates UP TO it, rather than rest
-         being transparent with a `forwards` animation left holding the
-         element at 1. A finished animation with a fill still owns the
-         property: every later attempt to fade one of these out was either
-         ignored, or — once the animation was called off — snapped straight
-         to the base value with nothing to transition from. Nothing owns
-         opacity here once the entrance is over. */
+      /* No entrance. Each garment used to fade up on a delay of its own —
+         twelve milliseconds apart, so seventy-five of them arrived as a
+         ripple running out from the middle every time the field was opened.
+         The field is one thing and it is either there or it is not; nothing
+         owns opacity here. */
       opacity:1;
-      animation:spIn .5s ease;
       transition:opacity .34s ease;
     }
-    @keyframes spIn{ from{ opacity:0; } }
     .sp-item .sp-slot{
       width:150px; height:150px;
       display:flex;
@@ -1325,7 +1304,16 @@
     #dock.open .dq-tool{ opacity:1; pointer-events:auto; }
     #dqFlag img{ display:block; height:12px; width:auto; filter:grayscale(1) contrast(1000%) opacity(.35); transition:filter .3s ease; }
     #dqFlag[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
-    #dqExplore img{ display:block; width:13px; height:13px; }
+    /* Grey while the list holds the page, black while the field does — the
+       same reading the flag beside it already gets. It was black in both,
+       so in list view the glyph for the other view was the brightest thing
+       in the bar. */
+    #dqExplore img{
+      display:block; width:13px; height:13px;
+      filter:grayscale(1) contrast(1000%) opacity(.35);
+      transition:filter .3s ease;
+    }
+    body.exploring #dqExplore img{ filter:grayscale(1) contrast(1000%); }
 
     /* ---------- CLOSING A RECORD ----------
        Four beats, in this order:
@@ -1607,6 +1595,24 @@
       transition:width .42s cubic-bezier(.65,0,.35,1),
                  background-color .34s ease;
     }
+    /* Arriving from the home page's Archive button.
+
+       The bar IS that button — it starts at its width and opens to its own,
+       on the width transition it already has. The two black tools were never
+       part of the button, so they wait behind its right edge and come out
+       once it has finished growing. Nothing here is a copy of anything: this
+       is the archive's own bar, opening. */
+    #dockExplore, #dockLibrary{
+      transition:opacity .34s ease .2s,
+                 transform .44s cubic-bezier(.65,0,.35,1) .2s;
+    }
+    #dock.handing #dockExplore,
+    #dock.handing #dockLibrary{
+      opacity:0;
+      transform:translateX(-30px);
+      transition:none;
+    }
+
     /* opened: fills the bar width less the arrow square and its gap */
     #dock.open #dockSearch{
       width:calc(var(--dock-w) - 112px);   /* two 46px buttons + two 10px gaps */
@@ -1680,7 +1686,6 @@
         letter-spacing:.04em;
         padding-right:78px;
       }
-      #prompt{ font-size:13px; }
     }
 
     /* The shelf arriving in the list: it rises from under the tab above it
@@ -2140,7 +2145,6 @@
     </div>
   </div>
 
-  <div id="prompt" aria-hidden="true"></div>
 
   <!-- THE COLLECTION'S DOOR
        Keeping garments is free and needs nobody's name. Opening the shelf
@@ -2226,7 +2230,6 @@
       <span class="face-stack">
         <img class="face is-on" src="/circle-white.svg" alt="" aria-hidden="true" width="16" height="16">
         <img class="face" src="/menu-white.svg" alt="" aria-hidden="true" width="16" height="16">
-        <img class="face" src="/close-white.svg" alt="" aria-hidden="true" width="16" height="16">
       </span>
     </button>
     <button type="button" id="dockLibrary" class="dock-sq" aria-pressed="false" aria-label="Gather saved garments">
@@ -3041,7 +3044,6 @@
       // them; set here rather than through syncChrome, which reaches for the
       // dock — declared further down and still in its dead zone at init
       if (term) document.body.classList.remove('tab-open');
-      if (term) hidePrompt();
 
       allItems.forEach(el => {
         if (soloId){ el.hidden = el.dataset.id !== soloId; return; }
@@ -3795,17 +3797,48 @@
        far as the reader is concerned, so it is put in place here without the
        rise and the fade — playing those again would be the bar arriving twice.
        Read once and cleared: a reload is a plain visit. */
+    /* Arrived from the home page's Archive button, which collapsed its row
+       into one box and handed over that box's width.
+
+       The bar does not rise and fade in here — as far as the reader is
+       concerned it is already on screen, because it is the box they were
+       just looking at. It is put in place at the button's width with nothing
+       animating, and then opened to its own width on the transition it
+       already carries. The two tools come out from behind its right edge
+       afterwards.
+
+       Read once and cleared: a reload, or a visit by any other route, is a
+       plain visit and gets the bar's ordinary arrival. */
     (function inheritDock(){
-      let handed = false;
+      let handedW = 0;
       try {
-        handed = sessionStorage.getItem('bmu.arch.handover') === '1';
+        handedW = parseInt(sessionStorage.getItem('bmu.arch.handover') || '', 10) || 0;
         sessionStorage.removeItem('bmu.arch.handover');
       } catch {}
-      if (!handed) return;
+      if (!handedW) return;
+
       dockForced = true;
       dock.style.transition = 'none';
-      dock.classList.add('show');
-      requestAnimationFrame(() => { dock.style.transition = ''; });
+      dock.classList.add('show', 'handing');
+
+      // the bar starts as the button: its width, and no travel to get there
+      dockSearch.style.transition = 'none';
+      dockSearch.style.width = handedW + 'px';
+      void dockSearch.offsetWidth;          // committed at the button's width
+      /* The transition is restored in its own step, BEFORE the width is let
+         go of. Doing both at once means the style the browser compares
+         against still said transition:none, so there was nothing to
+         interpolate and the bar simply appeared at full width. */
+      dockSearch.style.transition = '';
+      dock.style.transition = '';
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        /* Cleared rather than set to a number: the width the bar opens to is
+           the archive's own, and it belongs in the stylesheet with the rest
+           of the bar's measure. */
+        dockSearch.style.width = '';
+        dock.classList.remove('handing');
+      }));
     })();
 
     function updateDock(){
@@ -3859,7 +3892,6 @@
       dghost.hidden = false;
       paintHint('');
       updateDock();
-      showPrompt();
     }
 
     /* Pushing further up when already at the top folds the open tab away.
@@ -4178,53 +4210,6 @@
        NATIONS — the tabs are hidden until the flag asks for them
        ============================================================ */
 
-    /* ---------- the question on the bare page ----------
-       Re-typed every time the archive comes back to rest, so returning
-       feels like arriving rather than finding a leftover. */
-    const promptEl = document.getElementById('prompt');
-    const PROMPTS = [
-      'What are you looking for?',
-      'What have you got in mind?',
-      'Which nation are you after?',
-      'Looking for a particular camouflage?',
-      'Smock, trousers, bergen — what do you need?'
-    ];
-    let promptIx = Math.floor(Math.random() * PROMPTS.length);
-    let promptTimer = null;
-
-    function showPrompt(){
-      clearTimeout(promptTimer);
-      promptEl.hidden = false;
-      // a different line each time the archive comes back to rest
-      promptIx = (promptIx + 1) % PROMPTS.length;
-      // the suggestions follow the question
-      SUGGESTIONS = poolForPrompt(promptIx);
-      sIdx = 0; sPos = 0; sPhase = 'typing';
-      const line = PROMPTS[promptIx];
-      promptEl.textContent = '';
-      promptEl.style.opacity = '';
-      if (REDUCED){ promptEl.textContent = line; return; }
-      let i = 0;
-      (function tick(){
-        if (i < line.length){
-          promptEl.textContent += line.charAt(i++);
-          promptTimer = setTimeout(tick, 55);
-        }
-      })();
-    }
-
-    function hidePrompt(){
-      clearTimeout(promptTimer);
-      promptEl.style.opacity = '0';
-    }
-
-    /* the bare page always carries its question */
-    function restPrompt(){
-      if (!exploreOn && !nationsOpen && !savedOnly && !soloId && !q.value.trim()){
-        showPrompt();
-      }
-    }
-
     /* the tabs topple in one after another, and fold back out the same
        way rather than simply vanishing */
     function dealTabs(){
@@ -4289,7 +4274,6 @@
             document.body.classList.remove('closing-tabs');
             allNations.forEach(d => { d.open = false; });
             filter();          // recomputes browsing from term + nationsOpen
-            restPrompt();
           }, REDUCED ? 0 : 420);
         } else {
           allNations.forEach(d => { d.open = false; });
@@ -4447,8 +4431,7 @@
         });
       });
 
-      [...spiral.children].forEach((el, i) => {
-        el.style.animationDelay = Math.min(i * 12, 700) + 'ms';
+      [...spiral.children].forEach(el => {
         const img = el.querySelector('img');
         const code = el.querySelector('.sp-code');
         img.addEventListener('error', () => { img.remove(); code.hidden = false; });
@@ -4781,7 +4764,6 @@
       dockExplore.setAttribute('aria-pressed', 'true');
       document.body.classList.add('exploring');
       document.body.style.overflow = 'hidden';
-      hidePrompt();
       // the dock returns to the middle of the screen for explore
       dock.classList.remove('moved');
       setFaceMode('explore');        // explore always opens on the circle
@@ -4803,7 +4785,6 @@
         dockForced = false;
         collapseDock();
         updateDock();
-        restPrompt();
         setTimeout(() => q.focus({ preventScroll:true }), 300);
       }
     }
@@ -4833,10 +4814,14 @@
        The cross is always last. Whatever the mode, two steps from rest is
        the way out, and that never moves. */
     const faceEls = [...dockExplore.querySelectorAll('.face')];
-    const FACE = { explore: faceEls[0], list: faceEls[1], exit: faceEls[2] };
+    /* Two faces, not three. The cross was a third state that led to a bare
+       page with a question typed on it — a view with nothing in it, reached
+       by a glyph the reader had to swipe past to get between the two views
+       that do hold the archive. There is the field and there is the list. */
+    const FACE = { explore: faceEls[0], list: faceEls[1] };
     const ORDER = {
-      explore: ['explore', 'list', 'exit'],
-      list:    ['list', 'explore', 'exit'],
+      explore: ['explore', 'list'],
+      list:    ['list', 'explore'],
     };
     let faceMode = 'explore';
     let faces = ORDER.explore.map(k => FACE[k]);
@@ -4848,7 +4833,7 @@
       setFace(0, true);            // whichever glyph now leads
     }
     let faceIx = 0;
-    const FACE_LABEL = { explore:'Explore the archive', list:'Nation list', exit:'Leave' };
+    const FACE_LABEL = { explore:'Explore the archive', list:'Nation list' };
 
     function currentFace(){ return ORDER[faceMode][faceIx]; }
 
@@ -4923,13 +4908,6 @@
         // happened to be filtered to. The dock stays: explore is where the
         // searching happens now, and its bar is the one the reader has.
         toList({ keepDock:true });
-        return;
-      }
-
-      if (face === 'exit'){
-        // the cross always lands on the bare archive page
-        if (exploreOn){ closeExplore(); setTimeout(goHome, 1000); }
-        else goHome();
         return;
       }
 
@@ -5845,7 +5823,6 @@
     openExplore();
     openDock();
     updateDock();
-    showPrompt();
     startSuggestions();   // the running suggestion is the bar's own prompt
   </script>
 </body>

@@ -1108,10 +1108,16 @@
       })();
     }
 
+    /* Not every page composed from this chrome has a typed heading — Early
+       Access is a drawing on a field and has none. Reading .dataset off a
+       missing element threw here, and the throw took the whole of the rest
+       of this script with it, including the footer's own reveal: the footer
+       was in the document and simply never came up. */
     const roleEl = document.getElementById('pRole');
     const nameEl = document.getElementById('pName');
-    const ROLE = roleEl.dataset.text;
-    const NAME = nameEl.dataset.text;
+    const hasHead = !!(roleEl && nameEl);
+    const ROLE = hasHead ? roleEl.dataset.text : '';
+    const NAME = hasHead ? nameEl.dataset.text : '';
 
     /* On a page whose heading cycles, the tabs own it — the arrival types
        the role only and leaves the name to whichever tab is selected. One
@@ -1119,7 +1125,9 @@
        letters, which is exactly what this produced. */
     const headIsCycled = !!document.querySelector('.book-tab');
 
-    if (REDUCED){
+    if (!hasHead){
+      // nothing to type
+    } else if (REDUCED){
       if (!headIsCycled) roleEl.textContent = ROLE;
       if (!headIsCycled) nameEl.textContent = NAME;
     } else if (headIsCycled){
@@ -1150,7 +1158,8 @@
     }
 
     /* the mark goes home; the index tool runs between top and footer */
-    document.getElementById('hdMark').addEventListener('click', e => {
+    const hdMark = document.getElementById('hdMark');
+    if (hdMark) hdMark.addEventListener('click', e => {
       e.preventDefault();
       window.location.href = '/#home';
     });
