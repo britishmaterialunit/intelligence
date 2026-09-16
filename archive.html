@@ -642,7 +642,14 @@
     }
     /* once the line has closed, the card's own border takes over */
     body.single-result .item.build.framed{ border-color:var(--line); }
+    /* Height as well as width. The card is a square while the garment is
+       alone in it and a wide, short box once the record is beside it, and
+       with only the width on a curve the garment's height collapsed in a
+       single frame while its width eased. Both, on the same curve, and the
+       garment changes shape as one movement. See beginSoloBuild, which is
+       what puts a number on the height for the length of the move. */
     body.single-result .item{ transition:width .62s cubic-bezier(.4,0,.2,1),
+                                         height .62s cubic-bezier(.4,0,.2,1),
                                          border-color .32s ease; }
     body.single-result .item.build .slot{
       flex-basis:100%;
@@ -5539,13 +5546,23 @@
        — but a card carrying them is a card in a state nothing set. */
     const SOLO_HOLDS = ['hold-name', 'hold-mark', 'hold-acts', 'hold-rule', 'hold-edge'];
     function clearHolds(){
-      catalogue.querySelectorAll('.item').forEach(el => el.classList.remove(...SOLO_HOLDS));
+      catalogue.querySelectorAll('.item').forEach(el => {
+        el.classList.remove(...SOLO_HOLDS);
+        el.style.height = '';
+        /* the room held open for the writing goes with them — it is the
+           height that writing had at one particular card width, and the
+           next time the record opens that may not be the width it has */
+        el.querySelectorAll('.name, .ref').forEach(w => { w.style.minHeight = ''; });
+        const sl = el.querySelector('.slot');
+        if (sl) sl.style.transition = '';
+      });
     }
 
     function beginSoloBuild(from){
       const item = catalogue.querySelector('.item:not([hidden])');
       if (!item || REDUCED) return;
       item.querySelectorAll('.solo-frame').forEach(n => n.remove());
+      clearHolds();                     // nothing left over from a half-run open
 
       // into the build state with nothing animating, then let transitions
       // run for the settle. solo-build also holds the tab back — see the
@@ -5634,10 +5651,22 @@
             /* Whatever is left after the drop — nothing, on a garment that
                was centred, and the real distance on one that was not. */
             requestAnimationFrame(() => {
-              slot.style.transition = 'transform .82s cubic-bezier(.4,0,.2,1)';
+              /* flex-basis rides along with the transform. An inline
+                 transition replaces the stylesheet's outright, and the
+                 stylesheet is where the slot's own .62s width change lives —
+                 so for as long as this was the only thing on the element,
+                 the garment's width had no transition at all and snapped to
+                 46% of the card the instant the record opened. That snap was
+                 the garment appearing to vanish. */
+              slot.style.transition = 'transform .82s cubic-bezier(.4,0,.2,1), ' +
+                                      'flex-basis .62s cubic-bezier(.4,0,.2,1)';
               slot.style.transform = 'none';
               soloTimers.push(setTimeout(() => {
-                slot.style.transition = '';
+                /* The transition is deliberately NOT cleared here. The card
+                   opens at 780ms and this runs at 900, in the middle of the
+                   widening — clearing a transition mid-flight sends the
+                   property straight to its end value, which is the same
+                   snap by another route. The sequence lets go of it. */
                 slot.style.transform = '';
                 slot.style.zIndex = '';
               }, 900));
@@ -5654,8 +5683,10 @@
       const refEl  = item.querySelector('.ref');
       const nameTx = nameEl ? nameEl.textContent : '';
       const refTx  = refEl  ? refEl.textContent  : '';
-      if (nameEl) nameEl.textContent = '';
-      if (refEl)  refEl.textContent  = '';
+      /* Not emptied yet. The card is measured with its writing in it — see
+         the sequence — because a card with an empty name is shorter than the
+         one the reader ends up with, and a height taken from it would have
+         the card growing under the text as it is typed. */
 
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
@@ -5700,12 +5731,51 @@
       }
 
       soloTimers.push(setTimeout(() => {
-        /* 2 — the card opens out. Everything it will hold is held back:
-           the writing, the mark, the two buttons, the rule and both
-           borders. What moves is the card's width and the garment inside
-           it, and nothing else. */
+        /* 2 — the card opens out, and the garment travels rather than
+           jumping. Three things have to be known before it can: where the
+           card is going, how tall its writing will be, and how tall it is
+           now. All three are read in a window the reader never sees — the
+           build state cleared, measured, and put straight back inside one
+           task, because the browser paints between tasks and never inside
+           one. */
+        item.classList.add('no-anim');
+        item.classList.remove('build');
+        const to    = item.getBoundingClientRect();
+        const nameH = nameEl ? nameEl.getBoundingClientRect().height : 0;
+        const refH  = refEl  ? refEl.getBoundingClientRect().height  : 0;
+        item.classList.add('build');
+        void item.offsetWidth;
+        item.classList.remove('no-anim');
+
+        /* The writing's height is held open before the writing is taken
+           away, so the card does not grow line by line under the typing. */
+        if (nameEl && nameH) nameEl.style.minHeight = Math.round(nameH) + 'px';
+        if (refEl  && refH)  refEl.style.minHeight  = Math.round(refH)  + 'px';
+        if (nameEl) nameEl.textContent = '';
+        if (refEl)  refEl.textContent  = '';
+
+        /* Height is auto at both ends and auto cannot be interpolated, so
+           the card is given the number it is on, that is committed as the
+           start, and then it is given the number it is going to. */
+        const fromH = item.getBoundingClientRect().height;
+        item.style.height = Math.round(fromH) + 'px';
+        void item.offsetHeight;
+
+        /* Everything the card will hold is held back: the writing, the
+           mark, the two buttons, the rule and both borders. What moves is
+           the card — wider and shorter — and the garment inside it, which
+           slides left and shrinks with it. Nothing else. */
         item.classList.add('hold-name', 'hold-mark', 'hold-acts', 'hold-rule', 'hold-edge');
         item.classList.remove('build');
+        item.style.height = Math.round(to.height) + 'px';
+
+        /* Let go once it has arrived, not before: the height goes back to
+           auto, which is the same number, and the slot goes back to the
+           stylesheet's own transition. */
+        soloTimers.push(setTimeout(() => {
+          item.style.height = '';
+          if (slot) slot.style.transition = '';
+        }, OPEN_MS + 60));
 
         // 3 — written into, as the space for it finishes opening
         soloTimers.push(setTimeout(() => {
@@ -5938,16 +6008,15 @@
 
       document.body.classList.add('solo-closing');                 // 1 + 2
 
-      /* The travel runs 320ms to 740ms (see .solo-closing .nation). It used
-         to shut at 760 — twenty milliseconds later, which is no pause at
-         all: the box arrived in the middle and was already collapsing, so it
-         never read as having come to rest anywhere. It holds for four
-         tenths of a second instead. That hold is the beat the whole close is
-         built around: the record folds into its own header, the header
-         carries the garment's name to the middle of the screen and STOPS
-         there, and only then does it close and give the garment back. */
+      /* One movement, not two with a wait between them. The header used to
+         arrive in the middle and hold there for six tenths of a second
+         before closing, which put a full stop in the middle of a gesture
+         that reads better as a single fall. It closes as it lands instead:
+         ninety milliseconds is long enough for the placement to commit in
+         its own frame and short enough that nothing reads as having
+         stopped. */
       const ARRIVED = 310;          // the fold ends and the header is in place
-      const HOLD    = 620;          // and stays there, with the name in it
+      const HOLD    =  90;          // and closes on arrival, without standing still
 
       // 3 — shut, once it has actually stood still
       soloTimers.push(setTimeout(() => {
