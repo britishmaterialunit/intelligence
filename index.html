@@ -3229,7 +3229,13 @@ Strategy — Remanufacture defence textiles into new garments.`;
 
     function goEarlyAccess(ev){
       if (ev) ev.preventDefault();
-      leaveRowFor(earlyBtn, '/earlyaccess', null);
+      if (leaving) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        window.location.href = '/earlyaccess';
+        return;
+      }
+      leaving = true;
+      openJoin('early', '/earlyaccess');
     }
 
     /* Put the row back. Coming back from either page — the browser's own back
@@ -3244,6 +3250,22 @@ Strategy — Remanufacture defence textiles into new garments.`;
       leaving = false;
       document.body.classList.remove('arch-leaving');
       navRow.classList.remove('arch-mode');
+      /* Early Access leaves through the Join choreography, so a cached
+         restore hands this page back mid-Join: the row collapsed, the
+         Operations box pinned across it reading "Early Access", and the
+         olive ground up behind it. */
+      joinState = 'off';
+      document.body.classList.remove('early-open');
+      navRow.classList.remove('join-mode', 'ops-engaged');
+      navRow.style.pointerEvents = '';
+      opsBtn.classList.remove('expanding', 'join-solo', 'sending', 'sent');
+      opsBtn.style.left = '';
+      opsBtn.style.width = '';
+      opsBtn.style.top = '';
+      opsLabel.textContent = 'Operations';
+      opsBtn.setAttribute('aria-label', 'Operations');
+      dropGhost();
+      scrollCue.classList.remove('close-mode');
       const ghost = document.getElementById('archGhost');
       if (ghost) ghost.remove();
       navRow.querySelectorAll('.bm-button').forEach(b => {
@@ -3264,7 +3286,15 @@ Strategy — Remanufacture defence textiles into new garments.`;
 
     function openRepo(){ openJoin('repo'); }
 
-    function openJoin(mode){
+    /* `goTo` makes this a door rather than a panel. Early Access is a page
+       now, but it is still one of the five boxes on this row and it should
+       leave the row the way Join and Repository do: the other four driven
+       into the Operations box, that box run out across the row and brought
+       back to one, and the word on it replaced — Operations becomes Early
+       Access. Only the last beat differs. Repository already reads Access
+       this way; there is no reason for Early Access to have had a
+       choreography of its own. */
+    function openJoin(mode, goTo){
       if (joinState !== 'off' || opsState !== 'closed') return;
       joinMode = (mode === 'repo' || mode === 'early') ? mode : 'join';
       // the ground rises as the box opens, not after it
@@ -3306,6 +3336,15 @@ Strategy — Remanufacture defence textiles into new garments.`;
         scrollCue.setAttribute('aria-label',
           isRepo ? 'Leave Repository' : isEarly ? 'Leave Early Access' : 'Leave Join');
       }, 540);
+
+      if (goTo){
+        /* The olive ground has already risen behind the row — see
+           body.early-open above — so the page being left and the page being
+           arrived at are the same colour, and the navigation falls between
+           two frames that match. */
+        later(() => { window.location.href = goTo; }, 1180);
+        return;
+      }
 
       later(joinSequence, joinFast ? 240 : 700);
     }

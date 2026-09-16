@@ -666,9 +666,10 @@
       .foot-base{ margin-top:30px; gap:8px; }
     }
 
-    /* The olive is the field the drawing stands on, not the page — the
-       footer below it is the same white footer every other page ends with,
-       so the site closes the same way wherever the reader is. */
+    /* The olive is the page, not a panel on it. Everything from the header
+       to the last line of the footer stands on the same ground, so there is
+       no white edge anywhere and nothing to scroll off the colour onto. */
+    html, body{ background:#424831; }
     #eaField{
       background:#424831;
       min-height:100svh;
@@ -721,24 +722,69 @@
     }
     .button-shape.state-2:hover{ opacity:.85; }
 
-    /* The header crosses the olive, so it is lit for the olive — white mark,
-       white tools — and goes back to ink once the footer is reached. */
-    body.ea-over .hd-trace{ stroke:#fff; }
-    body.ea-over .hd-fill{ fill:#fff; }
-    body.ea-over .hd-ico{ color:#e6e6e6; }
-    body.ea-over #siteHead:hover .hd-ico{ color:#fff; }
+    /* Everything on this page is lit for the olive rather than for white —
+       the header's mark and tools, and the whole of the footer with it. The
+       footer is the same footer, in the same order, on a different ground. */
+    .hd-trace{ stroke:#fff; }
+    .hd-fill{ fill:#fff; }
+    .hd-ico{ color:#e6e6e6; }
+    #siteHead:hover .hd-ico{ color:#fff; }
 
-    /* what the drawing is, said once and quietly, in the corner of the field */
-    .ea-note{
-      position:absolute;
-      left:0; right:0; bottom:26px;
-      text-align:center;
-      font-size:10px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:#6f7862;
-      pointer-events:none;
+    #siteFooter{ background:#424831; }
+    .foot-trace{ stroke:#e6e6e6; }
+    .foot-fill{ fill:#e6e6e6; }
+    .foot-slogan,
+    .foot-col h3,
+    .foot-org{ color:#fff; }
+    .foot-col a,
+    .foot-col span,
+    .foot-addr,
+    .foot-legal a,
+    .foot-copy{ color:#c3cbb2; }
+    .foot-col a:hover,
+    .foot-legal a:hover{ color:#fff; }
+    .foot-base{ border-top-color:#5f6854; }
+    /* the one box in the footer, drawn in the same line as everything else */
+    .foot-talk{ color:#fff; border-color:#e6e6e6; }
+    .foot-talk .talk-arrow{ stroke:#fff; }
+
+    /* ---------- THE WAY OUT ----------
+       The same cross Join closes on, in the same corner, doing the same
+       thing: leaving. This is a document rather than a panel, so it cannot
+       simply close — it fades, and the home page is what is underneath. */
+    #eaClose{
+      position:fixed;
+      top:14px; right:56px;
+      z-index:92;
+      width:28px; height:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+      border:none;
+      background:none;
+      font-family:var(--font);
+      font-size:16px;
+      line-height:1;
+      color:#c3cbb2;
+      cursor:pointer;
+      transition:color .3s ease, transform .3s ease;
     }
+    #eaClose:hover{ color:#fff; transform:scale(1.1); }
+
+    /* The page goes before the navigation does, so what the reader watches
+       is this page leaving rather than the next one arriving. */
+    body.ea-leaving{
+      opacity:0;
+      transition:opacity .42s ease;
+    }
+    @media (prefers-reduced-motion:reduce){
+      body.ea-leaving{ transition:none; }
+    }
+    @media (max-width:640px){
+      #eaClose{ right:48px; top:10px; }
+    }
+
     #eaField{ position:relative; }
 
     @media (prefers-reduced-motion:reduce){
@@ -750,7 +796,7 @@
 
   </style>
 </head>
-<body class="entered ea-over">
+<body class="entered">
   <!-- SITE HEADER — arrives with the button row, once the typewriter has
        finished. See-through over the white page, near-black on hover, so
        the mark and the two tools each have to read on both grounds. -->
@@ -789,6 +835,8 @@
     </nav>
    </div>
   </header>
+  <button type="button" id="eaClose" aria-label="Back to the home page">&#10005;</button>
+
   <main id="eaField">
 <svg viewBox="0 0 8192 6497" preserveAspectRatio="xMidYMid meet">
     <!-- Main shapes -->
@@ -814,7 +862,6 @@
 
     <path class="logo" d="M1032.72,3093.75v-152.14l1.3-1.3h60.28v153.44c1.5.23,2.52-.31,3.78-.99,7.3-4,17.14-12.22,24.25-17.37,60.86-44.09,120.47-89.96,180.55-135.08h98.44l-240.24,182.05h343.01l1.3,1.3v58.08l-344.31.44c-.48,1.85,1.77,2.55,3.06,3.41,11.62,7.74,23,15.57,34.15,23.97,32.4,24.41,109,93.99,147.95,93.99h157.85l1.3,1.3v59.38h-160.01c-57.48-4.75-101.74-42.39-146.05-75.08-34.71-25.61-68.49-52.5-103.31-77.94l-1.72.88v152.14h-60.28l-1.3-1.3v-149.54l-172.14,123.12c-23.26,14.71-49.8,24.2-77.17,27.76l-272.8-.04v-60.25l1.3-1.3h270.59c15.53-10.26,36-16.78,51.35-26.66.86-.55,1.54.1,1.12-1.94h-324.36v-62.42h412.39c11.43-9.15,26.81-17.05,37.66-26.51,1-.87,2.13-1.34,1.8-2.97h-450.55l-1.3-1.3v-59.38h452.72c.39-1.67-.61-1.67-1.46-2.44-10.51-9.6-26.24-17.33-37.14-27.03h-414.13v-60.25l333.03-.44c.51-2-1.84-2.45-3.21-3.26-7.7-4.56-45.97-27.07-51.86-27.07h-276.66l-1.3-1.3v-60.25h268.42c16.7,0,59.08,19.12,75.04,27.29,50.5,25.85,100.45,63.48,144.36,99.3,9.78,7.98,20.43,18.94,30.39,25.97,1.18.83,2.27,1.94,3.89,1.75Z"/>
   </svg>
-    <div class="ea-note">Multi-Terrain Pattern cap — press the pieces</div>
   </main>
 
   <footer id="siteFooter">
@@ -1084,19 +1131,28 @@
       });
     })();
 
-    /* The header is white while it is over the olive and ink once the footer
-       has it. Measured against the field's own foot rather than a scroll
-       distance, so it changes on the boundary at any viewport. */
-    (function headOverField(){
-      const field = document.getElementById('eaField');
-      if (!field) return;
-      const mark = () => {
-        const r = field.getBoundingClientRect();
-        document.body.classList.toggle('ea-over', r.bottom > 56);
-      };
-      mark();
-      window.addEventListener('scroll', mark, { passive:true });
-      window.addEventListener('resize', mark);
+    /* The way out. The page fades and the home page is what it fades to —
+       no panel to close, because this is a document. */
+    (function leaveForHome(){
+      const close = document.getElementById('eaClose');
+      if (!close) return;
+      let going = false;
+      close.addEventListener('click', () => {
+        if (going) return;
+        going = true;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          window.location.href = '/';
+          return;
+        }
+        document.body.classList.add('ea-leaving');
+        setTimeout(() => { window.location.href = '/'; }, 420);
+      });
+      // a cached restore must not leave the page faded out and unreadable
+      window.addEventListener('pageshow', e => {
+        if (!e.persisted) return;
+        going = false;
+        document.body.classList.remove('ea-leaving');
+      });
     })();
   </script>
 </body>
