@@ -716,6 +716,8 @@
       overflow:visible;
       z-index:3;
     }
+    /* drawn in the room rather than on the card — see drawFrame */
+    .solo-frame.is-fixed{ position:fixed; z-index:45; }
     .solo-frame rect{
       fill:none;
       stroke:var(--line);
@@ -1145,6 +1147,18 @@
       pointer-events:none;
       transition:opacity .5s ease;
     }
+    /* Still there, and plainly not the subject. The nation clusters gather
+       their garments into the middle and leave the rest of the archive
+       standing around them — greyed rather than taken away, so the reader
+       can see how much of the field they have set aside. Nothing here can be
+       pressed: a garment at a sixth of its strength is context, and opening
+       one by accident while reading a cluster is not something to allow. */
+    .sp-item.sp-grey{
+      opacity:.16;
+      filter:grayscale(1);
+      pointer-events:none;
+      transition:opacity .5s ease, filter .5s ease;
+    }
     /* Off the field entirely, not dimmed. A cluster gathers into the middle
        of a space the rest of the archive is still standing in; at .06 they
        are faint but they are still THERE, and the cluster lands on top of
@@ -1375,9 +1389,16 @@
 
     /* 2. the lid — by now a single closed box with the name in it —
        travels to the middle of the screen */
+    /* the one step that is placed rather than travelled — see setLidDrop */
+    body.solo-closing .nation.lid-snap{ transition:none !important; }
     body.solo-closing .nation{
       transform:translateY(var(--lid-drop, 0px));
-      transition:transform .42s cubic-bezier(.4,0,.2,1) .32s;
+      /* No delay. The travel used to be held back by .32s of CSS so the fold
+         could finish first; now that the distance is measured at the end of
+         the fold, setting it is what starts the travel — and a delay on top
+         of that simply restarted the clock and ate the pause at the other
+         end. One owner of the timing, and it is the script. */
+      transition:transform .42s cubic-bezier(.4,0,.2,1);
       will-change:transform;
     }
 
@@ -2453,6 +2474,8 @@
       /* ---------------- ROMANIAN ---------------- */
       { n:"romanian", name:"Romanian Army 1990s M1990 Leaf Camouflage Long Sleeve Shirt", cat:"Shirts",
         img:"ROA1990M1990LCLSS.png", ref:"ROA1990M1990LCLSS", mat:"Cotton" },
+      { n:"romanian", name:"Romanian Army 1990s M1994 Vine Camouflage Long Sleeve Shirt", cat:"Shirts",
+        img:"ROA1990M1994VCLSS.png", ref:"ROA1990M1994VCLSS", mat:"Cotton" },
       { n:"romanian", name:"Romanian Police 1990s M1990 Blue Leaf Camouflage Long Sleeve Shirt", cat:"Shirts",
         img:"ROP1990M1990BLCLSS.png", ref:"ROP1990M1990BLCLSS", mat:"Cotton" },
       { n:"romanian", name:"Romanian Army 1990s M1994 Fleck Leaf Camouflage Winter Liner Parka", cat:"Parkas",
@@ -3298,6 +3321,66 @@
       })();
     }
 
+    /* ---------- THE SHELF, KEPT IN STEP ----------
+       A collection is not a thing someone submits once. It is added to and
+       taken from over a visit, and what we were told about it was whatever
+       it happened to hold the first time the gate asked for an address.
+
+       So it is reported again whenever it has changed AND the reader comes
+       back to it — opening the shelf in the list, or gathering it on the
+       field. Not on every bookmark: a reader deciding between four garments
+       would send four emails in a minute, none of them their decision. When
+       they go back to look at what they have kept, that is the decision, and
+       that is what is sent.
+
+       The last version sent is remembered, so returning to an unchanged
+       shelf sends nothing. Only a real change sends a real update. */
+    const SHELF_KEY = 'bmu.archive.shelf.sent';
+
+    function shelfSignature(){
+      return savedIds.slice().sort().join('|');
+    }
+
+    async function reportShelf(){
+      if (!hasJoined()) return;                  // no address to report under
+      let addr = '';
+      try { addr = localStorage.getItem(JOIN_KEY) || ''; } catch(_){}
+      if (!addr) return;
+
+      const sig = shelfSignature();
+      let sent = null;
+      try { sent = localStorage.getItem(SHELF_KEY); } catch(_){}
+      /* Nothing has moved since we last said so. The first report is the
+         join itself, which records the shelf as it was at that moment. */
+      if (sent === sig) return;
+
+      const shelf = savedNames();
+      const payload = {
+        _subject: `Archive collection updated — ${shelf.length} garment${shelf.length === 1 ? '' : 's'}`,
+        _template: 'table',
+        _captcha: 'false',
+        Email: addr,
+        Reason: 'Updated saved collection',
+        Collection: shelf.length ? shelf.join('\n') : '(empty)'
+      };
+
+      /* Recorded before the post, not after. A slow network would otherwise
+         let a second visit to the shelf fire the same update again. */
+      try { localStorage.setItem(SHELF_KEY, sig); } catch(_){}
+
+      try {
+        const res = await fetch(REQUEST_URL, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(res.status);
+      } catch(_){
+        // it can be told again next time; nothing the reader does waits on this
+        try { localStorage.removeItem(SHELF_KEY); } catch(_){}
+      }
+    }
+
     async function submitJoinGate(){
       const addr = jgInput.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)){
@@ -3330,6 +3413,8 @@
            post it must not stand between the reader and their own shelf. */
       }
       try { localStorage.setItem(JOIN_KEY, addr); } catch(_){}
+      // this is the shelf we have just reported — see reportShelf
+      try { localStorage.setItem(SHELF_KEY, shelfSignature()); } catch(_){}
       jgMsg.textContent = 'Joined.';
       const then = gateAfter;
       setTimeout(() => { closeJoinGate(); if (then) then(); }, 520);
@@ -3382,6 +3467,8 @@
       paintSaved();
       filter();
       if (savedOnly){
+        // back at the collection: tell us if it has moved since last time
+        reportShelf();
         savedTab.open = true;
         // rises first, then opens — the two beats the reader asked for
         savedTab.classList.remove('rising');
@@ -4295,7 +4382,8 @@
         dq.value = on ? '' : 'British';
         dghost.hidden = dq.value !== '';
         paintHint(dq.value.trim().toLowerCase());
-        clusterSearch(on ? '' : 'british', true);
+        // the rest of the archive stays, in grey, around the British cluster
+        clusterSearch(on ? '' : 'british', true, true);
         return;
       }
       const on = !nationsOpen;
@@ -4590,7 +4678,7 @@
 
        Pressing enter is the choosing. THAT regathers: the matches come into
        a spiral of their own and everything else goes. */
-    function clusterSearch(term, gather){
+    function clusterSearch(term, gather, greyRest){
       clearTimeout(clusterTimer);
       const els = [...spiral.children];
 
@@ -4608,7 +4696,7 @@
         () => els.forEach(el => { el.style.transition = ''; }), MOVE_MS + 80);
 
       if (!term){
-        els.forEach(el => el.classList.remove('sp-dim', 'sp-gone'));
+        els.forEach(el => el.classList.remove('sp-dim', 'sp-gone', 'sp-grey'));
         slide();
         layoutSpiral(spiralMode);
         clusterTimer = setTimeout(() => {
@@ -4630,7 +4718,10 @@
 
       if (!gather){
         // still typing: dim the rest where they stand and travel to the first
-        els.forEach(el => el.classList.toggle('sp-dim', !hit.includes(el)));
+        els.forEach(el => {
+          el.classList.toggle('sp-dim', !hit.includes(el));
+          el.classList.remove('sp-grey');
+        });
         clusterTimer = setTimeout(() => glide(() => focusItem(hit[0], maxScale() * 0.55), 700), 40);
         return;
       }
@@ -4644,7 +4735,14 @@
       layoutSpiral(spiralMode);
       els.forEach(el => {
         const on = hit.includes(el);
-        el.classList.toggle('sp-gone', !on);
+        /* Two ways to set the rest aside. Gone, for a search: the cluster is
+           the whole answer and anything else on the field is in its way.
+           Grey, for a nation: the reader asked for one country out of
+           thirty-odd and the rest of the archive standing around it in grey
+           is the answer — how much there is, and how much of it is not this.
+           Either way they cannot be pressed. */
+        el.classList.toggle('sp-gone',  !on && !greyRest);
+        el.classList.toggle('sp-grey',  !on && !!greyRest);
         el.classList.remove('sp-dim');
       });
       hit.forEach((el, i) => {
@@ -4932,7 +5030,7 @@
          itself: the field pulled back but the garments it had set aside
          never came home. The term goes, the field is rebuilt whole, and
          only then is it fitted. */
-      const clustered = document.querySelector('#spiral .sp-gone, #spiral .sp-dim');
+      const clustered = document.querySelector('#spiral .sp-gone, #spiral .sp-dim, #spiral .sp-grey');
       if (clustered || dq.value.trim() || spiralMode !== 'spiral'){
         dq.value = '';
         q.value = '';
@@ -4946,7 +5044,8 @@
       }
       if (atInitial){
         // already home — press again and it travels to one at random
-        const pool = [...spiral.children].filter(el => !el.classList.contains('sp-dim'));
+        const pool = [...spiral.children].filter(
+          el => !el.classList.contains('sp-dim') && !el.classList.contains('sp-grey'));
         if (pool.length){
           const pick = pool[Math.floor(Math.random() * pool.length)];
           glide(() => focusItem(pick, maxScale() * 0.68));
@@ -5039,7 +5138,8 @@
       dq.value = on ? '' : 'British';
       dghost.hidden = dq.value !== '';
       paintHint(dq.value.trim().toLowerCase());
-      clusterSearch(on ? '' : 'british', true);
+      // the rest of the archive stays, in grey, around the British cluster
+      clusterSearch(on ? '' : 'british', true, true);
     });
 
     /* From explore this is the way into the tab list — and the dock comes
@@ -5052,6 +5152,8 @@
       const els = [...spiral.children];
       const keep = els.filter(el => isSaved(el.dataset.id));
       if (!keep.length) return;
+      // back at the collection: tell us if it has moved since last time
+      reportShelf();
       els.forEach(el => {
         el.classList.toggle('sp-gone', !keep.includes(el));
         el.classList.remove('sp-dim');
@@ -5413,72 +5515,81 @@
       soloTimers.forEach(clearTimeout);
       soloTimers = [];
 
-      /* THE SEQUENCE, in the order the eye should read it:
+      /* THE SEQUENCE.
 
-           1. the garment, on its own, with no box
-           2. one line drawn around the card that will hold it
-           3. the card's own border takes that line's place, the tab arrives
-              and the name types itself
-           4. the garment settles left and the record expands in beside it,
-              inside the box that was drawn for it
+         It used to be four beats and the first two were the same beat told
+         twice: the garment alone with no box, then a line drawn around the
+         card it would sit in, and only after that had finished did anything
+         else happen. Half a second of a rectangle being drawn around a
+         garment that was not going anywhere, before the record was so much
+         as mentioned.
 
-         There was briefly a second line drawn tight around the garment
-         first. Two rectangles that close on almost the same pixels read as
-         a doubled outline rather than two steps, so the box is drawn once. */
-      const BOX_MS   = 560;   // the line around the card
+         Three now, and the drawing is folded into the opening:
+
+           1. the garment, held exactly where the field left it
+           2. everything at once — the box is drawn in the room at the size
+              the card is about to be, the tab arrives with the name typing
+              into it, and the card opens: the garment settling left and the
+              record expanding in on the right, into the box being drawn
+              around them both
+           3. the drawn line steps aside for the card's own border
+
+         The box stands still while the card grows into it, which is why it
+         is measured in the room's coordinates and not the card's. */
+      const BOX_MS   = 620;   // the card's own .62s opening — one movement
       const HANDOVER =  70;   // drawn line → the card's real border
       const START    = from ? 780 : 40;
-      const NAME_AT  = START + BOX_MS + HANDOVER;
+      const NAME_MS  = 26;
 
       soloTimers.push(setTimeout(() => {
-        const r = item.getBoundingClientRect();
-        const box = drawFrame(item, { x:0, y:0, w:r.width, h:r.height }, BOX_MS);
+        /* Where the card is about to be. Cleared of the build state, read,
+           and put straight back inside one task — the browser paints between
+           tasks and never inside one, so the open card is never on screen
+           before it opens. */
+        item.classList.add('no-anim');
+        item.classList.remove('build');
+        const to = item.getBoundingClientRect();
+        item.classList.add('build');
+        void item.offsetWidth;
+        item.classList.remove('no-anim');
 
+        const box = to.width > 4
+          ? drawFrame(item, {
+              x: Math.round(to.left),
+              y: Math.round(to.top),
+              w: Math.round(to.width),
+              h: Math.round(to.height)
+            }, BOX_MS, true)
+          : null;
+
+        /* All of it in this one frame: the rule, the border, the name and
+           the card opening. Anything staged after this is a second event the
+           reader has to wait through. */
+        document.body.classList.add('solo-drawing');
+        document.body.classList.remove('solo-build');
+        item.classList.remove('build');
+        soloTimers.push(setTimeout(
+          () => document.body.classList.remove('solo-drawing'), 900));
+
+        if (label){
+          let i = 0;
+          (function tick(){
+            if (i < full.length){
+              label.textContent += full.charAt(i++);
+              soloTimers.push(setTimeout(tick, NAME_MS));
+            }
+          })();
+        }
+
+        // the drawn line hands over to the card's own border, in one frame
         soloTimers.push(setTimeout(() => {
-          /* The card's own border takes the drawn line's place in ONE frame.
-
-             It used to crossfade over a third of a second, and for that
-             third of a second both lines were on screen — the SVG stroke and
-             the border, a pixel apart, reading as a single line that thickens
-             and then thins again. That was the second stroke animation: not a
-             second animation at all, two lines pretending to be one.
-
-             Swapped instead of blended. The border is already the same
-             weight and colour, so there is nothing to see. */
           item.classList.add('no-anim');       // no border-color transition
           item.classList.add('framed');
           void item.offsetWidth;
-          box.remove();
+          if (box) box.remove();
           item.classList.remove('no-anim');
         }, BOX_MS + HANDOVER));
-      }, from ? 780 : 40));   // with a handover running, the box waits for it
-
-      // the box closed → the tab arrives and the name types itself into it
-      const NAME_MS = 26;
-      soloTimers.push(setTimeout(() => {
-        /* solo-drawing runs the tab's arrival; solo-build leaving is what
-           hands it the resting state to land on. Both in the same frame, so
-           the rule, the border and the name are one movement rather than
-           three. */
-        document.body.classList.add('solo-drawing');
-        document.body.classList.remove('solo-build');
-        soloTimers.push(setTimeout(
-          () => document.body.classList.remove('solo-drawing'), 900));
-        if (!label) return;
-        let i = 0;
-        (function tick(){
-          if (i < full.length){
-            label.textContent += full.charAt(i++);
-            soloTimers.push(setTimeout(tick, NAME_MS));
-          }
-        })();
-      }, NAME_AT));
-
-      // named → the garment shifts aside and the record expands in beside it
-      soloTimers.push(setTimeout(
-        () => item.classList.remove('build'),
-        NAME_AT + full.length * NAME_MS + 200
-      ));
+      }, START));
     }
 
     /* One frame, drawn rather than switched on.
@@ -5487,10 +5598,10 @@
        and the run is armed a frame later, so there is no first paint in
        which the whole rectangle exists. That flash of a complete line, gone
        again before the draw started, was the flicker. */
-    function drawFrame(item, box, ms){
+    function drawFrame(item, box, ms, fixed){
       const NS  = 'http://www.w3.org/2000/svg';
       const svg = document.createElementNS(NS, 'svg');
-      svg.setAttribute('class', 'solo-frame');
+      svg.setAttribute('class', fixed ? 'solo-frame is-fixed' : 'solo-frame');
       svg.setAttribute('viewBox', `0 0 ${box.w} ${box.h}`);
       svg.setAttribute('preserveAspectRatio', 'none');
       svg.style.left   = box.x + 'px';
@@ -5508,7 +5619,11 @@
       rect.style.strokeDasharray  = len;
       rect.style.strokeDashoffset = len;
       svg.appendChild(rect);
-      item.appendChild(svg);
+      /* Fixed frames hang off the page, not off the card. The card is
+         changing size underneath this line, and a child of the card is
+         carried around by every pixel of that change — the box has to hold
+         still in the room while the card opens into it. */
+      (fixed ? document.body : item).appendChild(svg);
 
       requestAnimationFrame(() => {
         rect.style.transition = `stroke-dashoffset ${ms}ms cubic-bezier(.4,0,.2,1)`;
@@ -5621,27 +5736,58 @@
       if (!tab){ showField(); land(); return; }
 
       /* How far the lid has to travel to reach the middle of the screen.
-         Measured, not guessed — the page's scroll moves it, and a fixed
-         number would land it somewhere different on every viewport.
 
-         Measured from the SUMMARY, not from the whole tab. By the time the
-         travel begins the body has closed and the header row is all there
-         is; centring the tab's full height put the closed box well above the
-         middle and it shut off-centre. */
+         Measured from the SUMMARY, because by the time the travel begins the
+         body has closed and the header row is all there is.
+
+         And measured AFTER that close, not before it. The shell this sits in
+         is centred, so as the record's body folds away the page gets shorter
+         and everything left in it drifts down — nearly three hundred pixels
+         of drift, all of it after the reading was taken. The box was then
+         carried that much too far and came to rest well below the middle.
+         Taken at the end of the fold and a frame before the travel starts,
+         the number is the distance that is actually left. */
       const sum = tab.querySelector('summary');
-      const r = (sum || tab).getBoundingClientRect();
-      const drop = Math.round((window.innerHeight / 2) - (r.top + r.height / 2));
-      tab.style.setProperty('--lid-drop', drop + 'px');
+      /* Placed, not travelled. The header used to be driven down to the
+         middle on its own transition after the fold — a box sliding down an
+         empty page, which is a second journey on top of the one the fold has
+         already made. The fold itself carries it most of the way, because
+         the page shortens around it; whatever is left over is applied with
+         nothing animating, so the header simply IS in the middle when the
+         fold ends. It holds there, and then it closes. */
+      const setLidDrop = () => {
+        const r = (sum || tab).getBoundingClientRect();
+        tab.classList.add('lid-snap');           // no transition for this step
+        tab.style.setProperty('--lid-drop',
+          Math.round((window.innerHeight / 2) - (r.top + r.height / 2)) + 'px');
+        void tab.offsetWidth;                    // committed unanimated
+        tab.classList.remove('lid-snap');
+      };
+      tab.style.setProperty('--lid-drop', '0px');
+      // the fold runs 0–300ms; the remainder is placed the moment it ends
+      soloTimers.push(setTimeout(setLidDrop, 310));
 
       document.body.classList.add('solo-closing');                 // 1 + 2
-      // 3 — only once the box has finished travelling, never while it is
+
+      /* The travel runs 320ms to 740ms (see .solo-closing .nation). It used
+         to shut at 760 — twenty milliseconds later, which is no pause at
+         all: the box arrived in the middle and was already collapsing, so it
+         never read as having come to rest anywhere. It holds for four
+         tenths of a second instead. That hold is the beat the whole close is
+         built around: the record folds into its own header, the header
+         carries the garment's name to the middle of the screen and STOPS
+         there, and only then does it close and give the garment back. */
+      const ARRIVED = 310;          // the fold ends and the header is in place
+      const HOLD    = 620;          // and stays there, with the name in it
+
+      // 3 — shut, once it has actually stood still
       soloTimers.push(setTimeout(() => {
         document.body.classList.add('solo-shutting');
-      }, 760));
-      // 4 — the field starts returning over the tail of the fold, never after it
-      soloTimers.push(setTimeout(showField, 960));
+      }, ARRIVED + HOLD));
+      // 4 — the field starts returning over the tail of the shut, never after it
+      soloTimers.push(setTimeout(showField, ARRIVED + HOLD + 200));
       // 5 — and the list is dismantled once the field is opaque over it
-      soloTimers.push(setTimeout(land, 1520));
+      soloTimers.push(setTimeout(land, ARRIVED + HOLD + 760));
       return;
       if (item) focusItem(item);
     }
