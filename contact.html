@@ -1012,7 +1012,7 @@
         <div class="book-wrap">
           <div class="book-frame">
             <iframe id="bookFrame"
-                    src="https://cal.com/british-material-unit-4jsp90/30min"
+                    src="https://cal.com/british-material-unit-4jsp90/30min?hideHelpButton=true"
                     title="Book thirty minutes with British Material Unit"
                     loading="lazy"
                     referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -1254,7 +1254,13 @@
       const frame = document.getElementById('bookFrame');
       if (!tabs.length || !frame) return;
 
-      const BOOK_URL = 'https://cal.com/british-material-unit-4jsp90/30min';
+      /* hideHelpButton is Cal's own switch for the support launcher that
+         sits in the corner of their booking page — in their typeface and
+         their blue, belonging to their product rather than to this one.
+         Asked for by name rather than covered over. The two covers below it
+         stay: the Cal.com badge has no such switch outside their paid plan,
+         and a cover that is not needed costs nothing. */
+      const BOOK_URL = 'https://cal.com/british-material-unit-4jsp90/30min?hideHelpButton=true';
 
       /* The page's own heading is what changes. A row of tabs under a
          heading that never moves reads as three ways to book one thing;
