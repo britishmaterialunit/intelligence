@@ -1351,23 +1351,45 @@
                  transform .46s cubic-bezier(.4,0,.2,1);
     }
 
-    /* 1. the body goes under the lid */
+    /* 1. the body goes under the lid, and it is ALL the way under before
+       anything else happens. The travel used to begin at .18s, with a third
+       of a second of the collapse still to run — so what crossed the screen
+       was the header rule and the tab's bottom border with a closing gap
+       between them, which reads as two rectangles rather than as one tab
+       shutting. */
     body.solo-closing .nation > .nbody{
       overflow:hidden;
       max-height:0;
+      /* The padding has to go as well. max-height clips what is INSIDE the
+         box; the box's own 18 and 22 pixels are not content and survive it,
+         so the body shut to forty empty pixels rather than to nothing and
+         the tab kept an empty strip under its header rule. That strip, with
+         the tab's bottom border under it, is the second rectangle. */
+      padding-top:0;
+      padding-bottom:0;
       opacity:0;
       transform:translateY(-14px) scale(.96);
       transform-origin:top center;
-      transition:max-height .46s cubic-bezier(.4,0,.2,1),
-                 opacity .3s ease,
-                 transform .46s cubic-bezier(.4,0,.2,1);
+      transition:max-height .3s cubic-bezier(.4,0,.2,1),
+                 padding-top .3s cubic-bezier(.4,0,.2,1),
+                 padding-bottom .3s cubic-bezier(.4,0,.2,1),
+                 opacity .2s ease,
+                 transform .3s cubic-bezier(.4,0,.2,1);
+    }
+    /* And the header's own rule goes with it. Once the body has gone that
+       rule and the tab's bottom border are a pixel and a half apart — the
+       same two-lines-pretending-to-be-one that the top edge already has to
+       be protected from. One box, one outline, one name inside it. */
+    body.solo-closing .nation[open] > summary{
+      border-bottom-color:transparent;
+      transition:border-bottom-color .2s ease .12s;
     }
 
-
-    /* 2. the lid travels to the middle of the screen */
+    /* 2. the lid — by now a single closed box with the name in it —
+       travels to the middle of the screen */
     body.solo-closing .nation{
       transform:translateY(var(--lid-drop, 0px));
-      transition:transform .5s cubic-bezier(.4,0,.2,1) .18s;
+      transition:transform .42s cubic-bezier(.4,0,.2,1) .32s;
       will-change:transform;
     }
 
@@ -1426,11 +1448,13 @@
       inset:0;
       pointer-events:none;
       background-image:radial-gradient(circle at center, var(--bg) 0 38%, transparent 40%);
-      /* 6px read as a coarse screen at this scale — the garments showed
-         through it as shapes rather than as dots. Dividing the cell by 1.6
-         puts 1.6x the dots across every axis, which is the density at which
-         the field stops being photographs and becomes a printed ground. */
-      background-size:3.75px 3.75px;
+      /* The screen this is printed at. 6px was a coarse halftone and the
+         garments read through it as shapes; 3.75 was finer and still read as
+         a pattern in its own right. At 2.25 the cell is under two device
+         pixels on a retina screen, which is the point at which the eye stops
+         counting dots and sees a ground — seventy-five photographs behind a
+         printed veil rather than seventy-five photographs behind a grid. */
+      background-size:2.25px 2.25px;
       opacity:.95;
       z-index:3;
     }
@@ -1524,74 +1548,6 @@
     @media (prefers-reduced-motion:reduce){
       #reveal.drawing .rev-trace{ animation:none; }
       #spiral.sp-waiting .sp-item{ filter:grayscale(1) opacity(.3); }
-    }
-
-    /* ---------- THE PRESS ----------
-       Every control here answered on release; between the finger going down
-       and coming up there was nothing to say the press had landed. The box
-       gives by a pixel and comes back — pressure, not colour, because this
-       archive has no colour to spend and a fill would say something the
-       rules are already saying. A tenth of a second, eased out.
-
-       The garments are the exception: a press on one is already answered by
-       the field moving to it, and scaling a photograph under the finger
-       would be the page doing something the reader did not ask for. */
-    .btn-line,
-    .req-send,
-    .jg-send,
-    .dock-sq,
-    .facet-opt,
-    .facet-toggle,
-    .btn-save-inline,
-    .req-dot{
-      transition:transform .1s ease-out, color .18s ease,
-                 background-color .18s ease, border-color .18s ease;
-    }
-    .btn-line:active,
-    .req-send:active,
-    .jg-send:active{ transform:scale(.985); border-color:var(--line); }
-    .dock-sq:active{ transform:scale(.94); }
-    .facet-opt:active,
-    .facet-toggle:active{ transform:scale(.94); color:var(--ink); }
-    .btn-save-inline:active{ transform:scale(.88); }
-    /* the dots keep their own spring — see .req-dot.tip — so a press only
-       darkens the rule; two scales fighting over one circle reads as a jitter */
-    .req-dot:active{ border-color:var(--line); }
-
-    /* ---------- WHAT THE READER HAS ASKED FOR ----------
-       Reduced motion is answered for throughout. These are the other two.
-
-       Reduced transparency: the collection's door is frosted glass over the
-       archive. For a reader who has asked for less of that it becomes a
-       solid sheet — it still separates the question from the page behind it,
-       which is the only thing the blur was ever for.
-
-       More contrast: the archive is black on white and has no palette to
-       strengthen. The greys do the strengthening — the reference codes, the
-       category tags, the counts, the switch, the placeholder greys — all of
-       which are set light deliberately and are exactly what disappears first
-       for a reader who has asked for contrast. */
-    @media (prefers-reduced-transparency: reduce){
-      #joinGate{ background:var(--bg); backdrop-filter:none; }
-      #dock{ backdrop-filter:none; }
-    }
-    @media (prefers-contrast: more){
-      :root{ --ink:#000; --line:#000; --faint:#ededed; }
-      .item .tag,
-      .item .ref,
-      .section-label,
-      .facet-title,
-      .facet-opt,
-      .facet-toggle,
-      .facet-reset,
-      #count,
-      #foot,
-      .jg-msg,
-      .req-msg{ color:#000; }
-      .req-email,
-      .jg-slide{ border-color:#000; }
-      .req-dot{ border-color:#000; }
-      .item{ border-width:2px; }
     }
 
     /* ---------- LABEL SUGGESTION ----------
@@ -3616,7 +3572,7 @@
       const send     = el.querySelector('.req-send');
       const msg      = el.querySelector('.req-msg');
 
-      let infoLoaded = false;
+      let infoReq = null;   // the request for this garment's record, if one is out
 
       function setState(state){   // 'idle' | 'request' | 'info'
         reqPanel.classList.toggle('open', state === 'request');
@@ -3630,9 +3586,18 @@
         if (state !== 'request') msg.textContent = '';
       }
 
+      /* One request in flight at a time, and the panel's own contents are
+         the record of whether it has arrived.
+
+         This used to raise a flag the instant it was called, BEFORE the
+         fetch had resolved — so a press while the record was still coming,
+         or any press after one that had failed, was told the record was
+         already loaded and opened an empty panel, permanently. The flag is
+         gone: if the panel is empty and nothing is on its way, it is
+         fetched, whatever order the presses came in. */
       async function loadInfo(){
-        if (infoLoaded) return;
-        infoLoaded = true;
+        if (infoReq || infoBody.textContent.trim()) return infoReq;
+        infoReq = (async () => {
         try {
           const res = await fetch(txtPath);
           if (!res.ok) throw new Error(res.status);
@@ -3650,7 +3615,11 @@
           infoBody.textContent = body;
         } catch {
           infoBody.textContent = 'No record filed for this garment yet.';
+          // a blip is not a verdict — the next press may try again
+          infoReq = null;
         }
+        })();
+        return infoReq;
       }
 
       reqBtn.addEventListener('click', () => setState('request'));
@@ -3821,6 +3790,24 @@
        the star was pressed, a nation tab is open, or explore is running.
        Opening a tab therefore hands the reader the dock's own search bar
        in place of the main one. */
+    /* Arrived from the home page's Archive button, which walked the bar down
+       to the foot of the screen and left it there. It is already in place as
+       far as the reader is concerned, so it is put in place here without the
+       rise and the fade — playing those again would be the bar arriving twice.
+       Read once and cleared: a reload is a plain visit. */
+    (function inheritDock(){
+      let handed = false;
+      try {
+        handed = sessionStorage.getItem('bmu.arch.handover') === '1';
+        sessionStorage.removeItem('bmu.arch.handover');
+      } catch {}
+      if (!handed) return;
+      dockForced = true;
+      dock.style.transition = 'none';
+      dock.classList.add('show');
+      requestAnimationFrame(() => { dock.style.transition = ''; });
+    })();
+
     function updateDock(){
       /* Tabs opened by a term are not the reader reaching for the dock —
          they are the answer to what is still being typed into the main bar.
@@ -4348,7 +4335,6 @@
 
     /* wraps a jump in a transition so the field travels rather than cuts */
     function glide(fn, ms){
-      stopCoast();                 // a deliberate move outranks a drifting one
       spiral.style.transition = `transform ${ms || 850}ms cubic-bezier(.4,0,.2,1)`;
       fn();
       setTimeout(() => { spiral.style.transition = ''; }, (ms || 850) + 60);
@@ -4356,98 +4342,6 @@
 
     function applyTransform(){
       spiral.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
-    }
-
-    /* ============================================================
-       THE FIELD'S MOMENTUM
-       A hand let go of the field and the field stopped dead. Nothing that
-       weighs anything does that, and the archive is the one surface here
-       that is handled rather than read — so a release carries on at the
-       speed it was let go at, slows the way a thrown thing slows, and
-       settles.
-
-       Three parts, and each is the answer to a different question.
-         Where does it land?  The endpoint a flick projects to under
-           exponential decay — the same curve a scroll follows, so the
-           throw feels like every other throw the reader has made.
-         How does it get there?  A critically damped spring, integrated a
-           frame at a time. No overshoot: seventy-five photographs bouncing
-           past their mark would read as a toy.
-         Can it be caught?  Yes — the spring writes tx/ty every frame, so
-           they are always the position on screen rather than a position
-           being aimed at. A new press stops the run where it stands and
-           the next drag continues from exactly there.
-       ============================================================ */
-    let coastRAF = null;
-
-    function stopCoast(){
-      if (coastRAF){ cancelAnimationFrame(coastRAF); coastRAF = null; }
-    }
-
-    /* Where a flick comes to rest. Not the textbook v²/2a — this is the
-       exponential decay a scroll actually follows, and 0.998 is the rate
-       that reads as "normal" rather than as ice or as mud. */
-    function project(v, rate = 0.998){
-      return (v / 1000) * rate / (1 - rate);
-    }
-
-    /* The field's edge. Not a frame around it — it has none — but the point
-       past which there would be nothing on screen at all. A blank canvas is
-       never a state this archive should be in. */
-    function panBounds(){
-      let reach = 1;
-      [...spiral.children].forEach(el => {
-        reach = Math.max(reach, Math.hypot(
-          parseFloat(el.style.left) || 0,
-          parseFloat(el.style.top)  || 0
-        ));
-      });
-      const R = reach * sc;
-      const KEEP = 220;                 // this much of the field always shows
-      return {
-        x: Math.max(0, R + window.innerWidth  / 2 - KEEP),
-        y: Math.max(0, R + window.innerHeight / 2 - KEEP)
-      };
-    }
-
-    /* Past the edge the field still follows, just less and less of the way.
-       A hard stop reads as broken; resistance reads as "there is nothing
-       more out here" while the hand is still being listened to. */
-    function rubber(over, dim, c = 0.55){
-      return (over * dim * c) / (dim + c * Math.abs(over));
-    }
-    function resist(v, limit, dim){
-      if (v >  limit) return  limit + rubber(v - limit, dim);
-      if (v < -limit) return -limit - rubber(-v - limit, dim);
-      return v;
-    }
-
-    /* Critically damped by default — response is how quickly it arrives, in
-       seconds, not how long it takes; the settle falls out of the physics. */
-    function coastTo(ex, ey, vx, vy, response = 0.42, damping = 1){
-      stopCoast();
-      const w = (2 * Math.PI) / response;
-      let px = tx, py = ty, last = performance.now();
-      const step = now => {
-        /* Clamped: a tab left in the background hands back a gap of seconds,
-           and integrating that in one go throws the field to the horizon. */
-        const dt = Math.min((now - last) / 1000, 1 / 30);
-        last = now;
-        vx += (-w * w * (px - ex) - 2 * damping * w * vx) * dt;
-        vy += (-w * w * (py - ey) - 2 * damping * w * vy) * dt;
-        px += vx * dt;
-        py += vy * dt;
-        tx = px; ty = py;
-        applyTransform();
-        if (Math.hypot(vx, vy) < 6 && Math.hypot(px - ex, py - ey) < 0.5){
-          tx = ex; ty = ey;
-          applyTransform();
-          coastRAF = null;
-          return;
-        }
-        coastRAF = requestAnimationFrame(step);
-      };
-      coastRAF = requestAnimationFrame(step);
     }
 
     /* ============================================================
@@ -5039,6 +4933,17 @@
         return;
       }
 
+      /* Standing on one garment, the circle means all of them. It used to
+         fall through to openExplore below, which returns the field around
+         the garment the record was opened from — the same one garment, on a
+         field that had been asked to show every garment. Whatever else the
+         circle does elsewhere, here it is the way back to the archive. */
+      if (soloId || document.body.classList.contains('single-result')){
+        dockForced = true;
+        returnToExplore(true);
+        return;
+      }
+
       // the circle always returns explore to how it opens: the single
       // spiral, pulled back to fit — it is not a way out
       if (explore.hidden){ dockForced = true; openExplore(); return; }
@@ -5296,26 +5201,6 @@
     }, { passive:false });
 
     let panId = null, panX = 0, panY = 0;
-    /* The pan is kept twice over: rawX/rawY is where the hand has actually
-       taken the field, tx/ty is where the field is allowed to be. Applying
-       the resistance to tx directly would compound it every frame — the
-       field would creep back under a still hand. */
-    let rawX = 0, rawY = 0;
-    /* A short history rather than the last event: one pointermove is a
-       sample of noise, and the velocity a release is handed has to be the
-       velocity of the gesture. */
-    let panTrail = [];
-
-    function releaseVelocity(){
-      const now = performance.now();
-      const recent = panTrail.filter(s => now - s.t < 110);
-      if (recent.length < 2) return { x:0, y:0 };
-      const a = recent[0], b = recent[recent.length - 1];
-      const dt = (b.t - a.t) / 1000;
-      if (dt <= 0) return { x:0, y:0 };
-      return { x:(b.x - a.x) / dt, y:(b.y - a.y) / dt };
-    }
-
     explore.addEventListener('pointerdown', e => {
       if (gateShut()) return;
       if (e.target.closest('.sp-item')) return;
@@ -5324,26 +5209,14 @@
          lands, the pan takes the pointer, and no click is ever delivered.
          Anything belonging to the gate is not a pan. */
       if (e.target.closest('#reveal')) return;
-      /* Caught mid-flight: the field stops exactly where it is on screen,
-         because that is what tx/ty hold, and the drag carries on from there
-         rather than from wherever it had been heading. */
-      stopCoast();
-      spiral.style.transition = '';
       panId = e.pointerId; panX = e.clientX; panY = e.clientY;
-      rawX = tx; rawY = ty;
-      panTrail = [{ x:e.clientX, y:e.clientY, t:performance.now() }];
       explore.setPointerCapture(panId);
       explore.classList.add('grabbing');
     });
     explore.addEventListener('pointermove', e => {
       if (e.pointerId !== panId) return;
-      rawX += e.clientX - panX; rawY += e.clientY - panY;
+      tx += e.clientX - panX; ty += e.clientY - panY;
       panX = e.clientX; panY = e.clientY;
-      const b = panBounds();
-      tx = resist(rawX, b.x, window.innerWidth);
-      ty = resist(rawY, b.y, window.innerHeight);
-      panTrail.push({ x:e.clientX, y:e.clientY, t:performance.now() });
-      if (panTrail.length > 6) panTrail.shift();
       atInitial = false;
       applyTransform();
     });
@@ -5351,18 +5224,6 @@
       if (e.pointerId !== panId) return;
       panId = null;
       explore.classList.remove('grabbing');
-      if (REDUCED) return;              // no thrown weight for a reader who asked for none
-
-      const v = releaseVelocity();
-      const b = panBounds();
-      /* Where the throw is going, then the nearest place it is allowed to
-         stop. Let go inside the field and it coasts; let go beyond the edge
-         and the same spring is what pulls it back — one motion, not a coast
-         followed by a correction. */
-      const ex = Math.max(-b.x, Math.min(b.x, tx + project(v.x)));
-      const ey = Math.max(-b.y, Math.min(b.y, ty + project(v.y)));
-      if (Math.hypot(v.x, v.y) < 60 && Math.abs(ex - tx) < 1 && Math.abs(ey - ty) < 1) return;
-      coastTo(ex, ey, v.x, v.y);
     }));
 
     // a garment opens on its own, centred; the tab's − brings you back
@@ -5680,7 +5541,7 @@
 
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
-    function returnToExplore(){
+    function returnToExplore(toAll){
       /* solo-from-field is NOT dropped here. It is what hides the tally and
          the bookmark on a record opened from the field, and taking it off at
          the top of the close meant they faded back in and rode the card all
@@ -5717,7 +5578,20 @@
          back around it — so what crosses over is only the furniture. */
       const showField = () => {
         openExplore();
-        if (item){
+        if (toAll){
+          /* Asked for all of them rather than for the one just left. Any
+             cluster or term the field was holding goes with the record, so
+             what comes back is the archive at rest and not a filtered view
+             of it wearing the whole field's clothes. */
+          if (dq) dq.value = '';
+          q.value = '';
+          if (spiralMode !== 'spiral') morphLayout('spiral');
+          clusterSearch('', true);
+          spiral.style.transition = 'none';
+          fitSpiral();
+          void spiral.offsetWidth;
+          spiral.style.transition = '';
+        } else if (item){
           spiral.style.transition = 'none';
           focusItem(item);
           void spiral.offsetWidth;          // commit it unanimated
@@ -5769,24 +5643,78 @@
       if (!tab){ showField(); land(); return; }
 
       /* How far the lid has to travel to reach the middle of the screen.
-         Measured, not guessed — the tab's height and the page's scroll both
-         move it, and a fixed number would land it somewhere different on
-         every viewport. */
-      const r = tab.getBoundingClientRect();
+         Measured, not guessed — the page's scroll moves it, and a fixed
+         number would land it somewhere different on every viewport.
+
+         Measured from the SUMMARY, not from the whole tab. By the time the
+         travel begins the body has closed and the header row is all there
+         is; centring the tab's full height put the closed box well above the
+         middle and it shut off-centre. */
+      const sum = tab.querySelector('summary');
+      const r = (sum || tab).getBoundingClientRect();
       const drop = Math.round((window.innerHeight / 2) - (r.top + r.height / 2));
       tab.style.setProperty('--lid-drop', drop + 'px');
 
       document.body.classList.add('solo-closing');                 // 1 + 2
+      // 3 — only once the box has finished travelling, never while it is
       soloTimers.push(setTimeout(() => {
-        document.body.classList.add('solo-shutting');              // 3
-      }, 680));
+        document.body.classList.add('solo-shutting');
+      }, 760));
       // 4 — the field starts returning over the tail of the fold, never after it
-      soloTimers.push(setTimeout(showField, 880));
+      soloTimers.push(setTimeout(showField, 960));
       // 5 — and the list is dismantled once the field is opaque over it
-      soloTimers.push(setTimeout(land, 1440));
+      soloTimers.push(setTimeout(land, 1520));
       return;
       if (item) focusItem(item);
     }
+
+    /* ============================================================
+       THE ONE INVARIANT
+       There is always something on screen.
+
+       This page has two views and a dozen ways between them, and every one
+       of those ways hides one view before showing the other. Each time a
+       blank frame has been found and closed, it has come back somewhere else
+       — a timer cleared by an interruption, a class left on by a press that
+       arrived mid-transition, a reader pressing the way out of a record
+       while it is still opening. Fixing the orders one at a time is chasing
+       it; there will always be another order.
+
+       So the rule is stated once, and enforced rather than trusted. A few
+       times a second: if the field is not showing, and the list has nothing
+       showing either, put one of them back. Nothing else in this file has to
+       remember to — and when something new is added, it cannot reintroduce
+       the blank screen, because the blank screen is repaired underneath it.
+
+       Cheap: two class reads and a querySelector on a page that is otherwise
+       idle, and it does nothing at all unless the page is actually empty.
+       ============================================================ */
+    function listShowing(){
+      if (getComputedStyle(catalogue).visibility === 'hidden') return false;
+      if (catalogue.offsetParent === null) return false;
+      return !!catalogue.querySelector('.item:not([hidden]), .nation:not([hidden]) > summary');
+    }
+
+    function guardBlank(){
+      // a transition is a legitimate reason for one view to be down; a
+      // record being folded away is still something on screen
+      if (!explore.hidden) return;
+      if (listShowing()) return;
+      if (document.body.classList.contains('solo-closing')) return;
+
+      /* Nothing. Whatever was meant to happen did not. The catalogue is put
+         back first because it is the cheaper repair and the likelier fault —
+         field-returning is the only thing that hides it, and it is only ever
+         meant to be on for half a second. */
+      document.body.classList.remove('field-returning');
+      if (listShowing()) return;
+
+      // still nothing: the field is the archive's resting state, so it wins
+      dockForced = true;
+      openExplore();
+    }
+
+    setInterval(guardBlank, 300);
 
     window.addEventListener('resize', () => { if (!explore.hidden) fitSpiral(); });
 

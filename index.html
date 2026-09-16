@@ -383,6 +383,110 @@
     #opsBtn.join-solo.sending{ color:#999; cursor:progress; }
     #opsBtn.join-solo.sent{ color:#999; cursor:default; }
 
+    /* ---------- ARCHIVE ----------
+       The archive is the one button on this row that leads off the page, and
+       it used to do it the way any link does: the row still on screen, then
+       a white flash, then a different document. The reader crossed a seam.
+
+       So it leaves the way Join arrives. The other four are driven into it
+       and go; it runs out across the row and comes back down to one button;
+       and then — the part Join has no need of, because Join stays here — the
+       single button leaves the row altogether, travels to the foot of the
+       screen and becomes the bar the archive is searched from. The archive
+       opens behind a bar that is already in place, because the reader put it
+       there.
+
+       The mark comes up in the middle as the bar sets off, so the archive's
+       own loading state is already on screen before the document changes. */
+    #archBtn{
+      position:relative;
+      z-index:5;
+      transition:background-color .3s ease, color .3s ease, opacity .4s ease,
+                 left .55s cubic-bezier(.65,0,.35,1),
+                 width .55s cubic-bezier(.65,0,.35,1);
+    }
+    #archBtn.expanding{
+      position:absolute;
+      top:0;
+      background:var(--bg);
+    }
+    /* driven into the archive slot and gone, exactly as for Join */
+    #navRow.arch-mode .bm-button:not(#archBtn){ opacity:0; pointer-events:none; }
+    /* nothing else on the page is pressable once it has been asked for */
+    body.arch-leaving #navStack,
+    body.arch-leaving #scrollCue{ pointer-events:none; }
+
+    /* The button, off the row and on its way to the foot of the screen. Fixed
+       rather than in the flow: from here it belongs to the screen, not to the
+       row it came out of. The measurements are the archive's own — its bar is
+       min(94vw, 880px) less its two square tools, 34px off the bottom — so
+       what lands here is the shape the next document opens with. */
+    #archRail{
+      position:fixed;
+      z-index:90;
+      box-sizing:border-box;
+      border:1.5px solid var(--line);
+      background:var(--bg);
+      font-family:var(--font);
+      font-size:13px;
+      color:#000;
+      text-align:center;
+      white-space:nowrap;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+    #archRail.run{
+      transition:left .72s cubic-bezier(.65,0,.35,1),
+                 top .72s cubic-bezier(.65,0,.35,1),
+                 width .72s cubic-bezier(.65,0,.35,1),
+                 height .72s cubic-bezier(.65,0,.35,1);
+    }
+    /* the word goes as the box stops being a button and starts being a bar */
+    #archRail span{ transition:opacity .26s ease; }
+    #archRail.run span{ opacity:0; }
+
+    /* The archive's mark, brought up here rather than waited for over there.
+       Same 40x17 as the header's and the archive's own, in the middle of the
+       screen, drawn rather than switched on. */
+    #archMark{
+      position:fixed;
+      left:50%; top:50%;
+      transform:translate(-50%, -50%);
+      z-index:88;
+      line-height:0;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .5s ease;
+    }
+    #archMark svg{ height:17px; width:auto; display:block; overflow:visible; }
+    #archMark path{ fill:none; stroke:var(--line); stroke-width:.35; }
+    body.arch-marked #archMark{ opacity:1; }
+
+    /* Everything the archive does not have goes as the bar sets off. The
+       archive's loading screen is a bar at the foot and a mark in the middle
+       and nothing else — so by the moment the document changes, that is all
+       this page is showing too, and there is nothing for the change to
+       interrupt. The row itself is already gone into the bar. */
+    /* body.entered on the front of each: the scroll cue's own rule is
+       body.entered #scrollCue and sits further down the sheet, so at equal
+       weight it was winning on source order and the arrow stayed lit under
+       the bar. */
+    body.entered.arch-marked #textOutput,
+    body.entered.arch-marked #logoWrap,
+    body.entered.arch-marked #scrollCue,
+    body.entered.arch-marked #navStack{
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .42s ease;
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      #archRail.run, #archMark{ transition:none; }
+    }
+
     /* ---------- FOOTER ARROW ---------- */
     /* Doubles as the way out of Join: the arrow turns over into a cross
        while Join holds the row, and turns back once the five buttons are
@@ -1267,66 +1371,6 @@
     #siteHead:hover .hd-ico{ color:#fff; }
     .hd-ico:hover{ color:#fff; transform:scale(1.1); }
 
-    /* ---------- THE PRESS ----------
-       Everything pressable on this site answered on release. Between the
-       finger going down and coming up — a tenth of a second, longer on a
-       phone — nothing at all happened, and for that tenth of a second the
-       page was indistinguishable from a page that had stopped working.
-
-       So the answer moves to the press itself. Not a colour: this site has
-       no colour to spend, and a fill would say something different from what
-       the rules already say. The box takes the pressure instead — it gives
-       by a pixel and a half at most and comes straight back, which is what a
-       real thing does when you lean on it. Short and eased out, so the
-       release feels like letting go rather than like a second event.
-
-       The rule underneath goes to full black at the same moment, so a press
-       reads even where the scale is too small to see. */
-    .bm-button,
-    .foot-talk,
-    .hd-ico,
-    .foot-col a{
-      transition:transform .1s ease-out, opacity .18s ease, color .18s ease;
-    }
-    .bm-button:active,
-    .foot-talk:active{
-      transform:scale(.985);
-      border-color:var(--ink);
-    }
-    .hd-ico:active{ transform:scale(.92); }
-    .foot-col a:active{ color:var(--ink); }
-    /* the mark is the front door — it takes a press like one */
-    #animatedSvg .filled-path{ transition:transform .12s ease-out; transform-origin:center; }
-    #animatedSvg:active .filled-path{ transform:scale(.975); }
-
-    /* ---------- WHAT THE READER HAS ASKED FOR ----------
-       Reduced motion was already answered for. These are the other two
-       settings a reader can be carrying, and neither was being listened to.
-
-       Reduced transparency: a frosted surface becomes a solid one. The blur
-       is what costs the reader legibility, so the blur is what goes — the
-       layer keeps its job of separating what floats from what is read.
-
-       More contrast: this page is already black on white, so there is no
-       palette to strengthen. What there is to strengthen is the greys — the
-       secondary lines, the addresses, the labels — which are set light on
-       purpose and are the first thing to disappear for a reader who has
-       asked for contrast. They come up to the ink. Rules go solid with
-       them, because a hairline at 10% is not a boundary to anyone. */
-    @media (prefers-reduced-transparency: reduce){
-      .foot-talk, .bm-button{ backdrop-filter:none; }
-    }
-    @media (prefers-contrast: more){
-      :root{ --ink:#000; --line:#000; }
-      .foot-col a,
-      .foot-col span,
-      .foot-addr,
-      .foot-legal a,
-      .foot-org{ color:#000; }
-      .foot-base{ border-top-color:#000; }
-      .bm-button, .foot-talk{ border-width:2px; }
-    }
-
     /* ---------- MOBILE ---------- */
     @media (max-width:640px){
       :root{ --bar-h:30px; }
@@ -1554,8 +1598,16 @@
       </div>
 
       <div id="repoBtn" class="bm-button" role="button" tabindex="0" aria-label="Repository">Repository</div>
-      <a href="/archive" class="bm-button">Archive</a>
+      <a href="/archive" id="archBtn" class="bm-button">Archive</a>
     </nav>
+
+    <!-- the archive's mark, shown here as the bar leaves for the foot of
+         the screen, so the next document opens on a picture already made -->
+    <div id="archMark" aria-hidden="true">
+      <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" focusable="false">
+        <path d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+      </svg>
+    </div>
 
     </div>
   </main>
@@ -3147,11 +3199,15 @@ Per operation we create design systems which secure textiles and their material 
     function dropJoinButton(){ opsBtn.style.top = ''; }
 
     /* drive the four other buttons into the middle slot and out */
-    function convergeButtons(){
-      const target = opsBtn.getBoundingClientRect();
+    /* The other buttons driven into whichever one was pressed. It was
+       written for Operations alone and hard-named it; the archive collapses
+       the row the same way, into a different slot. */
+    function convergeButtons(into){
+      const keep = into || opsBtn;
+      const target = keep.getBoundingClientRect();
       const cx = target.left + target.width / 2;
       navRow.querySelectorAll('.bm-button').forEach(b => {
-        if (b === opsBtn || b.id === 'opsGhost') return;
+        if (b === keep || /Ghost$/.test(b.id)) return;
         const r = b.getBoundingClientRect();
         const dx = cx - (r.left + r.width / 2);
         b.style.transform = 'translateX(' + dx + 'px) scaleX(.18)';
@@ -3160,6 +3216,110 @@ Per operation we create design systems which secure textiles and their material 
     function releaseButtons(){
       navRow.querySelectorAll('.bm-button').forEach(b => { b.style.transform = ''; });
     }
+
+    /* ---------- LEAVING FOR THE ARCHIVE ----------
+       Four beats, and the reader is inside the last one before the document
+       changes:
+
+         1. the other four buttons are driven into Archive and go
+         2. Archive runs out across the whole row
+         3. and comes back down to a single button
+         4. which leaves the row, travels to the foot of the screen and
+            settles as the bar the archive is searched from — the mark coming
+            up in the middle the moment it sets off
+
+       Only then is /archive asked for, and it opens on the picture already
+       standing: a bar at the foot, a mark in the middle. The seam between
+       the two documents falls where there is nothing moving.
+       ---------------------------------------------------------------- */
+    const archBtn = document.getElementById('archBtn');
+    let archLeaving = false;
+
+    function goArchive(ev){
+      if (ev) ev.preventDefault();
+      // a reader who asks twice is asking once
+      if (archLeaving) return;
+      // and one who is already mid-Join or mid-Operations is asking for
+      // something else — let the link behave like a link
+      if (joinState !== 'off' || opsState !== 'closed'){ location.href = '/archive'; return; }
+      archLeaving = true;
+      document.body.classList.add('arch-leaving');
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        location.href = '/archive';
+        return;
+      }
+
+      // measured before anything starts moving the row
+      const soloW = Math.round(archBtn.getBoundingClientRect().width);
+      navRow.classList.add('arch-mode');
+      convergeButtons(archBtn);
+
+      // 1 + 2 — out of the row's flow, then out across the whole of it
+      const rowRect = navRow.getBoundingClientRect();
+      const btnRect = archBtn.getBoundingClientRect();
+      const ghost = document.createElement('div');
+      ghost.id = 'archGhost';
+      ghost.className = 'bm-button';
+      ghost.style.visibility = 'hidden';
+      archBtn.after(ghost);
+      archBtn.style.left  = (btnRect.left - rowRect.left) + 'px';
+      archBtn.style.width = btnRect.width + 'px';
+      archBtn.classList.add('expanding');
+      void archBtn.offsetWidth;          // commit the pinned position first
+      archBtn.style.left  = '0px';
+      archBtn.style.width = '100%';
+
+      // 3 — and back down to one
+      setTimeout(() => {
+        const rowW = navRow.getBoundingClientRect().width;
+        archBtn.style.left  = ((rowW - soloW) / 2) + 'px';
+        archBtn.style.width = soloW + 'px';
+      }, 560);
+
+      // 4 — off the row, down the screen, and into the shape of the bar
+      setTimeout(() => {
+        const r = archBtn.getBoundingClientRect();
+        /* The archive's own measure, not a number chosen to look right: its
+           bar is min(94vw, 880px) holding a field and two square tools, and
+           it sits 34px off the bottom. Landing on those is what makes the
+           next document a continuation rather than a new picture. */
+        const dockW = Math.min(window.innerWidth * 0.94, 880);
+        const barW  = dockW - 112;      // less the two 46px tools and their gaps
+        const barH  = 46;
+
+        const rail = document.createElement('div');
+        rail.id = 'archRail';
+        rail.innerHTML = '<span>Archive</span>';
+        rail.style.left   = r.left + 'px';
+        rail.style.top    = r.top + 'px';
+        rail.style.width  = r.width + 'px';
+        rail.style.height = r.height + 'px';
+        document.body.appendChild(rail);
+        archBtn.style.visibility = 'hidden';
+
+        void rail.offsetWidth;           // start from where the button was
+        rail.classList.add('run');
+        rail.style.left   = Math.round((window.innerWidth - dockW) / 2) + 'px';
+        rail.style.top    = Math.round(window.innerHeight - 34 - barH) + 'px';
+        rail.style.width  = Math.round(barW) + 'px';
+        rail.style.height = barH + 'px';
+
+        // the mark, as the bar sets off rather than once it has arrived
+        document.body.classList.add('arch-marked');
+      }, 1140);
+
+      /* A note for the next document: the bar is already standing, so do
+         not play it in again. Session storage rather than a query string —
+         the archive's URL is a place the reader may come back to, and it
+         should not carry the marks of how they got there this once. */
+      try { sessionStorage.setItem('bmu.arch.handover', '1'); } catch {}
+
+      // and the archive, once the bar is standing where the archive keeps it
+      setTimeout(() => { location.href = '/archive'; }, 2020);
+    }
+
+    if (archBtn) archBtn.addEventListener('click', goArchive);
 
     function openRepo(){ openJoin('repo'); }
 
