@@ -371,8 +371,10 @@
     }
     .bm-button:hover{ background:var(--faint); color:#444; }
 
+    /* Gone, not dimmed. They are driven into the pressed button by
+       convergeButtons and there is nothing to leave behind it. */
     #navRow.ops-engaged .bm-button:not(#opsBtn){
-      opacity:.22;
+      opacity:0;
       pointer-events:none;
     }
     /* Join collapses the row rather than opening it: the four other
@@ -1506,7 +1508,6 @@
         <div id="opsSheet" aria-hidden="true">
           <div class="ops-body">
             <div id="opsHead" class="ops-head"></div>
-            <div id="opsPaper" class="ops-paper"></div>
             <div id="opsNews" class="ops-news">
               <h2>Relations &amp; Partnerships</h2>
               <a class="news-item" href="/ou">
@@ -2829,21 +2830,18 @@
     const opsClose = document.getElementById('opsClose');
     const opsSheet = document.getElementById('opsSheet');
     const opsHead  = document.getElementById('opsHead');
-    const opsPaper = document.getElementById('opsPaper');
     const opsNews  = document.getElementById('opsNews');
 
+    /* Two lines, named. The whitepaper that used to run underneath them is
+       out of the panel for now and kept as Assets/BMU-Whitepaper.txt; what
+       is left is the unit's two sentences, which is what the panel was
+       actually being opened for.
+
+       No "we" on either. What the unit is for and how it goes about it are
+       statements about the work, not about us. */
     const OPS_HEAD =
-`We remanufacture defence textiles into new garments.
-We're solving circularity within defence textile waste.`;
-
-    const WHITEPAPER =
-`British Material Unit (BMU) — Whitepaper
-
-Our defence industry disposes of mass textile waste annually: graded-out smocks, parachutes and camouflage nets built to specifications far exceeding civilian clothing, commonly known as fast fashion. BMU treats this waste as a national asset, championing material sovereignty, transforming disposals from linear to a circular regenerative design model.
-
-We are a designer-led unit. Designers are integral nodes in repositioning assets before being defined waste, and build Proof of Design (POD) to claim and have material access granted. We source, archive and remanufacture via the reverse engineering of garments.
-
-Per operation we create design systems which secure textiles and their material intelligence found in each garment; uniting the intelligence between designers and garments to solve circulation of defence textiles.`;
+`Mission — Solve circularity within defence textile waste.
+Strategy — Remanufacture defence textiles into new garments.`;
 
     /* Read off --bar-h rather than the element: the bar IS the box now, so
        its offsetHeight is the expanded height once Operations is open. */
@@ -2893,6 +2891,13 @@ Per operation we create design systems which secure textiles and their material 
       document.body.classList.remove('at-footer');
       navRow.classList.add('ops-engaged');
       opsBtn.setAttribute('aria-expanded', 'true');
+      /* The row collapses into this button, the way it does for every other
+         one. Operations alone used to leave the other four standing where
+         they were at a fifth of their strength — so Join, Early Access,
+         Repository and Archive sat as ghost boxes behind the sheet, and
+         Operations was the one button on the row that behaved differently
+         from the rest. */
+      convergeButtons(opsBtn);
 
       if (!isStacked()){
         flipPin();
@@ -2935,21 +2940,19 @@ Per operation we create design systems which secure textiles and their material 
         if (opsState !== 'open') return;
         opsSheet.classList.add('content-in');
         if (!paperTyped){
-          // the headline lands first, at its own pace, then the paper runs on
+          /* The two lines type, and the relations follow them. There was a
+             second run here for the whitepaper underneath; with the paper
+             out of the panel the caret would have sat blinking over an empty
+             box waiting to type nothing. */
           opsHead.classList.add('ops-caret');
           bmuType(OPS_HEAD, opsHead, 18, () => {
             if (opsState !== 'open') return;
+            paperTyped = true;
             opsHead.classList.remove('ops-caret');
-            opsPaper.classList.add('ops-caret');
-            bmuType(WHITEPAPER, opsPaper, 9, () => {
-              paperTyped = true;
-              opsPaper.classList.remove('ops-caret');
-              opsNews.classList.add('visible');
-            });
+            opsNews.classList.add('visible');
           });
         } else {
-          opsHead.textContent  = OPS_HEAD;
-          opsPaper.textContent = WHITEPAPER;
+          opsHead.textContent = OPS_HEAD;
           opsNews.classList.add('visible');
         }
       }, 1000);
@@ -2965,7 +2968,6 @@ Per operation we create design systems which secure textiles and their material 
       opsSheet.classList.remove('content-in');
       opsNews.classList.remove('visible');
       opsHead.classList.remove('ops-caret');
-      opsPaper.classList.remove('ops-caret');
       opsBtn.style.height = barH() + 'px';   // the box draws back down into the bar
       opsBtn.setAttribute('aria-expanded', 'false');
       navRow.style.minHeight = barH() + 'px';
@@ -2988,11 +2990,13 @@ Per operation we create design systems which secure textiles and their material 
             opsBtn.style.width = '';
             dropGhost();
             navRow.classList.remove('ops-engaged');
+            releaseButtons();      // the four come back out of the middle
           }, 580);
         } else {
           opsBtn.classList.remove('expanding');
           dropGhost();
           navRow.classList.remove('ops-engaged');
+          releaseButtons();
         }
       }, 620);
     }
