@@ -13,6 +13,6 @@
    else happens.
    ============================================================ */
 window.BMU_COLLECTIONS = {
-  url:     '',
-  anonKey: ''
+  url:     'https://akjhyriqlvktyqgkemeq.supabase.co',
+  anonKey: 'sb_publishable_V_ZqmdzzKFofnfagUCSpEA_wiAxSItG'
 };
