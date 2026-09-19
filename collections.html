@@ -1614,7 +1614,7 @@
        ============================================================ */
     (function collections(){
       const $ = id => document.getElementById(id);
-      const cfg = window.BMU_COLLECTIONS || {};
+      let cfg = window.BMU_COLLECTIONS || {};
       const REPLY_TO = 'https://formsubmit.co/ajax/hello@britishmaterialunit.com';
       const SITE = 'https://britishmaterialunit.com/collections';
 
@@ -1692,10 +1692,25 @@
         GARMENTS.forEach(g => byId.set(g.id, g));
       }
 
-      /* ---------- the database ---------- */
-      const sb = (cfg.url && cfg.anonKey && window.supabase)
-        ? window.supabase.createClient(cfg.url, cfg.anonKey)
-        : null;
+      /* ---------- the database ----------
+         The keys come from collections-config.js, which is loaded by a
+         script tag above — and which GitHub serves with a four-hour cache.
+         The first time this page was opened it was not switched on yet, and
+         every browser that saw it then kept that empty answer: the page went
+         on saying it was switched off for hours after it plainly was not.
+         So the file is read again here, from the network rather than the
+         cache, and whatever it says now is what counts. */
+      let sb = null;
+
+      async function readConfig(){
+        try {
+          const r = await fetch('/collections-config.js?t=' + Date.now(), { cache:'no-store' });
+          if (!r.ok) return;
+          const box = {};
+          new Function('window', await r.text())(box);
+          if (box.BMU_COLLECTIONS && box.BMU_COLLECTIONS.url) cfg = box.BMU_COLLECTIONS;
+        } catch {}    // no answer: fall back to whatever the script tag left
+      }
 
       const api = {
         async session(){
@@ -2174,6 +2189,10 @@
 
       (async function start(){
         show('clSignIn');
+        await readConfig();
+        if (cfg.url && cfg.anonKey && window.supabase){
+          sb = window.supabase.createClient(cfg.url, cfg.anonKey);
+        }
         if (!sb){
           /* Nothing to sign in to. Said plainly rather than offering a form
              that can only fail. */
