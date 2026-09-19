@@ -448,15 +448,6 @@
       white-space:normal;
     }
     #joinPanel.on{ display:flex; }
-    /* what joining gets you, typed out before the address — set the way the
-       repository's lede is, so the two panels open in the same voice */
-    .join-lede{
-      width:min(92vw, 420px);
-      font-size:clamp(10pt, 3.2vw, 11.5pt);
-      line-height:1.55;
-      text-align:center;
-    }
-    .join-lede:empty{ display:none; }
     /* shrink-to-fit, so its rendered width is what the grey field is cut to */
     #joinEmail{
       white-space:pre;
@@ -606,7 +597,6 @@
     body.early-open{ color:#fff; }
     body.early-open .typewriter-text,
     body.early-open #joinPanel,
-    body.early-open .join-lede{ color:#fff; }
     body.early-open .bm-button{
       color:#fff;
       border-color:#fff;
@@ -642,16 +632,22 @@
 
     /* ---------- EARLY ACCESS, LOCKED ----------
        Parked. The box keeps its place in the row, its word and rule turned
-       down to grey, and the padlock sits over it in black so the reason it
-       does not answer is the first thing read. No hover: a hover would say
-       it can be pressed. */
+       down to grey, and the padlock sits over it — filled, in black — so the
+       reason it does not answer is the first thing read. The lock is laid
+       over the word rather than beside it: on a phone the box is seventy
+       pixels wide and there is no room beside anything.
+
+       Under the pointer, or under a finger, it greys over the way every
+       other box on the row does. It simply goes nowhere: the press is
+       swallowed in script, not merely ignored. */
     #earlyBtn.is-locked{
       position:relative;
       color:#c8c8c8;
       border-color:#e0e0e0;
       cursor:not-allowed;
     }
-    #earlyBtn.is-locked:hover{ background:var(--bg); color:#c8c8c8; }
+    #earlyBtn.is-locked:hover,
+    #earlyBtn.is-locked:active{ background:var(--faint); color:#c8c8c8; }
     .ea-lock{
       position:absolute;
       left:50%; top:50%;
@@ -1571,7 +1567,6 @@
              the grey field slides in beneath it at the address's own width,
              then the reader types theirs into it -->
         <div id="joinPanel" aria-hidden="true">
-          <div id="joinLede" class="join-lede"></div>
           <div id="joinEmail"></div>
           <div id="joinSlide">
             <input id="joinInput" type="email" inputmode="email" autocomplete="email"
@@ -3282,7 +3277,6 @@
 
     const joinBtn   = document.getElementById('joinBtn');
     const joinPanel = document.getElementById('joinPanel');
-    const joinLede  = document.getElementById('joinLede');
     const joinEmail = document.getElementById('joinEmail');
     const joinSlide = document.getElementById('joinSlide');
     const joinInput = document.getElementById('joinInput');
@@ -3680,9 +3674,8 @@
         if (joinMode === 'repo'){ repoSequence(live); return; }
         joinPanel.classList.add('on');
         joinPanel.setAttribute('aria-hidden', 'false');
-        // the offer first, then the address it is made to
-        bmuType(JOIN_LEDE, joinLede, 26, () => {
-          if (!live()) return;
+        // straight to the address: no sentence in front of it
+        {
           bmuType(JOIN_TO, joinEmail, 40, () => {
             if (!live()) return;
             // the field is cut to the address's rendered length, then slid out
@@ -3706,7 +3699,7 @@
               }, 640);
             });
           }, live);
-        }, live);
+        }
     }
 
     /* ---- REPOSITORY ------------------------------------------------
@@ -3759,7 +3752,6 @@
       repoNote.classList.remove('in');
       repoLede.textContent = '';
       joinMode = 'join';
-      joinLede.textContent = '';
       joinEmail.textContent = '';
       joinInput.value = '';
       joinInput.disabled = false;
