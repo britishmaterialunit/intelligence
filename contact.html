@@ -232,8 +232,8 @@
     /* Hovering brings the fill forward early if the draw has not finished;
        once it has, there is nothing for a hover to change — which is the
        point. The mark looks the same whether or not the pointer is on it. */
-    .foot-head:hover .foot-fill{ opacity:1; transition:none; }
-    .foot-head:hover .foot-trace{ opacity:0; transition:none; }
+    /* (a hover while it is drawing commits the fill — see revealFooter —
+       rather than showing it only for as long as the pointer stays) */
 
     /* flex-centres the text inside its reserved height so it sits on the
        mark's centre line rather than riding above it while it types */
@@ -289,6 +289,21 @@
       transition:color .25s cubic-bezier(.4,0,.2,1);
     }
     .foot-col a:hover{ color:var(--ink); }
+
+    /* Early Access is parked. Pressing it goes nowhere: the padlock fades
+       up over the word in black, holds a beat, and fades away again. */
+    .foot-col a.foot-locked{ position:relative; }
+    .foot-lock{
+      position:absolute;
+      left:50%; top:50%;
+      width:13px; height:13px;
+      transform:translate(-50%, -50%);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .35s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-locked.flash .foot-lock{ opacity:1; }
+    .foot-locked.flash{ color:#d0d0d0; }
 
     /* the address is one block of information, so it sets on its own tight
        rhythm — the column's 9px gap is for lists, not for a postal address */
@@ -1061,7 +1076,7 @@
                the footer returns the reader there and plays them rather than
                navigating away to a page that does not exist -->
           <a href="/#join">Join</a>
-          <a href="/earlyaccess">Early Access</a>
+          <a href="#" class="foot-locked" aria-disabled="true" aria-label="Early Access, locked">Early Access<img class="foot-lock" src="/lock.svg" alt="" aria-hidden="true" /></a>
           <a href="/#operations">Operations</a>
           <a href="/#repository">Repository</a>
           <a href="/archive">Archive</a>
@@ -1106,8 +1121,7 @@
       <div class="foot-base">
         <span class="foot-org">British Material Unit (BMU)</span>
         <nav class="foot-legal" aria-label="Legal">
-          <a href="/terms.html">Terms &amp; Conditions</a>
-          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/privacy.html">PRIVACY</a>
         </nav>
         <span class="foot-copy">British Material Unit ◎ 2026</span>
       </div>
@@ -1247,9 +1261,16 @@
         siteFooter.classList.add('in');
         setTimeout(() => siteFooter.classList.add('settled'), 1500);
         const fill = () => {
+          if (siteFooter.classList.contains('filled')) return;   // once
           footFill.classList.add('visible');
           siteFooter.classList.add('filled');   // the outline steps aside
+          /* the draw is spent: pinned at its end, so no restyle can
+             start it over */
+          footTrace.style.animation = 'none';
+          footTrace.style.strokeDashoffset = '0';
         };
+        const footHead = siteFooter.querySelector('.foot-head');
+        if (footHead) footHead.addEventListener('mouseenter', fill, { once:true });
         // a fallback, so the mark can never be left invisible if
         // animationend does not arrive
         footTrace.addEventListener('animationend', fill, { once:true });
@@ -1405,5 +1426,17 @@
       setTimeout(() => select(first), 260);
     })();
   </script>
+<script>
+  /* Early Access, parked: the footer link shows its padlock and goes nowhere */
+  document.querySelectorAll('.foot-locked').forEach(a => {
+    let t;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      clearTimeout(t);
+      a.classList.add('flash');
+      t = setTimeout(() => a.classList.remove('flash'), 1100);
+    });
+  });
+</script>
 </body>
 </html>

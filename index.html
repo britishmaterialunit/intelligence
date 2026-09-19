@@ -55,13 +55,12 @@
         "name": "British Material Unit — site sections",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Join", "url": "https://britishmaterialunit.com/join" },
-          { "@type": "ListItem", "position": 2, "name": "Early Access", "url": "https://britishmaterialunit.com/earlyaccess" },
-          { "@type": "ListItem", "position": 3, "name": "Operations", "url": "https://britishmaterialunit.com/#operations" },
-          { "@type": "ListItem", "position": 4, "name": "Repository", "url": "https://britishmaterialunit.com/repository" },
-          { "@type": "ListItem", "position": 5, "name": "Archive", "url": "https://britishmaterialunit.com/archive" },
-          { "@type": "ListItem", "position": 6, "name": "Operation Upcycle", "url": "https://britishmaterialunit.com/ou" },
-          { "@type": "ListItem", "position": 7, "name": "East West", "url": "https://britishmaterialunit.com/ew" },
-          { "@type": "ListItem", "position": 8, "name": "Lambrino", "url": "https://britishmaterialunit.com/lamb" }
+          { "@type": "ListItem", "position": 2, "name": "Operations", "url": "https://britishmaterialunit.com/#operations" },
+          { "@type": "ListItem", "position": 3, "name": "Repository", "url": "https://britishmaterialunit.com/repository" },
+          { "@type": "ListItem", "position": 4, "name": "Archive", "url": "https://britishmaterialunit.com/archive" },
+          { "@type": "ListItem", "position": 5, "name": "Operation Upcycle", "url": "https://britishmaterialunit.com/ou" },
+          { "@type": "ListItem", "position": 6, "name": "East West", "url": "https://britishmaterialunit.com/ew" },
+          { "@type": "ListItem", "position": 7, "name": "Lambrino", "url": "https://britishmaterialunit.com/lamb" }
         ]
       }
     ]
@@ -419,6 +418,16 @@
     /* nothing else on the page is pressable once it has been asked for */
     body.arch-leaving #navStack,
     body.arch-leaving #scrollCue{ pointer-events:none; }
+    /* ...and nothing is left standing behind the box as it goes. The arrow
+       at the foot of the screen fades — it would otherwise sit exactly where
+       the box is heading — and the copy unwrites itself (goArchive) while
+       fading, so the page is empty by the time the archive paints. */
+    body.entered.arch-leaving #scrollCue,
+    body.entered.arch-leaving #scrollCue.close-mode{ opacity:0; }
+    body.entered.arch-leaving .typewriter-text{
+      opacity:0;
+      transition:opacity 1.1s cubic-bezier(.4,0,.2,1);
+    }
 
 
     /* ---------- FOOTER ARROW ---------- */
@@ -439,6 +448,15 @@
       white-space:normal;
     }
     #joinPanel.on{ display:flex; }
+    /* what joining gets you, typed out before the address — set the way the
+       repository's lede is, so the two panels open in the same voice */
+    .join-lede{
+      width:min(92vw, 420px);
+      font-size:clamp(10pt, 3.2vw, 11.5pt);
+      line-height:1.55;
+      text-align:center;
+    }
+    .join-lede:empty{ display:none; }
     /* shrink-to-fit, so its rendered width is what the grey field is cut to */
     #joinEmail{
       white-space:pre;
@@ -545,12 +563,15 @@
     .repo-note.in{ opacity:1; }
     /* the two ways on out of this panel — underlined rather than coloured,
        so they read as links without breaking the page's one-ink rule */
+    .repo-note:empty{ display:none; }
+    .repo-lede a,
     .repo-note a{
       color:var(--ink);
       text-decoration:underline;
       text-underline-offset:2px;
       transition:opacity .25s cubic-bezier(.4,0,.2,1);
     }
+    .repo-lede a:hover,
     .repo-note a:hover{ opacity:.6; }
 
     /* An announcement is news, not a standing relationship — set apart from
@@ -618,6 +639,26 @@
     body.early-open #joinInput{ color:#fff; caret-color:#fff; }
     body.early-open #joinSlide{ border-color:#fff; }
     body.early-open #scrollCue path{ stroke:#fff; fill:#fff; }
+
+    /* ---------- EARLY ACCESS, LOCKED ----------
+       Parked. The box keeps its place in the row, its word and rule turned
+       down to grey, and the padlock sits over it in black so the reason it
+       does not answer is the first thing read. No hover: a hover would say
+       it can be pressed. */
+    #earlyBtn.is-locked{
+      position:relative;
+      color:#c8c8c8;
+      border-color:#e0e0e0;
+      cursor:not-allowed;
+    }
+    #earlyBtn.is-locked:hover{ background:var(--bg); color:#c8c8c8; }
+    .ea-lock{
+      position:absolute;
+      left:50%; top:50%;
+      width:15px; height:15px;
+      transform:translate(-50%, -50%);
+      pointer-events:none;
+    }
 
     /* ---------- OPERATIONS BAR ---------- */
     #opsBtn{
@@ -986,8 +1027,8 @@
     /* Hovering brings the fill forward early if the draw has not finished;
        once it has, there is nothing for a hover to change — which is the
        point. The mark looks the same whether or not the pointer is on it. */
-    .foot-head:hover .foot-fill{ opacity:1; transition:none; }
-    .foot-head:hover .foot-trace{ opacity:0; transition:none; }
+    /* (a hover while it is drawing commits the fill — see revealFooter —
+       rather than showing it only for as long as the pointer stays) */
 
     /* flex-centres the text inside its reserved height so it sits on the
        mark's centre line rather than riding above it while it types */
@@ -1043,6 +1084,21 @@
       transition:color .25s cubic-bezier(.4,0,.2,1);
     }
     .foot-col a:hover{ color:var(--ink); }
+
+    /* Early Access is parked. Pressing it goes nowhere: the padlock fades
+       up over the word in black, holds a beat, and fades away again. */
+    .foot-col a.foot-locked{ position:relative; }
+    .foot-lock{
+      position:absolute;
+      left:50%; top:50%;
+      width:13px; height:13px;
+      transform:translate(-50%, -50%);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .35s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-locked.flash .foot-lock{ opacity:1; }
+    .foot-locked.flash{ color:#d0d0d0; }
 
     /* the address is one block of information, so it sets on its own tight
        rhythm — the column's 9px gap is for lists, not for a postal address */
@@ -1515,6 +1571,7 @@
              the grey field slides in beneath it at the address's own width,
              then the reader types theirs into it -->
         <div id="joinPanel" aria-hidden="true">
+          <div id="joinLede" class="join-lede"></div>
           <div id="joinEmail"></div>
           <div id="joinSlide">
             <input id="joinInput" type="email" inputmode="email" autocomplete="email"
@@ -1541,7 +1598,10 @@
     <div id="navStack">
     <nav id="navRow" aria-label="Join, Early Access, Operations, Repository, Archive">
       <div id="joinBtn" class="bm-button" role="button" tabindex="0" aria-label="Join">Join</div>
-      <div id="earlyBtn" class="bm-button" role="button" tabindex="0" aria-label="Early Access">Early Access</div>
+      <!-- Early Access is parked: the page is kept (earlyaccess_2.html) but
+           nothing leads to it. The box keeps its slot so the row does not
+           reflow, greyed, with the lock standing over the word. -->
+      <div id="earlyBtn" class="bm-button is-locked" role="button" tabindex="-1" aria-disabled="true" aria-label="Early Access, locked">Early Access<img class="ea-lock" src="/lock.svg" alt="" aria-hidden="true" /></div>
 
       <!-- ONE BOX. The sheet is a child of the bar, not a sibling: the bar
            carries the only border, and opening Operations does nothing but
@@ -2596,7 +2656,7 @@
                the footer returns the reader there and plays them rather than
                navigating away to a page that does not exist -->
           <a href="#" id="footJoin">Join</a>
-          <a href="/earlyaccess">Early Access</a>
+          <a href="#" class="foot-locked" aria-disabled="true" aria-label="Early Access, locked">Early Access<img class="foot-lock" src="/lock.svg" alt="" aria-hidden="true" /></a>
           <a href="#" id="footOps">Operations</a>
           <a href="#" id="footRepo">Repository</a>
           <a href="/archive">Archive</a>
@@ -2641,8 +2701,7 @@
       <div class="foot-base">
         <span class="foot-org">British Material Unit (BMU)</span>
         <nav class="foot-legal" aria-label="Legal">
-          <a href="/terms.html">Terms &amp; Conditions</a>
-          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/privacy.html">PRIVACY</a>
         </nav>
         <span class="foot-copy">British Material Unit ◎ 2026</span>
       </div>
@@ -2831,10 +2890,17 @@
         siteFooter.classList.add('in');            // starts the trace + dots
         setTimeout(() => siteFooter.classList.add('settled'), 1500);
         const fill = () => {
+          if (siteFooter.classList.contains('filled')) return;   // once
           footFill.classList.add('visible');
           // the outline steps aside as the fill lands — see #siteFooter.filled
           siteFooter.classList.add('filled');
+          /* the draw is spent: pinned at its end, so no restyle can
+             start it over */
+          footTrace.style.animation = 'none';
+          footTrace.style.strokeDashoffset = '0';
         };
+        const footHead = siteFooter.querySelector('.foot-head');
+        if (footHead) footHead.addEventListener('mouseenter', fill, { once:true });
         // same draw-then-fill as the hero, with a fallback so the mark
         // can never be left invisible if animationend does not arrive
         footTrace.addEventListener('animationend', fill, { once:true });
@@ -3213,9 +3279,13 @@
        shows the address to write to instead, so the flow never dead-ends. */
     const JOIN_ENDPOINT = 'https://formsubmit.co/ajax/hello@britishmaterialunit.com';
     const JOIN_TO       = 'hello@britishmaterialunit.com';
+    const JOIN_LEDE     =
+      'Join as a designer and gain access to our regular donations of ' +
+      'military surplus and open-studio, Unit U.';
 
     const joinBtn   = document.getElementById('joinBtn');
     const joinPanel = document.getElementById('joinPanel');
+    const joinLede  = document.getElementById('joinLede');
     const joinEmail = document.getElementById('joinEmail');
     const joinSlide = document.getElementById('joinSlide');
     const joinInput = document.getElementById('joinInput');
@@ -3362,6 +3432,7 @@
       leaving = true;
       leftBtn = opsBtn;
       document.body.classList.add('arch-leaving');
+      bmuUntype(textContent, 5);
       // the row is held shut the way Join holds it, so nothing else can start
       joinState = 'opening';
       navRow.classList.add('ops-engaged', 'join-mode');
@@ -3388,7 +3459,10 @@
 
       // and away: down the screen, fading as it goes
       later(() => { driftOff(); }, 1080);
-      later(() => { window.location.href = '/archive'; }, 1460);
+      /* Not until the drift has run its whole .66s. Leaving at 1460 froze the
+         box on screen part-faded while the archive loaded — the last frame
+         of this page is what stays up until the next one paints. */
+      later(() => { window.location.href = '/archive'; }, 1080 + 700);
     }
 
     /* The last beat both doors share: the box leaves the way the reader is
@@ -3485,7 +3559,17 @@
       releaseButtons();
     }
 
-    window.addEventListener('pageshow', e => { if (e.persisted) resetArchRow(); });
+    window.addEventListener('pageshow', e => {
+      if (!e.persisted) return;
+      resetArchRow();
+      /* the copy was unwritten on the way out; a cached restore hands it
+         back empty, so it is put back whole (any unwriting still pending is
+         cancelled first) */
+      if (document.body.classList.contains('entered')){
+        textContent.__typeRun = 0;
+        textContent.textContent = mainText;
+      }
+    });
     // and a plain back-navigation that does not come from the cache
     window.addEventListener('popstate', resetArchRow);
 
@@ -3599,28 +3683,32 @@
         if (joinMode === 'repo'){ repoSequence(live); return; }
         joinPanel.classList.add('on');
         joinPanel.setAttribute('aria-hidden', 'false');
-        bmuType(JOIN_TO, joinEmail, 40, () => {
+        // the offer first, then the address it is made to
+        bmuType(JOIN_LEDE, joinLede, 26, () => {
           if (!live()) return;
-          // the field is cut to the address's rendered length, then slid out
-          requestAnimationFrame(() => {
-            const w = Math.ceil(joinEmail.getBoundingClientRect().width);
-            joinBaseW = w;
-            joinSlide.style.setProperty('--slide-w', w + 'px');
-            joinSlide.classList.add('slid');
-            /* ready at once — the placeholder is showing and the caret is
-               in it, so waiting on the slide before accepting a keystroke
-               would contradict what the field is telling the reader */
-            joinState = 'ready';
-            claimUrl(joinMode === 'early' ? '/earlyaccess' : '/join');
-            try { joinInput.focus({ preventScroll:true }); } catch(_){}
-            raiseJoinButton();
-            /* .typable is only the fast width transition for tracking what
-               is typed; it must not shorten the opening slide itself */
-            later(() => {
-              if (!live()) return;
-              joinSlide.classList.add('typable');
-            }, 640);
-          });
+          bmuType(JOIN_TO, joinEmail, 40, () => {
+            if (!live()) return;
+            // the field is cut to the address's rendered length, then slid out
+            requestAnimationFrame(() => {
+              const w = Math.ceil(joinEmail.getBoundingClientRect().width);
+              joinBaseW = w;
+              joinSlide.style.setProperty('--slide-w', w + 'px');
+              joinSlide.classList.add('slid');
+              /* ready at once — the placeholder is showing and the caret is
+                 in it, so waiting on the slide before accepting a keystroke
+                 would contradict what the field is telling the reader */
+              joinState = 'ready';
+              claimUrl(joinMode === 'early' ? '/earlyaccess' : '/join');
+              try { joinInput.focus({ preventScroll:true }); } catch(_){}
+              raiseJoinButton();
+              /* .typable is only the fast width transition for tracking what
+                 is typed; it must not shorten the opening slide itself */
+              later(() => {
+                if (!live()) return;
+                joinSlide.classList.add('typable');
+              }, 640);
+            });
+          }, live);
         }, live);
     }
 
@@ -3628,21 +3716,18 @@
        Holding state. The repository itself is the next piece of work, so
        this says what is true now and hands the reader the two doors that
        are actually open: the archive, and a demo of MarshalOS. */
-    /* Both halves are typed — the lede at reading pace, the note faster
-       because there is four times as much of it. The button stays in its
-       slot throughout: it used to be lifted under the panel and lifted
-       again once the note landed, which put the one fixed thing on the
-       screen in motion twice while the copy was being read. */
-    const REPO_LEDE =
-      'We regularly donate military surplus to designers and have an ' +
-      'open-studio called Unit U.';
-    const REPO_NOTE_HTML =
+    /* One statement now, typed in the lede's own voice. What used to open
+       it — the donations and Unit U — is folded into the sentence about the
+       repository, so there is no second half to wait for. It runs brisker
+       than the Join lede because there is three times as much of it. The
+       button stays in its slot throughout. */
+    const REPO_LEDE_HTML =
       'Our repository will be updated in due time with military surplus textiles ' +
-      'available for acquisition with their pattern metrics. In the meantime, search ' +
-      'for military garments via our <a href="/archive">archive</a> and request for ' +
-      'sourcing for small production runs. Alternatively, request for a ' +
-      '<a href="/contact">demo</a> of MarshalOS, our remanufacturing software for ' +
-      'garment to garment recycling.';
+      'available for donations and acquisition along with their pattern metrics. ' +
+      'In the meantime, search for military garments via our ' +
+      '<a href="/archive">archive</a> and request for sourcing for small production ' +
+      'runs. Alternatively, request for a <a href="/contact">demo</a> of MarshalOS, ' +
+      'our remanufacturing software for garment to garment recycling.';
 
     const repoPanel = document.getElementById('repoPanel');
     const repoLede  = document.getElementById('repoLede');
@@ -3652,22 +3737,9 @@
       repoPanel.classList.add('on');
       repoPanel.setAttribute('aria-hidden', 'false');
       repoNote.classList.remove('in');
-      bmuType(REPO_LEDE, repoLede, 26, () => {
-        if (!live()) return;
-        joinState = 'ready';
-        later(() => {
-          if (!live()) return;
-          /* Typed, not faded in. The lede and the note are one statement in
-             two halves, and the second half arriving whole after the first
-             was written out read as two different kinds of writing. It runs
-             at a brisker rate than the lede because there is four times as
-             much of it and nobody should be held at a closed door for ten
-             seconds. */
-          repoNote.classList.add('in');
-          bmuTypeRich(repoNote, REPO_NOTE_HTML, 11, null, live);
-          claimUrl('/repository');
-        }, 520);
-      }, live);
+      joinState = 'ready';
+      claimUrl('/repository');
+      bmuTypeRich(repoLede, REPO_LEDE_HTML, 14, null, live);
     }
 
     /* The opening run backwards: the field and the address go, the one
@@ -3690,6 +3762,7 @@
       repoNote.classList.remove('in');
       repoLede.textContent = '';
       joinMode = 'join';
+      joinLede.textContent = '';
       joinEmail.textContent = '';
       joinInput.value = '';
       joinInput.disabled = false;
@@ -3818,11 +3891,11 @@
        field. The panel it used to open is still there and still reached from
        the footer's index and from /#earlyaccess; this button goes to the
        page, the way Archive goes to the archive. */
+    /* Parked: the page is kept but the button is locked (see
+       #earlyBtn.is-locked). A press is swallowed rather than ignored, so it
+       can never fall through to anything underneath. */
     if (earlyBtn){
-      earlyBtn.addEventListener('click', goEarlyAccess);
-      earlyBtn.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goEarlyAccess(e); }
-      });
+      earlyBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
     }
     joinBtn.addEventListener('click', () => openJoin('join'));
     joinBtn.addEventListener('keydown', (e) => {
@@ -4080,7 +4153,6 @@
          #operations   inside, with the Operations sheet already open
          #join         inside, with Join already open
          #repository   inside, with Repository already open
-         #earlyaccess  inside, with Early Access already open
 
        Join, Operations and Repository are states of THIS page rather than
        documents of their own, which is why /join and the footer's links all
@@ -4110,7 +4182,7 @@
     (function arrival(){
       const want = location.hash.slice(1).toLowerCase();
       const PANELS = { operations:() => openOps(), join:() => openJoin('join'),
-                       repository:() => openJoin('repo'), earlyaccess:() => openJoin('early') };
+                       repository:() => openJoin('repo') };
       if (want !== 'home' && want !== 'footer' && want !== 'blurb' && !PANELS[want]) return;
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       history.replaceState(null, '', location.pathname + location.search);
@@ -4444,6 +4516,18 @@ applyVB();
     regions.forEach(r=>{ r.style.transitionDelay=""; });
   };
 })();
+</script>
+<script>
+  /* Early Access, parked: the footer link shows its padlock and goes nowhere */
+  document.querySelectorAll('.foot-locked').forEach(a => {
+    let t;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      clearTimeout(t);
+      a.classList.add('flash');
+      t = setTimeout(() => a.classList.remove('flash'), 1100);
+    });
+  });
 </script>
 </body>
 </html>
