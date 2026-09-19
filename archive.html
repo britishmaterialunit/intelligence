@@ -2196,6 +2196,16 @@
     </a>
 
     <nav class="hd-tools" aria-label="Leave the archive">
+      <!-- the private shelves: a head and shoulders, drawn in the same line
+           as the index beside it -->
+      <a class="hd-ico" id="hdColl" href="/collections" aria-label="Collections — sign in">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <g class="ico-stroke">
+            <circle cx="8" cy="5.4" r="2.6"/>
+            <path d="M2.8 13.6 C3.4 10.9 5.5 9.6 8 9.6 C10.5 9.6 12.6 10.9 13.2 13.6"/>
+          </g>
+        </svg>
+      </a>
       <a class="hd-ico" id="hdHome" href="/" aria-label="Back to the site">
         <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
           <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
@@ -6463,6 +6473,8 @@
     if (hdMark)  hdMark.addEventListener('click',  e => { e.preventDefault(); leaveTo('/#home'); });
     if (hdHome)  hdHome.addEventListener('click',  e => { e.preventDefault(); leaveTo('/#home'); });
     if (hdIndex) hdIndex.addEventListener('click', e => { e.preventDefault(); leaveTo('/#footer'); });
+    const hdColl = document.getElementById('hdColl');
+    if (hdColl)  hdColl.addEventListener('click',  e => { e.preventDefault(); leaveTo('/collections'); });
 
     pruneSaved();
     paintSaved();

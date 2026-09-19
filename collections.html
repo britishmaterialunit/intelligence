@@ -3,36 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="East West — industrial partner to British Material Unit. Archive, repository and open-studio." />
-  <meta name="robots" content="index, follow" />
+  <meta name="description" content="Collections — private selections from the British Material Unit archive." />
+  <!-- private shelves: nothing here is for a search engine -->
+  <meta name="robots" content="noindex, nofollow" />
   <meta name="author" content="British Material Unit" />
   <meta name="theme-color" content="#ffffff" />
-  <link rel="canonical" href="https://britishmaterialunit.com/ew" />
   <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
-
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://britishmaterialunit.com/ew" />
-  <meta property="og:site_name" content="British Material Unit (BMU)" />
-  <meta property="og:title" content="East West — Industrial Partner | British Material Unit" />
-  <meta property="og:description" content="Archive, repository and open-studio." />
-  <meta property="og:locale" content="en_GB" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="East West — Industrial Partner | British Material Unit" />
-  <meta name="twitter:description" content="Archive, repository and open-studio." />
-
-  <title>East West — Industrial Partner | BMU</title>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "url": "https://britishmaterialunit.com/ew",
-    "name": "East West \u2014 Industrial Partner | BMU",
-    "description": "Archive, repository and open-studio.",
-    "isPartOf": { "@id": "https://britishmaterialunit.com/#website" },
-    "about": { "@type": "Organization", "name": "East West" }
-  }
-  </script>
+  <title>Collections | BMU</title>
 
   <style>
     :root{
@@ -876,111 +853,338 @@
     }
 
 
-    /* ---------- BOOKING ----------
-       Cal.com's own scheduler, framed the way everything else on the site
-       is framed: one black rule around it and nothing else. It is given a
-       tall box because the calendar decides its own height, and a short one
-       leaves the reader scrolling inside a scroller. */
-    .book-wrap{ position:relative; max-width:900px; }
-    .book-frame{
-      position:relative;
-      width:100%;
-      height:min(78vh, 760px);
-      /* no rule: the calendar draws its own card inside, and a second box
-         around it read as a frame around a frame */
-      border:0;
-      background:var(--bg);
-      overflow:hidden;
+    /* ---------- COLLECTIONS ----------
+       A private shelf cut from the archive for one person to look over.
+       Everything here is set in the site's own hand: 1.5px black boxes,
+       the Join page's grey field, and each collection listed the way the
+       partners are in Operations — the label over the line it names. */
+    #coll{
+      width:min(92vw, 1100px);
+      margin:0 auto;
+      flex:1 0 auto;
+      padding:120px 0 90px;
     }
-    /* The embed carries a Cal.com badge in a band below the calendar card,
-       and being cross-origin it cannot be reached into. The band is covered
-       by a strip of the page's own background, inside the same black rule,
-       so what shows is the calendar and nothing else.
+    .cl-view{ margin-top:34px; }
+    /* Hidden means gone, whatever else is on the element. The rows here are
+       display:flex and the buttons inline-block, and either of those beats
+       the browser's own [hidden] rule — which is how a reviewer came to be
+       shown the admin's buttons. */
+    #coll [hidden]{ display:none !important; }
 
-       Running the frame taller and clipping the bottom was tried first and
-       does not work: the badge is anchored under the card, not to the
-       bottom of the frame, so a taller frame just adds empty space beneath
-       it. The height below is measured against where the band actually
-       falls — see the note in the handover, this is a cover, and the
-       supported way to drop the badge is Cal.com's own paid setting. */
-    .book-frame iframe{
-      width:100%; height:100%;
-      border:0;
+    .cl-label{
       display:block;
+      font-size:10px;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:#9a9a9a;
     }
-    .book-mask{
-      position:absolute;
-      left:0; right:0; bottom:0;
-      height:var(--badge-cover, 186px);
-      background:var(--bg);
-      pointer-events:none;
-    }
-    /* Cal's help widget sits in the bottom-right in its own typeface and its
-       own blue — it belongs to their product, not to this page. Covered the
-       same way the badge is, and for the same reason. */
-    .book-help{
-      position:absolute;
-      right:0; bottom:0;
-      width:132px; height:132px;
-      background:var(--bg);
-      pointer-events:none;
+    .cl-lede{
+      margin:12px 0 0;
+      max-width:56ch;
+      font-size:13px;
+      line-height:1.7;
+      color:#6a6a6a;
     }
 
-    /* ---------- the three things that can be booked ----------
-       One row of plates, one of them live. They are buttons rather than
-       links: the calendar underneath changes in place, so nothing about
-       the page is actually navigated. */
-    .book-tabs{
-      display:flex;
-      gap:-1.5px;
-      margin:0 0 14px;
-      flex-wrap:wrap;
-      /* the same measure as the calendar under them — they were running the
-         full column width while it stopped at 900, so the row overhung it */
-      max-width:900px;
-    }
-    .book-tab{
-      flex:1 1 0;
-      min-width:120px;
-      padding:11px 10px;
-      font-family:var(--font);
-      font-size:10px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
+    /* the Join page's field: grey, no rule, the same height */
+    .cl-field{
+      display:block;
+      width:min(100%, 420px);
+      height:34px;
+      margin-top:10px;
+      padding:0 12px;
+      border:0;
+      border-radius:0;
+      background:#e9e9e9;
+      font:13px var(--font);
       color:var(--ink);
-      background:var(--bg);
+      outline:none;
+      -webkit-appearance:none;
+      appearance:none;
+    }
+    .cl-field::placeholder{ color:#a8a8a8; }
+    .cl-field:focus{ background:#e2e2e2; }
+    .cl-field[disabled]{ color:#b5b5b5; }
+    textarea.cl-field{
+      height:auto;
+      min-height:96px;
+      padding:10px 12px;
+      line-height:1.5;
+      resize:vertical;
+    }
+    .cl-wide{ width:min(100%, 640px); }
+
+    /* a button in the row's own shape */
+    .cl-btn{
+      display:inline-block;
+      height:32px;
+      padding:0 18px;
       border:1.5px solid var(--line);
-      margin-right:-1.5px;   /* one shared rule between neighbours */
+      border-radius:0;
+      background:var(--bg);
+      color:#000;
+      font:13px var(--font);
+      line-height:29px;
       cursor:pointer;
-      transition:background-color .3s cubic-bezier(.4,0,.2,1), color .3s cubic-bezier(.4,0,.2,1);
+      white-space:nowrap;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1),
+                 color .3s cubic-bezier(.4,0,.2,1);
     }
-    .book-tab:last-child{ margin-right:0; }
-    .book-tab:hover{ background:var(--faint); }
-    .book-tab[aria-selected="true"]{
-      background:var(--line);
-      color:var(--bg);
-      position:relative;
-      z-index:1;
+    .cl-btn:hover{ background:var(--faint); color:#444; }
+    .cl-btn[disabled]{
+      color:#c8c8c8;
+      border-color:#e0e0e0;
+      background:var(--bg);
+      cursor:not-allowed;
     }
-    .book-note{
-      margin:12px 0 0;
-      max-width:60ch;
+    .cl-btn.cl-solid{ background:#000; color:#fff; }
+    .cl-btn.cl-solid:hover{ background:#262626; color:#fff; }
+
+    .cl-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:12px;
+      margin-top:16px;
+    }
+    .cl-msg{
+      min-height:1.4em;
+      margin-top:12px;
+      font-size:12px;
+      color:#888;
+    }
+    .cl-msg.bad{ color:#b03a2e; }
+    .cl-link{
+      padding:0;
+      border:0;
+      background:none;
+      font:inherit;
+      color:#888;
+      text-decoration:underline;
+      text-underline-offset:3px;
+      cursor:pointer;
+    }
+    .cl-link:hover{ color:var(--ink); }
+    .cl-who{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      align-items:baseline;
+      font-size:12px;
+      color:#888;
+    }
+
+    /* ---------- the collections, listed like the partners ---------- */
+    .cl-list{ margin-top:22px; max-width:640px; }
+    .cl-empty{ margin:0; font-size:13px; color:#888; }
+    .news-item{
+      display:block;
+      width:100%;
+      margin:0 0 12px;
+      padding:13px 16px;
+      border:1.5px solid var(--line);
+      border-radius:0;
+      background:var(--bg);
+      color:var(--ink);
+      font:inherit;
+      text-align:left;
+      cursor:pointer;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .news-item:hover{ background:var(--faint); }
+    .ni-date{
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#888;
+    }
+    .ni-title{
+      display:block;
+      margin-top:4px;
+      font-size:13.5px;
+      font-weight:bold;
+    }
+    .ni-sub{
+      display:block;
+      margin-top:3px;
+      font-size:12px;
+      color:#555;
+    }
+
+    /* ---------- a collection, opened ---------- */
+    .cl-title{
+      margin:10px 0 0;
+      font-size:clamp(26px, 4.6vw, 44px);
+      font-weight:400;
+      letter-spacing:-.01em;
+      line-height:1.08;
+    }
+    .cl-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+      gap:14px;
+      margin-top:24px;
+    }
+    .cl-card{
+      display:flex;
+      flex-direction:column;
+      border:1.5px solid var(--line);
+      background:var(--bg);
+    }
+    .cl-img{
+      aspect-ratio:1 / 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      border-bottom:1.5px solid var(--line);
+    }
+    .cl-img img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      -webkit-user-drag:none;
+      user-select:none;
+    }
+    .cl-meta{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      padding:10px 12px 12px;
+    }
+    .cl-name{ font-size:12px; font-weight:bold; line-height:1.4; }
+    .cl-sub{
+      font-size:9.5px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#aaa;
+    }
+    .cl-want{
+      margin-top:auto;
+      width:100%;
+      height:28px;
+      line-height:25px;
+      padding:0 8px;
       font-size:11px;
-      line-height:1.6;
-      color:#9a9a9a;
-      min-height:1.6em;
+      letter-spacing:.12em;
+      text-transform:uppercase;
     }
+    .cl-want[aria-pressed="true"]{ background:#000; color:#fff; }
+    .cl-want[aria-pressed="true"]:hover{ background:#262626; color:#fff; }
+    /* an admin reading a reply: what was wanted, marked, not pressable */
+    .cl-picked{
+      margin-top:auto;
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#000;
+    }
+    .cl-picked::before{
+      content:"";
+      display:inline-block;
+      width:8px; height:8px;
+      margin-right:6px;
+      background:#000;
+      vertical-align:0;
+    }
+    .cl-reply{ margin-top:34px; max-width:640px; }
+    .cl-quote{
+      margin:10px 0 0;
+      padding:12px 14px;
+      background:#f4f4f4;
+      font-size:13px;
+      line-height:1.6;
+      white-space:pre-wrap;
+    }
+
+    /* ---------- building one ---------- */
+    .cl-form > * + .cl-label{ margin-top:22px; }
+    .cl-pickbar{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:12px;
+      margin-top:10px;
+    }
+    .cl-pickbar .cl-field{ margin-top:0; }
+    .cl-count{ font-size:12px; color:#888; }
+    .cl-pick-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(122px, 1fr));
+      gap:10px;
+      max-height:62vh;
+      margin-top:12px;
+      padding:12px;
+      overflow:auto;
+      border:1.5px solid var(--line);
+      overscroll-behavior:contain;
+    }
+    .cl-pick{
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      padding:0;
+      border:1.5px solid #e0e0e0;
+      border-radius:0;
+      background:var(--bg);
+      font:inherit;
+      text-align:left;
+      cursor:pointer;
+      transition:border-color .25s cubic-bezier(.4,0,.2,1);
+    }
+    .cl-pick:hover{ border-color:#9a9a9a; }
+    .cl-pick.on{ border-color:var(--line); }
+    .cl-pick .cl-img{ border-bottom:0; }
+    .cl-pick .cl-pname{
+      padding:6px 8px 8px;
+      font-size:10px;
+      line-height:1.35;
+      color:#555;
+    }
+    .cl-pick.on .cl-pname{ color:#000; font-weight:bold; }
+    /* chosen: a filled square with its place in the order */
+    .cl-pick .cl-order{
+      position:absolute;
+      top:6px; right:6px;
+      min-width:18px; height:18px;
+      padding:0 4px;
+      background:#000;
+      color:#fff;
+      font-size:10px;
+      line-height:18px;
+      text-align:center;
+      opacity:0;
+      transition:opacity .2s cubic-bezier(.4,0,.2,1);
+    }
+    .cl-pick.on .cl-order{ opacity:1; }
+
+    /* ---------- a login, made for someone ---------- */
+    .cl-panel{
+      margin-top:34px;
+      max-width:640px;
+      padding:18px 18px 16px;
+      border:1.5px solid var(--line);
+    }
+    .cl-panel .cl-field{ width:100%; }
+    .cl-slip{
+      margin:12px 0 0;
+      padding:12px 14px;
+      background:#f4f4f4;
+      font:12px/1.7 var(--font);
+      white-space:pre-wrap;
+      user-select:all;
+    }
+
     @media (max-width:640px){
-      .book-frame{ height:min(74vh, 620px); }
-      .book-tab{ flex:1 1 100%; margin-right:0; margin-bottom:-1.5px; }
-      .book-tabs{ display:block; }
+      #coll{ padding-top:96px; }
+      .cl-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+      .cl-pick-grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
     }
 
   </style>
 </head>
-<!-- `entered` from the markup: this page has no front door to open, so the
-     state the home page earns with a click is simply where this one starts.
-     Every body.entered rule in the shared chrome depends on it. -->
 <body class="entered">
   <!-- SITE HEADER — arrives with the button row, once the typewriter has
        finished. See-through over the white page, near-black on hover, so
@@ -1020,11 +1224,118 @@
     </nav>
    </div>
   </header>
-  <main id="partner">
-    <div class="p-role" id="pRole" data-text="Industrial Partner"></div>
-    <h1 class="p-name" id="pName" data-text="East West"></h1>
-    <p class="p-line">Archive, repository and open-studio.</p>
-    <p class="p-body">East West is set to industrialise our operations with authorising a build of an open studio for our team and designers to repair and remanufacture military surplus in a value-add, circularity focused partnership. Joining forces enables us to expand our sourcing capabilities to EU and US surplus disposable markets and introduces a new methodology and approach to surplus for East West, focusing on development of products before sale and creating closed-loop distribution networks for continuous circulation of surplus, avoiding trade blocks and maintaining material flow.</p>
+  <main id="coll">
+    <div class="p-role" id="pRole" data-text="Archive"></div>
+    <h1 class="p-name" id="pName" data-text="Collections"></h1>
+
+    <!-- SIGN IN -->
+    <section class="cl-view" id="clSignIn">
+      <p class="cl-lede" id="clSignLede">A shelf cut from the archive for you to look over. Sign in with the login you were sent.</p>
+      <form id="clSignForm" autocomplete="on" novalidate>
+        <input class="cl-field" id="clEmail" type="email" inputmode="email" autocomplete="username"
+               spellcheck="false" placeholder="you@example.com" aria-label="Email">
+        <input class="cl-field" id="clPass" type="password" autocomplete="current-password"
+               placeholder="Password" aria-label="Password">
+        <div class="cl-row">
+          <button class="cl-btn" id="clSignBtn" type="submit">Sign in</button>
+        </div>
+      </form>
+      <div class="cl-msg" id="clSignMsg" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- YOUR COLLECTIONS -->
+    <section class="cl-view" id="clHome" hidden>
+      <div class="cl-who">
+        <span id="clWho"></span>
+        <button type="button" class="cl-link" id="clOut">Sign out</button>
+      </div>
+      <div class="cl-row" id="clAdminBar" hidden>
+        <button type="button" class="cl-btn" id="clNew">New collection</button>
+        <button type="button" class="cl-btn" id="clLoginOpen">Create a login</button>
+      </div>
+
+      <div class="cl-panel" id="clLoginPanel" hidden>
+        <span class="cl-label">Create a login</span>
+        <p class="cl-lede">For the person you are making a collection for. Their email here must match the email you address the collection to.</p>
+        <input class="cl-field" id="clNewEmail" type="email" inputmode="email" autocomplete="off"
+               spellcheck="false" placeholder="their@email.com" aria-label="Their email">
+        <input class="cl-field" id="clNewPass" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Password, at least 8 characters" aria-label="Their password">
+        <div class="cl-row">
+          <button type="button" class="cl-btn" id="clMakePass">Make one up</button>
+          <button type="button" class="cl-btn" id="clMakeLogin">Create login</button>
+        </div>
+        <div class="cl-msg" id="clLoginMsg" role="status" aria-live="polite"></div>
+        <pre class="cl-slip" id="clSlip" hidden></pre>
+        <div class="cl-row" id="clSlipRow" hidden>
+          <button type="button" class="cl-btn" id="clCopySlip">Copy to send</button>
+        </div>
+      </div>
+
+      <div class="cl-list" id="clList"></div>
+    </section>
+
+    <!-- ONE COLLECTION -->
+    <section class="cl-view" id="clView" hidden>
+      <div class="cl-who">
+        <button type="button" class="cl-link" id="cvBack">All collections</button>
+      </div>
+      <span class="cl-label" id="cvLabel" style="margin-top:22px"></span>
+      <h2 class="cl-title" id="cvTitle"></h2>
+      <p class="cl-lede" id="cvNote"></p>
+      <p class="cl-lede" id="cvMissing" hidden></p>
+      <div class="cl-grid" id="cvGrid"></div>
+
+      <!-- the reviewer's side: what they want, and a note -->
+      <div class="cl-reply" id="cvReplyBox" hidden>
+        <span class="cl-label">Your reply</span>
+        <p class="cl-lede">Mark the garments you want above, add anything we should know, and send it. You can come back and change it.</p>
+        <textarea class="cl-field cl-wide" id="cvReply" placeholder="Quantities, sizes, timings — anything" aria-label="Your note"></textarea>
+        <div class="cl-row">
+          <button type="button" class="cl-btn" id="cvSend">Send reply</button>
+          <span class="cl-count" id="cvPickCount"></span>
+        </div>
+        <div class="cl-msg" id="cvMsg" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- the admin's side: what came back, and the way into editing -->
+      <div class="cl-reply" id="cvAdminBox" hidden>
+        <span class="cl-label">Their reply</span>
+        <div id="cvTheirs"></div>
+        <div class="cl-row">
+          <button type="button" class="cl-btn" id="cvEdit">Edit collection</button>
+          <button type="button" class="cl-btn" id="cvCopyLink">Copy link to send</button>
+        </div>
+        <div class="cl-msg" id="cvAdminMsg" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- BUILDING ONE -->
+    <section class="cl-view" id="clEdit" hidden>
+      <div class="cl-who">
+        <button type="button" class="cl-link" id="ceBack">All collections</button>
+      </div>
+      <div class="cl-form">
+        <span class="cl-label" style="margin-top:22px">Title</span>
+        <input class="cl-field cl-wide" id="ceTitle" type="text" autocomplete="off" placeholder="e.g. DPM smocks for spring" aria-label="Title">
+        <span class="cl-label">For</span>
+        <input class="cl-field" id="ceEmail" type="email" inputmode="email" autocomplete="off" spellcheck="false" placeholder="their@email.com" aria-label="Reviewer email">
+        <span class="cl-label">Note to them</span>
+        <textarea class="cl-field cl-wide" id="ceNote" placeholder="Optional" aria-label="Note"></textarea>
+        <span class="cl-label">Garments</span>
+        <div class="cl-pickbar">
+          <input class="cl-field" id="ceSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Search the archive" aria-label="Search garments">
+          <button type="button" class="cl-btn" id="ceOnly" aria-pressed="false">Show chosen</button>
+          <span class="cl-count" id="ceCount"></span>
+        </div>
+        <div class="cl-pick-grid" id="ceGrid"></div>
+      </div>
+      <div class="cl-row">
+        <button type="button" class="cl-btn" id="ceSave">Save collection</button>
+        <button type="button" class="cl-btn" id="ceDelete" hidden>Delete</button>
+      </div>
+      <div class="cl-msg" id="ceMsg" role="status" aria-live="polite"></div>
+    </section>
   </main>
 
   <footer id="siteFooter">
@@ -1099,6 +1410,8 @@
 
     </div>
   </footer>
+  <script src="/collections-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
   <script>
     /* ---------- the name types itself, as it does everywhere else ----------
@@ -1283,6 +1596,586 @@
         } else { done(false); }
       });
     }
+
+    /* ============================================================
+       COLLECTIONS
+       A static page cannot keep a login, so the logins live in Supabase —
+       open source, and the dashboard there is where people's accounts are
+       listed, reset and removed. This page only ever holds the public key
+       (collections-config.js); what one reviewer may see is decided by the
+       row-level security in setup/collections.sql, inside the database,
+       not by anything here.
+
+       Two kinds of person sign in:
+         an admin    — a row in bmu_admins. Sees every collection, builds
+                       and edits them, makes logins, reads the replies.
+         a reviewer  — anyone else. Sees only the collections addressed to
+                       their email, marks what they want, sends a note.
+       ============================================================ */
+    (function collections(){
+      const $ = id => document.getElementById(id);
+      const cfg = window.BMU_COLLECTIONS || {};
+      const REPLY_TO = 'https://formsubmit.co/ajax/hello@britishmaterialunit.com';
+      const SITE = 'https://britishmaterialunit.com/collections';
+
+      const VIEWS = ['clSignIn', 'clHome', 'clView', 'clEdit'];
+      function show(id){
+        VIEWS.forEach(v => { $(v).hidden = v !== id; });
+        window.scrollTo(0, 0);
+      }
+      function say(el, text, bad){
+        el.textContent = text || '';
+        el.classList.toggle('bad', !!bad);
+      }
+
+      const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+      const slugBase = name => String(name).toLowerCase()
+        .replace(/[’']/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+      /* ---------- the archive's own garment list ----------
+         Read out of archive.html itself rather than kept in a second list
+         that would drift: a garment added to the archive is choosable here
+         the moment it is published. The two arrays are found by walking
+         the source bracket by bracket, stepping over strings and comments,
+         and read as the object literals they are. */
+      let GARMENTS = [];
+      const byId = new Map();
+
+      function sliceArray(src, name){
+        const at = src.indexOf('const ' + name + ' = [');
+        if (at < 0) throw new Error(name + ' missing');
+        const open = src.indexOf('[', at);
+        let depth = 0, quote = null;
+        for (let j = open; j < src.length; j++){
+          const c = src[j];
+          if (quote){
+            if (c === '\\'){ j++; continue; }
+            if (c === quote) quote = null;
+            continue;
+          }
+          if (c === '/' && src[j + 1] === '*'){ j = src.indexOf('*/', j + 2) + 1; continue; }
+          if (c === '/' && src[j + 1] === '/'){ j = src.indexOf('\n', j); continue; }
+          if (c === '"' || c === "'" || c === '`'){ quote = c; continue; }
+          if (c === '[') depth++;
+          else if (c === ']' && --depth === 0) return src.slice(open, j + 1);
+        }
+        throw new Error(name + ' unclosed');
+      }
+
+      async function loadArchive(){
+        const res = await fetch('/archive.html', { cache:'no-cache' });
+        if (!res.ok) throw new Error('archive ' + res.status);
+        const src = await res.text();
+        const NATIONS = new Function('return ' + sliceArray(src, 'NATIONS'))();
+        const ITEMS   = new Function('return ' + sliceArray(src, 'ITEMS'))();
+        const nat = new Map(NATIONS.map(n => [n.key, n]));
+        GARMENTS = ITEMS.map(p => {
+          const n = nat.get(p.n) || { key:p.n, label:p.n };
+          const dir = `/archive/${p.n}/${slugBase(p.cat)}/${slugBase(p.name)}`;
+          return {
+            id:     `${p.n}/${slugBase(p.name)}`,
+            name:   p.name,
+            nation: n.label,
+            cat:    p.cat,
+            ref:    p.ref || '',
+            img:    `${dir}/${p.img || slugBase(p.name) + '.png'}`,
+            words:  [p.name, n.label, p.cat, p.ref, p.mat].concat(n.alias || [])
+                      .filter(Boolean).join(' ').toLowerCase()
+          };
+        });
+        byId.clear();
+        GARMENTS.forEach(g => byId.set(g.id, g));
+      }
+
+      /* ---------- the database ---------- */
+      const sb = (cfg.url && cfg.anonKey && window.supabase)
+        ? window.supabase.createClient(cfg.url, cfg.anonKey)
+        : null;
+
+      const api = {
+        async session(){
+          const { data } = await sb.auth.getSession();
+          return data.session;
+        },
+        async signIn(email, password){
+          const { data, error } = await sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          return data.session;
+        },
+        async signOut(){ await sb.auth.signOut(); },
+        async isAdmin(uid){
+          const { data, error } = await sb.from('bmu_admins')
+            .select('user_id').eq('user_id', uid).maybeSingle();
+          if (error) throw error;
+          return !!data;
+        },
+        async collections(){
+          const { data, error } = await sb.from('bmu_collections')
+            .select('*').order('created_at', { ascending:false });
+          if (error) throw error;
+          return data || [];
+        },
+        async saveCollection(c){
+          const row = {
+            title: c.title,
+            note: c.note,
+            reviewer_email: c.reviewer_email,
+            garments: c.garments,
+            updated_at: new Date().toISOString()
+          };
+          const q = c.id
+            ? sb.from('bmu_collections').update(row).eq('id', c.id)
+            : sb.from('bmu_collections').insert(row);
+          const { data, error } = await q.select().single();
+          if (error) throw error;
+          return data;
+        },
+        async deleteCollection(id){
+          const { error } = await sb.from('bmu_collections').delete().eq('id', id);
+          if (error) throw error;
+        },
+        async responses(){
+          const { data, error } = await sb.from('bmu_responses').select('*');
+          if (error) throw error;
+          return data || [];
+        },
+        async saveResponse(r){
+          const { data, error } = await sb.from('bmu_responses')
+            .upsert(r, { onConflict:'collection_id,reviewer_email' })
+            .select().single();
+          if (error) throw error;
+          return data;
+        },
+        /* A second client that never stores a session. Creating an account
+           signs that account in, and doing it on the page's own client
+           would sign the admin out in the middle of making a login. */
+        async createLogin(email, password){
+          const maker = window.supabase.createClient(cfg.url, cfg.anonKey, {
+            auth:{ persistSession:false, autoRefreshToken:false,
+                   detectSessionInUrl:false, storageKey:'bmu-login-maker' }
+          });
+          const { data, error } = await maker.auth.signUp({ email, password });
+          if (error) throw error;
+          // an address that already has a login comes back with no identities
+          if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length){
+            throw new Error('That email already has a login.');
+          }
+          return { ready: !!data.session };
+        }
+      };
+
+      /* ---------- state ---------- */
+      let me = null;                  // { id, email, admin }
+      let list = [];                  // collections this person may see
+      const replies = new Map();      // `${collection}|${email}` → reply
+      let current = null;             // the collection open in clView
+      let picks = new Set();          // what the reviewer has marked
+      let editing = null;             // the collection in clEdit
+      let onlyChosen = false;
+
+      const replyOf = c => replies.get(c.id + '|' + String(c.reviewer_email).toLowerCase());
+
+      async function refresh(){
+        list = await api.collections();
+        replies.clear();
+        (await api.responses()).forEach(r =>
+          replies.set(r.collection_id + '|' + String(r.reviewer_email).toLowerCase(), r));
+      }
+
+      /* ---------- sign in ---------- */
+      $('clSignForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const email = $('clEmail').value.trim().toLowerCase();
+        const pass  = $('clPass').value;
+        if (!EMAIL.test(email)){ say($('clSignMsg'), 'Enter the email you were sent', true); return; }
+        if (!pass){ say($('clSignMsg'), 'Enter your password', true); return; }
+        $('clSignBtn').disabled = true;
+        say($('clSignMsg'), 'Signing in');
+        try {
+          await api.signIn(email, pass);
+          $('clPass').value = '';
+          await boot();
+          say($('clSignMsg'), '');
+        } catch (err){
+          const m = String(err && err.message || '');
+          say($('clSignMsg'), /invalid/i.test(m) ? 'That email and password do not match'
+                            : /confirm/i.test(m) ? 'This login has not been confirmed yet'
+                            : 'Could not sign in', true);
+        } finally {
+          $('clSignBtn').disabled = false;
+        }
+      });
+
+      $('clOut').addEventListener('click', async () => {
+        try { await api.signOut(); } catch {}
+        me = null; list = []; replies.clear();
+        history.replaceState(null, '', location.pathname);
+        show('clSignIn');
+      });
+
+      /* ---------- your collections ---------- */
+      function openHome(){
+        current = null;
+        history.replaceState(null, '', location.pathname);
+        $('clWho').textContent = me.email + (me.admin ? ' · admin' : '');
+        $('clAdminBar').hidden = !me.admin;
+        if (!me.admin) $('clLoginPanel').hidden = true;
+
+        const box = $('clList');
+        if (!list.length){
+          box.innerHTML = `<p class="cl-empty">${me.admin
+            ? 'No collections yet. Start one with New collection.'
+            : 'Nothing has been shared with you yet.'}</p>`;
+        } else {
+          box.innerHTML = list.map(c => {
+            const r = replyOf(c);
+            const n = plural(c.garments.length, 'garment', 'garments');
+            const label = me.admin
+              ? `For ${esc(c.reviewer_email)} · ${n} · ${r ? 'Replied' : 'Awaiting reply'}`
+              : `${n}${r ? ' · Replied' : ''}`;
+            return `<button type="button" class="news-item" data-id="${esc(c.id)}">` +
+                     `<span class="ni-date">${label}</span>` +
+                     `<span class="ni-title">${esc(c.title)}</span>` +
+                     (c.note ? `<span class="ni-sub">${esc(c.note)}</span>` : '') +
+                   `</button>`;
+          }).join('');
+        }
+        show('clHome');
+      }
+      $('clList').addEventListener('click', e => {
+        const b = e.target.closest('.news-item');
+        if (b) openView(b.dataset.id);
+      });
+
+      /* ---------- one collection ---------- */
+      function card(g, mode){
+        const tail = mode === 'want'
+          ? `<button type="button" class="cl-btn cl-want" data-id="${esc(g.id)}" aria-pressed="${picks.has(g.id)}">${picks.has(g.id) ? 'Wanted' : 'Want'}</button>`
+          : mode === 'picked' ? `<span class="cl-picked">Wanted</span>` : '';
+        return `<article class="cl-card">` +
+                 `<div class="cl-img"><img src="${esc(g.img)}" alt="${esc(g.name)}" loading="lazy"></div>` +
+                 `<div class="cl-meta">` +
+                   `<span class="cl-name">${esc(g.name)}</span>` +
+                   `<span class="cl-sub">${esc(g.nation)}${g.ref ? ' · ' + esc(g.ref) : ''}</span>` +
+                   tail +
+                 `</div>` +
+               `</article>`;
+      }
+
+      function openView(id){
+        const c = list.find(x => x.id === id);
+        if (!c){ openHome(); return; }
+        current = c;
+        history.replaceState(null, '', '#c=' + c.id);
+        const r = replyOf(c);
+        picks = new Set(r ? r.picks : []);
+
+        $('cvLabel').textContent = me.admin ? 'For ' + c.reviewer_email : 'Collection';
+        $('cvTitle').textContent = c.title;
+        $('cvNote').textContent = c.note || '';
+        $('cvNote').hidden = !c.note;
+
+        const here = c.garments.map(id => byId.get(id)).filter(Boolean);
+        const gone = c.garments.length - here.length;
+        $('cvMissing').hidden = !gone;
+        $('cvMissing').textContent = gone
+          ? plural(gone, 'garment in this collection is', 'garments in this collection are') + ' no longer in the archive.'
+          : '';
+
+        const reviewing = !me.admin;
+        $('cvGrid').innerHTML = here.map(g =>
+          card(g, reviewing ? 'want' : (picks.has(g.id) ? 'picked' : ''))).join('');
+
+        $('cvReplyBox').hidden = !reviewing;
+        $('cvAdminBox').hidden = reviewing;
+        if (reviewing){
+          $('cvReply').value = r ? r.note : '';
+          $('cvSend').textContent = r ? 'Update reply' : 'Send reply';
+          say($('cvMsg'), r ? 'Sent ' + new Date(r.updated_at).toLocaleString('en-GB') : '');
+          countPicks();
+        } else {
+          $('cvTheirs').innerHTML = r
+            ? `<p class="cl-lede">${plural(r.picks.length, 'garment', 'garments')} wanted · ${esc(new Date(r.updated_at).toLocaleString('en-GB'))}</p>` +
+              (r.note ? `<div class="cl-quote">${esc(r.note)}</div>` : '')
+            : `<p class="cl-lede">No reply yet.</p>`;
+          say($('cvAdminMsg'), '');
+        }
+        show('clView');
+      }
+
+      function countPicks(){
+        $('cvPickCount').textContent = picks.size ? plural(picks.size, 'garment', 'garments') + ' marked' : '';
+      }
+
+      $('cvGrid').addEventListener('click', e => {
+        const b = e.target.closest('.cl-want');
+        if (!b) return;
+        const id = b.dataset.id;
+        if (picks.has(id)) picks.delete(id); else picks.add(id);
+        b.setAttribute('aria-pressed', picks.has(id));
+        b.textContent = picks.has(id) ? 'Wanted' : 'Want';
+        countPicks();
+      });
+
+      $('cvSend').addEventListener('click', async () => {
+        if (!current) return;
+        const row = {
+          collection_id: current.id,
+          reviewer_email: me.email,
+          picks: current.garments.filter(id => picks.has(id)),   // in the collection's order
+          note: $('cvReply').value.trim(),
+          updated_at: new Date().toISOString()
+        };
+        $('cvSend').disabled = true;
+        say($('cvMsg'), 'Sending');
+        try {
+          const saved = await api.saveResponse(row);
+          replies.set(current.id + '|' + me.email, saved || row);
+          tellUs(current, row);
+          $('cvSend').textContent = 'Update reply';
+          say($('cvMsg'), 'Sent — thank you');
+        } catch {
+          say($('cvMsg'), 'Could not send', true);
+        } finally {
+          $('cvSend').disabled = false;
+        }
+      });
+
+      /* The reply is kept in the database and ALSO mailed to us, the same
+         way Join is, so it is read the day it is written. A mail that fails
+         does not undo a reply that was saved. */
+      function tellUs(c, r){
+        try {
+          fetch(REPLY_TO, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+            body: JSON.stringify({
+              _subject: 'BMU collection reply — ' + c.title,
+              Collection: c.title,
+              Reviewer: r.reviewer_email,
+              Wanted: r.picks.map(id => (byId.get(id) || { name:id }).name).join('\n') || '(none)',
+              Note: r.note || '(none)',
+              Link: SITE + '#c=' + c.id,
+              _template: 'table',
+              _captcha: 'false'
+            })
+          }).catch(() => {});
+        } catch {}
+      }
+
+      $('cvBack').addEventListener('click', openHome);
+      $('cvEdit').addEventListener('click', () => { if (current) openEdit(current); });
+      $('cvCopyLink').addEventListener('click', () => {
+        if (!current) return;
+        copy(SITE + '#c=' + current.id, $('cvAdminMsg'), 'Link copied');
+      });
+
+      /* ---------- building one ---------- */
+      function openEdit(c){
+        editing = c
+          ? { id:c.id, title:c.title, note:c.note || '', reviewer_email:c.reviewer_email, garments:c.garments.slice() }
+          : { id:null, title:'', note:'', reviewer_email:'', garments:[] };
+        $('ceTitle').value = editing.title;
+        $('ceEmail').value = editing.reviewer_email;
+        $('ceNote').value  = editing.note;
+        $('ceSearch').value = '';
+        onlyChosen = false;
+        $('ceOnly').setAttribute('aria-pressed', 'false');
+        $('ceDelete').hidden = !editing.id;
+        say($('ceMsg'), '');
+        drawPicker();
+        show('clEdit');
+      }
+
+      function drawPicker(){
+        const tokens = $('ceSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        const chosen = new Map(editing.garments.map((id, i) => [id, i + 1]));
+        const pool = onlyChosen
+          ? editing.garments.map(id => byId.get(id)).filter(Boolean)
+          : GARMENTS.filter(g => tokens.every(t => g.words.includes(t)));
+        $('ceGrid').innerHTML = pool.length
+          ? pool.map(g => {
+              const n = chosen.get(g.id);
+              return `<button type="button" class="cl-pick${n ? ' on' : ''}" data-id="${esc(g.id)}" aria-pressed="${!!n}">` +
+                       `<span class="cl-order">${n || ''}</span>` +
+                       `<span class="cl-img"><img src="${esc(g.img)}" alt="" loading="lazy"></span>` +
+                       `<span class="cl-pname">${esc(g.name)}</span>` +
+                     `</button>`;
+            }).join('')
+          : `<p class="cl-empty">${onlyChosen ? 'Nothing chosen yet.' : 'Nothing in the archive answers that.'}</p>`;
+        $('ceCount').textContent = plural(editing.garments.length, 'garment', 'garments') + ' chosen';
+      }
+
+      $('ceSearch').addEventListener('input', drawPicker);
+      $('ceOnly').addEventListener('click', () => {
+        onlyChosen = !onlyChosen;
+        $('ceOnly').setAttribute('aria-pressed', String(onlyChosen));
+        $('ceOnly').textContent = onlyChosen ? 'Show all' : 'Show chosen';
+        drawPicker();
+      });
+      /* A tick changes that tile and the numbers on the others — nothing is
+         redrawn. Rebuilding the grid on every press reloaded every photograph
+         in it and threw the list back to the top. */
+      function markPicks(){
+        const order = new Map(editing.garments.map((id, i) => [id, i + 1]));
+        $('ceGrid').querySelectorAll('.cl-pick').forEach(el => {
+          const n = order.get(el.dataset.id);
+          el.classList.toggle('on', !!n);
+          el.setAttribute('aria-pressed', String(!!n));
+          el.querySelector('.cl-order').textContent = n || '';
+        });
+        $('ceCount').textContent = plural(editing.garments.length, 'garment', 'garments') + ' chosen';
+      }
+      $('ceGrid').addEventListener('click', e => {
+        const b = e.target.closest('.cl-pick');
+        if (!b) return;
+        const id = b.dataset.id;
+        const i = editing.garments.indexOf(id);
+        if (i >= 0) editing.garments.splice(i, 1); else editing.garments.push(id);
+        // in "chosen only" a tile taken off the list has to leave it
+        if (onlyChosen && i >= 0) drawPicker(); else markPicks();
+      });
+
+      $('ceSave').addEventListener('click', async () => {
+        editing.title = $('ceTitle').value.trim();
+        editing.reviewer_email = $('ceEmail').value.trim().toLowerCase();
+        editing.note = $('ceNote').value.trim();
+        if (!editing.title){ say($('ceMsg'), 'Give it a title', true); return; }
+        if (!EMAIL.test(editing.reviewer_email)){ say($('ceMsg'), 'Enter who it is for', true); return; }
+        if (!editing.garments.length){ say($('ceMsg'), 'Choose at least one garment', true); return; }
+        $('ceSave').disabled = true;
+        say($('ceMsg'), 'Saving');
+        try {
+          const saved = await api.saveCollection(editing);
+          await refresh();
+          openView(saved.id);
+        } catch {
+          say($('ceMsg'), 'Could not save', true);
+        } finally {
+          $('ceSave').disabled = false;
+        }
+      });
+
+      $('ceDelete').addEventListener('click', async () => {
+        if (!editing || !editing.id) return;
+        if (!window.confirm('Delete “' + editing.title + '”? Their reply goes with it.')) return;
+        $('ceDelete').disabled = true;
+        try {
+          await api.deleteCollection(editing.id);
+          await refresh();
+          openHome();
+        } catch {
+          say($('ceMsg'), 'Could not delete', true);
+        } finally {
+          $('ceDelete').disabled = false;
+        }
+      });
+
+      $('ceBack').addEventListener('click', () => {
+        const back = editing && editing.id && list.find(c => c.id === editing.id);
+        if (back) openView(back.id); else openHome();
+      });
+      $('clNew').addEventListener('click', () => openEdit(null));
+
+      /* ---------- a login, made for someone ---------- */
+      $('clLoginOpen').addEventListener('click', () => {
+        const p = $('clLoginPanel');
+        p.hidden = !p.hidden;
+        if (!p.hidden) $('clNewEmail').focus({ preventScroll:true });
+      });
+
+      // twelve characters, none of them the ones people misread (0/O, 1/l/I)
+      $('clMakePass').addEventListener('click', () => {
+        const A = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        const b = new Uint32Array(12);
+        crypto.getRandomValues(b);
+        $('clNewPass').value = Array.from(b, n => A[n % A.length]).join('');
+      });
+
+      $('clMakeLogin').addEventListener('click', async () => {
+        const email = $('clNewEmail').value.trim().toLowerCase();
+        const pass  = $('clNewPass').value;
+        $('clSlip').hidden = $('clSlipRow').hidden = true;
+        if (!EMAIL.test(email)){ say($('clLoginMsg'), 'Enter their email', true); return; }
+        if (pass.length < 8){ say($('clLoginMsg'), 'The password needs at least 8 characters', true); return; }
+        $('clMakeLogin').disabled = true;
+        say($('clLoginMsg'), 'Creating');
+        try {
+          const { ready } = await api.createLogin(email, pass);
+          $('clSlip').textContent =
+            `Your BMU collection is ready to review.\n\nSign in at ${SITE}\nEmail: ${email}\nPassword: ${pass}`;
+          $('clSlip').hidden = $('clSlipRow').hidden = false;
+          say($('clLoginMsg'), ready
+            ? 'Login created. Send them this:'
+            : 'Login created, but it has to be confirmed from their inbox before it works — turn off “Confirm email” in Supabase to skip that. Send them this:');
+        } catch (err){
+          const m = String(err && err.message || '');
+          say($('clLoginMsg'),
+              /already/i.test(m) ? 'That email already has a login'
+            : /not allowed|disabled/i.test(m) ? 'Sign-ups are switched off in Supabase — create this one in the dashboard instead'
+            : /password/i.test(m) ? 'Supabase would not accept that password'
+            : 'Could not create the login', true);
+        } finally {
+          $('clMakeLogin').disabled = false;
+        }
+      });
+      $('clCopySlip').addEventListener('click', () =>
+        copy($('clSlip').textContent, $('clLoginMsg'), 'Copied — paste it into an email to them'));
+
+      function copy(text, msgEl, done){
+        const ok = () => say(msgEl, done);
+        const no = () => say(msgEl, 'Select it and copy by hand', true);
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(ok, no);
+        } else no();
+      }
+
+      /* ---------- arriving ---------- */
+      async function boot(){
+        const s = await api.session();
+        if (!s){ show('clSignIn'); return; }
+        me = { id:s.user.id, email:String(s.user.email || '').toLowerCase(), admin:false };
+        try { me.admin = await api.isAdmin(me.id); } catch { me.admin = false; }
+        await refresh();
+        const want = (location.hash.match(/^#c=([\w-]+)/) || [])[1];
+        if (want && list.some(c => c.id === want)) openView(want);
+        else openHome();
+      }
+
+      (async function start(){
+        show('clSignIn');
+        if (!sb){
+          /* Nothing to sign in to. Said plainly rather than offering a form
+             that can only fail. */
+          say($('clSignMsg'), cfg.url
+            ? 'Could not reach the login service. Try again in a moment.'
+            : 'Collections are not switched on yet.');
+          ['clEmail', 'clPass', 'clSignBtn'].forEach(id => { $(id).disabled = true; });
+          return;
+        }
+        try {
+          await loadArchive();
+        } catch {
+          say($('clSignMsg'), 'Could not read the archive. Reload the page.', true);
+          return;
+        }
+        try { await boot(); }
+        catch { show('clSignIn'); say($('clSignMsg'), 'Could not load your collections. Sign in again.', true); }
+
+        // another tab signing out, or a session that lapses, lands here
+        sb.auth.onAuthStateChange(ev => {
+          if (ev === 'SIGNED_OUT' && me){
+            me = null;
+            show('clSignIn');
+          }
+        });
+      })();
+    })();
   </script>
 <script>
   /* Early Access, parked: the footer link shows its padlock and goes nowhere */
