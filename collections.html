@@ -2083,10 +2083,35 @@
       $('clNew').addEventListener('click', () => openEdit(null));
 
       /* ---------- a login, made for someone ---------- */
-      $('clLoginOpen').addEventListener('click', () => {
+      /* Whether a login made here will work at all is a setting on the
+         project, not on this page: with "Confirm email" on, the account is
+         created but cannot be signed into until the person clicks an email
+         from Supabase. The project is asked once, and the panel says which
+         of the two ways applies rather than letting an admin hand out a
+         login that silently does not work. */
+      let autoConfirm = null;
+      async function askProject(){
+        if (autoConfirm !== null) return autoConfirm;
+        try {
+          const r = await fetch(cfg.url.replace(/\/$/, '') + '/auth/v1/settings',
+                                { headers:{ apikey: cfg.anonKey } });
+          const d = await r.json();
+          autoConfirm = !!d.mailer_autoconfirm;
+        } catch { autoConfirm = true; }   // no answer: say nothing rather than cry wolf
+        return autoConfirm;
+      }
+
+      $('clLoginOpen').addEventListener('click', async () => {
         const p = $('clLoginPanel');
         p.hidden = !p.hidden;
-        if (!p.hidden) $('clNewEmail').focus({ preventScroll:true });
+        if (p.hidden) return;
+        $('clNewEmail').focus({ preventScroll:true });
+        if (await askProject()) return;
+        say($('clLoginMsg'),
+            'This project still asks people to confirm their email, so a login made ' +
+            'here will not work until they click that email. Either turn Confirm email ' +
+            'off in Supabase, or add them under Authentication → Users with Auto ' +
+            'Confirm ticked.');
       });
 
       // twelve characters, none of them the ones people misread (0/O, 1/l/I)
