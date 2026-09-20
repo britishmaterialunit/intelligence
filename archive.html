@@ -4507,7 +4507,7 @@
         dghost.hidden = dq.value !== '';
         paintHint(dq.value.trim().toLowerCase());
         // the rest of the archive stays, in grey, around the British cluster
-        clusterSearch(on ? '' : 'british', true, true);
+        clusterSearch(on ? '' : 'british', true);
         return;
       }
       const on = !nationsOpen;
@@ -4765,44 +4765,29 @@
 
     /* ---------- HOW A CLUSTER SITS ----------
        The spiral is a good answer for seventy garments and a poor one for
-       three. Its first point is not the centre — it is √0.5 of a spacing out
-       along the axis — so a cluster of ONE sat off to the side of a screen
-       it was supposed to be the whole of, and a cluster of three read as a
-       scatter rather than as three things.
+       one: its first point is not the centre but √0.5 of a spacing out
+       along the axis, so a cluster of ONE sat off to the side of a screen
+       it was supposed to be the whole of.
 
-       Small counts get a shape instead. One sits in the middle. Two sit side
-       by side. Three make a triad, and on up through the polygons — each on
-       a ring wide enough that neighbours clear each other by a full spacing,
-       and each turned so a point is at the top. Past six there is one in the
-       middle and the rest around it; past a dozen a ring is a worse picture
-       than a spiral and the spiral takes over.
+       So the smallest counts are placed by hand — one in the middle, two
+       side by side, three in a triangle — and everything past that is laid
+       out the way the main field is. A ring of six, or one in the middle
+       with a perfect circle around it, is a diagram; the archive is not
+       drawn as a diagram anywhere else and should not be here.
 
-       Every cluster in the field goes through here, so a nation, a search, a
-       collection and the whole archive are all arranged by the same rule. */
+       Every cluster in the field goes through this, so a nation, a search,
+       a collection and the whole archive are arranged by the same rule. */
     function packOffsets(n){
       if (n <= 0) return [];
       if (n === 1) return [[0, 0]];
       if (n === 2) return [[-SPACING / 2, 0], [SPACING / 2, 0]];
-
-      const TOP = -Math.PI / 2;                 // a point at the top
-      // neighbours exactly one spacing apart around the ring
-      const radiusFor = c => SPACING / (2 * Math.sin(Math.PI / c));
-      const ring = (count, radius) => {
-        const out = [];
-        for (let i = 0; i < count; i++){
-          const a = TOP + (Math.PI * 2 * i) / count;
-          out.push([Math.cos(a) * radius, Math.sin(a) * radius]);
-        }
-        return out;
-      };
-
-      if (n <= 6) return ring(n, radiusFor(n));
-
-      if (n <= 12){
-        // one in the middle, the rest around it — never closer to the
-        // middle one than the ring's own neighbours are to each other
-        const c = n - 1;
-        return [[0, 0]].concat(ring(c, Math.max(SPACING, radiusFor(c))));
+      if (n === 3){
+        // a triangle, point up, neighbours one spacing apart
+        const r = SPACING / Math.sqrt(3);
+        return [0, 1, 2].map(i => {
+          const a = -Math.PI / 2 + (Math.PI * 2 * i) / 3;
+          return [Math.cos(a) * r, Math.sin(a) * r];
+        });
       }
 
       const out = [];
@@ -4909,7 +4894,7 @@
 
        Pressing enter is the choosing. THAT regathers: the matches come into
        a spiral of their own and everything else goes. */
-    function clusterSearch(term, gather, greyRest){
+    function clusterSearch(term, gather){
       clearTimeout(clusterTimer);
       unframe();
       const els = [...spiral.children];
@@ -4949,33 +4934,31 @@
       if (!hit.length) return;
 
       if (!gather){
-        // still typing: dim the rest where they stand and travel to the first
+        /* Still typing. The rest of the archive greys around what is being
+           matched and nothing moves: the field used to travel to the first
+           hit on every keystroke, which threw the whole view about under
+           somebody who had not finished their word — and picked a garment
+           for them. Choosing is a separate act, and the chip on the right of
+           the bar is where it is made. */
         els.forEach(el => {
-          el.classList.toggle('sp-dim', !hit.includes(el));
-          el.classList.remove('sp-grey');
+          el.classList.toggle('sp-grey', !hit.includes(el));
+          el.classList.remove('sp-dim', 'sp-gone');
         });
-        clusterTimer = setTimeout(() => glide(() => focusItem(hit[0], maxScale() * 0.55), 700), 40);
         return;
       }
 
       /* Gathering. Every garment is laid back on its own spiral position
          first — placing only the matches on top of a field that never moved
          is what left garments sitting over one another. Then the matches are
-         drawn into the middle and the rest are taken off the field
-         altogether rather than dimmed, so nothing can overlap the cluster. */
+         drawn into the middle, and the rest of the archive stays where it is
+         in grey: how much there is, and how much of it is not this. They
+         used to be taken off the field altogether for a search, which
+         answered the question and threw away its context. */
       slide();
       layoutSpiral(spiralMode);
       els.forEach(el => {
-        const on = hit.includes(el);
-        /* Two ways to set the rest aside. Gone, for a search: the cluster is
-           the whole answer and anything else on the field is in its way.
-           Grey, for a nation: the reader asked for one country out of
-           thirty-odd and the rest of the archive standing around it in grey
-           is the answer — how much there is, and how much of it is not this.
-           Either way they cannot be pressed. */
-        el.classList.toggle('sp-gone',  !on && !greyRest);
-        el.classList.toggle('sp-grey',  !on && !!greyRest);
-        el.classList.remove('sp-dim');
+        el.classList.toggle('sp-grey', !hit.includes(el));
+        el.classList.remove('sp-dim', 'sp-gone');
       });
       const pts = packOffsets(hit.length);
       hit.forEach((el, i) => place(el, pts[i][0], pts[i][1]));
@@ -5033,7 +5016,7 @@
         framed ? 'Save this garment' : 'Gather saved garments');
       const on = framed
         ? isSaved(focusedItem.dataset.id)
-        : (explore.hidden ? savedOnly : spiralMode === 'saved');
+        : savedOnly;
       dockLibrary.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
 
@@ -5473,18 +5456,20 @@
          over a field that had not gone anywhere. Nothing is marked until
          the move has actually been taken. */
       if (morphing) return;                 // the field is already moving
-      const next = spiralMode === 'saved' ? 'spiral' : 'saved';
-      if (next === 'saved' && !hasJoined()){
+      const entering = !savedOnly;
+      if (entering && !hasJoined()){
         openJoinGate(() => dockLibrary.click());
         return;
       }
-      morphLayout(next);
-      // the two views keep one answer to "am I in my collection?"
-      savedOnly = (next === 'saved');
-      document.body.classList.toggle('library', savedOnly);
-      if (savedOnly) reportShelf();
+      if (entering){
+        gatherSaved();                      // gathers, greys the rest, sets the state
+      } else {
+        savedOnly = false;
+        document.body.classList.remove('library');
+        clusterSearch('', true);            // every garment back on the field
+      }
       syncLibraryMark();
-      if (next === 'spiral'){
+      if (!entering){
         flagBtn.setAttribute('aria-pressed', 'false');
         dqFlag.setAttribute('aria-pressed', 'false');
       }
@@ -5509,7 +5494,7 @@
       dghost.hidden = dq.value !== '';
       paintHint(dq.value.trim().toLowerCase());
       // the rest of the archive stays, in grey, around the British cluster
-      clusterSearch(on ? '' : 'british', true, true);
+      clusterSearch(on ? '' : 'british', true);
     });
 
     /* From explore this is the way into the tab list — and the dock comes
@@ -5525,19 +5510,21 @@
       // back at the collection: tell us if it has moved since last time
       reportShelf();
       /* The field is now standing in the collection, and everything that
-         asks "am I in the collection?" — the mark on the button, the switch
-         the next press reads, the state the list inherits — has to be told
-         so. This used to set the mark alone, so the next press computed its
-         move from a spiralMode that still said 'spiral'. */
-      spiralMode = 'saved';
+         asks "am I in the collection?" — the mark on the button, the state
+         the list inherits — has to be told so.
+
+         It is NOT a layout mode. It used to be one, which sent everything
+         unkept to a cluster of its own sixteen spacings off the frame; the
+         collection is a cluster like any other now, so the rest of the
+         archive stays exactly where it is, in grey. */
       savedOnly = true;
       document.body.classList.add('library');
       els.forEach(el => {
-        el.classList.toggle('sp-gone', !keep.includes(el));
-        el.classList.remove('sp-dim');
+        el.classList.toggle('sp-grey', !keep.includes(el));
+        el.classList.remove('sp-dim', 'sp-gone');
         el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1)';
       });
-      layoutSpiral(spiralMode);
+      layoutSpiral('spiral');
       const pts = packOffsets(keep.length);
       keep.forEach((el, i) => place(el, pts[i][0], pts[i][1]));
       setTimeout(() => {
