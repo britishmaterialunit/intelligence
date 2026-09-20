@@ -2654,6 +2654,39 @@
                   "Trousers", "Armour Covers", "Webbing", "Bags", "Pouches",
                   "Headwear", "Footwear", "Hardware", "Unclassified"];
 
+    /* ---------- A GARMENT HAS AN ADDRESS ----------
+       Every garment is numbered by its place in the register, 1 upwards,
+       and carries the URL /archive/<n>. Opening one puts that address in the
+       bar; closing it gives the bar back to /archive. The numbers are
+       positions in ITEMS, so they only change if the register is reordered —
+       a new garment appended takes the next number and disturbs nobody.
+
+       Each number is also a real file (archive/<n>.html) carrying that
+       garment's own name and photograph, so a link pasted anywhere previews
+       as the garment rather than as the archive. */
+    const GARMENT_NO = new Map();     // id → 1..n
+    const NO_GARMENT = new Map();     // 1..n → id
+
+    function numberGarments(){
+      ITEMS.forEach((p, i) => {
+        const id = `${p.n}/${slugBase(p.name)}`;
+        GARMENT_NO.set(id, i + 1);
+        NO_GARMENT.set(i + 1, id);
+      });
+    }
+
+    /* The address bar follows the view rather than the other way round: a
+       reader who has opened a garment can copy what is in front of them. */
+    function markUrl(id){
+      const n = id ? GARMENT_NO.get(id) : 0;
+      const want = n ? `/archive/${n}` : '/archive';
+      // the tab names what is on it, the way a page would
+      const item = n ? ITEMS[n - 1] : null;
+      document.title = item ? `${item.name} | BMU Archive` : 'Archive | BMU';
+      if (location.pathname === want) return;
+      try { history.pushState({ g:n }, '', want); } catch {}
+    }
+
     function slugBase(name){
       return name.toLowerCase()
         .replace(/[’']/g, '')
@@ -2664,6 +2697,8 @@
 
     /* every garment owns a folder:
        /archive/<nation>/<garment-type>/<garment>/<file>.png + .txt   */
+    numberGarments();
+
     function assetDir(nationKey, cat, name){
       return `/archive/${nationKey}/${slugBase(cat)}/${slugBase(name)}`;
     }
@@ -4085,6 +4120,7 @@
     /* Everything that returns the archive to rest goes through here, so
        the star can never end up a step behind the buttons it summoned. */
     function goHome(){
+      markUrl(null);                    // the record is being left: /archive
       document.body.classList.remove('solo-from-field');
       document.body.style.removeProperty('--solo-drop');
       document.body.classList.remove('solo-closing', 'solo-shutting');
@@ -5574,6 +5610,7 @@
          just been looking at one of them, loses the thread — the list opens
          where they already were. */
       const landOn = soloId || (focusedItem && focusedItem.dataset.id) || null;
+      markUrl(null);                      // the list is not one garment's address
       if (!explore.hidden) endExplore(false);
       soloId = null;
       savedOnly = false;
@@ -5756,6 +5793,7 @@
       lastExploreItem = item;
       endExplore(false);
       soloId = item.dataset.id;
+      markUrl(soloId);                  // /archive/<n> — the garment's own address
       nationsOpen = true;
       document.body.classList.add('browsing');
       const tab = allNations.find(d => d.dataset.nation === item.dataset.nation);
@@ -6121,6 +6159,7 @@
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
     function returnToExplore(toAll){
+      markUrl(null);                    // the record is being left: /archive
       /* solo-from-field is NOT dropped here. It is what hides the tally and
          the bookmark on a record opened from the field, and taking it off at
          the top of the close meant they faded back in and rode the card all
@@ -6521,6 +6560,55 @@
       updateDock();
     }
     startSuggestions();   // the running suggestion is the bar's own prompt
+
+    /* ---------- ARRIVING AT ONE GARMENT ----------
+       /archive/<n> is a real file that hands over to #g=<n>; either way the
+       garment is opened on its own, in the tab view, without the field
+       having to be built and torn down first. Back and forward move between
+       the garment and the archive the way they would between two pages. */
+    function openNumber(n){
+      const id = NO_GARMENT.get(Number(n));
+      if (!id) return false;
+      if (!explore.hidden) endExplore(false);
+      soloId = id;
+      lastExploreItem = null;
+      nationsOpen = true;
+      document.body.classList.add('browsing');
+      const nation = id.split('/')[0];
+      const tab = allNations.find(d => d.dataset.nation === nation);
+      if (tab) tab.open = true;
+      q.value = '';
+      filter();
+      syncChrome();
+      setFaceMode('list');
+      setFace(0, true);
+      document.body.classList.add('dock-list');
+      collapseDock();
+      updateDock();
+      markUrl(id);
+      return true;
+    }
+
+    function wantedNumber(){
+      const m = location.pathname.match(/^\/archive\/(\d+)\/?$/)
+             || location.hash.match(/^#g=(\d+)$/);
+      return m ? Number(m[1]) : 0;
+    }
+
+    (function arriveAtGarment(){
+      const n = wantedNumber();
+      if (n) setTimeout(() => openNumber(n), 60);
+    })();
+
+    window.addEventListener('popstate', () => {
+      const n = wantedNumber();
+      if (n){ openNumber(n); return; }
+      // back to the archive itself
+      if (soloId || document.body.classList.contains('single-result')){
+        dockForced = true;
+        returnToExplore(true);
+      }
+    });
 
     /* The page signs itself, under the bar, in the same hand everything
        else on the site is written in. It was printed there; the archive

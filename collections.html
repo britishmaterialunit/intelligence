@@ -1183,6 +1183,204 @@
       .cl-pick-grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
     }
 
+    /* ---------- A COLLECTION, OPENED ----------
+       Two halves. Everything written — where you are, what this is, what
+       you want to say back — stands on the left and does not move. The
+       garments live on the right, in one of two views of the same set. */
+    .cv-split{
+      display:grid;
+      grid-template-columns:minmax(0, 360px) minmax(0, 1fr);
+      gap:44px;
+      align-items:start;
+      margin-top:22px;
+    }
+    .cv-left{ position:sticky; top:110px; }
+    .cv-left .cl-reply{ margin-top:30px; max-width:none; }
+    .cv-left .cl-field{ width:100%; }
+    .cv-right{ min-width:0; }
+
+    /* the two ways of looking, and the switch between them */
+    .cv-tools{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .cv-tool{
+      width:34px; height:34px;
+      display:grid; place-items:center;
+      padding:0;
+      border:1.5px solid #e0e0e0;
+      border-radius:0;
+      background:var(--bg);
+      color:#b0b0b0;
+      cursor:pointer;
+      transition:border-color .3s cubic-bezier(.4,0,.2,1), color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-tool svg{ width:15px; height:15px; display:block; }
+    .cv-tool .ico-stroke{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+    .cv-tool .ico-fill{ fill:currentColor; }
+    .cv-tool:hover{ border-color:#9a9a9a; color:#6a6a6a; }
+    .cv-tool.is-on{ border-color:var(--line); color:var(--line); }
+
+    /* both views occupy the same ground, and hand over by fading */
+    #cvGrid, .cv-field, .cv-solo{
+      transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-leaving{ opacity:0; transform:scale(.985); pointer-events:none; }
+
+    /* ---------- THE FIELD ----------
+       The archive's own way of looking at a set: the garments laid out on
+       the same spiral, and the whole plane dragged and zoomed under the
+       reader rather than scrolled. */
+    .cv-field{
+      position:relative;
+      height:min(70vh, 620px);
+      min-height:380px;
+      border:1.5px solid var(--line);
+      overflow:hidden;
+      background:var(--bg);
+      cursor:grab;
+      touch-action:none;
+      -webkit-user-select:none; user-select:none;
+    }
+    .cv-field.is-dragging{ cursor:grabbing; }
+    .cv-plane{
+      position:absolute;
+      left:50%; top:50%;
+      width:0; height:0;
+      transform-origin:0 0;
+    }
+    .cv-plane.gliding{ will-change:transform; }
+    .cv-plane .cv-item{
+      position:absolute;
+      width:130px;
+      transform:translate(-50%, -50%);
+      cursor:pointer;
+      opacity:1;
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-plane .cv-item img{
+      width:100%; height:auto; display:block;
+      object-fit:contain;
+      -webkit-user-drag:none;
+    }
+    .cv-plane .cv-item .cv-tag{
+      display:block;
+      margin-top:6px;
+      font-size:8px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      text-align:center;
+      color:#b4b4b4;
+      opacity:0;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-plane .cv-item.is-near .cv-tag{ opacity:1; }
+    /* set aside: still there, plainly not the subject — the archive's grey */
+    .cv-plane .cv-item.is-aside{ opacity:.16; filter:grayscale(1); }
+    /* the affirmative ones carry a mark even at a distance */
+    .cv-plane .cv-item.is-yes::after{
+      content:"";
+      position:absolute;
+      top:-6px; right:-6px;
+      width:9px; height:9px;
+      background:#000;
+    }
+    .cv-hint{
+      position:absolute;
+      left:0; right:0; bottom:14px;
+      text-align:center;
+      font-size:10px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#c2c2c2;
+      pointer-events:none;
+      transition:opacity .4s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-hint.gone{ opacity:0; }
+
+    /* ---------- ONE GARMENT, ON ITS OWN ---------- */
+    .cv-solo{
+      border:1.5px solid var(--line);
+      background:var(--bg);
+      padding:18px;
+      display:grid;
+      grid-template-columns:minmax(0, 300px) minmax(0, 1fr);
+      gap:22px;
+      align-items:start;
+    }
+    .cv-soloback{ grid-column:1 / -1; justify-self:start; }
+    .cv-soloimg{
+      aspect-ratio:1 / 1;
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+      border:1.5px solid var(--line);
+    }
+    .cv-soloimg img{ width:100%; height:100%; object-fit:contain; display:block; }
+    .cv-solometa{ display:flex; flex-direction:column; gap:8px; }
+    .cv-soloname{ margin:0; font-size:17px; font-weight:bold; line-height:1.35; }
+    .cv-solorecord{
+      margin-top:4px;
+      max-height:34vh;
+      overflow:auto;
+      font-size:13px;
+      line-height:1.7;
+      color:#5a5a5a;
+      white-space:pre-wrap;
+    }
+
+    /* ---------- AFFIRMATIVE / NEGATIVE ----------
+       A switch with two named ends rather than a button that changes its
+       word. Which way it is thrown is the answer, and both answers are
+       visible at once so neither is a default nobody chose. */
+    .cv-switch{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-top:auto;
+      padding:0;
+      border:0;
+      background:none;
+      font:inherit;
+      cursor:pointer;
+    }
+    .cv-sw-end{
+      font-size:9.5px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#c2c2c2;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-switch[aria-checked="false"] .cv-sw-end.neg,
+    .cv-switch[aria-checked="true"]  .cv-sw-end.aff{ color:var(--line); }
+    .cv-sw-track{
+      position:relative;
+      width:42px; height:22px;
+      border:1.5px solid var(--line);
+      background:var(--bg);
+      flex:none;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-sw-knob{
+      position:absolute;
+      top:2px; left:2px;
+      width:15px; height:15px;
+      background:var(--line);
+      transition:transform .32s cubic-bezier(.4,0,.2,1), background-color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-switch[aria-checked="true"] .cv-sw-track{ background:#000; }
+    .cv-switch[aria-checked="true"] .cv-sw-knob{ transform:translateX(21px); background:#fff; }
+    /* on a card, the switch sits where the button used to */
+    .cl-card .cv-switch{ margin-top:auto; padding-top:8px; }
+
+    @media (max-width:900px){
+      .cv-split{ grid-template-columns:minmax(0, 1fr); gap:26px; }
+      .cv-left{ position:static; }
+      .cv-field{ height:min(62vh, 460px); }
+      .cv-solo{ grid-template-columns:minmax(0, 1fr); }
+    }
+
   </style>
 </head>
 <body class="entered">
@@ -1275,38 +1473,83 @@
       <div class="cl-list" id="clList"></div>
     </section>
 
-    <!-- ONE COLLECTION -->
+    <!-- ONE COLLECTION
+         The writing on the left, the garments on the right. The right half
+         holds two views of the same garments — the plate grid it opens on,
+         and the field, which is the archive's own way of looking at them —
+         and the two buttons above it turn one into the other. -->
     <section class="cl-view" id="clView" hidden>
-      <div class="cl-who">
-        <button type="button" class="cl-link" id="cvBack">All collections</button>
-      </div>
-      <span class="cl-label" id="cvLabel" style="margin-top:22px"></span>
-      <h2 class="cl-title" id="cvTitle"></h2>
-      <p class="cl-lede" id="cvNote"></p>
-      <p class="cl-lede" id="cvMissing" hidden></p>
-      <div class="cl-grid" id="cvGrid"></div>
+      <div class="cv-split">
 
-      <!-- the reviewer's side: what they want, and a note -->
-      <div class="cl-reply" id="cvReplyBox" hidden>
-        <span class="cl-label">Your reply</span>
-        <p class="cl-lede">Mark the garments you want above, add anything we should know, and send it. You can come back and change it.</p>
-        <textarea class="cl-field cl-wide" id="cvReply" placeholder="Quantities, sizes, timings — anything" aria-label="Your note"></textarea>
-        <div class="cl-row">
-          <button type="button" class="cl-btn" id="cvSend">Send reply</button>
-          <span class="cl-count" id="cvPickCount"></span>
-        </div>
-        <div class="cl-msg" id="cvMsg" role="status" aria-live="polite"></div>
-      </div>
+        <div class="cv-left">
+          <div class="cl-who">
+            <button type="button" class="cl-link" id="cvBack">All collections</button>
+          </div>
+          <span class="cl-label" id="cvLabel" style="margin-top:22px"></span>
+          <h2 class="cl-title" id="cvTitle"></h2>
+          <p class="cl-lede" id="cvNote"></p>
+          <p class="cl-lede" id="cvMissing" hidden></p>
 
-      <!-- the admin's side: what came back, and the way into editing -->
-      <div class="cl-reply" id="cvAdminBox" hidden>
-        <span class="cl-label">Their reply</span>
-        <div id="cvTheirs"></div>
-        <div class="cl-row">
-          <button type="button" class="cl-btn" id="cvEdit">Edit collection</button>
-          <button type="button" class="cl-btn" id="cvCopyLink">Copy link to send</button>
+          <!-- the reviewer's side: what they want, and a note -->
+          <div class="cl-reply" id="cvReplyBox" hidden>
+            <span class="cl-label">Your reply</span>
+            <p class="cl-lede">Set each garment to affirmative or negative, add anything we should know, and send it. You can come back and change it.</p>
+            <textarea class="cl-field cl-wide" id="cvReply" placeholder="Quantities, sizes, timings — anything" aria-label="Your note"></textarea>
+            <div class="cl-row">
+              <button type="button" class="cl-btn" id="cvSend">Send reply</button>
+              <span class="cl-count" id="cvPickCount"></span>
+            </div>
+            <div class="cl-msg" id="cvMsg" role="status" aria-live="polite"></div>
+          </div>
+
+          <!-- the admin's side: what came back, and the way into editing -->
+          <div class="cl-reply" id="cvAdminBox" hidden>
+            <span class="cl-label">Their reply</span>
+            <div id="cvTheirs"></div>
+            <div class="cl-row">
+              <button type="button" class="cl-btn" id="cvEdit">Edit collection</button>
+              <button type="button" class="cl-btn" id="cvCopyLink">Copy link to send</button>
+            </div>
+            <div class="cl-msg" id="cvAdminMsg" role="status" aria-live="polite"></div>
+          </div>
         </div>
-        <div class="cl-msg" id="cvAdminMsg" role="status" aria-live="polite"></div>
+
+        <div class="cv-right">
+          <div class="cv-tools" role="group" aria-label="How to view the garments">
+            <button type="button" class="cv-tool is-on" id="cvAsList" aria-pressed="true" aria-label="See them as a list">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <g class="ico-stroke"><path d="M2.6 4.6 H13.4"/><path d="M2.6 8 H13.4"/><path d="M2.6 11.4 H13.4"/></g>
+              </svg>
+            </button>
+            <button type="button" class="cv-tool" id="cvAsField" aria-pressed="false" aria-label="See them in explore">
+              <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="cl-grid" id="cvGrid"></div>
+
+          <!-- the field: the same garments, laid out the way the archive
+               lays out a cluster, and draggable -->
+          <div class="cv-field" id="cvField" hidden>
+            <div class="cv-plane" id="cvPlane"></div>
+            <div class="cv-hint" id="cvFieldHint">Drag to move · scroll to zoom · press a garment twice to open it</div>
+          </div>
+
+          <!-- one garment, on its own -->
+          <div class="cv-solo" id="cvSolo" hidden>
+            <button type="button" class="cl-link cv-soloback" id="cvSoloBack">Back to the field</button>
+            <div class="cv-soloimg"><img id="cvSoloImg" alt=""></div>
+            <div class="cv-solometa">
+              <h3 class="cv-soloname" id="cvSoloName"></h3>
+              <span class="cl-sub" id="cvSoloSub"></span>
+              <div class="cv-solorecord" id="cvSoloRecord"></div>
+              <div id="cvSoloSwitch"></div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -1684,6 +1927,7 @@
             cat:    p.cat,
             ref:    p.ref || '',
             img:    `${dir}/${p.img || slugBase(p.name) + '.png'}`,
+            txt:    `${dir}/${(p.img || slugBase(p.name) + '.png').replace(/\.png$/, '.txt')}`,
             words:  [p.name, n.label, p.cat, p.ref, p.mat].concat(n.alias || [])
                       .filter(Boolean).join(' ').toLowerCase()
           };
@@ -1867,11 +2111,25 @@
         if (b) openView(b.dataset.id);
       });
 
-      /* ---------- one collection ---------- */
+      /* ---------- one collection ----------
+         The same garments in two views. The grid is the plate it opens on;
+         the field is the archive's own way of looking at a set, dragged and
+         zoomed rather than scrolled, with any garment openable on its own.
+         Neither view leaves this page. */
+
+      // a switch with two named ends, rather than a button that changes word
+      function switchHtml(id, on){
+        return `<button type="button" class="cv-switch" role="switch" data-id="${esc(id)}" aria-checked="${on}">` +
+                 `<span class="cv-sw-end neg">Negative</span>` +
+                 `<span class="cv-sw-track"><span class="cv-sw-knob"></span></span>` +
+                 `<span class="cv-sw-end aff">Affirmative</span>` +
+               `</button>`;
+      }
+
       function card(g, mode){
-        const tail = mode === 'want'
-          ? `<button type="button" class="cl-btn cl-want" data-id="${esc(g.id)}" aria-pressed="${picks.has(g.id)}">${picks.has(g.id) ? 'Wanted' : 'Want'}</button>`
-          : mode === 'picked' ? `<span class="cl-picked">Wanted</span>` : '';
+        const tail = mode === 'switch'
+          ? switchHtml(g.id, picks.has(g.id))
+          : mode === 'picked' ? `<span class="cl-picked">Affirmative</span>` : '';
         return `<article class="cl-card">` +
                  `<div class="cl-img"><img src="${esc(g.img)}" alt="${esc(g.name)}" loading="lazy"></div>` +
                  `<div class="cl-meta">` +
@@ -1881,6 +2139,9 @@
                  `</div>` +
                `</article>`;
       }
+
+      let shown = [];          // the garments in this collection, in order
+      let reviewing = false;
 
       function openView(id){
         const c = list.find(x => x.id === id);
@@ -1895,16 +2156,16 @@
         $('cvNote').textContent = c.note || '';
         $('cvNote').hidden = !c.note;
 
-        const here = c.garments.map(id => byId.get(id)).filter(Boolean);
-        const gone = c.garments.length - here.length;
+        shown = c.garments.map(gid => byId.get(gid)).filter(Boolean);
+        const gone = c.garments.length - shown.length;
         $('cvMissing').hidden = !gone;
         $('cvMissing').textContent = gone
           ? plural(gone, 'garment in this collection is', 'garments in this collection are') + ' no longer in the archive.'
           : '';
 
-        const reviewing = !me.admin;
-        $('cvGrid').innerHTML = here.map(g =>
-          card(g, reviewing ? 'want' : (picks.has(g.id) ? 'picked' : ''))).join('');
+        reviewing = !me.admin;
+        $('cvGrid').innerHTML = shown.map(g =>
+          card(g, reviewing ? 'switch' : (picks.has(g.id) ? 'picked' : ''))).join('');
 
         $('cvReplyBox').hidden = !reviewing;
         $('cvAdminBox').hidden = reviewing;
@@ -1915,28 +2176,243 @@
           countPicks();
         } else {
           $('cvTheirs').innerHTML = r
-            ? `<p class="cl-lede">${plural(r.picks.length, 'garment', 'garments')} wanted · ${esc(new Date(r.updated_at).toLocaleString('en-GB'))}</p>` +
+            ? `<p class="cl-lede">${plural(r.picks.length, 'garment', 'garments')} affirmative of ${shown.length} · ${esc(new Date(r.updated_at).toLocaleString('en-GB'))}</p>` +
               (r.note ? `<div class="cl-quote">${esc(r.note)}</div>` : '')
             : `<p class="cl-lede">No reply yet.</p>`;
           say($('cvAdminMsg'), '');
         }
+        seeGrid(true);
         show('clView');
       }
 
       function countPicks(){
-        $('cvPickCount').textContent = picks.size ? plural(picks.size, 'garment', 'garments') + ' marked' : '';
+        $('cvPickCount').textContent = shown.length
+          ? `${picks.size} affirmative of ${shown.length}`
+          : '';
       }
 
-      $('cvGrid').addEventListener('click', e => {
-        const b = e.target.closest('.cl-want');
-        if (!b) return;
-        const id = b.dataset.id;
-        if (picks.has(id)) picks.delete(id); else picks.add(id);
-        b.setAttribute('aria-pressed', picks.has(id));
-        b.textContent = picks.has(id) ? 'Wanted' : 'Want';
+      /* one place where a garment's answer is changed, whichever view the
+         reader happened to be looking at when they changed it */
+      function setAnswer(id, on){
+        if (on) picks.add(id); else picks.delete(id);
+        document.querySelectorAll(`.cv-switch[data-id="${CSS.escape(id)}"]`)
+          .forEach(sw => sw.setAttribute('aria-checked', String(on)));
+        const tile = $('cvPlane').querySelector(`.cv-item[data-id="${CSS.escape(id)}"]`);
+        if (tile) tile.classList.toggle('is-yes', on);
         countPicks();
+      }
+
+      document.addEventListener('click', e => {
+        const sw = e.target.closest('.cv-switch');
+        if (!sw || !reviewing) return;
+        e.preventDefault();
+        setAnswer(sw.dataset.id, sw.getAttribute('aria-checked') !== 'true');
       });
 
+      /* ---------- the three views of the right-hand half ---------- */
+      function swapTo(el){
+        ['cvGrid', 'cvField', 'cvSolo'].forEach(id => {
+          const n = $(id);
+          if (n === el){
+            n.hidden = false;
+            n.classList.add('cv-leaving');
+            requestAnimationFrame(() => requestAnimationFrame(() => n.classList.remove('cv-leaving')));
+          } else if (!n.hidden){
+            n.classList.add('cv-leaving');
+            setTimeout(() => { n.hidden = true; n.classList.remove('cv-leaving'); }, 420);
+          }
+        });
+      }
+      function seeGrid(instant){
+        $('cvAsList').classList.add('is-on');  $('cvAsList').setAttribute('aria-pressed', 'true');
+        $('cvAsField').classList.remove('is-on'); $('cvAsField').setAttribute('aria-pressed', 'false');
+        if (instant){
+          $('cvGrid').hidden = false; $('cvGrid').classList.remove('cv-leaving');
+          $('cvField').hidden = true; $('cvSolo').hidden = true;
+        } else swapTo($('cvGrid'));
+      }
+      function seeField(){
+        $('cvAsField').classList.add('is-on'); $('cvAsField').setAttribute('aria-pressed', 'true');
+        $('cvAsList').classList.remove('is-on'); $('cvAsList').setAttribute('aria-pressed', 'false');
+        buildField();
+        swapTo($('cvField'));
+        // the plane can only be measured once it is on screen
+        setTimeout(fitField, 60);
+      }
+      $('cvAsList').addEventListener('click', () => seeGrid(false));
+      $('cvAsField').addEventListener('click', seeField);
+      $('cvSoloBack').addEventListener('click', seeField);
+
+      /* ---------- the field ----------
+         Laid out the way the archive lays out a cluster: one in the middle,
+         two side by side, three in a triangle, and past that the same spiral
+         the whole archive is drawn on. */
+      const SPACING = 168;
+      const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+      function offsets(n){
+        if (n <= 0) return [];
+        if (n === 1) return [[0, 0]];
+        if (n === 2) return [[-SPACING / 2, 0], [SPACING / 2, 0]];
+        if (n === 3){
+          const r = SPACING / Math.sqrt(3);
+          return [0, 1, 2].map(i => {
+            const a = -Math.PI / 2 + (Math.PI * 2 * i) / 3;
+            return [Math.cos(a) * r, Math.sin(a) * r];
+          });
+        }
+        const out = [];
+        for (let i = 0; i < n; i++){
+          const r = SPACING * Math.sqrt(i + 0.5);
+          const a = i * GOLDEN;
+          out.push([Math.cos(a) * r, Math.sin(a) * r]);
+        }
+        return out;
+      }
+
+      let sc = 1, tx = 0, ty = 0, built = '';
+      const plane = () => $('cvPlane');
+
+      function applyPlane(){
+        plane().style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+        /* Promoted only while it moves. A layer left promoted is rasterised
+           once and then scaled, which is what makes a zoomed garment soft. */
+        clearTimeout(applyPlane.t);
+        plane().classList.add('gliding');
+        applyPlane.t = setTimeout(() => plane().classList.remove('gliding'), 280);
+      }
+      function glidePlane(fn, ms){
+        const d = ms || 620;
+        plane().style.transition = `transform ${d}ms cubic-bezier(.4,0,.2,1)`;
+        fn();
+        setTimeout(() => { plane().style.transition = ''; }, d + 60);
+      }
+
+      function buildField(){
+        const key = current.id + '|' + shown.map(g => g.id).join(',');
+        if (built === key) return;
+        built = key;
+        const pts = offsets(shown.length);
+        plane().innerHTML = shown.map((g, i) =>
+          `<div class="cv-item${picks.has(g.id) ? ' is-yes' : ''}" data-id="${esc(g.id)}" ` +
+               `style="left:${Math.round(pts[i][0])}px; top:${Math.round(pts[i][1])}px">` +
+            `<img src="${esc(g.img)}" alt="${esc(g.name)}" loading="lazy">` +
+            `<span class="cv-tag">${esc(g.ref || g.nation)}</span>` +
+          `</div>`).join('');
+      }
+
+      function fitField(){
+        const box = $('cvField').getBoundingClientRect();
+        if (!box.width) return;
+        let reach = 1;
+        shown.forEach((g, i) => {
+          const p = offsets(shown.length)[i];
+          reach = Math.max(reach, Math.hypot(p[0], p[1]));
+        });
+        /* The margin is the garment itself: a tile is 130px wide, so half of
+           one plus a little air is what has to be left around the furthest
+           of them. Measured off the shorter side, so a wide box does not
+           leave a tall cluster hanging out of it. */
+        const margin = 92;
+        const fit = Math.min(box.width, box.height) / ((reach + margin) * 2);
+        sc = Math.max(0.12, Math.min(1.9, fit));
+        tx = 0; ty = 0;
+        applyPlane();
+      }
+
+      // drag the plane; the garments do not move under the finger
+      let panId = null, panX = 0, panY = 0, moved = 0;
+      $('cvField').addEventListener('pointerdown', e => {
+        panId = e.pointerId; panX = e.clientX; panY = e.clientY; moved = 0;
+        $('cvField').setPointerCapture(panId);
+        $('cvField').classList.add('is-dragging');
+      });
+      $('cvField').addEventListener('pointermove', e => {
+        if (e.pointerId !== panId) return;
+        tx += e.clientX - panX; ty += e.clientY - panY;
+        moved += Math.abs(e.clientX - panX) + Math.abs(e.clientY - panY);
+        panX = e.clientX; panY = e.clientY;
+        applyPlane();
+      });
+      ['pointerup', 'pointercancel'].forEach(t => $('cvField').addEventListener(t, e => {
+        if (e.pointerId !== panId) return;
+        panId = null;
+        $('cvField').classList.remove('is-dragging');
+      }));
+      $('cvField').addEventListener('wheel', e => {
+        e.preventDefault();
+        const box = $('cvField').getBoundingClientRect();
+        const cx = e.clientX - box.left - box.width / 2;
+        const cy = e.clientY - box.top - box.height / 2;
+        const next = Math.max(0.12, Math.min(2.4, sc * Math.exp(-e.deltaY * 0.0016)));
+        tx = cx - (cx - tx) * (next / sc);
+        ty = cy - (cy - ty) * (next / sc);
+        sc = next;
+        applyPlane();
+        $('cvFieldHint').classList.add('gone');
+      }, { passive:false });
+
+      /* First press frames the garment, second opens it — the archive's own
+         two-step, so nothing opens under a finger that was only dragging. */
+      let framed = null;
+      $('cvField').addEventListener('click', e => {
+        if (moved > 6) return;                 // that was a drag
+        const tile = e.target.closest('.cv-item');
+        if (!tile){ framed = null; markAside(); return; }
+        $('cvFieldHint').classList.add('gone');
+        if (framed !== tile){
+          framed = tile;
+          markAside();
+          const p = [parseFloat(tile.style.left), parseFloat(tile.style.top)];
+          glidePlane(() => {
+            sc = Math.min(1.7, Math.max(sc, 1.1));
+            tx = -p[0] * sc; ty = -p[1] * sc;
+            applyPlane();
+          });
+          return;
+        }
+        openSolo(tile.dataset.id);
+      });
+      function markAside(){
+        plane().querySelectorAll('.cv-item').forEach(el => {
+          el.classList.toggle('is-aside', !!framed && el !== framed);
+          el.classList.toggle('is-near', el === framed);
+        });
+      }
+
+      /* ---------- one garment, on its own ---------- */
+      const recordCache = new Map();
+      async function openSolo(id){
+        const g = byId.get(id);
+        if (!g) return;
+        $('cvSoloImg').src = g.img;
+        $('cvSoloImg').alt = g.name;
+        $('cvSoloName').textContent = g.name;
+        $('cvSoloSub').textContent = [g.nation, g.cat, g.ref].filter(Boolean).join(' · ');
+        $('cvSoloSwitch').innerHTML = reviewing
+          ? switchHtml(g.id, picks.has(g.id))
+          : (picks.has(g.id) ? '<span class="cl-picked">Affirmative</span>' : '');
+        $('cvSoloRecord').textContent = 'Reading the record…';
+        swapTo($('cvSolo'));
+
+        if (recordCache.has(id)){ $('cvSoloRecord').textContent = recordCache.get(id); return; }
+        try {
+          const res = await fetch(g.txt, { cache:'no-cache' });
+          if (!res.ok) throw new Error(res.status);
+          const raw = (await res.text()).trim();
+          /* the same cut the archive makes: the name and ref are already on
+             screen, and the list under the rule is ours rather than theirs */
+          const cut = raw.indexOf('\n\n', raw.indexOf('Archive ref:'));
+          let body = cut === -1 ? raw : raw.slice(cut + 2).trim();
+          const rule = body.indexOf('\n---\n');
+          if (rule !== -1) body = body.slice(0, rule).trim();
+          recordCache.set(id, body);
+          $('cvSoloRecord').textContent = body;
+        } catch {
+          $('cvSoloRecord').textContent = 'No record filed for this garment yet.';
+        }
+      }
+
+      /* ---------- sending it back ---------- */
       $('cvSend').addEventListener('click', async () => {
         if (!current) return;
         const row = {
@@ -1973,7 +2449,9 @@
               _subject: 'BMU collection reply — ' + c.title,
               Collection: c.title,
               Reviewer: r.reviewer_email,
-              Wanted: r.picks.map(id => (byId.get(id) || { name:id }).name).join('\n') || '(none)',
+              Affirmative: r.picks.map(id => (byId.get(id) || { name:id }).name).join('\n') || '(none)',
+              Negative: c.garments.filter(id => !picks.has(id))
+                         .map(id => (byId.get(id) || { name:id }).name).join('\n') || '(none)',
               Note: r.note || '(none)',
               Link: SITE + '#c=' + c.id,
               _template: 'table',
