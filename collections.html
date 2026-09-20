@@ -1381,6 +1381,15 @@
       .cv-solo{ grid-template-columns:minmax(0, 1fr); }
     }
 
+    /* the meeting is the real next step, so it is the solid one and it
+       comes before the note rather than after it */
+    .cv-book{
+      display:inline-block;
+      margin-top:14px;
+      text-decoration:none;
+    }
+    .cv-book + .cl-field{ margin-top:16px; }
+
   </style>
 </head>
 <body class="entered">
@@ -1493,8 +1502,9 @@
           <!-- the reviewer's side: what they want, and a note -->
           <div class="cl-reply" id="cvReplyBox" hidden>
             <span class="cl-label">Your reply</span>
-            <p class="cl-lede">Set each garment to affirmative or negative, add anything we should know, and send it. You can come back and change it.</p>
-            <textarea class="cl-field cl-wide" id="cvReply" placeholder="Quantities, sizes, timings — anything" aria-label="Your note"></textarea>
+            <p class="cl-lede">Set each garment to affirmative or negative and send it over. Leave a note if there is something we should know — though the quickest way through quantities, sizes and timings is half an hour in the diary.</p>
+            <a class="cl-btn cl-solid cv-book" href="/contact#meeting">Book a meeting</a>
+            <textarea class="cl-field cl-wide" id="cvReply" placeholder="Anything we should know" aria-label="Your note"></textarea>
             <div class="cl-row">
               <button type="button" class="cl-btn" id="cvSend">Send reply</button>
               <span class="cl-count" id="cvPickCount"></span>
@@ -2171,7 +2181,7 @@
         $('cvAdminBox').hidden = reviewing;
         if (reviewing){
           $('cvReply').value = r ? r.note : '';
-          $('cvSend').textContent = r ? 'Update reply' : 'Send reply';
+          $('cvSend').textContent = r ? 'Update' : 'Send reply';
           say($('cvMsg'), r ? 'Sent ' + new Date(r.updated_at).toLocaleString('en-GB') : '');
           countPicks();
         } else {
@@ -2428,7 +2438,7 @@
           const saved = await api.saveResponse(row);
           replies.set(current.id + '|' + me.email, saved || row);
           tellUs(current, row);
-          $('cvSend').textContent = 'Update reply';
+          $('cvSend').textContent = 'Update';
           say($('cvMsg'), 'Sent — thank you');
         } catch {
           say($('cvMsg'), 'Could not send', true);
