@@ -444,6 +444,42 @@
     }
     #footMailMsg.show{ height:1.5em; opacity:1; }
 
+    /* ---------- copied ----------
+       A word saying "Copied to clipboard" is a sentence where a mark will
+       do. The tick slides out of the address to the right, holds, then
+       slides back left and fades into it — the well closing is what carries
+       it home, so nothing is left sitting in the gap. Grey, because it is a
+       receipt rather than a thing to read. */
+    .mail-copy{ display:inline-flex; align-items:center; max-width:100%; }
+    .mail-tick{
+      width:0;
+      overflow:hidden;
+      display:flex;
+      flex:none;
+      transition:width .42s cubic-bezier(.4,0,.2,1);
+    }
+    .mail-copy.copied .mail-tick{ width:19px; }
+    .mail-tick svg{
+      width:11px; height:11px;
+      display:block; flex:none;
+      margin-left:8px;
+      opacity:0;
+      transform:translateX(-7px);
+      transition:opacity .28s cubic-bezier(.4,0,.2,1),
+                 transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .mail-copy.copied .mail-tick svg{ opacity:1; transform:translateX(0); }
+    .mt-mark{
+      fill:none;
+      stroke:#a6a6a6;
+      stroke-width:1.8;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    @media (prefers-reduced-motion:reduce){
+      .mail-tick, .mail-tick svg{ transition:none; }
+    }
+
     @media (prefers-reduced-motion: reduce){
       .animated-path, .foot-trace{ animation-duration:.01s; }
       /* no dot dissolve when motion is unwelcome — show it plainly */
@@ -1064,8 +1100,16 @@
 
         <div class="foot-col foot-id">
           <h3>Contact</h3>
-          <a href="mailto:hello@britishmaterialunit.com" id="footMail"
-             data-mail="hello@britishmaterialunit.com">hello@britishmaterialunit.com</a>
+          <span class="mail-copy" id="footMailWrap">
+            <a href="mailto:hello@britishmaterialunit.com" id="footMail"
+               data-mail="hello@britishmaterialunit.com">hello@britishmaterialunit.com</a>
+            <!-- the tick comes out of the address and goes back into it -->
+            <span class="mail-tick" aria-hidden="true">
+              <svg viewBox="0 0 16 16" focusable="false">
+                <path class="mt-mark" d="M3.4 8.5 L6.5 11.6 L12.6 5.1"/>
+              </svg>
+            </span>
+          </span>
           <span id="footMailMsg" role="status" aria-live="polite"></span>
           <!-- the address breaks where a postal address breaks, not wherever
                the column happens to run out -->
@@ -1272,7 +1316,17 @@
       footMail.addEventListener('click', e => {
         e.preventDefault();
         const addr = footMail.dataset.mail;
+        const wrap = document.getElementById('footMailWrap');
         const done = ok => {
+          /* the tick is the whole answer when it worked; a failure still
+             needs its words, because a mark cannot say what went wrong */
+          if (ok && wrap){
+            wrap.classList.add('copied');
+            footMailMsg.textContent = 'Copied to clipboard';   // for screen readers
+            clearTimeout(timer);
+            timer = setTimeout(() => wrap.classList.remove('copied'), 1500);
+            return;
+          }
           footMailMsg.textContent = ok ? 'Copied to clipboard' : addr;
           footMailMsg.classList.add('show');
           clearTimeout(timer);

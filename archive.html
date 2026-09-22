@@ -1343,6 +1343,34 @@
     /* and the list needs room to scroll clear of it */
     body.dock-list{ padding-bottom:110px; }
 
+    /* ---------- tabs fade off under the bar ----------
+       Open, the search bar reaches right across the page, and a tab
+       scrolling behind it met a hard edge — cut in half, half of it still
+       printed underneath. It fades out into the bar instead.
+
+       Closed, the dock is three small squares with the page showing between
+       and around them, and a band of fade across the whole width would be
+       veiling nothing. So this belongs to the open bar, and goes with it.
+
+       Under #foot (65), so the page's own line still prints over the top of
+       it, and under the dock (80). */
+    body.dock-list::after{
+      content:'';
+      position:fixed;
+      left:0; right:0; bottom:0;
+      height:156px;
+      z-index:60;
+      pointer-events:none;
+      background:linear-gradient(to top,
+                 var(--bg) 0, var(--bg) 88px, transparent 156px);
+      opacity:0;
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
+    }
+    body.dock-list.dock-open:not(.exploring)::after{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){
+      body.dock-list::after{ transition:none; }
+    }
+
     /* in explore the dock sits central but low, clear of the garments */
     body.exploring #dock:not(.moved){
       left:50%; top:auto; bottom:34px;
@@ -2224,7 +2252,7 @@
     <nav class="hd-tools" aria-label="Leave the archive">
       <!-- the private shelves: a head and shoulders, drawn in the same line
            as the index beside it -->
-      <a class="hd-ico" id="hdColl" href="/collections" aria-label="Collections — sign in">
+      <a class="hd-ico" id="hdColl" href="/collections" aria-label="Files — sign in">
         <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
           <g class="ico-stroke">
             <circle cx="8" cy="5.4" r="2.6"/>
@@ -2292,7 +2320,7 @@
        Shown over a blurred archive so what is behind it is plainly still
        there and still theirs. -->
   <div id="joinGate" hidden aria-hidden="true">
-    <div class="jg-panel" role="dialog" aria-modal="true" aria-label="Join to open your collection">
+    <div class="jg-panel" role="dialog" aria-modal="true" aria-label="Join to open your file">
       <div class="jg-lede" id="jgLede"></div>
       <div class="jg-slide" id="jgSlide">
         <input id="jgInput" type="email" autocomplete="email" spellcheck="false"
@@ -2421,6 +2449,10 @@
         alias:["finnish", "finland", "suomi"] },
       { key:"french", label:"French", abbr:"FR", flag:"franceflag.png", open:false,
         alias:["french", "france"] },
+      /* The Bundeswehr after 1990. West German is kept as its own nation for
+         the state that issued before it — same tricolour, different army. */
+      { key:"german", label:"German", abbr:"DE", flag:"germanyflag.png", open:false,
+        alias:["german", "germany", "deutschland", "bundeswehr", "heer", "de"] },
       { key:"greek", label:"Greek", abbr:"GR", flag:"greeceflag.png", open:false,
         alias:["greek", "greece", "hellenic"] },
       { key:"hungarian", label:"Hungarian", abbr:"HU", flag:"hungaryflag.png", open:false,
@@ -2668,7 +2700,24 @@
          groups by nation when it renders, so this sits with Belgium on
          screen regardless. */
       { n:"botswanan", name:"Botswanan Army 1970s DPM Camouflage Field Shirt", cat:"Shirts",
-        img:"BA1970DPMCFS.png", ref:"BA1970DPMCFS", mat:"Ripstop" }
+        img:"BA1970DPMCFS.png", ref:"BA1970DPMCFS", mat:"Ripstop" },
+      /* ---------------- GERMAN, WEST GERMAN, YUGOSLAV, UNITED STATES ----------------
+         Appended for the same reason Botswana is: the numbers are positions
+         in this list. The page groups by nation when it renders. */
+      { n:"german", name:"German Army 1990s Flecktarn Camouflage Combat Parka", cat:"Parkas",
+        img:"GA1990FCCP.png", ref:"GA1990FCCP", mat:"Cotton" },
+      { n:"german", name:"German Army 2010s Flecktarn Camouflage Long Sleeve Field Shirt", cat:"Shirts",
+        img:"GA2010FCLSFS.png", ref:"GA2010FCLSFS", mat:"Cotton" },
+      { n:"german", name:"German Army 2010s Tropentarn Camouflage Field Shirt", cat:"Shirts",
+        img:"GA2010TCFS.png", ref:"GA2010TCFS", mat:"Cotton" },
+      { n:"west-german", name:"West German Army 1970s Field Grey Long Sleeve Field Shirt", cat:"Shirts",
+        img:"WGA1970FGLSFS.png", ref:"WGA1970FGLSFS", mat:"Wool" },
+      { n:"west-german", name:"West German Army 1980s Olive Drab Parka With Thermal Liner", cat:"Parkas",
+        img:"WGA1980ODPWTL.png", ref:"WGA1980ODPWTL", mat:"Cotton" },
+      { n:"yugoslav", name:"Yugoslav Army 1970s M77 Olive Green Parka", cat:"Parkas",
+        img:"YA1970M77OGP.png", ref:"YA1970M77OGP", mat:"Cotton" },
+      { n:"united-states", name:"United States Navy 1980s Light Blue Long Sleeve Service Shirt", cat:"Shirts",
+        img:"USN1980LBLSSS.png", ref:"USN1980LBLSSS", mat:"Cotton" }
     ];
 
     /* ---------- category order within each nation ----------
