@@ -1020,6 +1020,22 @@
       white-space:pre-wrap;
     }
 
+    /* Sourcing. Light grey, breathing rather than blinking — the dots are
+       counted out in the script, so this is only the flash under them. The
+       line is left-set, so dots arriving at its end move nothing. */
+    .info-inner.sourcing{
+      color:#b8b8b8;
+      letter-spacing:.06em;
+      animation:sourcingflash 2.1s cubic-bezier(.4,0,.2,1) infinite;
+    }
+    @keyframes sourcingflash{
+      0%, 100%{ opacity:.4 }
+      50%     { opacity:1 }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .info-inner.sourcing{ animation:none; opacity:.85; }
+    }
+
     /* ---------- empty state ---------- */
     .empty{
       border:1.5px solid var(--line);
@@ -3300,7 +3316,6 @@
         `<span class="facet-title">Garments</span>` +
         `<span class="facet-opts" hidden>` +
           `<button type="button" class="facet-opt" data-facet="type">Type</button>` +
-          `<button type="button" class="facet-opt" data-facet="material">Material</button>` +
           `<button type="button" class="facet-opt" data-facet="date">Date</button>` +
           `<button type="button" class="facet-opt facet-reset" data-facet="" hidden>All</button>` +
         `</span>` +
@@ -3312,6 +3327,7 @@
 
     function facetOf(el, facet){
       if (facet === 'type')     return el.dataset.type || 'Unclassified';
+      // material is not offered as a grouping for now; the data stays on the card
       if (facet === 'material') return el.dataset.material || 'Unlisted';
       if (facet === 'date')     return el.dataset.date || 'Undated';
       return '';
@@ -3891,8 +3907,6 @@
       const send     = el.querySelector('.req-send');
       const msg      = el.querySelector('.req-msg');
 
-      let infoReq = null;   // the request for this garment's record, if one is out
-
       function setState(state){   // 'idle' | 'request' | 'info'
         reqPanel.classList.toggle('open', state === 'request');
         infoPane.classList.toggle('open', state === 'info');
@@ -3905,48 +3919,50 @@
         if (state !== 'request') msg.textContent = '';
       }
 
-      /* One request in flight at a time, and the panel's own contents are
-         the record of whether it has arrived.
+      /* ---------- THE RECORD IS HELD BACK ----------
+         Info no longer shows the written record. Every garment answers the
+         same way: Sourcing, with its dots counted out twice and a rest
+         between — three, three, pause — flashing in light grey.
 
-         This used to raise a flag the instant it was called, BEFORE the
-         fetch had resolved — so a press while the record was still coming,
-         or any press after one that had failed, was told the record was
-         already loaded and opened an empty panel, permanently. The flag is
-         gone: if the panel is empty and nothing is on its way, it is
-         fetched, whatever order the presses came in. */
-      async function loadInfo(){
-        if (infoReq || infoBody.textContent.trim()) return infoReq;
-        infoReq = (async () => {
-        try {
-          const res = await fetch(txtPath);
-          if (!res.ok) throw new Error(res.status);
-          /* The name, nation, type and ref are already on the card an inch
-             away. What the panel is for is everything under them — the
-             material, the closures, the measurements, the dating. */
-          const raw = (await res.text()).trim();
-          const cut = raw.indexOf('\n\n', raw.indexOf('Archive ref:'));
-          let body = cut === -1 ? raw : raw.slice(cut + 2).trim();
-          /* The record keeps the shop's original list under a rule so the
-             prose can always be checked against its source. The panel shows
-             the prose; the list is for us, not for the reader. */
-          const rule = body.indexOf('\n---\n');
-          if (rule !== -1) body = body.slice(0, rule).trim();
-          infoBody.textContent = body;
-        } catch {
-          infoBody.textContent = 'No record filed for this garment yet.';
-          // a blip is not a verdict — the next press may try again
-          infoReq = null;
+         The records themselves are untouched on disk, and txtPath still
+         points at this garment's. Putting them back is a matter of fetching
+         it here again: read the file, cut at the blank line under
+         "Archive ref:" for the prose, and stop at the "---" rule, which is
+         where the shop's own list begins. */
+      const SOURCING = (() => {
+        const DOT = 240, HOLD = 520, REST = 1200;
+        const frames = [];
+        for (let run = 0; run < 2; run++){
+          frames.push(['Sourcing',    DOT]);
+          frames.push(['Sourcing.',   DOT]);
+          frames.push(['Sourcing..',  DOT]);
+          // the last of the three is held; after the second three, a rest
+          frames.push(['Sourcing...', run === 1 ? REST : HOLD]);
         }
-        })();
-        return infoReq;
+        return frames;
+      })();
+
+      let sourceTimer = null;
+      function sourcing(on){
+        clearTimeout(sourceTimer);
+        infoBody.classList.toggle('sourcing', !!on);
+        if (!on){ infoBody.textContent = ''; return; }
+        let i = 0;
+        const tick = () => {
+          const [text, wait] = SOURCING[i];
+          infoBody.textContent = text;
+          i = (i + 1) % SOURCING.length;
+          sourceTimer = setTimeout(tick, wait);
+        };
+        tick();
       }
 
-      reqBtn.addEventListener('click', () => setState('request'));
+      reqBtn.addEventListener('click', () => { sourcing(false); setState('request'); });
 
       infoBtn.addEventListener('click', () => {
         // from the request form this doubles as the way back out
-        if (infoPane.classList.contains('open')) { setState('idle'); return; }
-        loadInfo();
+        if (infoPane.classList.contains('open')) { sourcing(false); setState('idle'); return; }
+        sourcing(true);
         setState('info');
       });
 
