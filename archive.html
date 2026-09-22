@@ -4810,32 +4810,20 @@
     }
 
     /* ---------- HOW A CLUSTER SITS ----------
-       The spiral is a good answer for seventy garments and a poor one for
-       one: its first point is not the centre but √0.5 of a spacing out
-       along the axis, so a cluster of ONE sat off to the side of a screen
-       it was supposed to be the whole of.
+       Every cluster is the natural spiral, whatever its size — no hand-drawn
+       shapes. Three garments in a triangle, two side by side: those were
+       diagrams, and the archive is not drawn as a diagram anywhere else.
 
-       So the smallest counts are placed by hand — one in the middle, two
-       side by side, three in a triangle — and everything past that is laid
-       out the way the main field is. A ring of six, or one in the middle
-       with a perfect circle around it, is a diagram; the archive is not
-       drawn as a diagram anywhere else and should not be here.
+       The spiral's first point is not its middle but √0.5 of a spacing out
+       along the axis, so a cluster of one does not sit on the origin. That
+       is answered by the framing, not the layout: fitTo() centres the view
+       on the cluster itself, so one garment still lands in the middle of
+       the screen.
 
        Every cluster in the field goes through this, so a nation, a search,
        a collection and the whole archive are arranged by the same rule. */
     function packOffsets(n){
       if (n <= 0) return [];
-      if (n === 1) return [[0, 0]];
-      if (n === 2) return [[-SPACING / 2, 0], [SPACING / 2, 0]];
-      if (n === 3){
-        // a triangle, point up, neighbours one spacing apart
-        const r = SPACING / Math.sqrt(3);
-        return [0, 1, 2].map(i => {
-          const a = -Math.PI / 2 + (Math.PI * 2 * i) / 3;
-          return [Math.cos(a) * r, Math.sin(a) * r];
-        });
-      }
-
       const out = [];
       for (let i = 0; i < n; i++){
         const r = SPACING * Math.sqrt(i + 0.5);
@@ -4914,20 +4902,53 @@
       );
     }
 
+    /* Framed on the cluster's own middle rather than the field's origin —
+       a natural spiral of one, two or three does not sit on the origin, and
+       framing the origin is what would push a lone garment off to one side. */
     function fitTo(els){
+      const at = els.map(el => [parseFloat(el.style.left) || 0, parseFloat(el.style.top) || 0]);
+      const xs = at.map(p => p[0]), ys = at.map(p => p[1]);
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+      const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
       let reach = 1;
-      els.forEach(el => {
-        reach = Math.max(reach, Math.hypot(
-          parseFloat(el.style.left) || 0,
-          parseFloat(el.style.top)  || 0
-        ));
-      });
+      at.forEach(p => { reach = Math.max(reach, Math.hypot(p[0] - cx, p[1] - cy)); });
       const margin = Math.max(70, Math.min(150, window.innerWidth * 0.14));
       const fit = Math.min(window.innerWidth, window.innerHeight - 150) /
                   ((reach + margin) * 2);
       sc = Math.max(0.08, Math.min(maxScale(), fit));
-      tx = 0; ty = -40;
+      tx = -cx * sc; ty = -cy * sc - 40;
       applyTransform();
+    }
+
+    /* ---------- A CLUSTER TAKES THE CENTRE ----------
+       The chosen garments go to the middle of the field, and whatever was
+       sitting there moves out to the places the chosen ones have just left.
+       It is a swap, one for one: dropping the cluster onto the middle while
+       the garments already there stayed put is what had them lying on top
+       of one another. Nothing else in the field moves.
+
+       "The middle" is the positions nearest the origin once the field is in
+       its own shape — in the plain spiral those are simply its first points,
+       so the cluster comes out as the spiral's own centre. */
+    function takeCentre(hit){
+      const els = [...spiral.children];
+      const at  = new Map(els.map(el => [el,
+        [parseFloat(el.style.left) || 0, parseFloat(el.style.top) || 0]]));
+      const byNear = [...els].sort((a, b) =>
+        Math.hypot(...at.get(a)) - Math.hypot(...at.get(b)));
+      const centre  = new Set(byNear.slice(0, hit.length));
+      const wanted  = new Set(hit);
+      const evicted = byNear.filter(el => centre.has(el) && !wanted.has(el));
+      const arrive  = hit.filter(el => !centre.has(el));
+      // pair them nearest first, so the swap reads as a trade, not a shuffle
+      arrive.sort((a, b) => Math.hypot(...at.get(a)) - Math.hypot(...at.get(b)));
+      arrive.forEach((el, i) => {
+        const out = evicted[i];
+        const [ix, iy] = at.get(out);
+        const [ox, oy] = at.get(el);
+        place(el,  ix, iy);
+        place(out, ox, oy);
+      });
     }
 
     let clusterTimer = null;
@@ -4994,20 +5015,17 @@
       }
 
       /* Gathering. Every garment is laid back on its own spiral position
-         first — placing only the matches on top of a field that never moved
-         is what left garments sitting over one another. Then the matches are
-         drawn into the middle, and the rest of the archive stays where it is
-         in grey: how much there is, and how much of it is not this. They
-         used to be taken off the field altogether for a search, which
-         answered the question and threw away its context. */
+         first, then the matches take the centre and the garments that held
+         it move out to where the matches were (takeCentre). The rest of the
+         archive stays where it is in grey: how much there is, and how much
+         of it is not this. */
       slide();
       layoutSpiral(spiralMode);
       els.forEach(el => {
         el.classList.toggle('sp-grey', !hit.includes(el));
         el.classList.remove('sp-dim', 'sp-gone');
       });
-      const pts = packOffsets(hit.length);
-      hit.forEach((el, i) => place(el, pts[i][0], pts[i][1]));
+      takeCentre(hit);
 
       clusterTimer = setTimeout(() => {
         glide(() => fitTo(hit), 800);
@@ -5571,8 +5589,7 @@
         el.style.transition = 'left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1)';
       });
       layoutSpiral('spiral');
-      const pts = packOffsets(keep.length);
-      keep.forEach((el, i) => place(el, pts[i][0], pts[i][1]));
+      takeCentre(keep);
       setTimeout(() => {
         glide(() => fitTo(keep), 800);
         setTimeout(() => els.forEach(el => { el.style.transition = ''; }), 880);

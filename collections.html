@@ -2254,22 +2254,14 @@
       $('cvSoloBack').addEventListener('click', seeField);
 
       /* ---------- the field ----------
-         Laid out the way the archive lays out a cluster: one in the middle,
-         two side by side, three in a triangle, and past that the same spiral
-         the whole archive is drawn on. */
+         Laid out the way the archive lays out a cluster: the natural spiral
+         the whole archive is drawn on, at every size — no hand-drawn
+         triangle or pair. fitField() centres on the cluster itself, so a
+         single garment still sits in the middle of the box. */
       const SPACING = 168;
       const GOLDEN = Math.PI * (3 - Math.sqrt(5));
       function offsets(n){
         if (n <= 0) return [];
-        if (n === 1) return [[0, 0]];
-        if (n === 2) return [[-SPACING / 2, 0], [SPACING / 2, 0]];
-        if (n === 3){
-          const r = SPACING / Math.sqrt(3);
-          return [0, 1, 2].map(i => {
-            const a = -Math.PI / 2 + (Math.PI * 2 * i) / 3;
-            return [Math.cos(a) * r, Math.sin(a) * r];
-          });
-        }
         const out = [];
         for (let i = 0; i < n; i++){
           const r = SPACING * Math.sqrt(i + 0.5);
@@ -2313,11 +2305,12 @@
       function fitField(){
         const box = $('cvField').getBoundingClientRect();
         if (!box.width) return;
+        const pts = offsets(shown.length);
+        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+        const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
         let reach = 1;
-        shown.forEach((g, i) => {
-          const p = offsets(shown.length)[i];
-          reach = Math.max(reach, Math.hypot(p[0], p[1]));
-        });
+        pts.forEach(p => { reach = Math.max(reach, Math.hypot(p[0] - cx, p[1] - cy)); });
         /* The margin is the garment itself: a tile is 130px wide, so half of
            one plus a little air is what has to be left around the furthest
            of them. Measured off the shorter side, so a wide box does not
@@ -2325,7 +2318,7 @@
         const margin = 92;
         const fit = Math.min(box.width, box.height) / ((reach + margin) * 2);
         sc = Math.max(0.12, Math.min(1.9, fit));
-        tx = 0; ty = 0;
+        tx = -cx * sc; ty = -cy * sc;
         applyPlane();
       }
 
