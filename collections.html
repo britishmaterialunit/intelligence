@@ -2789,7 +2789,7 @@
             method: 'POST',
             headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
             body: JSON.stringify({
-              _subject: 'BMU collection reply — ' + c.title,
+              _subject: 'BMU file reply — ' + c.title,
               Collection: c.title,
               Reviewer: r.reviewer_email,
               Affirmative: r.picks.map(id => (byId.get(id) || { name:id }).name).join('\n') || '(none)',
@@ -3030,7 +3030,7 @@
           return;
         }
         try { await boot(); }
-        catch { show('clSignIn'); say($('clSignMsg'), 'Could not load your collections. Sign in again.', true); }
+        catch { show('clSignIn'); say($('clSignMsg'), 'Could not load your files. Sign in again.', true); }
 
         // another tab signing out, or a session that lapses, lands here
         sb.auth.onAuthStateChange(ev => {
