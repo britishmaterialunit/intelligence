@@ -1337,26 +1337,27 @@
        held; a press pins it and it times itself out rather than waiting to
        be dismissed — there is nothing in it worth a second gesture. */
     .cv-infowrap{ position:relative; display:flex; align-items:center; margin-right:auto; }
+    /* One rule, one line, and as little air inside it as the type will
+       take — the box is the words' own outline rather than a panel they sit
+       in. Fixed, because it rides the cursor: the script sets left/top from
+       the pointer, and the box goes with it. */
     .cv-pop{
-      position:absolute;
-      left:0; top:calc(100% + 9px);
-      z-index:20;
-      padding:9px 11px;
+      position:fixed;
+      left:0; top:0;
+      z-index:200;
+      padding:3px 6px;
       background:var(--bg);
       border:1.5px solid #000;
-      outline:1.5px solid #000;
-      outline-offset:2.5px;
       font-size:10.5px;
-      line-height:1.7;
-      letter-spacing:.04em;
+      line-height:1.25;
+      letter-spacing:.03em;
       color:var(--ink);
       white-space:nowrap;
       opacity:0;
-      transform:translateY(-4px);
       pointer-events:none;
-      transition:opacity .28s cubic-bezier(.4,0,.2,1), transform .34s cubic-bezier(.4,0,.2,1);
+      transition:opacity .22s cubic-bezier(.4,0,.2,1);
     }
-    .cv-pop.show{ opacity:1; transform:none; }
+    .cv-pop.show{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ .cv-pop{ transition:none; } }
 
     /* ---------- the rest of the archive ----------
@@ -1475,25 +1476,94 @@
     .cv-hint.gone{ opacity:0; }
 
     /* ---------- ONE GARMENT, ON ITS OWN ---------- */
+    /* ---------- THE GARMENT TAB ----------
+       The archive's, rebuilt: the field's box, and inside it the titled bar
+       and the card, with the field's own gutter left around them so the tab
+       reads as something standing in the field rather than as a page that
+       has replaced it. */
     .cv-solo{
+      height:min(70vh, 620px);
+      min-height:380px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:26px;
+      background:var(--bg);
+    }
+    .cv-tab{
+      width:100%;
+      max-width:760px;
       border:1.5px solid var(--line);
       background:var(--bg);
-      padding:18px;
-      display:grid;
-      grid-template-columns:minmax(0, 300px) minmax(0, 1fr);
-      gap:22px;
-      align-items:start;
     }
-    .cv-soloback{ grid-column:1 / -1; justify-self:start; }
-    .cv-soloimg{
+    .cv-tabhead{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1.5px solid var(--line);
+    }
+    .cv-tabflag{ width:18px; height:12px; object-fit:cover; flex:none; display:block; }
+    .cv-tabtitle{
+      flex:1;
+      min-width:0;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .cv-tabclose{
+      flex:none;
+      width:18px; height:18px;
+      display:grid; place-items:center;
+      padding:0; border:0; background:none;
+      color:#9a9a9a;
+      cursor:pointer;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-tabclose:hover{ color:var(--ink); }
+    .cv-tabclose svg{ width:14px; height:14px; display:block; }
+    .cv-tabclose path{ stroke:currentColor; stroke-width:1.6; stroke-linecap:round; fill:none; }
+    .cv-tabbody{
+      margin:14px;
+      border:1.5px solid var(--line);
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      align-items:stretch;
+    }
+    .cv-tabslot{
+      border-right:1.5px solid var(--line);
       aspect-ratio:1 / 1;
       display:flex; align-items:center; justify-content:center;
       overflow:hidden;
-      border:1.5px solid var(--line);
+      padding:14px;
     }
-    .cv-soloimg img{ width:100%; height:100%; object-fit:contain; display:block; }
-    .cv-solometa{ display:flex; flex-direction:column; gap:8px; }
-    .cv-soloname{ margin:0; font-size:17px; font-weight:bold; line-height:1.35; }
+    .cv-tabslot img{ width:100%; height:100%; object-fit:contain; display:block; }
+    .cv-tabmeta{
+      display:flex;
+      flex-direction:column;
+      padding:16px;
+      min-width:0;
+    }
+    .cv-tabname{ font-size:15px; font-weight:bold; line-height:1.35; }
+    .cv-tabref{
+      margin-top:6px;
+      font-size:10px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#b0b0b0;
+    }
+    /* the switch takes the slot the archive gives Request and Info: pushed
+       to the foot of the column, on its own rule */
+    .cv-tabacts{ margin-top:auto; padding-top:16px; }
+    @media (max-width: 760px){
+      .cv-tabbody{ grid-template-columns:minmax(0, 1fr); }
+      .cv-tabslot{ border-right:0; border-bottom:1.5px solid var(--line); }
+      .cv-solo{ padding:14px; height:auto; min-height:0; }
+    }
     .cv-solorecord{
       margin-top:4px;
       max-height:34vh;
@@ -1676,8 +1746,8 @@
 
           <!-- the reviewer's side: what they want, and a note -->
           <div class="cl-reply" id="cvReplyBox" hidden>
-            <p class="cl-lede">Set each garment to affirmative or negative and send it over. Leave a note if required—confirm and then book meeting to talk more on surplus.</p>
-            <textarea class="cl-field cl-wide" id="cvReply" placeholder="Anything we should know" aria-label="Your note"></textarea>
+            <p class="cl-lede">Set each garment to affirmative or negative and send it over. Leave a note if required—confirm and then book meeting to talk more on surplus. <a href="/archive">View more on archive</a> and save new file.</p>
+            <textarea class="cl-field cl-wide" id="cvReply" placeholder="What’s a worthwhile mention?" aria-label="Your note"></textarea>
 
             <!-- Two steps, each with its own mark on the right: a cross until
                  it is done, a tick once it is. The meeting's mark is never
@@ -1742,7 +1812,7 @@
                   <g class="ico-stroke"><circle cx="8" cy="8" r="6.1"/><path d="M8 7.3 V11.3"/><path d="M8 4.7 V5.3"/></g>
                 </svg>
               </button>
-              <div class="cv-pop" id="cvInfoPop" role="tooltip">Here’s a list view or explore<br>view of garments from the archive<br>that we’ve selected of potential interest.</div>
+              <div class="cv-pop" id="cvInfoPop" role="tooltip">Here’s a list view or explore view of garments from the archive we’ve selected of potential interest.</div>
             </div>
             <button type="button" class="cv-tool is-on" id="cvAsList" aria-pressed="true" aria-label="See them as a list">
               <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -1765,15 +1835,32 @@
             <div class="cv-hint" id="cvFieldHint">Drag to move · scroll to zoom · press a garment twice to open it</div>
           </div>
 
-          <!-- one garment, on its own -->
+          <!-- One garment, on its own: the archive's own garment tab, drawn
+               the same way — a titled bar carrying the nation's flag, and
+               under it the garment beside its name. The two buttons the
+               archive puts there are Request and Info; here the garment is
+               being judged rather than ordered, so the switch takes their
+               place in the same slot. It sits inside the field's own box,
+               with the field's gutter around it. -->
           <div class="cv-solo" id="cvSolo" hidden>
-            <button type="button" class="cl-link cv-soloback" id="cvSoloBack">Back to the field</button>
-            <div class="cv-soloimg"><img id="cvSoloImg" alt=""></div>
-            <div class="cv-solometa">
-              <h3 class="cv-soloname" id="cvSoloName"></h3>
-              <span class="cl-sub" id="cvSoloSub"></span>
-              <div class="cv-solorecord" id="cvSoloRecord"></div>
-              <div id="cvSoloSwitch"></div>
+            <div class="cv-tab">
+              <div class="cv-tabhead">
+                <img class="cv-tabflag" id="cvSoloFlag" alt="" aria-hidden="true">
+                <span class="cv-tabtitle" id="cvSoloTitle"></span>
+                <button type="button" class="cv-tabclose" id="cvSoloBack" aria-label="Back to the field">
+                  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <path d="M3.4 8 H12.6"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="cv-tabbody">
+                <div class="cv-tabslot"><img id="cvSoloImg" alt=""></div>
+                <div class="cv-tabmeta">
+                  <div class="cv-tabname" id="cvSoloName"></div>
+                  <span class="cv-tabref" id="cvSoloSub"></span>
+                  <div class="cv-tabacts" id="cvSoloSwitch"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2170,6 +2257,7 @@
             id:     `${p.n}/${slugBase(p.name)}`,
             name:   p.name,
             nation: n.label,
+            flag:   n.flag || '',
             cat:    p.cat,
             ref:    p.ref || '',
             img:    `${dir}/${p.img || slugBase(p.name) + '.png'}`,
@@ -2250,11 +2338,23 @@
           return data || [];
         },
         async saveResponse(r){
-          const { data, error } = await sb.from('bmu_responses')
-            .upsert(r, { onConflict:'collection_id,reviewer_email' })
-            .select().single();
-          if (error) throw error;
-          return data;
+          /* status arrived after the first files were built, so a database
+             that has not had the one-line migration run against it does not
+             have the column. Rather than fail the reply — which is the part
+             that matters — the write is tried again without it. */
+          const put = async row => {
+            const { data, error } = await sb.from('bmu_responses')
+              .upsert(row, { onConflict:'collection_id,reviewer_email' })
+              .select().single();
+            if (error) throw error;
+            return data;
+          };
+          try { return await put(r); }
+          catch (err){
+            if (!('status' in r)) throw err;
+            const { status, ...rest } = r;
+            return await put(rest);
+          }
         },
         /* A second client that never stores a session. Creating an account
            signs that account in, and doing it on the page's own client
@@ -2284,6 +2384,16 @@
       let onlyChosen = false;
 
       const replyOf = c => replies.get(c.id + '|' + String(c.reviewer_email).toLowerCase());
+
+      /* Where a file has got to, in three words.
+
+           Unopened — nobody has been in yet. There is no row at all.
+           Opened   — they have been in and looked. A row exists.
+           Verified — they have been through it and pressed Verify File.
+
+         The row is written the moment the file is opened, so "opened" is a
+         fact we hold rather than something inferred from silence. */
+      const stateOf = r => !r ? 'Unopened' : (r.status === 'verified' ? 'Verified' : 'Opened');
 
       async function refresh(){
         list = await api.collections();
@@ -2341,8 +2451,8 @@
             const r = replyOf(c);
             const n = plural(c.garments.length, 'garment', 'garments');
             const label = me.admin
-              ? `For ${esc(c.reviewer_email)} · ${n} · ${r ? 'Replied' : 'Awaiting reply'}`
-              : `${n}${r ? ' · Replied' : ''}`;
+              ? `For ${esc(c.reviewer_email)} · ${n} · ${stateOf(r)}`
+              : `${n} · ${stateOf(r)}`;
             return `<button type="button" class="news-item" data-id="${esc(c.id)}">` +
                      `<span class="ni-date">${label}</span>` +
                      `<span class="ni-title">${esc(c.title)}</span>` +
@@ -2420,6 +2530,8 @@
         $('cvFor').textContent = me.admin ? 'For ' + c.reviewer_email : '';
         $('cvFor').hidden = !me.admin;
         $('cvTitle').textContent = c.title;
+        // the note asks by name rather than in the abstract
+        $('cvReply').placeholder = `What’s a worthwhile mention, ${c.title}?`;
         $('cvNote').textContent = c.note || '';
         $('cvNote').hidden = !c.note;
 
@@ -2431,6 +2543,11 @@
           : '';
 
         reviewing = !me.admin;
+
+        /* A reader opening their own file marks it opened, once. It is not a
+           reply — no picks, no note — so anything already written is left
+           exactly as it is; only the absence of a row is filled in. */
+        if (reviewing && !r) markOpened(c);
         $('cvGrid').innerHTML = shown.map(g =>
           card(g, reviewing ? 'switch' : (picks.has(g.id) ? 'picked' : ''))).join('');
 
@@ -2448,13 +2565,32 @@
           countPicks();
         } else {
           $('cvTheirs').innerHTML = r
-            ? `<p class="cl-lede">${plural(r.picks.length, 'garment', 'garments')} affirmative of ${shown.length} · ${esc(new Date(r.updated_at).toLocaleString('en-GB'))}</p>` +
+            ? `<p class="cl-lede">${esc(stateOf(r))} · ${r.status === 'verified'
+                  ? plural(r.picks.length, 'garment', 'garments') + ' affirmative of ' + shown.length + ' · '
+                  : ''}${esc(new Date(r.updated_at).toLocaleString('en-GB'))}</p>` +
               (r.note ? `<div class="cl-quote">${esc(r.note)}</div>` : '')
-            : `<p class="cl-lede">No reply yet.</p>`;
+            : `<p class="cl-lede">Unopened.</p>`;
           say($('cvAdminMsg'), '');
         }
         seeGrid(true);
         show('clView');
+      }
+
+      /* Written once, and quietly: if it fails the reader is not told,
+         because nothing they were trying to do has failed. */
+      async function markOpened(c){
+        const row = {
+          collection_id: c.id,
+          reviewer_email: me.email,
+          picks: [],
+          note: '',
+          status: 'opened',
+          updated_at: new Date().toISOString()
+        };
+        try {
+          const saved = await api.saveResponse(row);
+          replies.set(c.id + '|' + String(me.email).toLowerCase(), saved || row);
+        } catch (_){}
       }
 
       function countPicks(){
@@ -2519,18 +2655,46 @@
       (function wireInfo(){
         const btn = $('cvInfo'), pop = $('cvInfoPop');
         if (!btn || !pop) return;
-        let pinned = false, timer = null;
-        const open  = () => pop.classList.add('show');
-        const close = () => { if (!pinned) pop.classList.remove('show'); };
+        let pinned = false;
+
+        /* The box sits to the left of the cursor — its right edge just short
+           of the pointer — and is kept inside the window, so a long line
+           never runs off either end. */
+        function follow(x, y){
+          const r = pop.getBoundingClientRect();
+          const w = r.width || 320, h = r.height || 20;
+          const left = Math.max(8, Math.min(window.innerWidth - w - 8, x - w - 12));
+          const top  = Math.max(8, Math.min(window.innerHeight - h - 8, y - h / 2));
+          pop.style.left = Math.round(left) + 'px';
+          pop.style.top  = Math.round(top) + 'px';
+        }
+        function open(e){
+          pop.classList.add('show');
+          if (e) follow(e.clientX, e.clientY);
+          else {
+            const b = btn.getBoundingClientRect();
+            follow(b.left, b.top + b.height / 2);
+          }
+        }
+        const close = () => { pinned = false; pop.classList.remove('show'); };
+
         btn.addEventListener('pointerenter', open);
-        btn.addEventListener('pointerleave', close);
-        btn.addEventListener('focus', open);
-        btn.addEventListener('blur', () => { pinned = false; pop.classList.remove('show'); });
+        btn.addEventListener('pointermove', e => { if (pop.classList.contains('show')) follow(e.clientX, e.clientY); });
+        btn.addEventListener('pointerleave', () => { if (!pinned) close(); });
+        btn.addEventListener('focus', () => open(null));
+        btn.addEventListener('blur', close);
+
+        /* No hover on a touch screen, so a press opens it and a press
+           anywhere else puts it away — there is nothing to move off. */
         btn.addEventListener('click', e => {
           e.preventDefault();
-          pinned = true; open();
-          clearTimeout(timer);
-          timer = setTimeout(() => { pinned = false; pop.classList.remove('show'); }, 4600);
+          e.stopPropagation();
+          if (pinned){ close(); return; }
+          pinned = true;
+          open(e.clientX ? e : null);
+        });
+        document.addEventListener('click', e => {
+          if (pinned && !btn.contains(e.target)) close();
         });
       })();
 
@@ -2734,8 +2898,13 @@
           framed = tile;
           markAside();
           const p = [parseFloat(tile.style.left), parseFloat(tile.style.top)];
+          /* Big enough to be the only thing being looked at. A tile is 130px
+             wide, so the scale is read off the box rather than guessed: the
+             garment comes up to about two thirds of the shorter side. */
+          const box = $('cvField').getBoundingClientRect();
+          const want = (Math.min(box.width, box.height) * 0.66) / 130;
           glidePlane(() => {
-            sc = Math.min(1.7, Math.max(sc, 1.1));
+            sc = Math.max(sc, Math.min(3.6, want));
             tx = -p[0] * sc; ty = -p[1] * sc;
             applyPlane();
           });
@@ -2750,11 +2919,18 @@
         });
       }
 
-      /* ---------- one garment, on its own ---------- */
-      const recordCache = new Map();
-      async function openSolo(id){
+      /* ---------- one garment, on its own ----------
+         The archive's garment tab: the flag and the name in the bar, the
+         garment beside its name under it, and the switch standing where the
+         archive puts Request and Info. No written record here — the
+         archive's own tab does not show one either. */
+      function openSolo(id){
         const g = byId.get(id);
         if (!g) return;
+        const flag = $('cvSoloFlag');
+        if (g.flag){ flag.src = '/flags/' + g.flag; flag.hidden = false; }
+        else flag.hidden = true;
+        $('cvSoloTitle').textContent = g.name;
         $('cvSoloImg').src = g.img;
         $('cvSoloImg').alt = g.name;
         $('cvSoloName').textContent = g.name;
@@ -2762,25 +2938,7 @@
         $('cvSoloSwitch').innerHTML = reviewing
           ? switchHtml(g.id, picks.has(g.id))
           : (picks.has(g.id) ? '<span class="cl-picked">Affirmative</span>' : '');
-        $('cvSoloRecord').textContent = 'Reading the record…';
         swapTo($('cvSolo'));
-
-        if (recordCache.has(id)){ $('cvSoloRecord').textContent = recordCache.get(id); return; }
-        try {
-          const res = await fetch(g.txt, { cache:'no-cache' });
-          if (!res.ok) throw new Error(res.status);
-          const raw = (await res.text()).trim();
-          /* the same cut the archive makes: the name and ref are already on
-             screen, and the list under the rule is ours rather than theirs */
-          const cut = raw.indexOf('\n\n', raw.indexOf('Archive ref:'));
-          let body = cut === -1 ? raw : raw.slice(cut + 2).trim();
-          const rule = body.indexOf('\n---\n');
-          if (rule !== -1) body = body.slice(0, rule).trim();
-          recordCache.set(id, body);
-          $('cvSoloRecord').textContent = body;
-        } catch {
-          $('cvSoloRecord').textContent = 'No record filed for this garment yet.';
-        }
       }
 
       /* ---------- sending it back ---------- */
@@ -2791,6 +2949,7 @@
           reviewer_email: me.email,
           picks: current.garments.filter(id => picks.has(id)),   // in the collection's order
           note: $('cvReply').value.trim(),
+          status: 'verified',
           updated_at: new Date().toISOString()
         };
         $('cvSend').disabled = true;
@@ -2800,7 +2959,7 @@
           replies.set(current.id + '|' + me.email, saved || row);
           tellUs(current, row);
           setMark('cvSendMark', true);
-          say($('cvMsg'), 'Sent — thank you');
+          say($('cvMsg'), 'Sent ' + new Date().toLocaleString('en-GB'));
         } catch {
           say($('cvMsg'), 'Could not send', true);
         } finally {

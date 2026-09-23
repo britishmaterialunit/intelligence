@@ -35,9 +35,17 @@ create table if not exists public.bmu_responses (
   reviewer_email text not null,
   picks          text[] not null default '{}',
   note           text not null default '',
+  -- where the file has got to: 'opened' the moment the reviewer opens it,
+  -- 'verified' once they have been through it and pressed Verify File.
+  -- A file with no row at all is unopened.
+  status         text not null default 'opened',
   updated_at     timestamptz not null default now(),
   primary key (collection_id, reviewer_email)
 );
+
+-- For a database built before status existed. Safe to run again.
+alter table public.bmu_responses
+  add column if not exists status text not null default 'opened';
 
 alter table public.bmu_admins      enable row level security;
 alter table public.bmu_collections enable row level security;
