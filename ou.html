@@ -184,6 +184,58 @@
       gap:16px;
     }
 
+    /* ---------- who we work with ----------
+       Pushed to the far end of the same row the mark and the line sit on, so
+       the three read as one band across the top of the footer. Grey at rest
+       because they are somebody else's marks on our page; black when the
+       pointer picks one out. */
+    .foot-partners{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:22px;
+      flex:none;
+    }
+    .fp{ display:block; line-height:0; }
+    .fp img{
+      height:22px;
+      width:auto;
+      max-width:64px;
+      object-fit:contain;
+      display:block;
+      opacity:.34;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    .fp[data-who]{ cursor:help; }
+    .fp:hover img{ opacity:1; }
+
+    /* the same box the Files page hangs off its info mark: one rule, one
+       line, tight to the words, and it rides the cursor */
+    .fp-pop{
+      position:fixed;
+      left:0; top:0;
+      z-index:200;
+      padding:3px 6px;
+      background:var(--bg);
+      border:1.5px solid #000;
+      font-size:10.5px;
+      line-height:1.25;
+      letter-spacing:.03em;
+      color:var(--ink);
+      white-space:nowrap;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .22s cubic-bezier(.4,0,.2,1);
+    }
+    .fp-pop.show{ opacity:1; }
+
+    @media (max-width:760px){
+      .foot-head{ flex-wrap:wrap; }
+      /* on its own line under the mark, spread the full width */
+      .foot-partners{ margin-left:0; width:100%; justify-content:space-between; gap:10px; }
+      .fp img{ height:18px; max-width:52px; }
+    }
+
     .foot-mark{
       height:17px; width:auto;   /* matches .hd-mark in the header */
       display:block;
@@ -1087,6 +1139,17 @@
           <path id="footFill" class="foot-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
         </svg>
         <span class="foot-slogan" id="footSlogan"></span>
+        <!-- Who we work with. Grey until the pointer is on one, and each says
+             who it is and what we did for them, in the same box the Files
+             page uses for its own note. -->
+        <div class="foot-partners" aria-label="Who we work with">
+          <span class="fp"><img src="/partners/rose.png" alt="" loading="lazy"></span>
+          <span class="fp" data-who="YAKU (Sourcing)"><img src="/partners/yaku.png" alt="YAKU" loading="lazy"></span>
+          <span class="fp"><img src="/partners/spheres.png" alt="" loading="lazy"></span>
+          <span class="fp" data-who="Elstar (Sourcing + PD)"><img src="/partners/elstar.png" alt="Elstar" loading="lazy"></span>
+          <span class="fp"><img src="/partners/seal.png" alt="" loading="lazy"></span>
+        </div>
+        <div class="fp-pop" id="footPartnerPop" role="tooltip"></div>
       </div>
 
       <div class="foot-rule" role="presentation"></div>
@@ -1325,6 +1388,36 @@
     /* ---------- the address copies itself ----------
        A mailto is no use on a machine with no mail client set up, which is
        most of them. Clicking copies instead, and says so. */
+    /* ---------- the partners' marks ----------
+       A box that says who a mark belongs to, placed off the pointer the way
+       the Files page places its own: to the left where there is room, to the
+       right where there is not, and always inside the window. */
+    (function partnerMarks(){
+      const pop = document.getElementById('footPartnerPop');
+      if (!pop) return;
+      const EDGE = 8;
+      function place(x, y){
+        pop.style.maxWidth = (window.innerWidth - EDGE * 2) + 'px';
+        const r = pop.getBoundingClientRect();
+        const w = r.width || 160, h = r.height || 20;
+        let left = x - w - 12;
+        if (left < EDGE) left = x + 14;
+        left = Math.max(EDGE, Math.min(window.innerWidth - w - EDGE, left));
+        const top = Math.max(EDGE, Math.min(window.innerHeight - h - EDGE, y - h - 12));
+        pop.style.left = Math.round(left) + 'px';
+        pop.style.top  = Math.round(top) + 'px';
+      }
+      document.querySelectorAll('.fp[data-who]').forEach(el => {
+        el.addEventListener('pointerenter', e => {
+          pop.textContent = el.dataset.who;
+          pop.classList.add('show');
+          place(e.clientX, e.clientY);
+        });
+        el.addEventListener('pointermove', e => place(e.clientX, e.clientY));
+        el.addEventListener('pointerleave', () => pop.classList.remove('show'));
+      });
+    })();
+
     const footMail    = document.getElementById('footMail');
     const footMailMsg = document.getElementById('footMailMsg');
     if (footMail && footMailMsg){
