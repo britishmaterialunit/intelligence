@@ -370,7 +370,7 @@
     .talk-arrow{
       fill:none;
       stroke:currentColor;
-      stroke-width:1.7;
+      stroke-width:1.6;
       stroke-linecap:round;
       stroke-linejoin:round;
     }
@@ -449,7 +449,7 @@
     .mt-mark{
       fill:none;
       stroke:#a6a6a6;
-      stroke-width:1.8;
+      stroke-width:1.6;
       stroke-linecap:round;
       stroke-linejoin:round;
     }
@@ -914,6 +914,18 @@
       text-transform:uppercase;
       color:#9a9a9a;
     }
+    /* The page's one-ink rule: a link is the same ink as the writing around
+       it with a rule under it, and a visited one does not turn purple. The
+       Repository's copy does exactly this. */
+    .cl-lede a,
+    .cl-lede a:visited{
+      color:var(--ink);
+      text-decoration:underline;
+      text-underline-offset:2px;
+      transition:opacity .25s cubic-bezier(.4,0,.2,1);
+    }
+    .cl-lede a:hover{ opacity:.6; }
+
     .cl-lede{
       margin:12px 0 0;
       max-width:56ch;
@@ -1304,18 +1316,6 @@
       object-fit:contain;
       -webkit-user-drag:none;
     }
-    .cv-plane .cv-item .cv-tag{
-      display:block;
-      margin-top:6px;
-      font-size:8px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      text-align:center;
-      color:#b4b4b4;
-      opacity:0;
-      transition:opacity .3s cubic-bezier(.4,0,.2,1);
-    }
-    .cv-plane .cv-item.is-near .cv-tag{ opacity:1; }
     /* set aside: still there, plainly not the subject — the archive's grey */
     .cv-plane .cv-item.is-aside{ opacity:.16; filter:grayscale(1); }
     /* the affirmative ones carry a mark even at a distance */
@@ -1357,6 +1357,11 @@
       pointer-events:none;
       transition:opacity .22s cubic-bezier(.4,0,.2,1);
     }
+    /* A phone is narrower than the line. Wrapping is what keeps it on the
+       screen, and being on the screen matters more than being one line. */
+    @media (max-width:760px){
+      .cv-pop{ white-space:normal; line-height:1.45; }
+    }
     .cv-pop.show{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ .cv-pop{ transition:none; } }
 
@@ -1369,7 +1374,6 @@
       pointer-events:none;
       cursor:default;
     }
-    .cv-plane .cv-item.cv-rest .cv-tag{ display:none; }
 
     /* ---------- the two steps ---------- */
     .cv-steps{ display:flex; flex-direction:column; gap:12px; margin-top:16px; }
@@ -1381,7 +1385,7 @@
     .cv-mark .cm-x, .cv-mark .cm-tick{
       fill:none;
       stroke:currentColor;
-      stroke-width:1.7;
+      stroke-width:1.6;
       stroke-linecap:round;
       stroke-linejoin:round;
       transform-origin:50% 50%;
@@ -1440,7 +1444,7 @@
     .cv-talk .talk-arrow{
       fill:none;
       stroke:currentColor;
-      stroke-width:1.7;
+      stroke-width:1.6;
       stroke-linecap:round;
       stroke-linejoin:round;
     }
@@ -1489,6 +1493,14 @@
       justify-content:center;
       padding:26px;
       background:var(--bg);
+    }
+    .cv-solo.cv-opening .cv-tab{ animation:cvTabIn .54s cubic-bezier(.4,0,.2,1) both; }
+    @keyframes cvTabIn{
+      from{ opacity:0; transform:scale(.972) translateY(6px); }
+      to  { opacity:1; transform:none; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .cv-solo.cv-opening .cv-tab{ animation:none; }
     }
     .cv-tab{
       width:100%;
@@ -1556,9 +1568,9 @@
       text-transform:uppercase;
       color:#b0b0b0;
     }
-    /* the switch takes the slot the archive gives Request and Info: pushed
-       to the foot of the column, on its own rule */
-    .cv-tabacts{ margin-top:auto; padding-top:16px; }
+    /* the switch takes the slot the archive gives Request and Info: the
+       foot of the column, and the right-hand corner of it */
+    .cv-tabacts{ margin-top:auto; padding-top:16px; display:flex; justify-content:flex-end; }
     @media (max-width: 760px){
       .cv-tabbody{ grid-template-columns:minmax(0, 1fr); }
       .cv-tabslot{ border-right:0; border-bottom:1.5px solid var(--line); }
@@ -1746,7 +1758,7 @@
 
           <!-- the reviewer's side: what they want, and a note -->
           <div class="cl-reply" id="cvReplyBox" hidden>
-            <p class="cl-lede">Set each garment to affirmative or negative and send it over. Leave a note if required—confirm and then book meeting to talk more on surplus. <a href="/archive">View more on archive</a> and save new file.</p>
+            <p class="cl-lede">Set each garment to negative or affirmative and send it over. Leave a note if required—verify and then book meeting to talk more on surplus. View more on <a href="/archive">archive</a> and build a new one.</p>
             <textarea class="cl-field cl-wide" id="cvReply" placeholder="What’s a worthwhile mention?" aria-label="Your note"></textarea>
 
             <!-- Two steps, each with its own mark on the right: a cross until
@@ -2474,11 +2486,17 @@
          Neither view leaves this page. */
 
       // a switch with two named ends, rather than a button that changes word
-      function switchHtml(id, on){
-        return `<button type="button" class="cv-switch" role="switch" data-id="${esc(id)}" aria-checked="${on}">` +
-                 `<span class="cv-sw-end neg">Negative</span>` +
+      /* Two named ends on a card, where there is room to say which way is
+         which. On the garment tab the switch stands alone in the corner and
+         the words come off it — the tab is one garment being judged, and by
+         then the reader knows what the switch is for. The names stay in the
+         button's own label, for anyone who cannot see it. */
+      function switchHtml(id, on, bare){
+        return `<button type="button" class="cv-switch${bare ? ' is-bare' : ''}" role="switch" ` +
+               `data-id="${esc(id)}" aria-checked="${on}" aria-label="Affirmative">` +
+                 (bare ? '' : `<span class="cv-sw-end neg">Negative</span>`) +
                  `<span class="cv-sw-track"><span class="cv-sw-knob"></span></span>` +
-                 `<span class="cv-sw-end aff">Affirmative</span>` +
+                 (bare ? '' : `<span class="cv-sw-end aff">Affirmative</span>`) +
                `</button>`;
       }
 
@@ -2515,6 +2533,18 @@
         if (m) m.classList.toggle('on', !!on);
       }
 
+      /* Verifying a second time — three of five where it was two — is a real
+         act and deserves to be seen. A mark already showing a tick would
+         simply not move, so it is taken off, the browser is made to notice,
+         and it turns again from the cross. */
+      function turnMark(id){
+        const m = $(id);
+        if (!m) return;
+        m.classList.remove('on');
+        void m.offsetWidth;
+        m.classList.add('on');
+      }
+
       function openView(id){
         const c = list.find(x => x.id === id);
         if (!c){ openHome(); return; }
@@ -2530,8 +2560,9 @@
         $('cvFor').textContent = me.admin ? 'For ' + c.reviewer_email : '';
         $('cvFor').hidden = !me.admin;
         $('cvTitle').textContent = c.title;
-        // the note asks by name rather than in the abstract
-        $('cvReply').placeholder = `What’s a worthwhile mention, ${c.title}?`;
+        // by first name, the way you would actually ask somebody
+        const who = String(c.title || '').trim().split(/\s+/)[0] || 'there';
+        $('cvReply').placeholder = `What’s worthwhile mentioning, ${who}?`;
         $('cvNote').textContent = c.note || '';
         $('cvNote').hidden = !c.note;
 
@@ -2657,14 +2688,22 @@
         if (!btn || !pop) return;
         let pinned = false;
 
-        /* The box sits to the left of the cursor — its right edge just short
-           of the pointer — and is kept inside the window, so a long line
-           never runs off either end. */
+        /* The box sits to the left of the cursor, its right edge just short
+           of the pointer. Where there is no room on the left — a phone, or
+           the mark sitting near the left edge — it goes to the right of the
+           pointer instead rather than being jammed against the edge with its
+           line running off the screen. Its width is capped to the window
+           first, so the measurement below is of the box as it will actually
+           be drawn. */
+        const EDGE = 8;
         function follow(x, y){
+          pop.style.maxWidth = (window.innerWidth - EDGE * 2) + 'px';
           const r = pop.getBoundingClientRect();
           const w = r.width || 320, h = r.height || 20;
-          const left = Math.max(8, Math.min(window.innerWidth - w - 8, x - w - 12));
-          const top  = Math.max(8, Math.min(window.innerHeight - h - 8, y - h / 2));
+          let left = x - w - 12;                       // to the left of it
+          if (left < EDGE) left = x + 14;              // no room: to the right
+          left = Math.max(EDGE, Math.min(window.innerWidth - w - EDGE, left));
+          const top = Math.max(EDGE, Math.min(window.innerHeight - h - EDGE, y - h / 2));
           pop.style.left = Math.round(left) + 'px';
           pop.style.top  = Math.round(top) + 'px';
         }
@@ -2761,7 +2800,17 @@
 
       $('cvAsList').addEventListener('click', () => seeGrid(false));
       $('cvAsField').addEventListener('click', seeField);
-      $('cvSoloBack').addEventListener('click', seeField);
+      /* Out of the tab and back to the file — all of it. Leaving the framing
+         in place returned the reader to the one garment they had just been
+         looking at, blown up, with the rest of their file set aside behind
+         it. The frame is let go of first, so the field they come back to is
+         the cluster they were sent. */
+      function backToField(){
+        framed = null;
+        markAside();
+        seeField();
+      }
+      $('cvSoloBack').addEventListener('click', backToField);
 
       /* ---------- the field ----------
          Laid out the way the archive lays out a cluster: the natural spiral
@@ -2815,7 +2864,6 @@
           `<div class="cv-item${extra}" data-id="${esc(g.id)}" ` +
                `style="left:${Math.round(pts[i][0])}px; top:${Math.round(pts[i][1])}px">` +
             `<img src="${esc(g.img)}" alt="${extra ? '' : esc(g.name)}" loading="lazy">` +
-            `<span class="cv-tag">${esc(g.ref || g.nation)}</span>` +
           `</div>`;
         plane().innerHTML =
           shown.map((g, i) => tile(g, i, picks.has(g.id) ? ' is-yes' : '')).join('') +
@@ -2936,9 +2984,17 @@
         $('cvSoloName').textContent = g.name;
         $('cvSoloSub').textContent = [g.nation, g.cat, g.ref].filter(Boolean).join(' · ');
         $('cvSoloSwitch').innerHTML = reviewing
-          ? switchHtml(g.id, picks.has(g.id))
+          ? switchHtml(g.id, picks.has(g.id), true)
           : (picks.has(g.id) ? '<span class="cl-picked">Affirmative</span>' : '');
         swapTo($('cvSolo'));
+        /* Opening only. Going back is the field coming forward, which is its
+           own move and does not want a second one over the top of it. */
+        const solo = $('cvSolo');
+        solo.classList.remove('cv-opening');
+        void solo.offsetWidth;
+        solo.classList.add('cv-opening');
+        clearTimeout(openSolo.t);
+        openSolo.t = setTimeout(() => solo.classList.remove('cv-opening'), 640);
       }
 
       /* ---------- sending it back ---------- */
@@ -2958,7 +3014,7 @@
           const saved = await api.saveResponse(row);
           replies.set(current.id + '|' + me.email, saved || row);
           tellUs(current, row);
-          setMark('cvSendMark', true);
+          turnMark('cvSendMark');
           say($('cvMsg'), 'Sent ' + new Date().toLocaleString('en-GB'));
         } catch {
           say($('cvMsg'), 'Could not send', true);
