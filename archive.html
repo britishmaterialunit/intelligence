@@ -5245,6 +5245,10 @@
         }
       }
 
+      /* Whatever the reader is standing in, the class says so. openRecord
+         takes it off to build the record; this is where it comes back. */
+      document.body.classList.toggle('library', savedOnly);
+
       exploreClosing = false;
       explore.hidden = false;
       exploreOn = true;
@@ -5884,6 +5888,16 @@
 
       lastExploreItem = item;
       endExplore(false);
+      /* The record is built inside #catalogue, and library mode hides the
+         catalogue outright (body.library #catalogue{display:none}) because
+         the shelf is a tab of its own outside it. Opening a garment from the
+         saved cluster therefore built the record somewhere nothing could be
+         seen, and left the reader looking at the shelf's list instead.
+
+         The class goes for as long as the record is open. savedOnly is NOT
+         touched: it is what brings the reader back to their own shelf rather
+         than to all of them, and showField puts the class back from it. */
+      document.body.classList.remove('library');
       soloId = item.dataset.id;
       markUrl(soloId);                  // /archive/<n> — the garment's own address
       nationsOpen = true;

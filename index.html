@@ -539,12 +539,6 @@
       text-align:left;
     }
     #repoPanel.on{ display:flex; }
-    /* The panel is centred in the square, and the cloth makes it taller than
-       the square is — so it would finish over the button row. It rises as
-       the cloth arrives instead, on the same curve, and comes to rest with
-       the last bar clear of the buttons. */
-    #repoPanel{ transition:transform .7s cubic-bezier(.4,0,.2,1); }
-    #repoPanel.with-cloth{ transform:translateY(-56px); }
     .repo-lede{
       width:min(100%, 560px);
       margin:0 auto;
@@ -563,43 +557,6 @@
     }
     .repo-note.in{ opacity:1; }
 
-    /* ---------- THE CLOTH ----------
-       One bar per textile, the width of the Operations box so the panel
-       keeps the row's measure. Each is the house line in black, a white
-       inlay inside it, and then the pattern itself spread across — the
-       stroke and the inlay are the frame the archive gives everything, and
-       the cloth is the only thing in the panel with colour in it. */
-    .repo-bars{
-      width:100%;
-      margin:18px auto 0;
-      opacity:0;
-      transition:opacity .7s cubic-bezier(.4,0,.2,1);
-    }
-    .repo-bars.in{ opacity:1; }
-    .rb + .rb{ margin-top:10px; }
-    .rb-line{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:6px;
-      font-size:9.5px;
-      letter-spacing:.2em;
-      text-transform:uppercase;
-      color:#9a9a9a;
-    }
-    /* background-clip:content-box is what makes the inlay: the padding
-       shows the element's own white, the cloth fills only the box inside it */
-    .rb-swatch{
-      height:clamp(40px, 6.4vw, 54px);
-      padding:5px;
-      border:1.5px solid var(--line);
-      background-color:var(--bg);
-      background-image:var(--pat);
-      background-size:cover;
-      background-position:center;
-      background-origin:content-box;
-      background-clip:content-box;
-    }
     /* the two ways on out of this panel — underlined rather than coloured,
        so they read as links without breaking the page's one-ink rule */
     .repo-note:empty{ display:none; }
@@ -1670,25 +1627,6 @@
         <div id="repoPanel" aria-hidden="true">
           <div id="repoLede" class="repo-lede"></div>
           <div class="repo-note" id="repoNote"></div>
-          <!-- What the repository will be, shown rather than described: the
-               cloth itself, run the width of the box, with its nation, its
-               pattern and what it is woven in. -->
-          <div class="repo-bars" id="repoBars">
-            <div class="rb">
-              <div class="rb-line">
-                <span>British</span><span>DPM</span><span>Cotton</span>
-              </div>
-              <div class="rb-swatch" style="--pat:url('/patterns/dpm.jpg')"
-                   role="img" aria-label="British DPM in cotton"></div>
-            </div>
-            <div class="rb">
-              <div class="rb-line">
-                <span>British</span><span>MTP</span><span>Cordura 500D</span>
-              </div>
-              <div class="rb-swatch" style="--pat:url('/patterns/mtp.jpg')"
-                   role="img" aria-label="British MTP in Cordura 500D"></div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -3827,30 +3765,22 @@
       'available for donations and acquisition along with their pattern metrics. ' +
       'In the meantime, search for military garments via our ' +
       '<a href="/archive">archive</a> and request for sourcing for small production ' +
-      'runs, or visit <a href="/contact#unit">Unit U</a>, our open-studio. ' +
+      'runs, or visit <a href="/contact#unit">Unit U</a> our open-studio. ' +
       'Alternatively, request for a <a href="/contact">demo</a> of MarshalOS, ' +
       'our remanufacturing software for garment to garment recycling.';
 
     const repoPanel = document.getElementById('repoPanel');
     const repoLede  = document.getElementById('repoLede');
     const repoNote  = document.getElementById('repoNote');
-    const repoBars  = document.getElementById('repoBars');
-
     function repoSequence(live){
       repoPanel.classList.add('on');
       repoPanel.setAttribute('aria-hidden', 'false');
       repoNote.classList.remove('in');
-      repoBars.classList.remove('in');
-      repoPanel.classList.remove('with-cloth');
       joinState = 'ready';
       claimUrl('/repository');
-      /* the cloth comes up once the sentence has been written, so the panel
-         is read before it is looked at */
-      bmuTypeRich(repoLede, REPO_LEDE_HTML, 14, () => {
-        if (!live()) return;
-        repoPanel.classList.add('with-cloth');
-        repoBars.classList.add('in');
-      }, live);
+      /* the blurb is the whole panel: it writes itself and that is the end
+         of it. The cloth bars that used to come up under it are gone. */
+      bmuTypeRich(repoLede, REPO_LEDE_HTML, 14, null, live);
     }
 
     /* The opening run backwards: the field and the address go, the one
@@ -3871,8 +3801,6 @@
       repoPanel.classList.remove('on');
       repoPanel.setAttribute('aria-hidden', 'true');
       repoNote.classList.remove('in');
-      repoBars.classList.remove('in');
-      repoPanel.classList.remove('with-cloth');
       repoLede.textContent = '';
       joinMode = 'join';
       joinEmail.textContent = '';
