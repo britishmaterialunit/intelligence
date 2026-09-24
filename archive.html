@@ -4474,6 +4474,29 @@
                    keys:[cat.toLowerCase(), ...words] });
       });
 
+      /* What a garment is cut from. Already on every card — the facet bar
+         groups by it — so the bar should be able to answer for it too. */
+      const mats = {};
+      ITEMS.forEach(i => { const m = i.mat; if (m) mats[m] = (mats[m] || 0) + 1; });
+      Object.keys(mats).forEach(m => {
+        out.push({ kind:'Material', label:m, fill:m, count:mats[m], keys:[m.toLowerCase()] });
+      });
+
+      /* The prints. They live inside the names rather than in a field of
+         their own, so they are counted out of the names — a word is a
+         pattern here only if the archive actually holds garments wearing it. */
+      const PATTERNS = ['DPM', 'MTP', 'Flecktarn', 'Tropentarn', 'Multicam', 'M81',
+                        'Woodland', 'Alpenflage', 'Lizard', 'Strichmuster', 'UCP',
+                        'CCE', 'Pantera', 'Oak Leaf', 'Tiger Stripe', 'Coffee Stain',
+                        'Vine', 'Fleck', 'Leaf', 'Pixel', 'Digital', 'Desert',
+                        'Camouflage', 'Raindrop'];
+      PATTERNS.forEach(w => {
+        const re = new RegExp('\\b' + w.replace(/ /g, '\\s+') + '\\b', 'i');
+        const count = ITEMS.filter(i => re.test(i.name)).length;
+        if (!count) return;
+        out.push({ kind:'Pattern', label:w, fill:w, count, keys:[w.toLowerCase()] });
+      });
+
       return out;
     })();
 
@@ -4547,14 +4570,27 @@
     /* The chip names the first answer; this is all of them. Same matching,
        same order — the biggest cluster first, because that is the one most
        likely meant. */
+    /* One per filter, not six of whichever kind happens to be biggest. The
+       bar can be asked about a nation, a garment, a date, a print or a cloth,
+       and typing three letters that touch several of them should offer one of
+       each rather than burying the others under two Nations. */
     function suggestAll(term){
       if (!term || term.length < 2) return [];
-      return LABELS.filter(l => l.keys.some(k => k.startsWith(term)))
-                   .sort((a, b) => b.count - a.count)
-                   .slice(0, 6);
+      const best = new Map();
+      LABELS.filter(l => l.keys.some(k => k.startsWith(term)))
+            .forEach(l => {
+              const held = best.get(l.kind);
+              if (!held || l.count > held.count) best.set(l.kind, l);
+            });
+      return [...best.values()].sort((a, b) => b.count - a.count).slice(0, 6);
     }
 
     const dqPicks    = document.getElementById('dqPicks');
+    function hidePicks(){
+      if (!dqPicks) return;
+      dqPicks.classList.remove('on');
+      dqPicks.innerHTML = '';
+    }
     /* Beside the tally, and riding the cursor the way every other box on
        the site does: to the left where there is room, to the right where
        there is not, always inside the window. */
@@ -4603,9 +4639,11 @@
     function paintPicks(term){
       if (!dqPicks) return;
       const all = suggestAll(term);
-      /* One answer is already named by the chip inside the bar; a stack of
-         one under it would be the same word twice. */
-      if (all.length < 2){
+      /* They stay while the word is being typed, and stay when it has been
+         typed out in full — a reader who has written BRITISH still has to be
+         able to press the thing that takes them there. They go on enter, and
+         on taking one, and when the bar is empty. Nothing else removes them. */
+      if (!all.length){
         dqPicks.classList.remove('on');
         dqPicks.innerHTML = '';
         return;
@@ -4653,6 +4691,7 @@
       dq.value = term;
       dghost.hidden = true;
       paintHint(term.toLowerCase());
+      hidePicks();                       // chosen: there is nothing left to offer
       if (!exploreOn){
         dockForced = true;
         setFaceMode('explore');
@@ -4729,6 +4768,7 @@
       // settles on the group — a nation becomes that nation's cluster
       if (exploreOn){
         clusterSearch(dq.value.trim().toLowerCase(), true);   // choosing
+        hidePicks();                     // the choice is made
         return;
       }
 
