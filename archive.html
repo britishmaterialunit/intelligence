@@ -2254,6 +2254,14 @@
       -webkit-tap-highlight-color:transparent;
     }
     .hd-ico svg{ display:block; width:15px; height:15px; }
+    /* The way in to a reader's own files. It arrives rather than being
+       there: the page opens on the archive, and this is the one mark in the
+       header that is about them rather than about it. */
+    #hdColl{ opacity:0; animation:collIn .7s cubic-bezier(.4,0,.2,1) .55s forwards; }
+    @keyframes collIn{ to{ opacity:1; } }
+    @media (prefers-reduced-motion:reduce){
+      #hdColl{ opacity:1; animation:none; }
+    }
     .hd-ico .ico-fill{ fill:currentColor; }
     .hd-ico .ico-stroke{
       fill:none;
@@ -5219,6 +5227,13 @@
     /* while one garment holds the view, the arrow's slot offers to keep it */
     let focusedItem = null;
 
+    /* From the second press until the record has it, the field answers to
+       nothing. The garment is on its way and every other thing the field
+       listens for — a wheel, a drag, a press, the framing being let go of —
+       would interrupt a move already under way. Moving the pointer off the
+       garment mid-flight was enough to start the field undoing itself. */
+    let soloLock = false;
+
     /* One bookmark button, two jobs: with a garment framed it keeps that
        garment; with the whole field showing it gathers what is kept. */
     function offerSave(el){
@@ -5278,6 +5293,10 @@
     let atInitial = false;      // is the field sitting at its opening view?
 
     function openExplore(){
+      /* Whatever was on its way is there or gone; the field is the reader's
+         again and listens for them again. Set at the top, before any of the
+         paths below can return early. */
+      soloLock = false;
       // the list's dressing does not belong to the field
       document.body.classList.remove('dock-list');
 
@@ -5349,6 +5368,9 @@
       /* Whatever the reader is standing in, the class says so. openRecord
          takes it off to build the record; this is where it comes back. */
       document.body.classList.toggle('library', savedOnly);
+
+      // the field is the reader's again, and listens for them again
+      soloLock = false;
 
       exploreClosing = false;
       explore.hidden = false;
@@ -5892,7 +5914,7 @@
        floating over a field that has moved underneath it. */
     explore.addEventListener('wheel', e => {
       e.preventDefault();
-      if (gateShut()) return;
+      if (gateShut() || soloLock) return;
       const rect = explore.getBoundingClientRect();
       const cx = e.clientX - rect.left - rect.width / 2;
       const cy = e.clientY - rect.top - rect.height / 2;
@@ -5909,7 +5931,7 @@
 
     let panId = null, panX = 0, panY = 0;
     explore.addEventListener('pointerdown', e => {
-      if (gateShut()) return;
+      if (gateShut() || soloLock) return;
       if (e.target.closest('.sp-item')) return;
       /* The gate lives inside this overlay, and capturing the pointer here
          means the button inside it never receives the click — the press
@@ -5937,6 +5959,7 @@
     // a garment opens on its own, centred; the tab's − brings you back
     spiral.addEventListener('click', e => {
       if (gateShut()) return;        // nothing in the field is pressable yet
+      if (soloLock) return;          // one is already on its way
       const item = e.target.closest('.sp-item');
       if (!item) return;
 
@@ -5958,6 +5981,7 @@
 
          Meanwhile the rest of the field goes, so the handover is not a
          screenful of garments blinking out with the overlay. */
+      soloLock = true;                 // the field stops listening
       item.classList.add('sp-pick');
       spiral.classList.add('sp-chosen');
 
@@ -5967,7 +5991,30 @@
       let target = now > 4 ? sc * (want / now) : maxScale() * 0.68;
       target = Math.min(target, maxScale());
 
-      glide(() => focusItem(item, target), 620);
+      /* On a phone the garment holds its place on the glass and only its
+         size changes — the screen is small enough that the garment is
+         already the whole of it, and travelling it to the exact middle first
+         is a movement with nothing to gain. The scale is taken about the
+         point it already occupies rather than about the centre.
+
+         On a pointer screen it is still brought to the middle: there is room
+         either side of it there, and the record opens in the middle. */
+      if (window.matchMedia('(max-width: 760px)').matches){
+        const gx = parseFloat(item.style.left) || 0;
+        const gy = parseFloat(item.style.top)  || 0;
+        const sx = gx * sc + tx;          // where it sits on the glass now
+        const sy = gy * sc + ty;
+        glide(() => {
+          sc = Math.min(target, maxScale());
+          tx = sx - gx * sc;              // and where it stays
+          ty = sy - gy * sc;
+          atInitial = false;
+          applyTransform();
+          offerSave(item);
+        }, 620);
+      } else {
+        glide(() => focusItem(item, target), 620);
+      }
       setTimeout(() => openRecord(item), 660);
     });
 
@@ -6327,8 +6374,14 @@
             soloTimers.push(setTimeout(() => {
               document.body.classList.add('solo-drawing');
               document.body.classList.remove('solo-build');
-              soloTimers.push(setTimeout(
-                () => document.body.classList.remove('solo-drawing'), 900));
+              soloTimers.push(setTimeout(() => {
+                document.body.classList.remove('solo-drawing');
+                /* The record is built and nothing is left in flight, so
+                   whatever the reader does next is theirs again. Released
+                   here rather than only on the way back to the field,
+                   because the way back is not always through the field. */
+                soloLock = false;
+              }, 900));
             }, 90));
           }, BOX_MS + HANDOVER));
         }, OPEN_MS + 20));
@@ -6378,6 +6431,7 @@
     /* back out of a single garment into the spiral, sitting on it rather
        than pulling all the way out to the wide view */
     function returnToExplore(toAll){
+      soloLock = false;                 // the record has it; the field is free
       markUrl(null);                    // the record is being left: /archive
       /* solo-from-field is NOT dropped here. It is what hides the tally and
          the bookmark on a record opened from the field, and taking it off at
