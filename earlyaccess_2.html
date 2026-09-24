@@ -7,6 +7,10 @@
   <meta name="robots" content="index, follow" />
   <meta name="author" content="British Material Unit" />
   <meta name="theme-color" content="#424831" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="BMU" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <link rel="canonical" href="https://britishmaterialunit.com/earlyaccess" />
   <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
 
@@ -1082,7 +1086,7 @@
              rather than off the page. -->
         <div class="foot-partners" aria-label="Who we work with">
           <span class="fp is-extra" data-who="Seeing Red (Sourcing)"><img src="/partners/seal.png" alt="Seeing Red" loading="lazy"></span>
-          <span class="fp is-extra" data-who="Elstar (Product Development)"><img src="/partners/elstar.png" alt="Elstar" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Elstar Hamburg (Product Development)"><img src="/partners/elstar.png" alt="Elstar Hamburg" loading="lazy"></span>
           <span class="fp" data-who="Raeburn (Sourcing)"><img src="/partners/rose.png" alt="Raeburn" loading="lazy"></span>
           <span class="fp" data-who="Yaku (Sourcing)"><img src="/partners/yaku.png" alt="Yaku" loading="lazy"></span>
           <span class="fp" data-who="Maxime Black (Sourcing)"><img src="/partners/spheres.png" alt="Maxime Black" loading="lazy"></span>
@@ -1354,6 +1358,24 @@
       const head = more && more.closest('.foot-head');
       if (more && head){
         const slogan = document.getElementById('footSlogan');
+
+        /* Opened and then walked away from. The row is a footnote to the
+           footer, not a state the page should still be holding when the
+           reader is somewhere else entirely — so once they leave the footer
+           it folds itself back up and the line comes home. */
+        function fold(){
+          if (!head.classList.contains('partners-open')) return;
+          head.classList.remove('partners-open');
+          more.setAttribute('aria-expanded', 'false');
+          more.setAttribute('aria-label', 'Show everyone we work with');
+          if (slogan && typeof bmuType === 'function' && typeof SLOGAN === 'string'){
+            setTimeout(() => bmuType(SLOGAN, slogan, 55), 300);
+          }
+        }
+        window.addEventListener('scroll', () => {
+          if (!document.body.classList.contains('at-footer')) fold();
+        }, { passive:true });
+        window.addEventListener('pagehide', fold);
         more.addEventListener('click', () => {
           const open = head.classList.toggle('partners-open');
           more.setAttribute('aria-expanded', String(open));

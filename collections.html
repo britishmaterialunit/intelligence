@@ -8,6 +8,10 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="author" content="British Material Unit" />
   <meta name="theme-color" content="#ffffff" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="BMU" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
   <title>Files | BMU</title>
 
@@ -385,15 +389,18 @@
     /* Early Access is parked. Pressing it goes nowhere: the padlock fades
        up over the word in black, holds a beat, and fades away again. */
     .foot-col a.foot-locked{ position:relative; }
+    /* The mark sits after the words rather than over them: a lock lying on
+       top of the label hid what it was locking. It is simply there. */
+    .foot-col a.foot-locked{ display:inline-flex; align-items:center; gap:7px; }
     .foot-lock{
-      position:absolute;
-      left:50%; top:50%;
-      width:13px; height:13px;
-      transform:translate(-50%, -50%);
-      opacity:0;
+      width:12px; height:12px;
+      flex:none;
+      display:block;
+      opacity:.45;
       pointer-events:none;
       transition:opacity .35s cubic-bezier(.4,0,.2,1);
     }
+    .foot-locked:hover .foot-lock,
     .foot-locked.flash .foot-lock{ opacity:1; }
     .foot-locked.flash{ color:#d0d0d0; }
 
@@ -1445,6 +1452,29 @@
       background:var(--bg);
       border:1.5px solid var(--line);
     }
+    /* ---------- A FILE OPENS ----------
+       The garments fall flat the way the archive's tabs do — the same
+       gesture, so a file reads as a cut of the archive rather than as
+       another kind of page. They land one after another, and the writing on
+       the left arrives behind them in the order it is read: the name is
+       written out, and then the blurb, the note and the two steps slide up
+       one at a time. */
+    .cv-opening-file .cl-card{
+      animation:cardTopple .44s cubic-bezier(.4,0,.2,1) backwards;
+    }
+    @keyframes cardTopple{
+      from{ opacity:0; transform:perspective(760px) rotateX(-34deg) translateY(-16px); }
+      to  { opacity:1; transform:none; }
+    }
+    .cv-step-in{ animation:stepIn .42s cubic-bezier(.4,0,.2,1) backwards; }
+    @keyframes stepIn{
+      from{ opacity:0; transform:translateY(12px); }
+      to  { opacity:1; transform:none; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .cv-opening-file .cl-card, .cv-step-in{ animation:none; }
+    }
+
     /* ---------- FILE/ ----------
        The label above the name, typed. The slash is the point of it: this is
        one file out of a set, and the name that follows finishes the address. */
@@ -1482,6 +1512,17 @@
       .cv-pop{ white-space:normal; line-height:1.45; }
     }
     .cv-pop.show{ opacity:1; }
+
+    /* ---------- AN UNOPENED FILE ----------
+       The same box, hung off a file that has never been opened: one word and
+       a lock. The lock turns over to an open one as the file is opened, so
+       the gesture the reader just made has a mark to land on. */
+    .cv-pop .ac-lock{
+      width:12px; height:12px;
+      display:inline-block;
+      vertical-align:-2px;
+      margin-left:8px;
+    }
     @media (prefers-reduced-motion:reduce){ .cv-pop{ transition:none; } }
 
     /* ---------- the rest of the archive ----------
@@ -2097,7 +2138,7 @@
              rather than off the page. -->
         <div class="foot-partners" aria-label="Who we work with">
           <span class="fp is-extra" data-who="Seeing Red (Sourcing)"><img src="/partners/seal.png" alt="Seeing Red" loading="lazy"></span>
-          <span class="fp is-extra" data-who="Elstar (Product Development)"><img src="/partners/elstar.png" alt="Elstar" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Elstar Hamburg (Product Development)"><img src="/partners/elstar.png" alt="Elstar Hamburg" loading="lazy"></span>
           <span class="fp" data-who="Raeburn (Sourcing)"><img src="/partners/rose.png" alt="Raeburn" loading="lazy"></span>
           <span class="fp" data-who="Yaku (Sourcing)"><img src="/partners/yaku.png" alt="Yaku" loading="lazy"></span>
           <span class="fp" data-who="Maxime Black (Sourcing)"><img src="/partners/spheres.png" alt="Maxime Black" loading="lazy"></span>
@@ -2124,7 +2165,7 @@
                the footer returns the reader there and plays them rather than
                navigating away to a page that does not exist -->
           <a href="/#join">Join</a>
-          <a href="#" class="foot-locked" aria-disabled="true" aria-label="Early Access, locked">Early Access<img class="foot-lock" src="/lock.svg" alt="" aria-hidden="true" /></a>
+          <a href="#" class="foot-locked" aria-disabled="true" aria-label="Early Access, locked">Early Access<img class="foot-lock" src="/lock-solid.svg" alt="" aria-hidden="true" /></a>
           <a href="/#operations">Operations</a>
           <a href="/#repository">Repository</a>
           <a href="/archive">Archive</a>
@@ -2377,6 +2418,24 @@
       const head = more && more.closest('.foot-head');
       if (more && head){
         const slogan = document.getElementById('footSlogan');
+
+        /* Opened and then walked away from. The row is a footnote to the
+           footer, not a state the page should still be holding when the
+           reader is somewhere else entirely — so once they leave the footer
+           it folds itself back up and the line comes home. */
+        function fold(){
+          if (!head.classList.contains('partners-open')) return;
+          head.classList.remove('partners-open');
+          more.setAttribute('aria-expanded', 'false');
+          more.setAttribute('aria-label', 'Show everyone we work with');
+          if (slogan && typeof bmuType === 'function' && typeof SLOGAN === 'string'){
+            setTimeout(() => bmuType(SLOGAN, slogan, 55), 300);
+          }
+        }
+        window.addEventListener('scroll', () => {
+          if (!document.body.classList.contains('at-footer')) fold();
+        }, { passive:true });
+        window.addEventListener('pagehide', fold);
         more.addEventListener('click', () => {
           const open = head.classList.toggle('partners-open');
           more.setAttribute('aria-expanded', String(open));
@@ -2658,6 +2717,7 @@
 
       async function refresh(){
         list = await api.collections();
+        window.__bmuList = list;          // what the hover reads to know a file is unopened
         replies.clear();
         (await api.responses()).forEach(r =>
           replies.set(r.collection_id + '|' + String(r.reviewer_email).toLowerCase(), r));
@@ -2727,6 +2787,57 @@
         const b = e.target.closest('.news-item');
         if (b) openView(b.dataset.id);
       });
+
+      /* A file nobody has been into yet says so under the pointer: one word,
+         and a lock that turns as it is opened. The box is the page's own —
+         the same one the info mark and the footer's partners use. */
+      (function wireAccess(){
+        const list = $('clList'), pop = $('cvInfoPop');
+        if (!list || !pop) return;
+        const EDGE = 8;
+        function place(x, y){
+          pop.style.maxWidth = (window.innerWidth - EDGE * 2) + 'px';
+          const r = pop.getBoundingClientRect();
+          const w = r.width || 120, h = r.height || 20;
+          let left = x - w - 12;
+          if (left < EDGE) left = x + 14;
+          left = Math.max(EDGE, Math.min(window.innerWidth - w - EDGE, left));
+          const top = Math.max(EDGE, Math.min(window.innerHeight - h - EDGE, y - h - 12));
+          pop.style.left = Math.round(left) + 'px';
+          pop.style.top  = Math.round(top) + 'px';
+        }
+        const lock = src => `Access<img class="ac-lock" src="${src}" alt="" aria-hidden="true">`;
+        const unopened = b => {
+          const c = list_of(b.dataset.id);
+          return c && !replyOf(c);
+        };
+        const list_of = id => (list_of.all || []).find(x => x.id === id);
+        list.addEventListener('pointerover', e => {
+          const b = e.target.closest('.news-item');
+          if (!b) return;
+          list_of.all = window.__bmuList || [];
+          if (!unopened(b)) return;
+          pop.innerHTML = lock('/lock-solid.svg');
+          pop.classList.add('show');
+          place(e.clientX, e.clientY);
+        });
+        list.addEventListener('pointermove', e => {
+          if (pop.classList.contains('show') && e.target.closest('.news-item')) place(e.clientX, e.clientY);
+        });
+        list.addEventListener('pointerout', e => {
+          if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('.news-item')){
+            pop.classList.remove('show');
+          }
+        });
+        /* Pressed: the lock turns open where it stands, and then goes with
+           the list it belonged to. */
+        list.addEventListener('pointerdown', e => {
+          const b = e.target.closest('.news-item');
+          if (!b || !pop.classList.contains('show')) return;
+          pop.innerHTML = lock('/unlock-solid.svg');
+          setTimeout(() => pop.classList.remove('show'), 520);
+        });
+      })();
 
       /* ---------- one collection ----------
          The same garments in two views. The grid is the plate it opens on;
@@ -2854,6 +2965,7 @@
         }
         seeGrid(true);
         show('clView');
+        dealFile();
       }
 
       /* Written once, and quietly: if it fails the reader is not told,
@@ -2871,6 +2983,51 @@
           const saved = await api.saveResponse(row);
           replies.set(c.id + '|' + String(me.email).toLowerCase(), saved || row);
         } catch (_){}
+      }
+
+      /* The file arrives rather than being there. The garments fall flat one
+         after another on the right; on the left the name is written out and
+         the blurb, the note and the two steps come up under it in the order
+         they are read. Everything is given its delay and then let alone —
+         the animations are the stylesheet's, this only says when. */
+      function dealFile(){
+        const grid = $('cvGrid');
+        const cards = [...grid.querySelectorAll('.cl-card')];
+        grid.classList.remove('cv-opening-file');
+        void grid.offsetWidth;
+        grid.classList.add('cv-opening-file');
+        cards.forEach((c, i) => { c.style.animationDelay = (i * 55) + 'ms'; });
+        setTimeout(() => {
+          grid.classList.remove('cv-opening-file');
+          cards.forEach(c => { c.style.animationDelay = ''; });
+        }, 440 + cards.length * 55 + 60);
+
+        // the name, written
+        const title = $('cvTitle');
+        const name = title.textContent;
+        if (typeof bmuType === 'function' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          bmuType(name, title, 42);
+        }
+
+        /* and under it, one at a time. The note's box and the two steps are
+           the reviewer's; an admin has their own box in the same place, so
+           whichever is showing is the one dealt. */
+        const box = $('cvReplyBox').hidden ? $('cvAdminBox') : $('cvReplyBox');
+        const run = [$('cvNote'), box && box.querySelector('.cl-lede'),
+                     box && box.querySelector('textarea'), box && box.querySelector('.cv-steps'),
+                     box && box.querySelector('#cvTheirs'), box && box.querySelector('.cl-row')]
+                    .filter(el => el && !el.hidden);
+        const START = Math.max(420, name.length * 42);
+        run.forEach((el, i) => {
+          el.classList.remove('cv-step-in');
+          void el.offsetWidth;
+          el.style.animationDelay = (START + i * 120) + 'ms';
+          el.classList.add('cv-step-in');
+          setTimeout(() => {
+            el.classList.remove('cv-step-in');
+            el.style.animationDelay = '';
+          }, START + i * 120 + 480);
+        });
       }
 
       function countPicks(){

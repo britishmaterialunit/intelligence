@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-label="Locked">
+  <!-- solid: shackle and body in one ink, no keyhole cut out of it -->
+  <path d="M5 7.2 V5.1 a3 3 0 0 1 6 0 V7.2" fill="none" stroke="#000000" stroke-width="1.4" stroke-linecap="round"/>
+  <rect x="3.3" y="7.2" width="9.4" height="7" rx="0.6" fill="#000000"/>
+</svg>
