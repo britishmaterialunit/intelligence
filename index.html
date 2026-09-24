@@ -3135,8 +3135,12 @@
           footTrace.style.animation = 'none';
           footTrace.style.strokeDashoffset = '0';
         };
-        const footHead = siteFooter.querySelector('.foot-head');
-        if (footHead) footHead.addEventListener('mouseenter', fill, { once:true });
+        /* The mark used to fill the moment a pointer touched the footer,
+           which was meant as a shortcut for anyone impatient. It is not one:
+           jumping to the bottom puts the cursor on the footer as the mark
+           arrives, so the draw it had just started was cut off in its first
+           frames every single time. The run is the point; it takes the time
+           it takes, however the reader got here. */
         // same draw-then-fill as the hero, with a fallback so the mark
         // can never be left invisible if animationend does not arrive
         footTrace.addEventListener('animationend', fill, { once:true });

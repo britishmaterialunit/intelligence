@@ -1431,8 +1431,10 @@
           footTrace.style.animation = 'none';
           footTrace.style.strokeDashoffset = '0';
         };
-        const footHead = siteFooter.querySelector('.foot-head');
-        if (footHead) footHead.addEventListener('mouseenter', fill, { once:true });
+        /* No hover shortcut. Jumping to the bottom puts the cursor on the
+           footer as the mark arrives, so the draw it had just started was
+           cut off in its first frames every time. It takes the time it
+           takes, however the reader got here. */
         // a fallback, so the mark can never be left invisible if
         // animationend does not arrive
         footTrace.addEventListener('animationend', fill, { once:true });
