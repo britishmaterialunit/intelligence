@@ -100,6 +100,48 @@
        unlike justify-content:center, this never clips the top */
     .wrap{ width:min(94vw, 880px); margin:auto 0; }
 
+    .count-info{
+      display:grid; place-items:center;
+      width:18px; height:18px;
+      /* beside the tally, not adrift in the middle of the row: the row sets
+         its ends apart, so this takes the space after it rather than before */
+      margin-left:8px;
+      margin-right:auto;
+      padding:0; border:0; background:none;
+      color:#c2c2c2;
+      cursor:help;
+      transition:color .3s cubic-bezier(.4,0,.2,1), opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    .count-info:hover{ color:var(--ink); }
+    .count-info svg{ width:13px; height:13px; display:block; }
+    .count-info .ico-stroke{
+      fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round;
+    }
+    /* the shelf is the reader's own count; none of this is about that */
+    body.library .count-info{ opacity:0; pointer-events:none; }
+
+    /* the page's hover box, the one the whole site uses */
+    .bmu-pop{
+      position:fixed;
+      left:0; top:0;
+      z-index:200;
+      padding:3px 6px;
+      background:var(--bg);
+      border:1.5px solid #000;
+      font-size:10.5px;
+      line-height:1.35;
+      letter-spacing:.03em;
+      color:var(--ink);
+      white-space:nowrap;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .22s cubic-bezier(.4,0,.2,1);
+    }
+    .bmu-pop.show{ opacity:1; }
+    @media (max-width:760px){
+      .bmu-pop{ white-space:normal; }
+    }
+
     /* ---------- fixed bottom bar ----------
        On arrival the archive is only this: a search bar and its footer
        line. Tabs, explore and the dock are all summoned from here. */
@@ -2345,6 +2387,14 @@
     <div id="shell">
       <div class="count-row">
         <div class="count" id="count"></div>
+        <!-- What the tally does not say: why it is the number it is. Beside
+             the count, and gone while the reader is standing in their own
+             shelf, where the number is theirs and none of this applies. -->
+        <button type="button" id="countInfo" class="count-info" aria-label="About the archive">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <g class="ico-stroke"><circle cx="8" cy="8" r="6.1"/><path d="M8 7.3 V11.3"/><path d="M8 4.7 V5.3"/></g>
+          </svg>
+        </button>
         <button type="button" id="savedBtn" aria-pressed="false" aria-label="Show saved garments">
           <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/></svg>
           <span id="savedCount"></span>
@@ -2399,6 +2449,7 @@
        rather than opening an empty section or changing the count line,
        which reads as a page fault rather than an answer. -->
   <div id="noData" role="status" aria-live="polite" aria-hidden="true">No Data Saved</div>
+  <div class="bmu-pop" id="countPop" role="tooltip">Github has its cons, storage wise. So consider this a BETA version—we’ll have every single military garment on MarshalOS.<br>The number ninety nine is found on all British labels acting as the Nato Stock Number (NSN) and a worthy detail to note.</div>
 
   <!-- EXPLORE — every garment in the archive as one spiral -->
   <div id="explore" hidden aria-hidden="true">
@@ -4504,6 +4555,46 @@
     }
 
     const dqPicks    = document.getElementById('dqPicks');
+    /* Beside the tally, and riding the cursor the way every other box on
+       the site does: to the left where there is room, to the right where
+       there is not, always inside the window. */
+    (function wireCountInfo(){
+      const btn = document.getElementById('countInfo');
+      const pop = document.getElementById('countPop');
+      if (!btn || !pop) return;
+      const EDGE = 8;
+      let pinned = false;
+      function place(x, y){
+        pop.style.maxWidth = (window.innerWidth - EDGE * 2) + 'px';
+        const r = pop.getBoundingClientRect();
+        const w = r.width || 320, h = r.height || 24;
+        let left = x - w - 12;
+        if (left < EDGE) left = x + 14;
+        left = Math.max(EDGE, Math.min(window.innerWidth - w - EDGE, left));
+        const top = Math.max(EDGE, Math.min(window.innerHeight - h - EDGE, y + 16));
+        pop.style.left = Math.round(left) + 'px';
+        pop.style.top  = Math.round(top) + 'px';
+      }
+      const open = e => {
+        pop.classList.add('show');
+        if (e && e.clientX) place(e.clientX, e.clientY);
+        else { const b = btn.getBoundingClientRect(); place(b.left, b.bottom); }
+      };
+      const close = () => { pinned = false; pop.classList.remove('show'); };
+      btn.addEventListener('pointerenter', open);
+      btn.addEventListener('pointermove', e => { if (pop.classList.contains('show')) place(e.clientX, e.clientY); });
+      btn.addEventListener('pointerleave', () => { if (!pinned) close(); });
+      btn.addEventListener('focus', () => open(null));
+      btn.addEventListener('blur', close);
+      // no hover on a touch screen: a press opens it, a press elsewhere shuts it
+      btn.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        if (pinned){ close(); return; }
+        pinned = true; open(e.clientX ? e : null);
+      });
+      document.addEventListener('click', e => { if (pinned && !btn.contains(e.target)) close(); });
+    })();
+
     const dqHint     = document.getElementById('dqHint');
     const dqHintKind = document.getElementById('dqHintKind');
     const dqHintText = document.getElementById('dqHintText');
