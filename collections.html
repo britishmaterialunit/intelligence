@@ -301,6 +301,12 @@
     #siteFooter.in .foot-trace{
       animation:trace var(--trace-ms) ease-in-out forwards;
     }
+    /* The run itself. It lives in the home page's hero block, which is not
+       part of the chrome these pages are built from — so every page but that
+       one named an animation that did not exist here, and the mark never
+       drew at all: it sat hidden for four seconds and then the fill put it
+       on screen in one frame. That is the "skip". */
+    @keyframes trace{ to{ stroke-dashoffset:0; } }
     .foot-fill{
       fill:var(--ink);
       stroke:none;
@@ -1900,6 +1906,11 @@
    </div>
   </header>
   <main id="coll">
+    <!-- The page's one hover box. It used to live inside the file view, which
+         is hidden while the list of files is showing — so the box a file was
+         meant to raise under the pointer was inside something not on screen,
+         and nothing ever appeared. It belongs to the page, not to a view. -->
+    <div class="cv-pop" id="clPop" role="tooltip"></div>
     <div class="p-role" id="pRole" data-text="Archive"></div>
     <h1 class="p-name" id="pName" data-text="Files"></h1>
 
@@ -2794,7 +2805,7 @@
          and a lock that turns as it is opened. The box is the page's own —
          the same one the info mark and the footer's partners use. */
       (function wireAccess(){
-        const list = $('clList'), pop = $('cvInfoPop');
+        const list = $('clList'), pop = $('clPop');
         if (!list || !pop) return;
         const EDGE = 8;
         function place(x, y){
@@ -2864,7 +2875,7 @@
 
       function card(g, mode){
         const tail = mode === 'switch'
-          ? switchHtml(g.id, picks.has(g.id))
+          ? switchHtml(g.id, picks.has(g.id), true)
           : mode === 'picked' ? `<span class="cl-picked">Affirmative</span>` : '';
         return `<article class="cl-card">` +
                  `<div class="cl-img"><img src="${esc(g.img)}" alt="${esc(g.name)}" loading="lazy"></div>` +
@@ -3096,7 +3107,17 @@
         $('cvAsList').classList.remove('is-on'); $('cvAsList').setAttribute('aria-pressed', 'false');
         buildField();
         swapTo($('cvField'));
-        // the plane can only be measured once it is on screen
+        /* Fitted before it is looked at. The plane still carries whatever the
+           last press left on it — one garment, filling the box — and swapTo
+           un-hides the field with that transform still applied, so coming out
+           of a garment tab showed that same garment again for a moment before
+           the whole file snapped back around it.
+
+           swapTo un-hides on this tick and only fades in on the next, so the
+           field can be measured and refitted here, while it is still at
+           nothing. The second pass is for a box that had no size to measure
+           the first time. */
+        fitField();
         setTimeout(fitField, 60);
       }
       /* ---------- what this is ----------

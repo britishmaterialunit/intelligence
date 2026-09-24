@@ -309,6 +309,12 @@
     #siteFooter.in .foot-trace{
       animation:trace var(--trace-ms) ease-in-out forwards;
     }
+    /* The run itself. It lives in the home page's hero block, which is not
+       part of the chrome these pages are built from — so every page but that
+       one named an animation that did not exist here, and the mark never
+       drew at all: it sat hidden for four seconds and then the fill put it
+       on screen in one frame. That is the "skip". */
+    @keyframes trace{ to{ stroke-dashoffset:0; } }
     .foot-fill{
       fill:var(--ink);
       stroke:none;
