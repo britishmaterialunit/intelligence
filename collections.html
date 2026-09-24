@@ -1434,12 +1434,16 @@
     /* set aside: still there, plainly not the subject — the archive's grey */
     .cv-plane .cv-item.is-aside{ opacity:.16; filter:grayscale(1); }
     /* the affirmative ones carry a mark even at a distance */
+    /* An outlined box rather than a filled one — the archive draws every
+       box this way, and a solid black chip was the one graphic on the page
+       that did not. White inside, the house rule around it. */
     .cv-plane .cv-item.is-yes::after{
       content:"";
       position:absolute;
       top:-6px; right:-6px;
       width:9px; height:9px;
-      background:#000;
+      background:var(--bg);
+      border:1.5px solid var(--line);
     }
     /* ---------- FILE/ ----------
        The label above the name, typed. The slash is the point of it: this is
@@ -1545,6 +1549,33 @@
        Let's Talk gesture — the rule running outwards rather than a colour
        changing. Both boxes grow by the same 20px, so they never disagree. */
     .cv-talk > span:first-child{ min-width:84px; }
+    /* the dots are set in the label's own face, so they read as the word
+       carrying on rather than as a mark stuck to the end of it */
+    .cv-dots .talk-well{ align-items:center; }
+    .cv-dot{
+      display:block;
+      font:inherit;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.01em;
+      line-height:1;
+      white-space:pre;
+      margin-left:2px;
+      opacity:0;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1) .1s;
+    }
+    .cv-dots:hover .cv-dot,
+    .cv-dots:focus-visible .cv-dot{ opacity:1; }
+    /* Pressed: the box shuts under the finger rather than sitting open.
+       Three classes deep so it outranks the :hover that is still true — the
+       pointer has not gone anywhere, it has just pressed. */
+    .cv-talk.cv-dots.is-shut .talk-well{ width:0; }
+    .cv-talk.cv-dots.is-shut .cv-dot{ opacity:0; transition-delay:0s; }
+    /* nothing to hover with: a plain button, no room made and nothing counted */
+    @media (hover:none){
+      .cv-dots .talk-well{ width:0; }
+      .cv-dot{ display:none; }
+    }
     .cv-talk .talk-well{
       width:0;
       overflow:hidden;
@@ -1556,6 +1587,8 @@
     .cv-talk:hover .talk-well,
     .cv-talk:active .talk-well,
     .cv-talk:focus-visible .talk-well{ width:20px; }
+    .cv-dots:hover .talk-well,
+    .cv-dots:focus-visible .talk-well{ width:14px; }
     .cv-talk svg{
       width:12px; height:12px;
       display:block; flex:none;
@@ -1622,14 +1655,13 @@
       padding:26px;
       background:var(--bg);
     }
-    /* The archive hands the garment over without moving it, which needs the
-       garment's own position measured on the way in; there is no such
-       handover here. So the tab simply falls into the middle of the field
-       from above and fades up as it lands. Going out is the fade alone —
-       swapTo's own — because the field is what is arriving then. */
-    .cv-solo.cv-opening .cv-tab{ animation:cvTabIn .56s cubic-bezier(.4,0,.2,1) both; }
+    /* In is out, run backwards: the tab fades up where it stands, in the
+       middle, and does not travel to get there. Nothing moves — which is
+       what lets the field stay put underneath it rather than having to clear
+       out of the way first. */
+    .cv-solo.cv-opening .cv-tab{ animation:cvTabIn .46s cubic-bezier(.4,0,.2,1) both; }
     @keyframes cvTabIn{
-      from{ opacity:0; transform:translateY(-38px); }
+      from{ opacity:0; transform:scale(.985); }
       to  { opacity:1; transform:none; }
     }
     @media (prefers-reduced-motion:reduce){
@@ -1901,13 +1933,13 @@
             <div class="cv-steps">
               <div class="cv-step">
                 <span class="cv-stepmain">
-                  <button type="button" class="cv-talk" id="cvSend">
+                  <!-- No arrow on this one: it does not lead anywhere, it
+                       does something. The box opens on hover the same way,
+                       and what arrives in the room it makes is the work being
+                       counted out — three dots, three dots, a rest. -->
+                  <button type="button" class="cv-talk cv-dots" id="cvSend">
                     <span>Verify File</span>
-                    <span class="talk-well">
-                      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                        <g class="talk-arrow"><path d="M4.5 11.5 L11.5 4.5"/><path d="M5.8 4.5 H11.5 V10.2"/></g>
-                      </svg>
-                    </span>
+                    <span class="talk-well"><span class="cv-dot" aria-hidden="true"></span></span>
                   </button>
                   <span class="cl-count" id="cvPickCount"></span>
                 </span>
@@ -2854,14 +2886,22 @@
       });
 
       /* ---------- the three views of the right-hand half ---------- */
-      function swapTo(el){
+      /* `cut` takes the old view away at once instead of fading it out.
+         Opening a garment used to fade the field away while the tab faded in,
+         so for a third of a second there were two half-there things on screen
+         and the garment the reader had just pressed was the one dissolving.
+         The tab simply arrives over it. */
+      function swapTo(el, cut){
         ['cvGrid', 'cvField', 'cvSolo'].forEach(id => {
           const n = $(id);
           if (n === el){
             n.hidden = false;
+            n.classList.remove('cv-leaving');
+            if (cut) return;                       // its own animation is the arrival
             n.classList.add('cv-leaving');
             requestAnimationFrame(() => requestAnimationFrame(() => n.classList.remove('cv-leaving')));
           } else if (!n.hidden){
+            if (cut){ n.hidden = true; n.classList.remove('cv-leaving'); return; }
             n.classList.add('cv-leaving');
             setTimeout(() => { n.hidden = true; n.classList.remove('cv-leaving'); }, 420);
           }
@@ -2962,6 +3002,58 @@
           setMark('cvBookMark', true);
           setTimeout(() => { location.href = a.getAttribute('href'); }, 520);
         });
+      })();
+
+      /* ---------- Verify, counted out ----------
+         The box opens on hover as the meeting's does, and what arrives in the
+         room it makes is the work: three dots, three dots, a rest — the same
+         rhythm the archive uses while a record is being sourced. It runs only
+         while the pointer is on the button, and a press shuts the box under
+         the finger rather than leaving it hanging open. Touch never sees any
+         of it: there is no hover to answer, and the button is just a button. */
+      (function wireDots(){
+        const btn = $('cvSend');
+        const dot = btn && btn.querySelector('.cv-dot');
+        if (!btn || !dot) return;
+        if (window.matchMedia('(hover: none)').matches) return;
+
+        const DOT = 240, HOLD = 520, REST = 1100;
+        const frames = [];
+        for (let run = 0; run < 2; run++){
+          frames.push(['', DOT], ['.', DOT], ['..', DOT],
+                      ['...', run === 1 ? REST : HOLD]);
+        }
+        let t = null, i = 0, shut = false;
+        function tick(){
+          const [text, wait] = frames[i];
+          dot.textContent = text;
+          i = (i + 1) % frames.length;
+          t = setTimeout(tick, wait);
+        }
+        function start(){ clearTimeout(t); i = 0; tick(); }
+        function stop(){ clearTimeout(t); dot.textContent = ''; }
+
+        function open(){ if (shut) return; btn.classList.remove('is-shut'); start(); }
+        // pressed: the room closes under the finger and the counting stops
+        function close(){ shut = true; btn.classList.add('is-shut'); stop(); }
+        /* Sending disables the button for a moment, and disabling an element
+           under the pointer fires pointerleave although the pointer has not
+           moved — which re-opened the box the press had just shut. A real
+           leave is one where the button is no longer hovered a frame later. */
+        function leave(){
+          setTimeout(() => {
+            if (btn.matches(':hover')) return;
+            shut = false;
+            btn.classList.remove('is-shut');
+            stop();
+          }, 80);
+        }
+
+        btn.addEventListener('pointerenter', open);
+        btn.addEventListener('focus', open);
+        btn.addEventListener('pointerdown', close);
+        btn.addEventListener('pointerleave', leave);
+        btn.addEventListener('blur', leave);
       })();
 
       /* The address copies itself, with the footer's tick. */
@@ -3191,7 +3283,7 @@
         $('cvSoloSwitch').innerHTML = reviewing
           ? switchHtml(g.id, picks.has(g.id), true)
           : (picks.has(g.id) ? '<span class="cl-picked">Affirmative</span>' : '');
-        swapTo($('cvSolo'));
+        swapTo($('cvSolo'), true);
         /* Opening only. Going back is the field coming forward, which is its
            own move and does not want a second one over the top of it. */
         const solo = $('cvSolo');
