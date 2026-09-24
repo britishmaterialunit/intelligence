@@ -7,6 +7,9 @@
   <meta name="keywords" content="British army surplus, military surplus, archive, military archive, army archive, clothing, DPM smock, MTP smock, PLCE bergen, British surplus trousers, surplus webbing, upcycled military clothing, genuine issue, BMU archive, surplus catalogue" />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#ffffff" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700&display=swap" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="BMU" />
@@ -73,7 +76,7 @@
       --line:#000000;
       --bg:#ffffff;
       --faint:#f0f0f0;
-      --font:Helvetica, Arial, sans-serif;
+      --font:'Inter Tight', Helvetica, Arial, sans-serif;
     }
     *{ box-sizing:border-box; }
     /* The record is taller than the field, so a scrollbar arrives with it
@@ -463,13 +466,11 @@
       border-bottom:1.5px solid var(--line);
       padding-bottom:7px;
     }
-    /* first-of-type, not first-child: the facet bar is the first thing in
-       the tab body now, so the first section is no longer its parent's first
-       child and this rule had quietly stopped matching — every heading,
-       including the top one, was carrying its full 26px above it and sitting
-       a clear 40px under the switch line. The bar and the heading under it
-       are one piece of furniture and read as one. */
-    .group:first-of-type > .section-label{ margin-top:0; }
+    /* The first heading keeps its 26px as well. The distance from the last
+       garment of one group to the next group's heading is the measure this
+       list is set on, and the switch line above the first heading is the
+       same kind of join — so it is given the same air rather than being
+       tucked up against it. */
 
     .grid{
       display:grid;
@@ -2073,7 +2074,10 @@
       .facet-toggle, .facet-opts{ transition:none; }
     }
     /* the one gap the row is spaced on, named once */
-    .facet-bar{ --facet-gap:12px; }
+    /* One space, not a measured distance: the sign belongs to the word in
+       front of it — Garments, Type, Date — and reads as part of it. The same
+       number puts it one space past the last choice when the row is open. */
+    .facet-bar{ --facet-gap:5px; }
 
     /* ---------- THE COLLECTION'S DOOR ---------- */
     #joinGate{
@@ -4936,7 +4940,11 @@
         flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
         dq.value = on ? '' : 'British';
         dghost.hidden = dq.value !== '';
-        paintHint(dq.value.trim().toLowerCase());
+        /* Nothing to suggest. The flag IS the choice — it is a nation, it is
+           pressed, and the cluster is already on its way; offering NATION
+           BRITISH underneath it is the bar telling the reader what they have
+           just told it. The word goes in the bar and that is all. */
+        paintHint('');
         // the rest of the archive stays, in grey, around the British cluster
         clusterSearch(on ? '' : 'british', true);
         return;
@@ -5424,10 +5432,16 @@
       return Math.min(window.innerWidth, window.innerHeight - 150) / SPACING;
     }
 
-    function focusItem(el, scale){
+    /* `hard` asks for exactly the scale given. maxScale() is the point past
+       which the field's own pictures go soft, which is the right ceiling for
+       a reader zooming about — but the handover into a record is not that:
+       it asks for the size the record is about to show the garment at, and
+       anything short of it is a step in size the moment the record takes
+       over. Only that one call passes hard. */
+    function focusItem(el, scale, hard){
       const x = parseFloat(el.style.left) || 0;
       const y = parseFloat(el.style.top)  || 0;
-      sc = Math.min(scale || maxScale() * 0.72, maxScale());
+      sc = hard ? (scale || maxScale()) : Math.min(scale || maxScale() * 0.72, maxScale());
       tx = -x * sc;
       ty = -y * sc;
       atInitial = false;
@@ -5968,7 +5982,8 @@
       flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
       dq.value = on ? '' : 'British';
       dghost.hidden = dq.value !== '';
-      paintHint(dq.value.trim().toLowerCase());
+      // the flag is the choice; there is nothing left to suggest
+      paintHint('');
       // the rest of the archive stays, in grey, around the British cluster
       clusterSearch(on ? '' : 'british', true);
     });
@@ -6206,8 +6221,14 @@
       const img  = item.querySelector('img');
       const now  = (img || item).getBoundingClientRect().width;
       const want = recordSlotWidth();
+      /* Not clamped. maxScale() is the point past which the field's own
+         pictures go soft, which is the right limit for a reader zooming
+         about — but this is not that. This is the garment being taken to
+         exactly the size the record is about to show it at, and stopping
+         short of it guarantees a step in size at the handover: the garment
+         reached 464px, the record's slot was 517, and the difference
+         appeared in one frame. */
       let target = now > 4 ? sc * (want / now) : maxScale() * 0.68;
-      target = Math.min(target, maxScale());
 
       /* On a phone the garment holds its place on the glass and only its
          size changes — the screen is small enough that the garment is
@@ -6231,9 +6252,14 @@
           offerSave(item);
         }, 620);
       } else {
-        glide(() => focusItem(item, target), 620);
+        glide(() => focusItem(item, target, true), 620);
       }
-      setTimeout(() => openRecord(item), 660);
+      /* After the zoom has come to rest, not 40ms before it. openRecord
+         measures where the garment IS and pins the record's slot there; a
+         measurement taken mid-move is of a position the garment is still
+         leaving, so the slot was pinned to somewhere it had never been and
+         the travel began with a jump. */
+      setTimeout(() => openRecord(item), 700);
     });
 
     /* What the garment will measure once the record has it: the build-state

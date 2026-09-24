@@ -8,6 +8,9 @@
   <meta name="robots" content="index, follow" />
   <meta name="author" content="British Material Unit" />
   <meta name="theme-color" content="#ffffff" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700&display=swap" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="BMU" />
@@ -83,7 +86,7 @@
     --node-hover:#9c9c9c;
     --lock-fill:#ededed;
     --lock-line:#d2d2d2;
-    --font:Helvetica, Arial, sans-serif;
+    --font:'Inter Tight', Helvetica, Arial, sans-serif;
   }
   *{box-sizing:border-box;}
 
@@ -244,7 +247,7 @@
       --line:#000000;
       --bg:#ffffff;
       --faint:#f0f0f0;
-      --font:Helvetica, Arial, sans-serif;
+      --font:'Inter Tight', Helvetica, Arial, sans-serif;
       /* the height of a button, the Operations bar and the arrow — the
          sheet geometry is measured off it, so it is set in one place */
       --bar-h:32px;
@@ -1643,7 +1646,7 @@
          same motion on every screen */
       #navRow{ gap:6px; }
       /* back to the 13px of the desktop row, but "Early Access" is 5.78em
-         of Helvetica and it is what sets the floor: five of those plus the
+         of the face and it is what sets the floor: five of those plus the
          gaps only reach 13px around a 448px-wide phone, so the size tracks
          the viewport up to that cap and the row never truncates. */
       /* The row was being made to fit by squeezing: 3px gaps, a 1.5px rule
