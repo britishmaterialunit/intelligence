@@ -178,10 +178,11 @@
       margin-left:auto;
       display:flex;
       align-items:center;
-      gap:22px;
       flex:none;
     }
-    .fp{ display:block; line-height:0; }
+    /* the gap is a margin rather than the row's gap, so a mark that is not
+       showing can take it back with it */
+    .fp{ display:block; line-height:0; margin-left:22px; }
     .fp img{
       height:22px;
       width:auto;
@@ -193,6 +194,66 @@
     }
     .fp[data-who]{ cursor:help; }
     .fp:hover img{ opacity:1; }
+
+    /* Held back until the plus is pressed. They sit at the left-hand end of
+       the row, so opening them grows the group towards the mark. */
+    .fp.is-extra{
+      max-width:0;
+      margin-left:0;
+      opacity:0;
+      overflow:hidden;
+      transition:max-width .55s cubic-bezier(.4,0,.2,1),
+                 margin-left .55s cubic-bezier(.4,0,.2,1),
+                 opacity .4s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-head.partners-open .fp.is-extra{ max-width:64px; margin-left:22px; opacity:1; }
+
+    /* The line goes back into the mark to make the room: it slides left and
+       fades as it goes, and gives its width up so the marks can have it. */
+    .foot-slogan{
+      transition:opacity .4s cubic-bezier(.4,0,.2,1),
+                 transform .55s cubic-bezier(.4,0,.2,1),
+                 max-width .55s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-head.partners-open .foot-slogan{
+      opacity:0;
+      transform:translateX(-28px);
+      max-width:0;
+      overflow:hidden;
+      white-space:nowrap;
+    }
+
+    /* Plus into minus: one bar stays, the other closes. Padding and a
+       negative margin the way .hd-ico does it, so the glyph's own edge lands
+       on the measure's edge and it sits directly under the sandwich. */
+    .fp-more{
+      flex:none;
+      padding:8px;
+      margin:-8px;
+      margin-left:14px;
+      border:0;
+      background:none;
+      line-height:0;
+      cursor:pointer;
+      color:#b0b0b0;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .fp-more:hover{ color:var(--ink); }
+    .fp-more svg{ width:16px; height:16px; display:block; }
+    .fp-more .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+    }
+    .fp-vert{
+      transform-origin:50% 50%;
+      transition:transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-head.partners-open .fp-vert{ transform:scaleY(0); }
+    @media (prefers-reduced-motion:reduce){
+      .fp.is-extra, .foot-slogan, .fp-vert{ transition:none; }
+    }
 
     /* the same box the Files page hangs off its info mark: one rule, one
        line, tight to the words, and it rides the cursor */
@@ -217,7 +278,9 @@
     @media (max-width:760px){
       .foot-head{ flex-wrap:wrap; }
       /* on its own line under the mark, spread the full width */
-      .foot-partners{ margin-left:0; width:100%; justify-content:space-between; gap:10px; }
+      .foot-partners{ margin-left:0; width:100%; justify-content:flex-end; }
+      .fp{ margin-left:14px; }
+      .foot-head.partners-open .fp.is-extra{ margin-left:14px; }
       .fp img{ height:18px; max-width:52px; }
     }
 
@@ -1010,15 +1073,29 @@
           <path id="footFill" class="foot-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
         </svg>
         <span class="foot-slogan" id="footSlogan"></span>
-        <!-- Who we work with. Grey until the pointer is on one, and each says
-             who it is and what we did for them, in the same box the Files
-             page uses for its own note. -->
+        <!-- Who we work with. Grey until the pointer is on one, and each
+             says who it is and what we did for them, in the same box the
+             Files page uses for its own note.
+
+             Three stand at rest. The plus opens the rest, and they arrive at
+             the left-hand end of the row so the group grows towards the mark
+             rather than off the page. -->
         <div class="foot-partners" aria-label="Who we work with">
-          <span class="fp"><img src="/partners/rose.png" alt="" loading="lazy"></span>
-          <span class="fp" data-who="YAKU (Sourcing)"><img src="/partners/yaku.png" alt="YAKU" loading="lazy"></span>
-          <span class="fp"><img src="/partners/spheres.png" alt="" loading="lazy"></span>
-          <span class="fp" data-who="Elstar (Sourcing + PD)"><img src="/partners/elstar.png" alt="Elstar" loading="lazy"></span>
-          <span class="fp"><img src="/partners/seal.png" alt="" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Seeing Red (Sourcing)"><img src="/partners/seal.png" alt="Seeing Red" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Elstar (Product Development)"><img src="/partners/elstar.png" alt="Elstar" loading="lazy"></span>
+          <span class="fp" data-who="Raeburn (Sourcing)"><img src="/partners/rose.png" alt="Raeburn" loading="lazy"></span>
+          <span class="fp" data-who="Maxime Black (Sourcing)"><img src="/partners/spheres.png" alt="Maxime Black" loading="lazy"></span>
+          <span class="fp" data-who="Yaku (Sourcing)"><img src="/partners/yaku.png" alt="Yaku" loading="lazy"></span>
+          <!-- the same 16px grid, the same 1.6 stroke and the same 2.6-13.4
+               extent as the header's sandwich, sitting directly under it -->
+          <button class="fp-more" id="footMore" type="button" aria-expanded="false" aria-label="Show everyone we work with">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <g class="ico-stroke">
+                <path d="M2.6 8 H13.4"/>
+                <path class="fp-vert" d="M8 2.6 V13.4"/>
+              </g>
+            </svg>
+          </button>
         </div>
         <div class="fp-pop" id="footPartnerPop" role="tooltip"></div>
       </div>
@@ -1271,6 +1348,18 @@
         pop.style.left = Math.round(left) + 'px';
         pop.style.top  = Math.round(top) + 'px';
       }
+      /* The plus opens the rest of them and turns into a minus. The line
+         beside the mark is what makes the room, so it goes as they come. */
+      const more = document.getElementById('footMore');
+      const head = more && more.closest('.foot-head');
+      if (more && head){
+        more.addEventListener('click', () => {
+          const open = head.classList.toggle('partners-open');
+          more.setAttribute('aria-expanded', String(open));
+          more.setAttribute('aria-label', open ? 'Show fewer' : 'Show everyone we work with');
+        });
+      }
+
       document.querySelectorAll('.fp[data-who]').forEach(el => {
         el.addEventListener('pointerenter', e => {
           pop.textContent = el.dataset.who;
