@@ -4214,9 +4214,18 @@
        states of this one. From the footer, each returns the reader to the top
        and then plays exactly what its button plays, once the scroll has
        settled: starting a transition mid-scroll measures the wrong geometry. */
+    /* Operations is shut the instant one of these is pressed, not after the
+       page has travelled: the reader is at the footer and the row is a screen
+       away, so its retract plays out unseen while they come back up. By the
+       time the row is in front of them it is at rest — five buttons,
+       untouched — and whatever they chose opens from there.
+
+       Waiting for the close to finish and then starting meant arriving at the
+       top to watch Operations put itself away first. */
     function fromFooter(run){
       return (e) => {
         e.preventDefault();
+        if (typeof opsState !== 'undefined' && opsState !== 'closed') closeOps();
         window.scrollTo({ top:0, behavior:'smooth' });
         setTimeout(run, 720);
       };
@@ -4235,22 +4244,15 @@
        more is the four buttons coming back out of the middle after it; the
        box is back in the row by then, which is what the next panel opens
        from. */
-    const OPS_SHUT_MS = 660;
-    const afterOps = run => {
-      if (opsState === 'closed'){ run(); return; }
-      closeOps();
-      setTimeout(run, OPS_SHUT_MS);
-    };
-
     const footJoin = document.getElementById('footJoin');
     if (footJoin) footJoin.addEventListener('click', fromFooter(() => {
       if (joinState !== 'off') return;
-      afterOps(() => { joinFast = true; openJoin(); });
+      joinFast = true; openJoin();
     }));
     const footRepo = document.getElementById('footRepo');
     if (footRepo) footRepo.addEventListener('click', fromFooter(() => {
       if (joinState !== 'off') return;
-      afterOps(() => { joinFast = true; openRepo(); });
+      joinFast = true; openRepo();
     }));
 
     /* ---- the address copies itself ---------------------------------
@@ -4280,10 +4282,21 @@
       const more = document.getElementById('footMore');
       const head = more && more.closest('.foot-head');
       if (more && head){
+        const slogan = document.getElementById('footSlogan');
         more.addEventListener('click', () => {
           const open = head.classList.toggle('partners-open');
           more.setAttribute('aria-expanded', String(open));
           more.setAttribute('aria-label', open ? 'Show fewer' : 'Show everyone we work with');
+          /* It left by sliding into the mark; it comes back the way it
+             arrived in the first place, written out. Emptied now so the
+             slide back is of nothing, and typed once it is in place. */
+          if (slogan && typeof bmuType === 'function' && typeof SLOGAN === 'string'){
+            if (open){
+              slogan.textContent = '';
+            } else {
+              setTimeout(() => bmuType(SLOGAN, slogan, 55), 300);
+            }
+          }
         });
       }
 

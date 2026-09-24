@@ -1549,9 +1549,15 @@
        Let's Talk gesture — the rule running outwards rather than a colour
        changing. Both boxes grow by the same 20px, so they never disagree. */
     .cv-talk > span:first-child{ min-width:84px; }
-    /* the dots are set in the label's own face, so they read as the word
-       carrying on rather than as a mark stuck to the end of it */
-    .cv-dots .talk-well{ align-items:center; }
+    /* The dots are set in the label's own face, so they read as the word
+       carrying on rather than as a mark stuck to the end of it.
+
+       flex-start, not the arrow's flex-end: the well holds its content
+       against its right edge, so each new dot pushed the run leftwards and
+       the clipped left edge ate the first of them — three dots that appeared
+       to be typing themselves backwards. They start at the left and grow
+       right, which is the direction writing goes. */
+    .cv-talk.cv-dots .talk-well{ align-items:center; justify-content:flex-start; }
     .cv-dot{
       display:block;
       font:inherit;
@@ -1588,7 +1594,7 @@
     .cv-talk:active .talk-well,
     .cv-talk:focus-visible .talk-well{ width:20px; }
     .cv-dots:hover .talk-well,
-    .cv-dots:focus-visible .talk-well{ width:14px; }
+    .cv-dots:focus-visible .talk-well{ width:18px; }
     .cv-talk svg{
       width:12px; height:12px;
       display:block; flex:none;
@@ -1923,7 +1929,7 @@
 
           <!-- the reviewer's side: what they want, and a note -->
           <div class="cl-reply" id="cvReplyBox" hidden>
-            <p class="cl-lede">Set each garment to negative or affirmative and send it over. Leave a note if required—verify and then book a meeting to talk more on surplus. View more on <a href="/archive">archive</a> and build a new one.</p>
+            <p class="cl-lede">Set each garment to negative or affirmative and send over. Leave a note if required—verify file and book a meeting to talk surplus. View more on <a href="/archive">archive</a> to build a new file.</p>
             <textarea class="cl-field cl-wide" id="cvReply" placeholder="What’s a worthwhile mention?" aria-label="Your note"></textarea>
 
             <!-- Two steps, each with its own mark on the right: a cross until
@@ -2370,10 +2376,21 @@
       const more = document.getElementById('footMore');
       const head = more && more.closest('.foot-head');
       if (more && head){
+        const slogan = document.getElementById('footSlogan');
         more.addEventListener('click', () => {
           const open = head.classList.toggle('partners-open');
           more.setAttribute('aria-expanded', String(open));
           more.setAttribute('aria-label', open ? 'Show fewer' : 'Show everyone we work with');
+          /* It left by sliding into the mark; it comes back the way it
+             arrived in the first place, written out. Emptied now so the
+             slide back is of nothing, and typed once it is in place. */
+          if (slogan && typeof bmuType === 'function' && typeof SLOGAN === 'string'){
+            if (open){
+              slogan.textContent = '';
+            } else {
+              setTimeout(() => bmuType(SLOGAN, slogan, 55), 300);
+            }
+          }
         });
       }
 
@@ -3033,7 +3050,19 @@
         function start(){ clearTimeout(t); i = 0; tick(); }
         function stop(){ clearTimeout(t); dot.textContent = ''; }
 
-        function open(){ if (shut) return; btn.classList.remove('is-shut'); start(); }
+        /* A tick means this file is verified as it stands. There is nothing
+           being asked for, so there is nothing to count out: the box stays
+           shut until an answer changes and the mark goes back to a cross. */
+        const settled = () => {
+          const m = $('cvSendMark');
+          return !!(m && m.classList.contains('on'));
+        };
+        function open(){
+          if (shut) return;
+          if (settled()){ btn.classList.add('is-shut'); stop(); return; }
+          btn.classList.remove('is-shut');
+          start();
+        }
         // pressed: the room closes under the finger and the counting stops
         function close(){ shut = true; btn.classList.add('is-shut'); stop(); }
         /* Sending disables the button for a moment, and disabling an element

@@ -1722,6 +1722,53 @@
       z-index:5;
     }
     #dock.open .dq-hint.on{ opacity:1; pointer-events:auto; }
+
+    /* ---------- EVERY CLUSTER THE TYPING ANSWERS ----------
+       Stacked above the bar and hung off its right-hand end, under the chip
+       that names the first of them. Pressing one is the choosing — the same
+       act the chip performs, so nothing here asks to be agreed with twice. */
+    .dq-picks{
+      position:absolute;
+      /* the two dock squares and their gaps, so the stack's right-hand edge
+         lands on the search bar's own */
+      right:112px; bottom:calc(100% + 10px);
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      gap:6px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .26s cubic-bezier(.4,0,.2,1);
+      z-index:6;
+    }
+    #dock.open .dq-picks.on{ opacity:1; pointer-events:auto; }
+    .dq-pick{
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      padding:5px 10px;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      color:var(--ink);
+      font-family:var(--font);
+      font-size:10px;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      white-space:nowrap;
+      cursor:pointer;
+      text-align:left;
+      transition:background-color .22s cubic-bezier(.4,0,.2,1), color .22s cubic-bezier(.4,0,.2,1);
+    }
+    .dq-pick:hover{ background:var(--ink); color:var(--bg); }
+    .dq-pick .dp-kind{ font-size:9px; color:#b0b0b0; flex:none; }
+    .dq-pick:hover .dp-kind{ color:#9a9a9a; }
+    .dq-pick .dp-n{ margin-left:auto; font-size:9px; color:#b0b0b0; flex:none; }
+    .dq-pick:hover .dp-n{ color:#9a9a9a; }
+    @media (max-width:640px){
+      .dq-picks{ gap:4px; }
+      .dq-pick{ font-size:9px; padding:4px 8px; }
+    }
+    @media (prefers-reduced-motion:reduce){ .dq-picks{ transition:none; } }
     .dq-hint:hover{ color:var(--ink); border-color:var(--line); }
     .dq-hint .dh-kind{ font-size:9px; color:#c4c4c4; flex:none; }
     .dq-hint .dh-text{ overflow:hidden; text-overflow:ellipsis; }
@@ -1835,9 +1882,12 @@
       }
     }
 
-    /* The shelf arriving in the list: it rises from under the tab above it
-       rather than appearing at the top of the page, so it reads as being
-       pulled out of the archive rather than dropped on top of it. */
+    /* The shelf arriving in the list. It used to rise from underneath, which
+       read as something being pushed up into the page. It draws DOWN out of
+       the tab above it instead — the Operations box's own move, where the
+       box unfolds from its top edge and the contents arrive in the room it
+       has made. The whole page has one gesture for a box opening; this is
+       now part of it. */
     #savedTab.rising{
       animation:saved-rise .52s cubic-bezier(.4,0,.2,1) both;
     }
@@ -1848,9 +1898,10 @@
        way in; it does not also get the tabs'. */
     body.browsing #savedTab:not(.rising){ animation:none; }
     @keyframes saved-rise{
-      from { opacity:0; transform:translateY(22px) scaleY(.92); transform-origin:top center; }
+      from { opacity:0; transform:scaleY(.34) translateY(-10px); }
       to   { opacity:1; transform:none; }
     }
+    #savedTab.rising{ transform-origin:top center; }
     @media (prefers-reduced-motion:reduce){
       #savedTab.rising{ animation:none; }
     }
@@ -2398,6 +2449,13 @@
       </button>
       <button type="button" id="dockClear" aria-label="Close search" tabindex="-1">✕</button>
     </div>
+    <!-- Every cluster the typing answers, not merely the best of them. A
+         chip inside the bar can hold one; this holds all of them, and each is
+         a button that goes straight to its cluster.
+
+         Outside the bar, because the bar clips what it cannot fit and this
+         stands above it. -->
+    <div id="dqPicks" class="dq-picks" role="listbox" aria-label="Matching clusters"></div>
     <!-- one button holding several tools; scroll or swipe it to change -->
     <button type="button" id="dockExplore" class="dock-sq" aria-label="Explore the archive" aria-pressed="false">
       <span class="face-stack">
@@ -4423,12 +4481,43 @@
       return null;
     }
 
+    /* The chip names the first answer; this is all of them. Same matching,
+       same order — the biggest cluster first, because that is the one most
+       likely meant. */
+    function suggestAll(term){
+      if (!term || term.length < 2) return [];
+      return LABELS.filter(l => l.keys.some(k => k.startsWith(term)))
+                   .sort((a, b) => b.count - a.count)
+                   .slice(0, 6);
+    }
+
+    const dqPicks    = document.getElementById('dqPicks');
     const dqHint     = document.getElementById('dqHint');
     const dqHintKind = document.getElementById('dqHintKind');
     const dqHintText = document.getElementById('dqHintText');
     let   dqHintFill = '';
 
+    function paintPicks(term){
+      if (!dqPicks) return;
+      const all = suggestAll(term);
+      /* One answer is already named by the chip inside the bar; a stack of
+         one under it would be the same word twice. */
+      if (all.length < 2){
+        dqPicks.classList.remove('on');
+        dqPicks.innerHTML = '';
+        return;
+      }
+      dqPicks.innerHTML = all.map(l =>
+        `<button type="button" class="dq-pick" data-fill="${esc(l.fill)}">` +
+          `<span class="dp-kind">${esc(l.kind)}</span>` +
+          `<span class="dp-text">${esc(l.label)}</span>` +
+          `<span class="dp-n">${l.count}</span>` +
+        `</button>`).join('');
+      dqPicks.classList.add('on');
+    }
+
     function paintHint(term){
+      paintPicks(term);
       const s = suggestLabel(term);
       dqHintFill = s ? s.fill : '';
       if (!s){
@@ -4453,7 +4542,11 @@
        travels. */
     function takeHint(){
       if (!dqHintFill) return false;
-      const term = dqHintFill;
+      return takeTerm(dqHintFill);
+    }
+
+    function takeTerm(term){
+      if (!term) return false;
       dq.value = term;
       dghost.hidden = true;
       paintHint(term.toLowerCase());
@@ -4468,6 +4561,12 @@
       return true;
     }
     dqHint.addEventListener('click', e => { e.stopPropagation(); takeHint(); });
+    if (dqPicks) dqPicks.addEventListener('click', e => {
+      const b = e.target.closest('.dq-pick');
+      if (!b) return;
+      e.stopPropagation();
+      takeTerm(b.dataset.fill);
+    });
 
     dq.addEventListener('input', () => {
       dghost.hidden = dq.value !== '';
@@ -5444,11 +5543,14 @@
       if (explore.hidden){ dockForced = true; openExplore(); return; }
 
       /* Standing in a cluster, the circle is the way OUT of it — back to
-         every garment in the archive. It used to zoom out of the cluster
-         while leaving the cluster in place, which read as the view fighting
-         itself: the field pulled back but the garments it had set aside
-         never came home. The term goes, the field is rebuilt whole, and
-         only then is it fitted. */
+         every garment in the archive.
+
+         The same move as rubbing the word out of the bar, or letting the
+         flag go: the greys come back up and every garment travels home to
+         its own place on the spiral. It used to fade the whole field away
+         and bring it back, which is a bigger gesture than was being asked
+         for — the reader has not left the field, they have only stopped
+         asking it a question. */
       const clustered = document.querySelector('#spiral .sp-gone, #spiral .sp-dim, #spiral .sp-grey');
       if (clustered || dq.value.trim() || spiralMode !== 'spiral'){
         dq.value = '';
@@ -5459,11 +5561,8 @@
         flagBtn.setAttribute('aria-pressed', 'false');
         savedOnly = false;
         document.body.classList.remove('library');
-        // out, laid out whole, and back in together
-        fieldBackIn(() => {
-          if (spiralMode !== 'spiral') morphLayout('spiral');
-          clusterSearch('', true);        // every garment back on the field
-        });
+        if (spiralMode !== 'spiral') morphLayout('spiral');
+        clusterSearch('', true);          // every garment back on the field
         syncLibraryMark();
         return;
       }
@@ -5573,9 +5672,21 @@
         document.body.classList.toggle('library', savedOnly);
         paintSaved();
         filter();
-        if (savedOnly) savedTab.open = true;
+        if (savedOnly){
+          savedTab.open = true;
+          /* Both ways in get the same arrival. This one used to open the
+             shelf outright while the list's own save icon drew it down, so
+             the same shelf behaved differently depending on which button had
+             asked for it. */
+          savedTab.classList.remove('rising');
+          void savedTab.offsetWidth;
+          savedTab.classList.add('rising');
+          setTimeout(() => savedTab.classList.remove('rising'), 560);
+        }
+        /* The shelf is open and titled Saved a line below; the count does
+           not need to say so as well. */
         countEl.textContent = savedOnly
-          ? `${savedIds.length} ${savedIds.length === 1 ? 'garment' : 'garments'} saved`
+          ? `${savedIds.length} ${savedIds.length === 1 ? 'garment' : 'garments'}`
           : `${allItems.length} garments`;
         if (savedOnly) reportShelf();
         syncLibraryMark();

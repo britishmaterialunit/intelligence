@@ -1353,10 +1353,21 @@
       const more = document.getElementById('footMore');
       const head = more && more.closest('.foot-head');
       if (more && head){
+        const slogan = document.getElementById('footSlogan');
         more.addEventListener('click', () => {
           const open = head.classList.toggle('partners-open');
           more.setAttribute('aria-expanded', String(open));
           more.setAttribute('aria-label', open ? 'Show fewer' : 'Show everyone we work with');
+          /* It left by sliding into the mark; it comes back the way it
+             arrived in the first place, written out. Emptied now so the
+             slide back is of nothing, and typed once it is in place. */
+          if (slogan && typeof bmuType === 'function' && typeof SLOGAN === 'string'){
+            if (open){
+              slogan.textContent = '';
+            } else {
+              setTimeout(() => bmuType(SLOGAN, slogan, 55), 300);
+            }
+          }
         });
       }
 
