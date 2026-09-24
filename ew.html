@@ -755,30 +755,6 @@
     }
     .hd-ico svg{ display:block; width:15px; height:15px; }
 
-    /* ---------- THE SOUND ----------
-       Held back until the reader is on the header, and gone again when they
-       leave — whatever it is doing carries on without it. The two faces turn
-       through each other rather than swapping, so the button is never empty
-       mid-change. */
-    .hd-sound{
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .3s cubic-bezier(.4,0,.2,1), color .3s cubic-bezier(.4,0,.2,1);
-    }
-    #siteHead:hover .hd-sound,
-    #siteHead.head-lit .hd-sound,
-    .hd-sound:focus-visible{ opacity:1; pointer-events:auto; }
-    .hd-sound svg{ overflow:visible; }
-    .snd-play, .snd-pause{
-      transform-origin:50% 50%;
-      transition:opacity .26s cubic-bezier(.4,0,.2,1), transform .34s cubic-bezier(.4,0,.2,1);
-    }
-    .snd-pause{ opacity:0; transform:scale(.55); }
-    .hd-sound.is-playing .snd-play{ opacity:0; transform:scale(.55); }
-    .hd-sound.is-playing .snd-pause{ opacity:1; transform:none; }
-    @media (prefers-reduced-motion:reduce){
-      .snd-play, .snd-pause{ transition:none; }
-    }
     .hd-ico .ico-fill{ fill:currentColor; }
     .hd-ico .ico-stroke{
       fill:none;
@@ -1185,16 +1161,6 @@
     </a>
 
     <nav class="hd-tools" aria-label="Explore">
-      <!-- The sound, kept out of the way. Nothing about it is on screen until
-           the reader is on the header; press it and it plays on after they
-           have gone, which is the whole point of it. Two states in one
-           button, turning through each other the way the tools below do. -->
-      <button class="hd-ico hd-sound" id="hdSound" type="button" aria-label="Play sound" aria-pressed="false">
-        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <path class="ico-fill snd-play" d="M4.6 3.2 L12.6 8 L4.6 12.8 Z"/>
-          <g class="ico-fill snd-pause"><rect x="4.4" y="3.4" width="2.6" height="9.2"/><rect x="9" y="3.4" width="2.6" height="9.2"/></g>
-        </svg>
-      </button>
       <a class="hd-ico" id="hdExplore" href="/archive" aria-label="Explore the archive">
         <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
           <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
@@ -1226,9 +1192,6 @@
     <p class="p-line">Archive, repository and open-studio.</p>
     <p class="p-body">East West is set to industrialise our operations with authorising a build of an open studio for our team and designers to repair and remanufacture military surplus in a value-add, circularity focused partnership. Joining forces enables us to expand our sourcing capabilities to EU and US surplus disposable markets and introduces a new methodology and approach to surplus for East West, focusing on development of products before sale and creating closed-loop distribution networks for continuous circulation of surplus, avoiding trade blocks and maintaining material flow.</p>
   </main>
-
-  <!-- Nothing is fetched until the button is pressed. -->
-  <audio id="bmuTrack" src="/audio/bmu.mp3" loop preload="none"></audio>
 
   <footer id="siteFooter">
     <div class="foot-inner">
@@ -1572,40 +1535,6 @@
         el.addEventListener('pointermove', e => place(e.clientX, e.clientY));
         el.addEventListener('pointerleave', () => pop.classList.remove('show'));
       });
-    })();
-
-    /* ---------- the sound ----------
-       One track, looped, asked for only when the reader presses. A browser
-       will refuse to play audio nobody has asked for, so nothing is loaded
-       until the press — preload="none" — and a refusal leaves the button
-       showing play rather than lying about what is happening. */
-    (function sound(){
-      const btn = document.getElementById('hdSound');
-      if (!btn) return;
-      let track = null;
-      function paint(){
-        const on = !!track && !track.paused;
-        btn.classList.toggle('is-playing', on);
-        btn.setAttribute('aria-pressed', String(on));
-        btn.setAttribute('aria-label', on ? 'Pause sound' : 'Play sound');
-      }
-      btn.addEventListener('click', () => {
-        if (!track){
-          track = document.getElementById('bmuTrack');
-          if (!track) return;
-          track.addEventListener('play', paint);
-          track.addEventListener('pause', paint);
-          track.addEventListener('ended', paint);
-        }
-        if (track.paused){
-          const p = track.play();
-          if (p && p.catch) p.catch(() => paint());   // refused: say so by not changing
-        } else {
-          track.pause();
-        }
-        paint();
-      });
-      paint();
     })();
 
     const footMail    = document.getElementById('footMail');

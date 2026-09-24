@@ -102,10 +102,12 @@
 
     .count-info{
       display:grid; place-items:center;
-      width:18px; height:18px;
-      /* beside the tally, not adrift in the middle of the row: the row sets
-         its ends apart, so this takes the space after it rather than before */
-      margin-left:8px;
+      width:16px; height:16px;
+      /* One space after the words. The row sets its children 16px apart, so
+         that gap is taken back and a single space given instead; and the
+         space after this one is taken by it, or the row's ends would push it
+         into the middle. */
+      margin-left:-11px;
       margin-right:auto;
       padding:0; border:0; background:none;
       color:#c2c2c2;
@@ -117,8 +119,10 @@
     .count-info .ico-stroke{
       fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round;
     }
-    /* the shelf is the reader's own count; none of this is about that */
-    body.library .count-info{ opacity:0; pointer-events:none; }
+    /* It fades rather than switching, and it comes back on the shelf too:
+       what it has to say about the archive is worth reading wherever the
+       reader happens to be standing. */
+    .count-info{ opacity:1; }
 
     /* the page's hover box, the one the whole site uses */
     .bmu-pop{
@@ -141,6 +145,11 @@
     @media (max-width:760px){
       .bmu-pop{ white-space:normal; }
     }
+
+    /* A button being worked on is not a button to press again. It says so
+       plainly rather than silently swallowing the press. */
+    .is-working{ cursor:default; }
+    .is-working:hover{ opacity:.75; }
 
     /* ---------- fixed bottom bar ----------
        On arrival the archive is only this: a search bar and its footer
@@ -1770,32 +1779,31 @@
     #dock.open .dq-hint.on{ opacity:1; pointer-events:auto; }
 
     /* ---------- EVERY CLUSTER THE TYPING ANSWERS ----------
-       Stacked above the bar and hung off its right-hand end, under the chip
-       that names the first of them. Pressing one is the choosing — the same
-       act the chip performs, so nothing here asks to be agreed with twice. */
+       In a row inside the bar, in the chip's own dress — faint ground, light
+       rule, the kind set small and grey in front of the name. One per filter,
+       so a word that touches a nation, a cloth and a print offers all three
+       side by side. Pressing one is the choosing. */
     .dq-picks{
       position:absolute;
-      /* the two dock squares and their gaps, so the stack's right-hand edge
-         lands on the search bar's own */
-      right:112px; bottom:calc(100% + 10px);
+      right:96px; top:50%;
+      transform:translateY(-50%);
       display:flex;
-      flex-direction:column;
-      align-items:stretch;
+      align-items:center;
       gap:6px;
       opacity:0;
       pointer-events:none;
       transition:opacity .26s cubic-bezier(.4,0,.2,1);
-      z-index:6;
+      z-index:5;
     }
     #dock.open .dq-picks.on{ opacity:1; pointer-events:auto; }
     .dq-pick{
       display:flex;
       align-items:baseline;
-      gap:8px;
-      padding:5px 10px;
-      background:var(--bg);
-      border:1.5px solid var(--line);
-      color:var(--ink);
+      gap:6px;
+      padding:4px 9px;
+      background:var(--faint);
+      border:1.5px solid #dcdcdc;
+      color:#9a9a9a;
       font-family:var(--font);
       font-size:10px;
       letter-spacing:.09em;
@@ -1803,16 +1811,16 @@
       white-space:nowrap;
       cursor:pointer;
       text-align:left;
-      transition:background-color .22s cubic-bezier(.4,0,.2,1), color .22s cubic-bezier(.4,0,.2,1);
+      transition:color .22s cubic-bezier(.4,0,.2,1), border-color .22s cubic-bezier(.4,0,.2,1);
     }
-    .dq-pick:hover{ background:var(--ink); color:var(--bg); }
-    .dq-pick .dp-kind{ font-size:9px; color:#b0b0b0; flex:none; }
-    .dq-pick:hover .dp-kind{ color:#9a9a9a; }
-    .dq-pick .dp-n{ margin-left:auto; font-size:9px; color:#b0b0b0; flex:none; }
-    .dq-pick:hover .dp-n{ color:#9a9a9a; }
+    .dq-pick:hover{ color:var(--ink); border-color:var(--line); }
+    .dq-pick .dp-kind{ font-size:9px; color:#c4c4c4; flex:none; }
+    .dq-pick .dp-n{ font-size:9px; color:#c4c4c4; flex:none; }
+    /* the input gives up exactly the room the row is taking */
+    #dockSearch.has-picks #dq{ padding-right:calc(var(--picks-w, 200px) + 108px); }
     @media (max-width:640px){
-      .dq-picks{ gap:4px; }
-      .dq-pick{ font-size:9px; padding:4px 8px; }
+      .dq-picks{ gap:4px; right:88px; }
+      .dq-pick{ font-size:9px; padding:3px 7px; gap:4px; }
     }
     @media (prefers-reduced-motion:reduce){ .dq-picks{ transition:none; } }
     .dq-hint:hover{ color:var(--ink); border-color:var(--line); }
@@ -1934,8 +1942,16 @@
        box unfolds from its top edge and the contents arrive in the room it
        has made. The whole page has one gesture for a box opening; this is
        now part of it. */
-    #savedTab.rising{
-      animation:saved-rise .52s cubic-bezier(.4,0,.2,1) both;
+    /* The box comes down out of its own header and opens into the room it
+       makes; the garments then arrive in it one after another, quickly. The
+       whole tab used to move as one block, which said nothing about where
+       the shelf had come from. */
+    #savedTab.rising > .nbody{
+      transform-origin:top center;
+      animation:shelf-open .44s cubic-bezier(.4,0,.2,1) both;
+    }
+    #savedTab.rising .item{
+      animation:shelf-card .3s cubic-bezier(.4,0,.2,1) backwards;
     }
     /* And nothing else. The shelf is a .nation like any other, so body.browsing
        was dealing it in with toppleIn as well — and because .rising is taken
@@ -1943,13 +1959,16 @@
        saved-rise to toppleIn and the tab arrived a second time. It has its own
        way in; it does not also get the tabs'. */
     body.browsing #savedTab:not(.rising){ animation:none; }
-    @keyframes saved-rise{
-      from { opacity:0; transform:scaleY(.34) translateY(-10px); }
+    @keyframes shelf-open{
+      from { opacity:0; transform:scaleY(.16); }
       to   { opacity:1; transform:none; }
     }
-    #savedTab.rising{ transform-origin:top center; }
+    @keyframes shelf-card{
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:none; }
+    }
     @media (prefers-reduced-motion:reduce){
-      #savedTab.rising{ animation:none; }
+      #savedTab.rising > .nbody, #savedTab.rising .item{ animation:none; }
     }
 
     /* Arriving in the list on one garment. Not a highlight colour — the
@@ -2511,14 +2530,11 @@
         <img src="/navigate.svg" alt="" aria-hidden="true" width="13" height="13">
       </button>
       <button type="button" id="dockClear" aria-label="Close search" tabindex="-1">✕</button>
+      <!-- One per filter, inside the bar where the single chip used to be.
+           A box standing above the bar was a second piece of furniture for
+           something the bar already had a way of saying. -->
+      <div id="dqPicks" class="dq-picks" role="listbox" aria-label="Matching clusters"></div>
     </div>
-    <!-- Every cluster the typing answers, not merely the best of them. A
-         chip inside the bar can hold one; this holds all of them, and each is
-         a button that goes straight to its cluster.
-
-         Outside the bar, because the bar clips what it cannot fit and this
-         stands above it. -->
-    <div id="dqPicks" class="dq-picks" role="listbox" aria-label="Matching clusters"></div>
     <!-- one button holding several tools; scroll or swipe it to change -->
     <button type="button" id="dockExplore" class="dock-sq" aria-label="Explore the archive" aria-pressed="false">
       <span class="face-stack">
@@ -3337,6 +3353,23 @@
 
     /* The tab is built from clones of the real cards, re-wired through the
        same path, so a saved garment behaves identically wherever it sits. */
+    /* The shelf arriving: the box unfolds out of its own header, and the
+       garments come into it one after another as it finishes opening — close
+       enough together to read as one run rather than a queue. */
+    function openShelf(){
+      savedTab.classList.remove('rising');
+      const cards = [...savedTab.querySelectorAll('.item')];
+      cards.forEach(c => { c.style.animationDelay = ''; });
+      void savedTab.offsetWidth;
+      savedTab.classList.add('rising');
+      cards.forEach((c, i) => { c.style.animationDelay = (300 + i * 45) + 'ms'; });
+      clearTimeout(openShelf.t);
+      openShelf.t = setTimeout(() => {
+        savedTab.classList.remove('rising');
+        cards.forEach(c => { c.style.animationDelay = ''; });
+      }, 300 + cards.length * 45 + 340);
+    }
+
     function buildSavedTab(){
       /* Rebuilt whole rather than emptied. The shelf now carries a filter
          bar like every other tab, and regroup() rearranges a tab by throwing
@@ -3889,10 +3922,7 @@
         reportShelf();
         savedTab.open = true;
         // rises first, then opens — the two beats the reader asked for
-        savedTab.classList.remove('rising');
-        void savedTab.offsetWidth;
-        savedTab.classList.add('rising');
-        setTimeout(() => savedTab.classList.remove('rising'), 560);
+        openShelf();
       }
       countEl.textContent = savedOnly
         ? `${savedIds.length} ${savedIds.length === 1 ? 'garment' : 'garments'}`
@@ -4585,11 +4615,38 @@
       return [...best.values()].sort((a, b) => b.count - a.count).slice(0, 6);
     }
 
+    /* ---------- SPAMMED BUTTONS ----------
+       Everything on this page is a run of some length, and a press landing
+       in the middle of one used to start it over from wherever it had got
+       to — pressing twice quickly left the field half-way through two
+       different moves at once.
+
+       A press during a run is not thrown away and it does not interrupt:
+       it is held, and performed once the run has finished. Only the last
+       one is kept, because pressing five times is asking for the thing
+       once, impatiently. */
+    function onceAtATime(el, ms, run){
+      if (!el) return;
+      let busy = false, queued = false;
+      el.addEventListener('click', e => {
+        if (busy){ e.stopImmediatePropagation(); e.preventDefault(); queued = true; return; }
+        busy = true;
+        el.classList.add('is-working');
+        setTimeout(() => {
+          busy = false;
+          el.classList.remove('is-working');
+          if (queued){ queued = false; el.click(); }
+        }, ms);
+        if (run) run();
+      }, true);   // capture, so the guard is reached before the work
+    }
+
     const dqPicks    = document.getElementById('dqPicks');
     function hidePicks(){
       if (!dqPicks) return;
       dqPicks.classList.remove('on');
       dqPicks.innerHTML = '';
+      dockSearch.classList.remove('has-picks');
     }
     /* Beside the tally, and riding the cursor the way every other box on
        the site does: to the left where there is room, to the right where
@@ -4646,15 +4703,25 @@
       if (!all.length){
         dqPicks.classList.remove('on');
         dqPicks.innerHTML = '';
+        dockSearch.classList.remove('has-picks');
         return;
       }
-      dqPicks.innerHTML = all.map(l =>
+      /* As many as the bar can hold and still be a bar. Three on a pointer
+         screen; one on a phone, where three came to 403px inside a 255px bar
+         and simply ran out of it. The rest are one more letter away. */
+      const MAX = window.matchMedia('(max-width: 640px)').matches ? 1 : 3;
+      dqPicks.innerHTML = all.slice(0, MAX).map(l =>
         `<button type="button" class="dq-pick" data-fill="${esc(l.fill)}">` +
           `<span class="dp-kind">${esc(l.kind)}</span>` +
           `<span class="dp-text">${esc(l.label)}</span>` +
           `<span class="dp-n">${l.count}</span>` +
         `</button>`).join('');
       dqPicks.classList.add('on');
+      /* the input gives up the room the row is actually taking, measured
+         rather than guessed — a guess is wrong the moment a word is longer */
+      dockSearch.classList.add('has-picks');
+      dockSearch.style.setProperty('--picks-w',
+        Math.ceil(dqPicks.getBoundingClientRect().width) + 'px');
     }
 
     function paintHint(term){
@@ -4669,6 +4736,15 @@
       }
       // "Try" rather than the kind when the archive is offering an
       // alternative: the reader should know it is not what they asked for
+      /* The row already names the first answer in the same dress; the chip
+         is for the case the row cannot cover — a word the archive does not
+         hold, where what is offered is a suggestion rather than a match. */
+      if (dqPicks && dqPicks.classList.contains('on') && s.found){
+        dqHint.classList.remove('on');
+        dqHint.setAttribute('aria-hidden', 'true');
+        dockSearch.classList.remove('has-hint');
+        return;
+      }
       dqHintKind.textContent = s.found ? s.kind : 'Try';
       dqHintText.textContent = s.text;
       dqHint.setAttribute('aria-label', (s.found ? 'Search ' : 'Try ') + s.kind + ' ' + s.text);
@@ -5835,10 +5911,7 @@
              shelf outright while the list's own save icon drew it down, so
              the same shelf behaved differently depending on which button had
              asked for it. */
-          savedTab.classList.remove('rising');
-          void savedTab.offsetWidth;
-          savedTab.classList.add('rising');
-          setTimeout(() => savedTab.classList.remove('rising'), 560);
+          openShelf();
         }
         /* The shelf is open and titled Saved a line below; the count does
            not need to say so as well. */
@@ -6041,6 +6114,16 @@
         setTimeout(() => card.classList.remove('landed'), 1600);
       }, opening && !REDUCED ? 380 : 40);
     }
+
+    /* The controls that each start a run of their own. The lengths are the
+       runs' own: the shelf's open, the field's morph, the dock's swap. */
+    onceAtATime(document.getElementById('dockLibrary'), 900);
+    onceAtATime(document.getElementById('savedBtn'), 900);
+    onceAtATime(document.getElementById('dqExplore'), 900);
+    onceAtATime(document.getElementById('dockExplore'), 900);
+    onceAtATime(document.getElementById('dqFlag'), 1100);
+    onceAtATime(document.getElementById('flagBtn'), 1100);
+    onceAtATime(document.getElementById('countInfo'), 220);
 
     /* ---------- zoom + pan ----------
        Neither works while the gate is up. The field behind it is grey and
