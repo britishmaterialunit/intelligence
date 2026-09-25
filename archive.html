@@ -625,6 +625,9 @@
          which is solid throughout. The other three fade back over half a
          second rather than being switched on at the end of a delay. */
       border-color:var(--line);
+      /* the rule above is the top line; the border's own top edge would be a
+         second one in the same place */
+      border-top-color:transparent;
       position:relative;
       transition:border-color .5s cubic-bezier(.4,0,.2,1);
     }
@@ -633,35 +636,58 @@
        heavy line — which is the thick line above a solo garment. It exists
        only while the build is running and goes when the border takes over. */
     /* ---------- THE TAB'S TOP LINE ----------
-       One line, and it stays one line.
+       It draws itself, and it is only ever one thing.
 
-       It used to be two taking turns: a rule scaled out from the centre while
-       the border underneath it was held transparent, and then the two swapped
-       over. Two things standing in for one line means a frame where neither
-       is quite there, and a scale that starts at nothing means a line that is
-       not a line yet — which is the break at the top, and the dissolve.
+       What broke it before was not the drawing but the handover: a rule drew
+       across the top while the real border underneath was held transparent,
+       and then the two swapped over on an opacity fade. Two things taking it
+       in turns to be one line means a frame where neither quite is — the
+       break, and the dissolve.
 
-       There is no rule now and no handover. The top edge is simply on, solid,
-       edge to edge, from the first frame of the opening to the last. Nothing
-       fades it, scales it, clips it or takes it away; the other three edges
-       still arrive around it. */
-    body.single-result .nation::before{ content:none; }
+       So the rule is not standing in for the border any more; it IS the top
+       edge, and the border beneath it stays out of the way for good. There is
+       nothing to hand over to and nothing to fade.
+
+       At every moment it is solid black along its whole length, at full
+       opacity, with square ends. What changes is how much of it there is: it
+       runs out from the left, which is the same gesture the archive uses
+       everywhere else a line arrives. */
+    body.single-result .nation::before{
+      content:"";
+      position:absolute;
+      /* sits ON the top edge, in place of the border rather than over it */
+      left:-1.5px; right:-1.5px; top:-1.5px;
+      height:1.5px;
+      background:var(--line);
+      opacity:1;                       /* never anything else, at any point */
+      transform:scaleX(1);             /* its resting state is drawn */
+      transform-origin:left center;
+      z-index:2;
+    }
+    /* the build holds it at nothing — not faded, simply not run out yet */
+    body.single-result.solo-build .nation::before{
+      transform:scaleX(0);
+      transition:none;
+    }
+    /* and the draw runs it out, once, in one movement */
+    body.single-result.solo-drawing .nation::before{
+      transform:scaleX(1);
+      transition:transform .54s cubic-bezier(.4,0,.2,1);
+    }
     body.single-result .nation > summary{
       transition:opacity .5s cubic-bezier(.4,0,.2,1) .18s;
       transform:none;
     }
     body.single-result.solo-build .nation{
       border-color:transparent;
-      /* never the top: it is there from the first frame */
-      border-top-color:var(--line);
       transition:none;
     }
-    /* Drawing: the three other edges arrive. The top is already there and
-       stays there — it is set to the same value it started at, so there is
-       nothing for the transition to move. */
+    /* Drawing: the three other edges arrive around the rule. The top edge of
+       the border itself is never used — the rule is the line there — so it
+       stays transparent and the two can never be mistaken for each other. */
     body.single-result.solo-drawing .nation{
       border-color:var(--line);
-      border-top-color:var(--line);
+      border-top-color:transparent;
       transition:border-color .5s cubic-bezier(.4,0,.2,1) .12s;
     }
     body.single-result.solo-drawing .nation > summary{
