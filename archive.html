@@ -844,7 +844,21 @@
       fill:none;
       stroke:var(--line);
       stroke-width:1.5;
+      /* The box is drawn with preserveAspectRatio="none" over a viewBox cut
+         to the room's own pixels — so any difference between the two, and a
+         sub-pixel one is normal, scales the stroke unevenly: thinner on one
+         axis, and a 1.5px line thinned is a line that drops out. The stroke
+         is held at its own width whatever the box does. */
+      vector-effect:non-scaling-stroke;
+      /* Anti-aliased rather than snapped to the pixel grid. Crisped, a line
+         sitting between two device pixels mid-draw has nowhere to land and
+         goes missing for a frame — the flicker. */
+      shape-rendering:geometricPrecision;
     }
+    /* Its own layer for the length of the draw, so the line is rasterised
+       once and moved rather than redrawn every frame. The frame is made and
+       thrown away with each record, so nothing is left promoted. */
+    .solo-frame{ will-change:stroke-dashoffset; }
     body.single-result .item{ position:relative; }
     body.single-result .item.unbuild .meta{ animation:metaLeave .3s cubic-bezier(.4,0,.2,1) both; }
     @keyframes metaLeave{
@@ -4683,13 +4697,48 @@
       btn.addEventListener('pointerleave', () => { if (!pinned) close(); });
       btn.addEventListener('focus', () => open(null));
       btn.addEventListener('blur', close);
-      // no hover on a touch screen: a press opens it, a press elsewhere shuts it
+      /* ---------- NO HOVER TO ANSWER ----------
+         A finger cannot hover, so a press shows it and it stays. The finger
+         may then wander and the box goes along — but on a short leash from
+         where the press landed, so it cannot be dragged off across the page
+         and away from the thing it belongs to.
+
+         It goes on its own after long enough to have read it: measured from
+         the words themselves rather than a fixed count, because a sentence
+         and a paragraph do not take the same time. */
+      let leash = null, fade = null;
+      const readMs = () =>
+        Math.min(12000, Math.max(2200,
+          pop.textContent.trim().split(/\s+/).filter(Boolean).length * 340));
+
+      btn.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'mouse') return;      // a mouse has hover
+        e.preventDefault();
+        pinned = true;
+        leash = { x:e.clientX, y:e.clientY };
+        open(e);
+        clearTimeout(fade);
+        fade = setTimeout(close, readMs());
+      });
+      window.addEventListener('pointermove', e => {
+        if (!leash || !pop.classList.contains('show')) return;
+        const dx = e.clientX - leash.x, dy = e.clientY - leash.y;
+        const d = Math.hypot(dx, dy), MAX = 110;      // how far it may be led
+        const k = d > MAX ? MAX / d : 1;
+        place(leash.x + dx * k, leash.y + dy * k);
+      }, { passive:true });
+      window.addEventListener('pointerup',     () => { leash = null; });
+      window.addEventListener('pointercancel', () => { leash = null; });
+
+      // a pointer that does hover: a press pins it, a press elsewhere shuts it
       btn.addEventListener('click', e => {
         e.preventDefault(); e.stopPropagation();
-        if (pinned){ close(); return; }
+        if (pinned){ clearTimeout(fade); close(); return; }
         pinned = true; open(e.clientX ? e : null);
       });
-      document.addEventListener('click', e => { if (pinned && !btn.contains(e.target)) close(); });
+      document.addEventListener('click', e => {
+        if (pinned && !btn.contains(e.target)){ clearTimeout(fade); close(); }
+      });
     })();
 
     const dqHint     = document.getElementById('dqHint');

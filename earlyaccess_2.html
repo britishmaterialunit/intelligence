@@ -1404,15 +1404,49 @@
         });
       }
 
+      /* A finger cannot hover, so a press shows the name and it stays. The
+         finger may wander and the box goes along, on a short leash from where
+         the press landed — and it goes on its own after long enough to have
+         read it. A mouse keeps the hover it already had. */
+      let leash = null, fade = null;
+      const hide = () => pop.classList.remove('show');
+      const readMs = () =>
+        Math.min(12000, Math.max(2200,
+          pop.textContent.trim().split(/\s+/).filter(Boolean).length * 340));
+
       document.querySelectorAll('.fp[data-who]').forEach(el => {
         el.addEventListener('pointerenter', e => {
+          if (e.pointerType !== 'mouse') return;
           pop.textContent = el.dataset.who;
           pop.classList.add('show');
           place(e.clientX, e.clientY);
         });
-        el.addEventListener('pointermove', e => place(e.clientX, e.clientY));
-        el.addEventListener('pointerleave', () => pop.classList.remove('show'));
+        el.addEventListener('pointermove', e => {
+          if (e.pointerType === 'mouse') place(e.clientX, e.clientY);
+        });
+        el.addEventListener('pointerleave', e => {
+          if (e.pointerType === 'mouse') hide();
+        });
+        el.addEventListener('pointerdown', e => {
+          if (e.pointerType === 'mouse') return;
+          e.preventDefault();
+          pop.textContent = el.dataset.who;
+          pop.classList.add('show');
+          leash = { x:e.clientX, y:e.clientY };
+          place(e.clientX, e.clientY);
+          clearTimeout(fade);
+          fade = setTimeout(hide, readMs());
+        });
       });
+      window.addEventListener('pointermove', e => {
+        if (!leash || !pop.classList.contains('show')) return;
+        const dx = e.clientX - leash.x, dy = e.clientY - leash.y;
+        const d = Math.hypot(dx, dy), MAX = 110;
+        const k = d > MAX ? MAX / d : 1;
+        place(leash.x + dx * k, leash.y + dy * k);
+      }, { passive:true });
+      window.addEventListener('pointerup',     () => { leash = null; });
+      window.addEventListener('pointercancel', () => { leash = null; });
     })();
 
     const footMail    = document.getElementById('footMail');
