@@ -1615,7 +1615,11 @@
       transition:transform .42s cubic-bezier(.6,0,.3,1),
                  opacity .3s cubic-bezier(.4,0,.2,1) .16s;
     }
-    body.solo-shutting .nation > summary{ opacity:0; transition:opacity .22s cubic-bezier(.4,0,.2,1); }
+    /* The name stays on the lid. It used to be faded out on its own a
+       fraction before the box closed, which left an empty box shutting — the
+       one thing that said what was closing went first. The box carries it:
+       .nation's own opacity takes everything inside it, name included, so
+       the title is legible until there is no box left to hold it. */
 
     /* The field fades up OVER the page, so for the length of that fade
        whatever is underneath shows through it. On the way out of a record
@@ -6477,6 +6481,24 @@
                of them is inside this same task, so none of it is painted. */
             const want = from.top + from.height / 2;
             let applied = 0;
+
+            /* Measured against the record as it will BE, not as it is now.
+               The card is in its build state while this runs — narrow, and
+               the slot sits higher in it than it will once the card has
+               opened — so a drop worked out here closed the gap to a position
+               the slot was about to leave. It under-applied by two thirds and
+               the garment travelled the rest of the way on its own.
+
+               The build state is taken off, the settled layout measured, and
+               it is put straight back, all inside this one task. The browser
+               paints between tasks and never inside one, so the opened state
+               is never on screen — the same no-paint measurement the pin
+               above is built on. */
+            const wasBuild = document.body.classList.contains('solo-build');
+            const itemBuild = item.classList.contains('build');
+            if (wasBuild)  document.body.classList.remove('solo-build');
+            if (itemBuild) item.classList.remove('build');
+
             for (let pass = 0; pass < 8; pass++){
               const r = slot.getBoundingClientRect();
               const gap = want - (r.top + r.height / 2);
@@ -6489,6 +6511,10 @@
               }
               document.body.style.setProperty('--solo-drop', Math.round(applied) + 'px');
             }
+
+            if (itemBuild) item.classList.add('build');
+            if (wasBuild)  document.body.classList.add('solo-build');
+            void item.offsetWidth;      // back as it was, with nothing animating
 
             const rest = slot.getBoundingClientRect();
             if (rest.width > 4) pin(rest);
