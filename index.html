@@ -287,10 +287,19 @@
       aspect-ratio:1 / 1;
       flex:none;
     }
-    .svg-wrapper{ position:absolute; inset:0; }
-    /* the mark is a box inside the square, not the square itself: the
-       typed copy and the button row keep the square's full width while
-       the mark alone is free to come down to a phone-sized scale */
+    /* The mark is a box inside the square, not the square itself: the typed
+       copy and the button row keep the square's full width while the mark
+       alone is free to be sized. It filled the square outright on a desktop,
+       which made it the largest thing on the screen by some way — a front
+       door rather than a mark. It sits at two thirds of the square now,
+       centred in it, and the phone takes it down further still. */
+    .svg-wrapper{
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%, -50%);
+      width:66%;
+      aspect-ratio:1 / 1;
+    }
     .svg-wrapper svg{
       width:100%; height:100%;
       cursor:pointer;
