@@ -364,6 +364,11 @@
       min-height:var(--bar-h);
     }
     #navRow.visible{ opacity:1; transform:none; pointer-events:auto; }
+    /* The gather at the start is a state, not a move. Set with transitions
+       live, the five buttons animated OUT to their places and then back into
+       the middle before the opening had begun — the reader saw the row twice
+       before it arrived. Held for one reflow, it is simply where they start. */
+    #navRow.no-anim .bm-button{ transition:none; }
     @media (prefers-reduced-motion:reduce){
       #navRow{ transform:none; transition:opacity .5s cubic-bezier(.4,0,.2,1); }
     }
@@ -3106,7 +3111,16 @@
            let go and run out to their places, two to the left and two to the
            right. It is the Operations box closing, played as an arrival. */
         const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (!REDUCED) convergeButtons();
+        if (!REDUCED){
+          /* Gathered with nothing animating, committed, and only then are
+             transitions handed back — so the row rises as one box and the
+             four run out of it, rather than arriving, un-arriving and
+             arriving again. */
+          navRow.classList.add('no-anim');
+          convergeButtons();
+          void navRow.offsetWidth;
+          navRow.classList.remove('no-anim');
+        }
         navRow.classList.add('visible');
         // the page only becomes scrollable — and the footer only exists —
         // once the reader is actually inside the site
