@@ -231,6 +231,23 @@
   
   /* host page drives entry; internal intro suppressed */
   #intro{display:none !important;}
+
+    /* ---------- NO ZOOM WHEN A FIELD IS TAPPED ----------
+       Safari zooms the whole page in whenever it is about to put a caret in
+       a field set smaller than 16px, and then leaves the reader at that
+       zoom with the page too wide to read. Nothing in CSS switches that
+       off; the only thing it answers to is the size itself. So every field
+       a reader can actually type in is 16px on a touch screen. The type
+       there is a little larger than on a pointer screen, which is the
+       trade for the page not jumping every time someone starts typing. */
+    /* !important because this has to beat every field's own rule, and some
+       of them are set by id — a field set to 12px by an id selector would
+       otherwise go on zooming the page whatever this said. There is no size
+       below 16 that is safe here, so there is nothing for a later rule to
+       usefully say. */
+    @media (pointer: coarse){
+      input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+    }
 </style>
 
   <style>
@@ -407,6 +424,13 @@
     }
     .bm-button{
       display:block;
+      /* Under Operations, always. A static element cannot be ordered, so the
+         two boxes that come after Operations in the markup painted on top of
+         it — they crossed the box they were being driven into rather than
+         disappearing behind it. Positioned and ranked below it, they pass
+         underneath and the box stays whole. */
+      position:relative;
+      z-index:1;
       flex:1 1 0;
       min-width:0;
       height:var(--bar-h);
@@ -736,11 +760,28 @@
       white-space:normal;
     }
     #opsBtn.open:hover{ background:var(--bg); }
-    #opsBtn.open #opsLabel{
-      display:block;
+    /* The word travels to the corner rather than turning up in it. Centred
+       by text-align and left-aligned by padding, it had nothing to move
+       along: it stood still while the box grew and then arrived at the far
+       side in a single frame, which reads as a second title replacing the
+       first. Taken out of the flow and pinned, the same word slides the
+       width of the box on the same curve the box is opening on. */
+    #opsBtn #opsLabel{
+      position:absolute;
+      top:0;
+      left:50%;
+      transform:translateX(-50%);
       height:var(--bar-h);
       line-height:calc(var(--bar-h) - 3px);
-      padding-left:18px;
+      transition:left .5s cubic-bezier(.65,0,.35,1),
+                 transform .5s cubic-bezier(.65,0,.35,1);
+    }
+    #opsBtn.open #opsLabel{
+      /* The 18px the word used to sit at was measured from the bar's content
+         edge, inside its own 6px of padding. Pinned, it is measured from the
+         padding edge instead, so the same 18px is written as 24. */
+      left:24px;
+      transform:translateX(0);
       /* The same word at the same weight as the button it grew out of. It
          was being set smaller and grey once the box opened, so the label
          appeared to change into a different word at the moment the box
@@ -748,6 +789,9 @@
       font-size:13px;
       letter-spacing:0;
       color:#000;
+    }
+    @media (prefers-reduced-motion:reduce){
+      #opsBtn #opsLabel{ transition:none; }
     }
 
     .ops-close{
@@ -1144,12 +1188,53 @@
     .fp-pop.show{ opacity:1; }
 
     @media (max-width:760px){
-      .foot-head{ flex-wrap:wrap; }
-      /* on its own line under the mark, spread the full width */
-      .foot-partners{ margin-left:0; width:100%; justify-content:flex-end; }
-      .fp{ margin-left:14px; }
-      .foot-head.partners-open .fp.is-extra{ margin-left:14px; }
-      .fp img{ height:18px; max-width:52px; }
+      /* The head lands just under the fixed header rather than 60px below
+         it: the mark, the line and the plus are what the reader has come for
+         and they belong at the top of the screen. */
+      #siteFooter{ padding-top:26px; }
+
+      /* ---------- LET'S TALK, ON ARRIVAL ----------
+         There is no hover on a phone, so the box that opens and the arrow
+         that arrives in the room it makes had no way of happening — the one
+         thing in the footer asking to be pressed looked like a label. It
+         plays itself once, as the footer comes up, and stays open. */
+      #siteFooter.in .foot-talk .talk-well{
+        width:20px;
+        transition:width .5s cubic-bezier(.4,0,.2,1) .5s;
+      }
+      #siteFooter.in .foot-talk svg{
+        opacity:1;
+        transition:opacity .34s cubic-bezier(.4,0,.2,1) .8s;
+      }
+
+      /* ---------- THE TOP OF THE FOOTER, ON A PHONE ----------
+         One line: the mark and the line it carries on the left, the plus at
+         the right-hand end. It used to wrap, which put the marks on a row of
+         their own UNDER the plus and left the mark and slogan sitting above
+         everything with nothing beside them. Nothing wraps — at rest the plus
+         is the only thing out there, and it fits. */
+      .foot-head{ flex-wrap:nowrap; align-items:center; gap:10px; }
+      .foot-partners{ margin-left:auto; width:auto; }
+      .fp{ margin-left:10px; }
+      .foot-head.partners-open .fp.is-extra{ margin-left:10px; }
+      .fp img{ height:16px; max-width:44px; }
+      /* opened on a phone there are five marks and a plus on one line, so
+         they are allowed to run and be dragged rather than squeezed */
+      .foot-head.partners-open .foot-partners{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .foot-head.partners-open .foot-partners::-webkit-scrollbar{ display:none; }
+
+      /* ---------- MEETING THE HEADER ----------
+         At the footer the head lands under the fixed header, and the plus sat
+         directly beneath the header's own two tools. It steps aside by
+         exactly their width so the three read as one row above the divider,
+         and steps back when the reader leaves. */
+      body.at-footer .fp-more{ transform:translateX(-62px); }
+      .fp-more{ transition:color .3s cubic-bezier(.4,0,.2,1),
+                           transform .42s cubic-bezier(.4,0,.2,1); }
     }
 
     .foot-mark{
@@ -1689,6 +1774,11 @@
         width:min(96vw, 440px);
         margin-top:22px;      /* below the copy, always */
       }
+      /* With a panel open the row is the third thing in a stack of three —
+         address, field, button — and the gaps between them should be one
+         gap. The panel sets its own at 12px; the row takes the same rather
+         than the 22px it keeps from ordinary copy. */
+      body.panel-open #navStack{ margin-top:12px; }
       /* one row on a phone as well — five narrow buttons read better than
          a 240px column, and the Operations/Join choreography is then the
          same motion on every screen */
@@ -3292,7 +3382,12 @@
       if (typeof opsState !== 'undefined' && opsState !== 'closed'){
         opsFooterPass = true;
       }
-      siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+      /* Its head, not its foot. Aligning the bottom put the mark and the
+         line it carries wherever the footer's own height happened to leave
+         them — often off the top of a phone. Started instead: the mark, the
+         slogan and the marks beside them land at the top of the screen and
+         the rest of the footer follows down from there. */
+      siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
     }
 
 
@@ -3948,6 +4043,8 @@
        choreography of its own. */
     function openJoin(mode, goTo){
       if (joinState !== 'off' || opsState !== 'closed') return;
+      // a panel is open: the row joins the stack the panel is setting
+      document.body.classList.add('panel-open');
       joinMode = (mode === 'repo' || mode === 'early') ? mode : 'join';
       // the ground rises as the box opens, not after it
       document.body.classList.toggle('early-open', joinMode === 'early');
@@ -4109,6 +4206,7 @@
        button widens back out to the full row, and only then does it come
        down into its own slot with the other four sliding out of it. */
     function closeJoin(){
+      document.body.classList.remove('panel-open');
       joinFast = false;
       releaseUrl();
       document.body.classList.remove('early-open');
@@ -5028,5 +5126,40 @@ applyVB();
     });
   });
 </script>
+
+  <script>
+/* ---------- NO WIDOWS ----------
+   text-wrap:pretty is a hint and browsers are free to ignore it, which is why
+   "software", "surplus" and "note" still ended up alone on a line. This binds
+   the last three words of every run of prose with non-breaking spaces, so the
+   browser cannot put fewer than three on the final line however it wraps.
+
+   It walks the element's last text node only, so links, marks and anything
+   else inside the sentence are left exactly as they are. */
+(function noWidows(){
+  const SEL = 'p, .cl-lede, .repo-lede, .repo-note, .ni-sub, .p-body, ' +
+              '.bmu-pop, .cv-pop, .fp-pop, .info-inner, .cl-sub, .foot-addr';
+  const BIND = 2;                       // two spaces bound = three words held
+  function fix(el){
+    if (!el || el.dataset.nowidow) return;
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let last = null, n;
+    while ((n = walk.nextNode())) if (n.nodeValue.trim()) last = n;
+    if (!last) return;
+    let v = last.nodeValue.replace(/ /g, ' ');
+    let done = 0;
+    v = v.replace(/ (?=[^ ]*$)/, m => (done++, ' '));
+    for (let i = 1; i < BIND && done < BIND; i++){
+      v = v.replace(/ (?=[^ ]* [^ ]*$)/, m => (done++, ' '));
+    }
+    last.nodeValue = v;
+    el.dataset.nowidow = '1';
+  }
+  function run(){ document.querySelectorAll(SEL).forEach(fix); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  window.bmuNoWidows = run;             // anything written later asks for it
+})();
+  </script>
 </body>
 </html>

@@ -35,7 +35,24 @@
       letter-spacing:.08em;
     }
     a{ color:#222; }
-  </style>
+  
+    /* ---------- NO ZOOM WHEN A FIELD IS TAPPED ----------
+       Safari zooms the whole page in whenever it is about to put a caret in
+       a field set smaller than 16px, and then leaves the reader at that
+       zoom with the page too wide to read. Nothing in CSS switches that
+       off; the only thing it answers to is the size itself. So every field
+       a reader can actually type in is 16px on a touch screen. The type
+       there is a little larger than on a pointer screen, which is the
+       trade for the page not jumping every time someone starts typing. */
+    /* !important because this has to beat every field's own rule, and some
+       of them are set by id — a field set to 12px by an id selector would
+       otherwise go on zooming the page whatever this said. There is no size
+       below 16 that is safe here, so there is nothing for a later rule to
+       usefully say. */
+    @media (pointer: coarse){
+      input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+    }
+</style>
 </head>
 <body>
   <!-- seen only if the redirect cannot run -->

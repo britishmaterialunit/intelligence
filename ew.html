@@ -310,12 +310,53 @@
     .fp-pop.show{ opacity:1; }
 
     @media (max-width:760px){
-      .foot-head{ flex-wrap:wrap; }
-      /* on its own line under the mark, spread the full width */
-      .foot-partners{ margin-left:0; width:100%; justify-content:flex-end; }
-      .fp{ margin-left:14px; }
-      .foot-head.partners-open .fp.is-extra{ margin-left:14px; }
-      .fp img{ height:18px; max-width:52px; }
+      /* The head lands just under the fixed header rather than 60px below
+         it: the mark, the line and the plus are what the reader has come for
+         and they belong at the top of the screen. */
+      #siteFooter{ padding-top:26px; }
+
+      /* ---------- LET'S TALK, ON ARRIVAL ----------
+         There is no hover on a phone, so the box that opens and the arrow
+         that arrives in the room it makes had no way of happening — the one
+         thing in the footer asking to be pressed looked like a label. It
+         plays itself once, as the footer comes up, and stays open. */
+      #siteFooter.in .foot-talk .talk-well{
+        width:20px;
+        transition:width .5s cubic-bezier(.4,0,.2,1) .5s;
+      }
+      #siteFooter.in .foot-talk svg{
+        opacity:1;
+        transition:opacity .34s cubic-bezier(.4,0,.2,1) .8s;
+      }
+
+      /* ---------- THE TOP OF THE FOOTER, ON A PHONE ----------
+         One line: the mark and the line it carries on the left, the plus at
+         the right-hand end. It used to wrap, which put the marks on a row of
+         their own UNDER the plus and left the mark and slogan sitting above
+         everything with nothing beside them. Nothing wraps — at rest the plus
+         is the only thing out there, and it fits. */
+      .foot-head{ flex-wrap:nowrap; align-items:center; gap:10px; }
+      .foot-partners{ margin-left:auto; width:auto; }
+      .fp{ margin-left:10px; }
+      .foot-head.partners-open .fp.is-extra{ margin-left:10px; }
+      .fp img{ height:16px; max-width:44px; }
+      /* opened on a phone there are five marks and a plus on one line, so
+         they are allowed to run and be dragged rather than squeezed */
+      .foot-head.partners-open .foot-partners{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .foot-head.partners-open .foot-partners::-webkit-scrollbar{ display:none; }
+
+      /* ---------- MEETING THE HEADER ----------
+         At the footer the head lands under the fixed header, and the plus sat
+         directly beneath the header's own two tools. It steps aside by
+         exactly their width so the three read as one row above the divider,
+         and steps back when the reader leaves. */
+      body.at-footer .fp-more{ transform:translateX(-62px); }
+      .fp-more{ transition:color .3s cubic-bezier(.4,0,.2,1),
+                           transform .42s cubic-bezier(.4,0,.2,1); }
     }
 
     .foot-mark{
@@ -1172,7 +1213,24 @@
       .book-tabs{ display:block; }
     }
 
-  </style>
+  
+    /* ---------- NO ZOOM WHEN A FIELD IS TAPPED ----------
+       Safari zooms the whole page in whenever it is about to put a caret in
+       a field set smaller than 16px, and then leaves the reader at that
+       zoom with the page too wide to read. Nothing in CSS switches that
+       off; the only thing it answers to is the size itself. So every field
+       a reader can actually type in is 16px on a touch screen. The type
+       there is a little larger than on a pointer screen, which is the
+       trade for the page not jumping every time someone starts typing. */
+    /* !important because this has to beat every field's own rule, and some
+       of them are set by id — a field set to 12px by an id selector would
+       otherwise go on zooming the page whatever this said. There is no size
+       below 16 that is safe here, so there is nothing for a later rule to
+       usefully say. */
+    @media (pointer: coarse){
+      input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+    }
+</style>
 </head>
 <!-- `entered` from the markup: this page has no front door to open, so the
      state the home page earns with a click is simply where this one starts.
@@ -1436,7 +1494,12 @@
       if (document.body.classList.contains('at-footer')){
         window.scrollTo({ top:0, behavior:'smooth' });
       } else {
-        siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+        /* Its head, not its foot. Aligning the bottom put the mark and the
+         line it carries wherever the footer's own height happened to leave
+         them — often off the top of a phone. Started instead: the mark, the
+         slogan and the marks beside them land at the top of the screen and
+         the rest of the footer follows down from there. */
+      siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
       }
     });
 
@@ -1484,8 +1547,14 @@
         const r  = siteFooter.getBoundingClientRect();
         const vh = window.innerHeight;
         const inView = r.top < vh * 0.88 && r.bottom > 0;
-        document.body.classList.toggle('at-footer', inView);
-        hdToggle.setAttribute('aria-label', inView ? 'Back to top' : 'Go to the footer');
+        /* In view is not the same as arrived at. A short page — Files with one
+           file on it, or none — has its footer on screen from the first frame,
+           so the header opened showing the way back up from somewhere the
+           reader had not been. The tool means "down" until they have actually
+           gone down. */
+        const arrived = inView && window.scrollY > 24;
+        document.body.classList.toggle('at-footer', arrived);
+        hdToggle.setAttribute('aria-label', arrived ? 'Back to top' : 'Go to the footer');
         if (inView && !shown) revealFooter();
       }
       window.addEventListener('scroll', check, { passive:true });
@@ -1642,5 +1711,40 @@
     });
   });
 </script>
+
+  <script>
+/* ---------- NO WIDOWS ----------
+   text-wrap:pretty is a hint and browsers are free to ignore it, which is why
+   "software", "surplus" and "note" still ended up alone on a line. This binds
+   the last three words of every run of prose with non-breaking spaces, so the
+   browser cannot put fewer than three on the final line however it wraps.
+
+   It walks the element's last text node only, so links, marks and anything
+   else inside the sentence are left exactly as they are. */
+(function noWidows(){
+  const SEL = 'p, .cl-lede, .repo-lede, .repo-note, .ni-sub, .p-body, ' +
+              '.bmu-pop, .cv-pop, .fp-pop, .info-inner, .cl-sub, .foot-addr';
+  const BIND = 2;                       // two spaces bound = three words held
+  function fix(el){
+    if (!el || el.dataset.nowidow) return;
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let last = null, n;
+    while ((n = walk.nextNode())) if (n.nodeValue.trim()) last = n;
+    if (!last) return;
+    let v = last.nodeValue.replace(/ /g, ' ');
+    let done = 0;
+    v = v.replace(/ (?=[^ ]*$)/, m => (done++, ' '));
+    for (let i = 1; i < BIND && done < BIND; i++){
+      v = v.replace(/ (?=[^ ]* [^ ]*$)/, m => (done++, ' '));
+    }
+    last.nodeValue = v;
+    el.dataset.nowidow = '1';
+  }
+  function run(){ document.querySelectorAll(SEL).forEach(fix); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  window.bmuNoWidows = run;             // anything written later asks for it
+})();
+  </script>
 </body>
 </html>

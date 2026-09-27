@@ -49,10 +49,62 @@
       letter-spacing:.08em;
     }
     a{ color:#222; }
-  </style>
+  
+    /* ---------- NO ZOOM WHEN A FIELD IS TAPPED ----------
+       Safari zooms the whole page in whenever it is about to put a caret in
+       a field set smaller than 16px, and then leaves the reader at that
+       zoom with the page too wide to read. Nothing in CSS switches that
+       off; the only thing it answers to is the size itself. So every field
+       a reader can actually type in is 16px on a touch screen. The type
+       there is a little larger than on a pointer screen, which is the
+       trade for the page not jumping every time someone starts typing. */
+    /* !important because this has to beat every field's own rule, and some
+       of them are set by id — a field set to 12px by an id selector would
+       otherwise go on zooming the page whatever this said. There is no size
+       below 16 that is safe here, so there is nothing for a later rule to
+       usefully say. */
+    @media (pointer: coarse){
+      input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+    }
+</style>
 </head>
 <body>
   <!-- seen only if the redirect cannot run -->
   <p>Taking you to <a href="/#join">the join form</a>.</p>
+
+  <script>
+/* ---------- NO WIDOWS ----------
+   text-wrap:pretty is a hint and browsers are free to ignore it, which is why
+   "software", "surplus" and "note" still ended up alone on a line. This binds
+   the last three words of every run of prose with non-breaking spaces, so the
+   browser cannot put fewer than three on the final line however it wraps.
+
+   It walks the element's last text node only, so links, marks and anything
+   else inside the sentence are left exactly as they are. */
+(function noWidows(){
+  const SEL = 'p, .cl-lede, .repo-lede, .repo-note, .ni-sub, .p-body, ' +
+              '.bmu-pop, .cv-pop, .fp-pop, .info-inner, .cl-sub, .foot-addr';
+  const BIND = 2;                       // two spaces bound = three words held
+  function fix(el){
+    if (!el || el.dataset.nowidow) return;
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let last = null, n;
+    while ((n = walk.nextNode())) if (n.nodeValue.trim()) last = n;
+    if (!last) return;
+    let v = last.nodeValue.replace(/ /g, ' ');
+    let done = 0;
+    v = v.replace(/ (?=[^ ]*$)/, m => (done++, ' '));
+    for (let i = 1; i < BIND && done < BIND; i++){
+      v = v.replace(/ (?=[^ ]* [^ ]*$)/, m => (done++, ' '));
+    }
+    last.nodeValue = v;
+    el.dataset.nowidow = '1';
+  }
+  function run(){ document.querySelectorAll(SEL).forEach(fix); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  window.bmuNoWidows = run;             // anything written later asks for it
+})();
+  </script>
 </body>
 </html>

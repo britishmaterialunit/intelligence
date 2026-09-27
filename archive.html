@@ -483,12 +483,10 @@
       border-bottom:1.5px solid var(--line);
       padding-bottom:7px;
     }
-    /* The first heading starts at the top: the switch is on its line now
-       rather than above it, so there is no second row to clear. The 26px
-       between one group and the next is untouched. */
+    /* The first heading starts at the top of the body when there is a
+       switch beside it; the 26px between one group and the next is
+       untouched. */
     .group:first-of-type > .section-label{ margin-top:0; }
-    /* room at the right-hand end for the switch to stand in */
-    .group:first-of-type > .section-label{ padding-right:210px; }
 
     .grid{
       display:grid;
@@ -568,13 +566,20 @@
     }
     /* Set into the name rather than under it: one line that reads
        "…Combat Parka GA1990FCCP", the code a shade back so the name stays
-       the thing being read. */
-    .name .ref{
+       the thing being read.
+
+       Every one of these has to be stated. The code sits inside .name, and
+       .name is bold and full ink — so weight and colour were inherited
+       straight through and the code came out looking exactly like the name
+       it was meant to sit behind. Specific enough to outrank the
+       single-result rules that also reach .name. */
+    .item .name .ref,
+    body.single-result .item .name .ref{
       margin-left:.55em;
-      font-size:9.5px;
+      font-size:9.5px !important;
       letter-spacing:.14em;
-      color:#b4b4b4;
-      font-weight:normal;
+      color:#b4b4b4 !important;
+      font-weight:400 !important;
       white-space:nowrap;
     }
     .item > .meta > .ref{
@@ -616,12 +621,24 @@
     }
     body.single-result .item{
       flex-direction:row;
-      width:min(94vw, 760px);
+      --card-w:min(94vw, 760px);
+      /* The 46% the slot settles at, named once so the build state and the
+         script can both be held to it. Measured off the card's content box,
+         which is what the 46% below is a percentage of — the card's own
+         rule, 1.5px a side, is not part of it. */
+      --solo-slot:calc((var(--card-w) - 3px) * 0.46);
+      width:var(--card-w);
       align-items:stretch;
       transition:width .62s cubic-bezier(.4,0,.2,1);
     }
     body.single-result .item .slot{
-      flex:0 0 46%;
+      /* The same fixed width the build state holds it at, not 46% of the
+         card. A percentage is of whatever the card measures THAT FRAME, so
+         when the build class came off mid-widening the slot was briefly 46%
+         of a card only two thirds open — the garment pulled in and then
+         grew back out as the card caught up. Fixed, it does not move at
+         all, and the card is the only thing opening. */
+      flex:0 0 var(--solo-slot);
       aspect-ratio:auto;
       border-bottom:none;
       border-right:1.5px solid var(--line);
@@ -759,8 +776,15 @@
 
     /* First the garment stands alone in its own box, centred; only once
        the frame has drawn does it move aside and let the record in. */
+    /* The width the garment keeps. The box the garment stands alone in used
+       to be 520 wide and the slot it settled into 349, so the opening zoom
+       took the garment up to 520 and the card then shrank it back down —
+       one move in, one move out, which is the "all sorts going on" between
+       selecting a garment and reading it. The box starts at the slot's own
+       width instead: the garment reaches its size once, and what moves
+       after that is the card widening around it. */
     body.single-result .item.build{
-      width:min(80vw, 520px);
+      width:calc(var(--solo-slot) + 3px);   /* + the card's own rule */
       border-color:transparent;      /* nothing, until the line draws it */
     }
     /* once the line has closed, the card's own border takes over */
@@ -774,8 +798,14 @@
     body.single-result .item{ transition:width .62s cubic-bezier(.4,0,.2,1),
                                          height .62s cubic-bezier(.4,0,.2,1),
                                          border-color .32s cubic-bezier(.4,0,.2,1); }
+    /* Held at the width it settles at, not at the card's. Filling the card
+       meant the garment grew with it: the card widened from the garment's
+       own box out to the full record, and for as long as the build class
+       was still on, the garment widened with it and then dropped back to
+       46% — a bulge in the middle of a move that is supposed to be the
+       card opening around a garment that has stopped. */
     body.single-result .item.build .slot{
-      flex-basis:100%;
+      flex:0 0 var(--solo-slot);
       aspect-ratio:1 / 1;
     }
 
@@ -852,12 +882,28 @@
 
     @media (max-width:640px){
       body.single-result .item{ flex-direction:column; width:100%; }
+      /* stacked, the slot fills the card, so the box the garment stands
+         alone in is already the box it ends in */
+      body.single-result .item.build{ width:100%; }
       body.single-result .item .slot{
         flex:none;
         aspect-ratio:1 / 1;
         border-right:none;
-        border-bottom:1.5px solid var(--line);
+        border-bottom:none;
       }
+      /* Stacked, the divider belongs under the garment rather than beside
+         it. Left where it was it runs down the right of the photo a pixel
+         inside the card's own edge, and the two read as one heavy line.
+         Same rule, turned: drawn left to right instead of top to bottom,
+         and the same hold releases it. */
+      body.single-result .item .slot::after{
+        top:auto; left:0; right:0; bottom:0;
+        width:auto; height:1.5px;
+        transform:scaleX(0);
+        transform-origin:left center;
+      }
+      body.single-result .item:not(.build) .slot::after{ transform:scaleX(1); }
+      body.single-result .item.hold-rule .slot::after{ transform:scaleX(0); }
     }
 
     /* ---------- opening a garment's record ----------
@@ -1144,6 +1190,40 @@
       .info-inner.sourcing{ animation:none; opacity:.85; }
     }
 
+    /* The sizing mark sits under the word being counted out, on the line
+       the record itself will start on once there is one. Same mark, same
+       size and same behaviour as the tally's — one info button, used
+       twice. */
+    .info-size{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin-top:10px;
+      font-size:10.5px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#8a8a8a;
+    }
+    .size-info{
+      width:14px; height:14px;
+      flex:none;
+      padding:0;
+      border:none;
+      background:none;
+      cursor:pointer;
+      color:#b4b4b4;
+      display:block;
+      transition:color .24s cubic-bezier(.4,0,.2,1);
+    }
+    .size-info:hover, .size-info:focus-visible{ color:var(--ink); }
+    .size-info svg{ width:14px; height:14px; display:block; }
+    .size-info .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.5;
+      stroke-linecap:round;
+    }
+
     /* ---------- empty state ---------- */
     .empty{
       border:1.5px solid var(--line);
@@ -1423,7 +1503,9 @@
          depending on what was open, so it stepped up and down as the reader
          moved between views — and the page's stamp underneath it appeared to
          come and go with it. It clears the stamp and stays put. */
-      bottom:34px;
+      /* plus however much of the window a keyboard is covering — see
+         rideTheKeyboard, which is the only thing that ever sets --kb */
+      bottom:calc(34px + var(--kb, 0px));
       transform:translateX(-50%) translateY(14px);
       z-index:80;
       display:flex;
@@ -1431,7 +1513,9 @@
       align-items:center;
       opacity:0;
       pointer-events:none;
-      transition:opacity .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1);
+      transition:opacity .28s cubic-bezier(.4,0,.2,1),
+                 transform .28s cubic-bezier(.4,0,.2,1),
+                 bottom .3s cubic-bezier(.4,0,.2,1);
       touch-action:none;
     }
     #dock.show{
@@ -1919,7 +2003,7 @@
                  opacity .5s cubic-bezier(.4,0,.2,1);
     }
     /* the two tools come out from behind the bar's right edge as it opens */
-    #dockExplore, #dockLibrary{
+    #dockExplore, #dockLibrary, #dockFile{
       transition:opacity .34s cubic-bezier(.4,0,.2,1) .2s,
                  transform .44s cubic-bezier(.65,0,.35,1) .2s;
     }
@@ -1984,12 +2068,24 @@
     #dockLibrary .bm{ width:16px; height:16px; }
     #dockLibrary[aria-pressed="true"] .bm{ fill:#fff; }
 
+    /* Not in the bar at all unless there is a file to go to. A reader who
+       has not signed in is offered nothing, and the two tools sit where
+       they always did. */
+    #dockFile{ display:none; color:#fff; }
+    #dockFile .bm{ width:16px; height:16px; }
+    body.has-file.dock-list #dockFile{ display:flex; }
+    /* one more square in the row, so the field gives up one more square's
+       worth of width when the bar is open */
+    body.has-file.dock-list #dock.open #dockSearch{
+      width:calc(var(--dock-w) - 168px);
+    }
+
     @media (max-width:640px){
       /* 34, not 16. The stamp under the bar is fixed at bottom:10 and the
          bar was sitting on top of it on a phone — the one line that says
          what this page is, printed underneath the bar and then covered by
          it. One height on every screen, and the line is clear. */
-      #dock{ bottom:34px; --dock-w:min(94vw, 880px); }
+      #dock{ bottom:calc(34px + var(--kb, 0px)); --dock-w:min(94vw, 880px); }
       /* the narrow bar cannot spare 180px, so the chip shrinks with it */
       .dq-hint{ max-width:104px; font-size:9px; padding:3px 7px; gap:4px; }
       #dockSearch.has-hint #dq{ padding-right:212px; }
@@ -2069,23 +2165,31 @@
        up room: the sign is pushed along by the row growing under it rather
        than being flown to a measured coordinate. The gap before it is the
        row's own gap whether the choices are out or not. */
-    /* ---------- THE SWITCH SITS ON THE HEADING ----------
-       It was a line of its own above the first heading, which made two rows
-       of furniture before a single garment. Taken out of the flow and hung
-       off the right-hand end of that heading's line: the heading says what
-       the shelf is grouped by, and the switch — Garments, Type, Date — is
-       the thing that changed it, so they belong on one line. */
+    /* ---------- THE SWITCH AND THE HEADING ----------
+       Ungrouped there is no heading, so the switch is simply the first thing
+       in the body, on the left, on its own line — nothing to share it with.
+
+       Grouped, the heading it produced comes up beside it: the switch says
+       what the shelf is sorted by and the heading is the first answer, so
+       they read as one line rather than two rows of furniture before a
+       single garment. The switch keeps the left; the heading follows it. */
     .nbody{ position:relative; }
     .facet-bar{
-      position:absolute;
-      /* Measured, not guessed: the heading's own box starts 16px below the
-         body's top edge, and this sits on its line rather than above it. */
-      top:16px; right:0;
-      z-index:2;
       display:flex;
       align-items:baseline;
       gap:0;
+      padding:2px 2px 8px;
+    }
+    /* grouped: the switch steps out of the flow and the heading takes its
+       line, starting clear of it */
+    .nation:not([data-facet=""]) .facet-bar{
+      position:absolute;
+      top:16px; left:0;
+      z-index:2;
       padding:0;
+    }
+    .nation:not([data-facet=""]) .group:first-of-type > .section-label{
+      padding-left:112px;
     }
     .facet-title{
       font-size:9.5px;
@@ -2438,7 +2542,29 @@
     @media (prefers-reduced-motion:reduce){
       body{ transition:none; }
     }
-  </style>
+  
+    /* ---------- NO ZOOM WHEN A FIELD IS TAPPED ----------
+       Safari zooms the whole page in whenever it is about to put a caret in
+       a field set smaller than 16px, and then leaves the reader at that
+       zoom with the page too wide to read. Nothing in CSS switches that
+       off; the only thing it answers to is the size itself. So every field
+       a reader can actually type in is 16px on a touch screen. The type
+       there is a little larger than on a pointer screen, which is the
+       trade for the page not jumping every time someone starts typing. */
+    /* !important because this has to beat every field's own rule, and some
+       of them are set by id — a field set to 12px by an id selector would
+       otherwise go on zooming the page whatever this said. There is no size
+       below 16 that is safe here, so there is nothing for a later rule to
+       usefully say. */
+    @media (pointer: coarse){
+      input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+      /* 16px is what stops the page zooming; the tracking is what gives the
+         room back. The bar has 96px of tools down its right-hand side, so
+         four characters of extra letter-spacing is the difference between a
+         search term fitting and running under the flag. */
+      #dq{ letter-spacing:.03em; }
+    }
+</style>
 </head>
 <body>
   <!-- SITE HEADER — the archive's way back to the site. The mark is the
@@ -2550,6 +2676,7 @@
        rather than opening an empty section or changing the count line,
        which reads as a page fault rather than an answer. -->
   <div id="noData" role="status" aria-live="polite" aria-hidden="true">No Data Saved</div>
+  <div class="bmu-pop" id="sizePop" role="tooltip">Military surplus has a unique sizing system: one equals small, two is medium and three means large.<br>Due to the difference in sizing over years and nations we define with this methodology when archiving and in production.</div>
   <div class="bmu-pop" id="countPop" role="tooltip">Github has its cons, storage wise. So consider this a BETA version—we’ll have every single military garment on MarshalOS.<br>The number ninety nine is found on all British labels acting as the Nato Stock Number (NSN) and a worthy detail to note.</div>
 
   <!-- EXPLORE — every garment in the archive as one spiral -->
@@ -2624,6 +2751,14 @@
         <img class="face" src="/menu-white.svg" alt="" aria-hidden="true" width="16" height="16">
       </span>
     </button>
+    <!-- Only for a reader who is signed in, and only on the list: the way
+         back to their own file from inside the archive. -->
+    <a id="dockFile" class="dock-sq" href="/collections" aria-label="Your files">
+      <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <path d="M4 2.2 h5.2 l3 3 v8.6 h-8.2 Z"/>
+        <path d="M9.2 2.2 v3 h3"/>
+      </svg>
+    </a>
     <button type="button" id="dockLibrary" class="dock-sq" aria-pressed="false" aria-label="Gather saved garments">
       <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
         <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
@@ -3160,7 +3295,19 @@
                 <button type="button" class="req-send">Send request</button>
                 <div class="req-msg" role="status"></div>
               </div></div>
-              <div class="info-panel"><div class="info-inner"></div></div>
+              <div class="info-panel">
+                <div class="info-inner"></div>
+                <!-- The one thing about this garment we can answer while the
+                     record itself is still being fetched. -->
+                <div class="info-size">
+                  <button type="button" class="size-info" aria-label="About our sizing">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <g class="ico-stroke"><circle cx="8" cy="8" r="6.1"/><path d="M8 7.3 V11.3"/><path d="M8 4.7 V5.3"/></g>
+                    </svg>
+                  </button>
+                  <span>Sizing</span>
+                </div>
+              </div>
               <div class="actions">
                 <button type="button" class="btn-line req-toggle" aria-expanded="false">Request</button>
                 <button type="button" class="btn-line info-toggle" aria-expanded="false">Info</button>
@@ -4189,6 +4336,13 @@
       const honey    = el.querySelector('.req-hp');
       const send     = el.querySelector('.req-send');
       const msg      = el.querySelector('.req-msg');
+      /* A clone arrives carrying the original's last words. A reader who had
+         mistyped an address once met "Enter a valid email address" on a card
+         they had not touched, in a shelf they had only just opened. The card
+         starts with nothing to say. */
+      if (msg) msg.textContent = '';
+      const hpField = el.querySelector('.req-hp');
+      if (hpField) hpField.value = '';
 
       function setState(state){   // 'idle' | 'request' | 'info'
         reqPanel.classList.toggle('open', state === 'request');
@@ -4212,32 +4366,49 @@
          it here again: read the file, cut at the blank line under
          "Archive ref:" for the prose, and stop at the "---" rule, which is
          where the shop's own list begins. */
-      const SOURCING = (() => {
-        const DOT = 240, HOLD = 520, REST = 1200;
-        const frames = [];
-        for (let run = 0; run < 2; run++){
-          frames.push(['Sourcing',    DOT]);
-          frames.push(['Sourcing.',   DOT]);
-          frames.push(['Sourcing..',  DOT]);
-          // the last of the three is held; after the second three, a rest
-          frames.push(['Sourcing...', run === 1 ? REST : HOLD]);
-        }
-        return frames;
-      })();
+      /* All the same job, said differently. One word blinking forever reads
+         as a page that has stopped; a line that keeps taking up a new word
+         reads as something still being done. Each is written out a letter
+         at a time, its dots counted twice with a rest between — three,
+         three, pause — and then unwritten before the next is taken up.
+         Started at a different word each time, so two cards opened one
+         after the other are not in step. */
+      const FINDING = ['Sourcing', 'Tracing', 'Locating', 'Searching',
+                       'Gathering', 'Checking', 'Finding', 'Reading'];
+      const DOT = 240, HOLD = 520, REST = 900;
+      const TAILS = [['', DOT], ['.', DOT], ['..', DOT], ['...', HOLD],
+                     ['', DOT], ['.', DOT], ['..', DOT], ['...', REST]];
 
-      let sourceTimer = null;
+      let sourceTimer = null, sourceOn = false;
+      let sourceIx = Math.floor(Math.random() * FINDING.length);
+
       function sourcing(on){
         clearTimeout(sourceTimer);
-        infoBody.classList.toggle('sourcing', !!on);
-        if (!on){ infoBody.textContent = ''; return; }
-        let i = 0;
-        const tick = () => {
-          const [text, wait] = SOURCING[i];
-          infoBody.textContent = text;
-          i = (i + 1) % SOURCING.length;
-          sourceTimer = setTimeout(tick, wait);
-        };
-        tick();
+        sourceOn = !!on;
+        infoBody.classList.toggle('sourcing', sourceOn);
+        if (!sourceOn){ infoBody.textContent = ''; return; }
+        runWord();
+      }
+      // every loop checks this: closing the panel stops the run mid-letter
+      const alive = () => sourceOn;
+      function hold(ms, next){
+        sourceTimer = setTimeout(() => { if (sourceOn) next(); }, ms);
+      }
+      function runWord(){
+        const word = FINDING[sourceIx];
+        sourceIx = (sourceIx + 1) % FINDING.length;
+        bmuWrite(infoBody, word, 46, () => count(word, 0), alive);
+      }
+      function count(word, i){
+        if (!sourceOn) return;
+        if (i >= TAILS.length){
+          // unwritten faster than it was written, dots and all
+          bmuErase(infoBody, 26, () => hold(240, runWord), alive);
+          return;
+        }
+        const [tail, ms] = TAILS[i];
+        infoBody.textContent = word + tail;
+        hold(ms, () => count(word, i + 1));
       }
 
       reqBtn.addEventListener('click', () => { sourcing(false); setState('request'); });
@@ -4245,6 +4416,16 @@
       infoBtn.addEventListener('click', () => {
         // from the request form this doubles as the way back out
         if (infoPane.classList.contains('open')) { sourcing(false); setState('idle'); return; }
+        /* The sizing mark is wired the first time this panel is opened, not
+           when the card is built. Every mark puts a listener on the window
+           for its leash, and there are eighty-seven cards — wiring them all
+           up front is eighty-seven of them for the one or two a reader ever
+           opens. */
+        const sizeBtn = el.querySelector('.size-info');
+        if (sizeBtn && !sizeBtn.__wired){
+          sizeBtn.__wired = true;
+          wireInfoMark(sizeBtn, document.getElementById('sizePop'));
+        }
         sourcing(true);
         setState('info');
       });
@@ -4259,6 +4440,11 @@
       const BASE  = UNITS[0];
       let qty = BASE;
 
+      /* Built from nothing every time. The shelf makes its cards by cloning
+         the originals — dots and all — and then wires the clone, which used
+         to append a second run of ten to the ten already there: twenty dots,
+         two rows, on every garment the reader had kept. */
+      dots.innerHTML = '';
       UNITS.forEach(n => {
         const b = document.createElement('button');
         b.type = 'button';
@@ -4732,9 +4918,12 @@
     /* Beside the tally, and riding the cursor the way every other box on
        the site does: to the left where there is room, to the right where
        there is not, always inside the window. */
-    (function wireCountInfo(){
-      const btn = document.getElementById('countInfo');
-      const pop = document.getElementById('countPop');
+    /* One mark, wired wherever there is one: the tally's, and the sizing
+       mark inside every garment's info panel. It was written against two
+       ids; the behaviour — hover on a pointer, press and hold on a finger,
+       a leash, and a reading time measured from the words — is the same
+       wherever the mark appears, so it takes the two elements instead. */
+    function wireInfoMark(btn, pop){
       if (!btn || !pop) return;
       const EDGE = 8;
       let pinned = false;
@@ -4774,9 +4963,14 @@
         Math.min(12000, Math.max(2200,
           pop.textContent.trim().split(/\s+/).filter(Boolean).length * 340));
 
+      let fromTouch = false;
       btn.addEventListener('pointerdown', e => {
         if (e.pointerType === 'mouse') return;      // a mouse has hover
         e.preventDefault();
+        /* The press has done the work; the click that follows saw it pinned
+           and shut it again, so on a phone it flashed open and closed under
+           the finger. The click keeps out of it. */
+        fromTouch = true;
         pinned = true;
         leash = { x:e.clientX, y:e.clientY };
         open(e);
@@ -4796,13 +4990,16 @@
       // a pointer that does hover: a press pins it, a press elsewhere shuts it
       btn.addEventListener('click', e => {
         e.preventDefault(); e.stopPropagation();
+        if (fromTouch){ fromTouch = false; return; }   // the press handled it
         if (pinned){ clearTimeout(fade); close(); return; }
         pinned = true; open(e.clientX ? e : null);
       });
       document.addEventListener('click', e => {
         if (pinned && !btn.contains(e.target)){ clearTimeout(fade); close(); }
       });
-    })();
+    }
+    wireInfoMark(document.getElementById('countInfo'),
+                 document.getElementById('countPop'));
 
     const dqHint     = document.getElementById('dqHint');
     const dqHintKind = document.getElementById('dqHintKind');
@@ -5052,6 +5249,10 @@
         flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
         dq.value = on ? '' : 'British';
         dghost.hidden = dq.value !== '';
+        // a nation is not the shelf: the whole archive stands behind it
+        savedOnly = false;
+        document.body.classList.remove('library');
+        syncLibraryMark();
         /* Nothing to suggest. The flag IS the choice — it is a nation, it is
            pressed, and the cluster is already on its way; offering NATION
            BRITISH underneath it is the bar telling the reader what they have
@@ -5634,6 +5835,13 @@
          again and listens for them again. Set at the top, before any of the
          paths below can return early. */
       soloLock = false;
+      /* And the shelf is let go of. Coming into the field from the saved list
+         used to arrive holding it — the reader pressed the circle, which
+         means the whole archive, and got back the handful they had kept. The
+         shelf is reached by its own button; every other way in is the
+         archive. */
+      savedOnly = false;
+      document.body.classList.remove('library');
       // the list's dressing does not belong to the field
       document.body.classList.remove('dock-list');
 
@@ -6094,6 +6302,10 @@
       flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
       dq.value = on ? '' : 'British';
       dghost.hidden = dq.value !== '';
+      // a nation is not the shelf: the whole archive stands behind it
+      savedOnly = false;
+      document.body.classList.remove('library');
+      syncLibraryMark();
       // the flag is the choice; there is nothing left to suggest
       paintHint('');
       // the rest of the archive stays, in grey, around the British cluster
@@ -6311,7 +6523,18 @@
       // first press frames the garment, the way the circle's random pick
       // does; only a second press on the same one opens its record
       if (focusedItem !== item){
-        glide(() => focusItem(item, maxScale() * 0.68));
+        /* Framed below the size the record will show it at, so that opening
+           it is a zoom IN. Measured against the record's own slot rather
+           than against maxScale: maxScale is a property of the photograph,
+           so framing by it made the second press a zoom in for a small
+           picture and a zoom OUT for a large one — the same press going
+           two different ways depending on the garment. A fraction of the
+           slot is the same move every time. */
+        const fimg = item.querySelector('img');
+        const fnow = (fimg || item).getBoundingClientRect().width;
+        const fwant = recordSlotWidth() * 0.62;
+        glide(() => focusItem(item, fnow > 4 ? sc * (fwant / fnow)
+                                             : maxScale() * 0.45));
         return;
       }
 
@@ -6374,14 +6597,20 @@
       setTimeout(() => openRecord(item), 700);
     });
 
-    /* What the garment will measure once the record has it: the build-state
-       card is min(80vw, 520px) and its slot fills that, less the card's own
-       rule. Read from the page rather than repeated as a number here — the
-       two would drift the first time the card's width changed. */
+    /* What the garment will measure once the record has it — and, now that
+       the build state is the same width, what it measures from the moment
+       the zoom stops. Not the build box's width but the SETTLED slot's: the
+       two are one number, and it is the one the garment keeps.
+
+       Stacked, the slot is the whole card, and the card is the nation's own
+       width less its padding. Side by side, it is 46% of the card, less the
+       rule between them — the same 46% the stylesheet names. */
     function recordSlotWidth(){
-      const probe = catalogue.querySelector('.item');
-      const w = Math.min(window.innerWidth * 0.8, 520);
-      return Math.max(80, w - 3);
+      if (window.matchMedia('(max-width: 640px)').matches){
+        return Math.max(80, window.innerWidth * 0.94 - 36);
+      }
+      const card = Math.min(window.innerWidth * 0.94, 760);
+      return Math.max(80, (card - 3) * 0.46);
     }
 
     /* ------------------------------------------------------------------
@@ -6873,8 +7102,14 @@
            which read as the archive being rendered twice. */
         spiral.classList.remove('sp-chosen');
         spiral.querySelectorAll('.sp-pick').forEach(el => el.classList.remove('sp-pick'));
-        explore.classList.add('ex-returning');
-        soloTimers.push(setTimeout(() => explore.classList.remove('ex-returning'), 560));
+        /* No fade on the way out. The field used to be brought up from
+           nothing over half a second, and for most of that it was half
+           transparent over a tab that was still visibly shutting underneath
+           it — two views on screen at once, each showing through the other.
+           That was the flicker. Opaque from the frame it appears, it covers
+           the tab and the list completely, which is what the fade was only
+           half doing. The field still fades in everywhere else it is
+           opened; it is only the return from a record that is instant. */
       };
 
       /* Phase two: the list is put away behind a field that is already
@@ -6965,7 +7200,7 @@
            the last thing the reader was looking at, and it leaves rather
            than disappears. Paced to be gone before the box is. */
         const lid = catalogue.querySelector('.nation:not([hidden]) > summary .n');
-        if (lid) bmuErase(lid, 14);
+        if (lid) bmuErase(lid, 6);   // off the lid quickly; it is leaving, not being read
       }, ARRIVED + HOLD));
       // 4 — the field starts returning over the tail of the shut, never after it
       soloTimers.push(setTimeout(showField, ARRIVED + HOLD + 200));
@@ -7211,6 +7446,44 @@
       syncGhost();
       collapseDock();
       updateDock();
+
+      /* ---------- THE WAY INTO THE FIELD WAITS FOR THE FIELD ----------
+         A phone opens on the list, and the circle beside it offered a field
+         that had not been built yet — pressing it early meant waiting on a
+         blank screen with nothing to say why. The button wears the list's own
+         glyph until the spiral is up and its photographs are in, and then
+         turns over to the circle: the same swap the stack does between any
+         two faces, so it reads as the tool changing rather than appearing.
+
+         Every garment reports back, and there is a floor under it in case a
+         picture never arrives — the door is not held shut by one failure. */
+      setFaceMode('list');
+      (function waitForTheField(){
+        let handed = false;
+        const hand = () => {
+          if (handed) return;
+          handed = true;
+          setFaceMode('explore');     // turns the glyph over, on its own transition
+        };
+        /* The field is raised here rather than on the press. The button is
+           holding the door shut until there is something behind it, so
+           something has to be building it — and waiting on a build that is
+           only started by the press it is refusing is a door that never
+           opens. Idle time, so the list still gets the first paint.
+
+           The photographs themselves cannot be waited on: they are lazy and
+           they sit inside a panel that is hidden, so not one of them is
+           fetched until the field is actually on screen. What is waited on
+           is the field being built and laid out, which is what the press
+           was landing in front of when it was empty. */
+        const raise = () => {
+          buildSpiral();
+          requestAnimationFrame(() => requestAnimationFrame(hand));
+        };
+        if (window.requestIdleCallback) requestIdleCallback(raise, { timeout:1800 });
+        else setTimeout(raise, 400);
+        setTimeout(hand, 12000);        // a build that never lands is not a lock
+      })();
     } else {
       openExplore();
       openDock();
@@ -7252,6 +7525,74 @@
       return m ? Number(m[1]) : 0;
     }
 
+    /* ---------- THE BAR RIDES THE KEYBOARD ----------
+       A phone's keyboard covers the bottom of the window without the page
+       being told: the layout viewport does not change, so window.innerHeight
+       is still the whole screen and a bar pinned to the bottom of it is
+       simply behind the keys. visualViewport is the part still visible, and
+       the difference between the two is how much is covered. The bar is
+       lifted by exactly that, so it sits on the keyboard the way it sat on
+       the page — and comes back down on its own when the keys go. */
+    (function rideTheKeyboard(){
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const read = () => {
+        const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+        /* Under about 80px it is not a keyboard, it is the address bar
+           collapsing as the reader scrolls, and the bar should not ride
+           that. */
+        const lift = covered > 80 ? Math.round(covered) : 0;
+        document.documentElement.style.setProperty('--kb', lift + 'px');
+        document.body.classList.toggle('keyboard-up', lift > 0);
+      };
+      vv.addEventListener('resize', read);
+      vv.addEventListener('scroll', read);
+      read();
+    })();
+
+    /* ---------- SIGNED IN, ON EVERY PAGE ----------
+       The sign-in is kept by Supabase in this origin's own storage, so it
+       survives leaving /collections — but only that page ever looked at it,
+       and everywhere else the reader appeared to be a stranger again. The
+       session is read here directly rather than by loading the whole client
+       for one boolean: what the archive needs to know is whether there is a
+       live session, not what is in it.
+
+       Read again whenever the page is returned to, since signing out in
+       another tab is the same origin's storage changing under this one. */
+    (function knowTheReader(){
+      const live = () => {
+        try {
+          for (let i = 0; i < localStorage.length; i++){
+            const k = localStorage.key(i);
+            if (!/^sb-.+-auth-token$/.test(k)) continue;
+            let raw = localStorage.getItem(k);
+            if (!raw) continue;
+            // written as the session itself, or base64- and the same thing
+            if (raw.startsWith('base64-')) raw = atob(raw.slice(7));
+            const v = JSON.parse(raw);
+            const exp = v && (v.expires_at ||
+                             (v.currentSession && v.currentSession.expires_at));
+            if (exp && exp * 1000 > Date.now()) return true;
+          }
+        } catch (_){}
+        return false;
+      };
+      const hdColl = document.getElementById('hdColl');
+      const sync = () => {
+        const on = live();
+        document.body.classList.toggle('has-file', on);
+        if (hdColl) hdColl.setAttribute('aria-label',
+          on ? 'Your files' : 'Files — sign in');
+      };
+      sync();
+      window.addEventListener('storage', sync);
+      window.addEventListener('pageshow', sync);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) sync();
+      });
+    })();
+
     (function arriveAtGarment(){
       const n = wantedNumber();
       if (n) setTimeout(() => openNumber(n), 60);
@@ -7275,6 +7616,41 @@
       bmuWrite(document.getElementById('foot'),
                'British Material Unit (BMU) — Archive', 26);
     }, SMALL ? 420 : 900);
+  </script>
+
+  <script>
+/* ---------- NO WIDOWS ----------
+   text-wrap:pretty is a hint and browsers are free to ignore it, which is why
+   "software", "surplus" and "note" still ended up alone on a line. This binds
+   the last three words of every run of prose with non-breaking spaces, so the
+   browser cannot put fewer than three on the final line however it wraps.
+
+   It walks the element's last text node only, so links, marks and anything
+   else inside the sentence are left exactly as they are. */
+(function noWidows(){
+  const SEL = 'p, .cl-lede, .repo-lede, .repo-note, .ni-sub, .p-body, ' +
+              '.bmu-pop, .cv-pop, .fp-pop, .info-inner, .cl-sub, .foot-addr';
+  const BIND = 2;                       // two spaces bound = three words held
+  function fix(el){
+    if (!el || el.dataset.nowidow) return;
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let last = null, n;
+    while ((n = walk.nextNode())) if (n.nodeValue.trim()) last = n;
+    if (!last) return;
+    let v = last.nodeValue.replace(/ /g, ' ');
+    let done = 0;
+    v = v.replace(/ (?=[^ ]*$)/, m => (done++, ' '));
+    for (let i = 1; i < BIND && done < BIND; i++){
+      v = v.replace(/ (?=[^ ]* [^ ]*$)/, m => (done++, ' '));
+    }
+    last.nodeValue = v;
+    el.dataset.nowidow = '1';
+  }
+  function run(){ document.querySelectorAll(SEL).forEach(fix); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  window.bmuNoWidows = run;             // anything written later asks for it
+})();
   </script>
 </body>
 </html>
