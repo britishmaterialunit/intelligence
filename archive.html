@@ -704,9 +704,15 @@
     body.single-result .nation::before{
       content:"";
       position:absolute;
-      /* sits ON the top edge, in place of the border rather than over it */
-      left:-1.5px; right:-1.5px; top:-1.5px;
-      height:1.5px;
+      /* Sits ON the top edge, in place of the border rather than over it.
+         1px, not 1.5: every border on this page is written 1.5px but USED
+         at 1px, because that is what the browser floors a border width to.
+         A drawn rule is not floored, so a 1.5px one is half again as heavy
+         as every border beside it — and on a phone, where the tab lands on
+         a half pixel, it spread over four device pixels against the two
+         its neighbours were using. That is the thick line. One weight. */
+      left:-1px; right:-1px; top:-1px;
+      height:1px;
       background:var(--line);
       opacity:1;                       /* never anything else, at any point */
       transform:scaleX(1);             /* its resting state is drawn */
@@ -816,7 +822,7 @@
       content:"";
       position:absolute;
       top:0; right:0; bottom:0;
-      width:1.5px;
+      width:1px;                       /* the weight every border here uses */
       background:var(--line);
       transform:scaleY(0);
       transform-origin:top center;
@@ -898,7 +904,7 @@
          and the same hold releases it. */
       body.single-result .item .slot::after{
         top:auto; left:0; right:0; bottom:0;
-        width:auto; height:1.5px;
+        width:auto; height:1px;
         transform:scaleX(0);
         transform-origin:left center;
       }
@@ -927,7 +933,8 @@
     .solo-frame rect{
       fill:none;
       stroke:var(--line);
-      stroke-width:1.5;
+      /* the same 1px the borders it is drawing in for actually use */
+      stroke-width:1;
       /* The box is drawn with preserveAspectRatio="none" over a viewBox cut
          to the room's own pixels — so any difference between the two, and a
          sub-pixel one is normal, scales the stroke unevenly: thinner on one

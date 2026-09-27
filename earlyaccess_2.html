@@ -305,6 +305,14 @@
          that arrives in the room it makes had no way of happening — the one
          thing in the footer asking to be pressed looked like a label. It
          plays itself once, as the footer comes up, and stays open. */
+      /* Shut until it gets here. Without this the touch rule below has
+         already opened it — width:20px, arrow in place — before the footer
+         is anywhere near the screen, so there was nothing left for the
+         arrival to play. Held closed at this width, and opened by .in.
+         Both of these outrank that rule on specificity, and .in outranks
+         these, so the order is: shut, then open, once. */
+      #siteFooter .foot-talk .talk-well{ width:0; }
+      #siteFooter .foot-talk svg{ opacity:0; }
       #siteFooter.in .foot-talk .talk-well{
         width:20px;
         transition:width .5s cubic-bezier(.4,0,.2,1) .5s;
@@ -339,9 +347,14 @@
          directly beneath the header's own two tools. It steps aside by
          exactly their width so the three read as one row above the divider,
          and steps back when the reader leaves. */
-      body.at-footer .fp-more{ transform:translateX(-62px); }
-      .fp-more{ transition:color .3s cubic-bezier(.4,0,.2,1),
-                           transform .42s cubic-bezier(.4,0,.2,1); }
+      /* The whole group steps aside, not just the plus. Moving the button
+         alone left the marks it reveals — and the minus it turns into —
+         standing where they were, so opened at the footer the row ran back
+         under the header's tools and the minus sat on top of the logos it
+         belongs to. The row is one thing; it moves as one. */
+      body.at-footer .foot-partners{ transform:translateX(-62px); }
+      .foot-partners{ transition:transform .42s cubic-bezier(.4,0,.2,1); }
+      .fp-more{ transition:color .3s cubic-bezier(.4,0,.2,1); }
     }
 
     .foot-mark{
