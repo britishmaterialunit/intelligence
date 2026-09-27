@@ -25,6 +25,17 @@
   <noscript><meta http-equiv="refresh" content="0; url=/#join" /></noscript>
 
   <style>
+    /* ---------- NO ORPHANS ----------
+       A last line of one word reads as a mistake, and "software" alone under
+       a sentence was exactly that. text-wrap:pretty asks the browser to even
+       the rag and refuse to leave a word stranded; where it is not supported
+       the copy simply wraps as it did. */
+    p, .cl-lede, .cl-sub, .repo-lede, .repo-note, .ni-sub, .ni-title,
+    .p-body, .typewriter-text, .info-inner, .foot-col span, .cv-tabname,
+    .cl-name, .cv-soloname, .dq-pick, .cv-pop, .bmu-pop, .fp-pop{
+      text-wrap:pretty;
+    }
+
     body{
       margin:0;
       min-height:100dvh;

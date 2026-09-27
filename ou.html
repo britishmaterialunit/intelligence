@@ -42,6 +42,17 @@
   </script>
 
   <style>
+    /* ---------- NO ORPHANS ----------
+       A last line of one word reads as a mistake, and "software" alone under
+       a sentence was exactly that. text-wrap:pretty asks the browser to even
+       the rag and refuse to leave a word stranded; where it is not supported
+       the copy simply wraps as it did. */
+    p, .cl-lede, .cl-sub, .repo-lede, .repo-note, .ni-sub, .ni-title,
+    .p-body, .typewriter-text, .info-inner, .foot-col span, .cv-tabname,
+    .cl-name, .cv-soloname, .dq-pick, .cv-pop, .bmu-pop, .fp-pop{
+      text-wrap:pretty;
+    }
+
     :root{
       --ink:#222222;
       --line:#000000;
@@ -880,7 +891,23 @@
       .foot-slogan{ white-space:nowrap; }
       /* stacked columns do not need the desktop trench between them */
       .foot-cols{ gap:26px; }
-      .foot-base{ margin-top:30px; gap:8px; }
+      /* ---------- THE CLOSING RULE, ON A PHONE ----------
+         Three things on one line is three things fighting for a 358px
+         measure. The name takes the left with its copyright under it — they
+         are the same statement said twice — and Privacy keeps the right,
+         level with the name. A two-column grid rather than a wrapping row,
+         so the copyright cannot be thrown under Privacy instead. */
+      .foot-base{
+        margin-top:30px;
+        display:grid;
+        grid-template-columns:1fr auto;
+        align-items:baseline;
+        column-gap:14px;
+        row-gap:4px;
+      }
+      .foot-org{ grid-column:1; grid-row:1; }
+      .foot-legal{ grid-column:2; grid-row:1; justify-self:end; }
+      .foot-copy{ grid-column:1; grid-row:2; }
     }
 
     /* ---------- PARTNER PAGE ----------

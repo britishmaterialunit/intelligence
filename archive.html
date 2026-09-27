@@ -52,6 +52,17 @@
   </script>
 
   <style>
+    /* ---------- NO ORPHANS ----------
+       A last line of one word reads as a mistake, and "software" alone under
+       a sentence was exactly that. text-wrap:pretty asks the browser to even
+       the rag and refuse to leave a word stranded; where it is not supported
+       the copy simply wraps as it did. */
+    p, .cl-lede, .cl-sub, .repo-lede, .repo-note, .ni-sub, .ni-title,
+    .p-body, .typewriter-text, .info-inner, .foot-col span, .cv-tabname,
+    .cl-name, .cv-soloname, .dq-pick, .cv-pop, .bmu-pop, .fp-pop{
+      text-wrap:pretty;
+    }
+
     /* ---------- HOW THINGS MOVE ----------
        One curve, everywhere: cubic-bezier(.4,0,.2,1). It leaves at nothing,
        runs through the middle, and arrives at nothing — slow, fast, slow.
@@ -147,6 +158,12 @@
     .bmu-pop.show{ opacity:1; }
     @media (max-width:760px){
       .bmu-pop{ white-space:normal; }
+      /* The break is there to hold the note to two lines on a desktop. A
+         phone is a third of that width, so honouring it put a break in the
+         middle of a wrap that had already happened — the copy sets to
+         whatever number of lines it needs here. */
+      .bmu-pop br{ display:none; }
+      .bmu-pop br::after{ content:' '; }
     }
 
     /* A button being worked on is not a button to press again. It says so
@@ -466,11 +483,12 @@
       border-bottom:1.5px solid var(--line);
       padding-bottom:7px;
     }
-    /* The first heading keeps its 26px as well. The distance from the last
-       garment of one group to the next group's heading is the measure this
-       list is set on, and the switch line above the first heading is the
-       same kind of join — so it is given the same air rather than being
-       tucked up against it. */
+    /* The first heading starts at the top: the switch is on its line now
+       rather than above it, so there is no second row to clear. The 26px
+       between one group and the next is untouched. */
+    .group:first-of-type > .section-label{ margin-top:0; }
+    /* room at the right-hand end for the switch to stand in */
+    .group:first-of-type > .section-label{ padding-right:210px; }
 
     .grid{
       display:grid;
@@ -548,7 +566,18 @@
       text-transform:uppercase;
       color:#888;
     }
-    .item .ref{
+    /* Set into the name rather than under it: one line that reads
+       "…Combat Parka GA1990FCCP", the code a shade back so the name stays
+       the thing being read. */
+    .name .ref{
+      margin-left:.55em;
+      font-size:9.5px;
+      letter-spacing:.14em;
+      color:#b4b4b4;
+      font-weight:normal;
+      white-space:nowrap;
+    }
+    .item > .meta > .ref{
       display:block;
       margin-top:6px;
       font-size:9.5px;
@@ -573,7 +602,10 @@
        from the field, because it is only there that a garment is already
        somewhere on the glass when the record is built. */
     body.solo-from-field #catalogue{ padding-top:var(--solo-drop, 0px); }
-    body.single-result .item .tag{ display:none; }
+    /* The shelf is named on the tab above and again in the list; saying it a
+       third time inside the garment's own card was the card repeating its
+       surroundings back. */
+    .item .tag{ display:none; }
     body.single-result .nation > summary .qty{ display:none; }
     /* .qty was the spacer holding the sign right; without it the sign
        collapsed against the title */
@@ -1443,6 +1475,16 @@
       transition:opacity .34s cubic-bezier(.4,0,.2,1);
     }
     body.dock-list.dock-open:not(.exploring)::after{ opacity:1; }
+    /* On a phone the solid part of that fade sat directly behind the bar and
+       read as a white card it was sitting on, rather than as the page. The
+       fade keeps its job — tabs still go soft as they reach the bar — but
+       there is nothing solid under the bar itself any more. */
+    @media (max-width:760px){
+      body.dock-list::after{
+        height:120px;
+        background:linear-gradient(to top, var(--bg) 0, transparent 120px);
+      }
+    }
     @media (prefers-reduced-motion:reduce){
       body.dock-list::after{ transition:none; }
     }
@@ -2027,11 +2069,23 @@
        up room: the sign is pushed along by the row growing under it rather
        than being flown to a measured coordinate. The gap before it is the
        row's own gap whether the choices are out or not. */
+    /* ---------- THE SWITCH SITS ON THE HEADING ----------
+       It was a line of its own above the first heading, which made two rows
+       of furniture before a single garment. Taken out of the flow and hung
+       off the right-hand end of that heading's line: the heading says what
+       the shelf is grouped by, and the switch — Garments, Type, Date — is
+       the thing that changed it, so they belong on one line. */
+    .nbody{ position:relative; }
     .facet-bar{
+      position:absolute;
+      /* Measured, not guessed: the heading's own box starts 16px below the
+         body's top edge, and this sits on its line rather than above it. */
+      top:16px; right:0;
+      z-index:2;
       display:flex;
       align-items:baseline;
       gap:0;
-      padding:2px 2px 8px;
+      padding:0;
     }
     .facet-title{
       font-size:9.5px;
@@ -3077,7 +3131,7 @@
             </div>
             <div class="meta">
               <div class="name-row">
-                <div class="name">${esc(p.name)}</div>
+                <div class="name">${esc(p.name)}${p.ref ? `<span class="ref">${esc(p.ref)}</span>` : ''}</div>
                 <button type="button" class="btn-save-inline" aria-pressed="false" aria-label="Save to library">
                   <svg class="bm" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
                     <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
@@ -3085,7 +3139,6 @@
                 </button>
               </div>
               <span class="tag">${esc(p.cat)}</span>
-              ${p.ref ? `<span class="ref">${esc(p.ref)}${p.src ? ` — ${esc(p.src)}` : ''}</span>` : ''}
               <div class="req-panel"><div class="req-inner">
                 <div class="req-row">
                   <!-- No heading. Ten circles above a running number, inside
@@ -6907,6 +6960,12 @@
       // 3 — shut, once it has actually stood still
       soloTimers.push(setTimeout(() => {
         document.body.classList.add('solo-shutting');
+        /* The name is taken off the lid the way it was put on — unwritten,
+           letter by letter — rather than simply going with the box. It is
+           the last thing the reader was looking at, and it leaves rather
+           than disappears. Paced to be gone before the box is. */
+        const lid = catalogue.querySelector('.nation:not([hidden]) > summary .n');
+        if (lid) bmuErase(lid, 14);
       }, ARRIVED + HOLD));
       // 4 — the field starts returning over the tail of the shut, never after it
       soloTimers.push(setTimeout(showField, ARRIVED + HOLD + 200));

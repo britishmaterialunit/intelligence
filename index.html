@@ -73,7 +73,18 @@
   }
   </script>
 
-  <style>/* ---- BMU capability map (scoped to #mapSection) ---- */
+  <style>
+    /* ---------- NO ORPHANS ----------
+       A last line of one word reads as a mistake, and "software" alone under
+       a sentence was exactly that. text-wrap:pretty asks the browser to even
+       the rag and refuse to leave a word stranded; where it is not supported
+       the copy simply wraps as it did. */
+    p, .cl-lede, .cl-sub, .repo-lede, .repo-note, .ni-sub, .ni-title,
+    .p-body, .typewriter-text, .info-inner, .foot-col span, .cv-tabname,
+    .cl-name, .cv-soloname, .dq-pick, .cv-pop, .bmu-pop, .fp-pop{
+      text-wrap:pretty;
+    }
+/* ---- BMU capability map (scoped to #mapSection) ---- */
   :root{
     --bg:#ffffff;
     --ink:#1b1b1b;
@@ -572,6 +583,10 @@
     .repo-lede{
       width:min(100%, 560px);
       margin:0 auto;
+      /* No last line of one word. text-wrap:pretty asks the browser to even
+         the rag out and refuse an orphan, which is what left "software"
+         sitting on a line of its own. */
+      text-wrap:pretty;
       font-size:clamp(10pt, 3.2vw, 11.5pt);
       line-height:1.55;
       text-align:center;
@@ -590,15 +605,18 @@
     /* the two ways on out of this panel — underlined rather than coloured,
        so they read as links without breaking the page's one-ink rule */
     .repo-note:empty{ display:none; }
+    /* The three ways on sit a shade back from the sentence carrying them —
+       they are offers inside it, not the point of it. Full ink on hover, so
+       the one being considered is the one that reads strongest. */
     .repo-lede a,
     .repo-note a{
-      color:var(--ink);
+      color:#8a8a8a;
       text-decoration:underline;
       text-underline-offset:2px;
-      transition:opacity .25s cubic-bezier(.4,0,.2,1);
+      transition:color .25s cubic-bezier(.4,0,.2,1);
     }
     .repo-lede a:hover,
-    .repo-note a:hover{ opacity:.6; }
+    .repo-note a:hover{ color:var(--ink); }
 
     /* An announcement is news, not a standing relationship — set apart from
        the partnerships above it by a rule rather than listed as one more. */
@@ -1653,6 +1671,13 @@
         height:auto;
         min-height:clamp(118px, 34vw, 210px);
       }
+      /* Once the reader is inside, the mark has gone and the room kept for it
+         is dead space. On the intro that floor is what the mark stands in;
+         afterwards it was holding open 66px of nothing under whatever copy
+         happened to be showing — which is why Join's field sat a long way
+         above its button, with the short copy nowhere near filling it. The
+         copy sets the height from here on, and the row sits under it. */
+      body.entered .container{ min-height:0; }
       .typewriter-text{
         position:static;
         inset:auto;
@@ -1701,7 +1726,23 @@
       .foot-slogan{ white-space:nowrap; }
       /* stacked columns do not need the desktop trench between them */
       .foot-cols{ gap:26px; }
-      .foot-base{ margin-top:30px; gap:8px; }
+      /* ---------- THE CLOSING RULE, ON A PHONE ----------
+         Three things on one line is three things fighting for a 358px
+         measure. The name takes the left with its copyright under it — they
+         are the same statement said twice — and Privacy keeps the right,
+         level with the name. A two-column grid rather than a wrapping row,
+         so the copyright cannot be thrown under Privacy instead. */
+      .foot-base{
+        margin-top:30px;
+        display:grid;
+        grid-template-columns:1fr auto;
+        align-items:baseline;
+        column-gap:14px;
+        row-gap:4px;
+      }
+      .foot-org{ grid-column:1; grid-row:1; }
+      .foot-legal{ grid-column:2; grid-row:1; justify-self:end; }
+      .foot-copy{ grid-column:1; grid-row:2; }
     }
   </style>
 </head>
@@ -1814,12 +1855,12 @@
               <a class="news-item" href="/ou">
                 <span class="ni-date">Circular Partner</span>
                 <span class="ni-title">Ramco</span>
-                <span class="ni-sub">Operation Upcycle — reutilising surplus textile waste via reverse engineering.</span>
+                <span class="ni-sub">Operation Upcycle — remanufacturing surplus military textile waste via the reverse engineering of garments.</span>
               </a>
               <a class="news-item" href="/ew">
                 <span class="ni-date">Industrial Partner</span>
                 <span class="ni-title">East West</span>
-                <span class="ni-sub">Archive, repository and open-studio.</span>
+                <span class="ni-sub">Industrialising operations and expanding sourcing network with archive, repository and open-studio build.</span>
               </a>
 
               <div class="ops-hint">Swipe up or sideways to close</div>
