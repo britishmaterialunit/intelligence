@@ -454,7 +454,31 @@
       border:1.5px dashed rgba(0,0,0,.35);
       background:transparent;
     }
-    .nation > summary .n{ flex:none; }
+    /* The name and the code are one flowing line, not two columns. As
+       separate flex items the code sat at the far end of the bar, level
+       with the minimise, however many lines the name had wrapped to — a
+       gap the width of the screen rather than a space between two words.
+       Wrapped together in one item they set as ordinary inline text, so
+       the code follows the last word wherever that word ends up.
+
+       They stay two ELEMENTS, though: the lid is written and unwritten by
+       setting textContent, and one element holding both would lose the
+       code's span the moment either was typed. */
+    .nation > summary .n-wrap{ flex:none; min-width:0; }
+    .nation > summary .n{ display:inline; }
+    /* The garment's code on the lid: the same gap and the same grey it has
+       on the card. Empty on every tab but the one holding a single garment,
+       and :empty keeps it from taking the gap when there is nothing in it. */
+    .nation > summary .n-ref{
+      display:inline;
+      margin-left:.55em;
+      font-size:9.5px;
+      letter-spacing:.14em;
+      font-weight:400;
+      color:#b4b4b4;
+      white-space:nowrap;
+    }
+    .nation > summary .n-ref:empty{ margin-left:0; }
     .nation > summary .qty{
       flex:1;
       margin-left:-6px;          /* sits just after the name, not adrift */
@@ -614,7 +638,13 @@
     body.single-result .nation > summary .qty{ display:none; }
     /* .qty was the spacer holding the sign right; without it the sign
        collapsed against the title */
-    body.single-result .nation > summary .n{ flex:1; }
+    /* The name takes only the room it needs and the code sits directly
+       after it. Left as flex:1 the name swallowed the whole bar and pushed
+       the code away to the opposite end, level with the minimise — a gap
+       the width of the screen rather than a space between two words. The
+       code is the flexible one now, so the slack falls after it and the
+       minimise still sits right. */
+    body.single-result .nation > summary .n-wrap{ flex:1; }
     body.single-result .grid{
       grid-template-columns:1fr;
       justify-items:center;
@@ -3221,7 +3251,8 @@
 
       details.innerHTML =
         `<summary>${flag}` +
-        `<span class="n">${esc(nation.label)}</span>` +
+        `<span class="n-wrap"><span class="n">${esc(nation.label)}</span>` +
+        `<span class="n-ref"></span></span>` +
         `<span class="qty">${mine.length}</span>` +
         `<span class="sign" aria-hidden="true"></span></summary>` +
         `<div class="nbody"></div>`;
@@ -3273,7 +3304,12 @@
             </div>
             <div class="meta">
               <div class="name-row">
-                <div class="name">${esc(p.name)}${p.ref ? `<span class="ref">${esc(p.ref)}</span>` : ''}</div>
+                <!-- The name is typed letter by letter when a record opens,
+                     and typing means writing textContent — which took the
+                     code's span out with it and left the code welded to the
+                     last word in the name's own ink. Each has an element of
+                     its own, so writing one cannot touch the other. -->
+                <div class="name"><span class="nm">${esc(p.name)}</span>${p.ref ? `<span class="ref">${esc(p.ref)}</span>` : ''}</div>
                 <button type="button" class="btn-save-inline" aria-pressed="false" aria-label="Save to library">
                   <svg class="bm" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
                     <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
@@ -3700,13 +3736,25 @@
       allNations.forEach(d => {
         const label = d.querySelector('summary .n');
         if (label) label.textContent = d.dataset.label;
+        const lref = d.querySelector('summary .n-ref');
+        if (lref) lref.textContent = '';
       });
       if (lone){
         const only = catalogue.querySelector('.item:not([hidden])');
         const tab  = only && only.closest('.nation');
         if (tab){
-          tab.querySelector('summary .n').textContent =
-            only.querySelector('.name').textContent;
+          /* The name and the code, kept apart. Taking .name's textContent
+             gave one run with no gap in it — the span that holds the code
+             on the card is what puts the space there, and text has no
+             spans — so the lid read "…DRESS JACKETBA2010NFRROSDJ", the
+             code welded to the last word and in the name's own ink. Each
+             goes in its own element, and the code gets the gap and the
+             grey it has on the card. */
+          const nm  = only.querySelector('.name .nm') || only.querySelector('.name');
+          const rf  = only.querySelector('.name .ref');
+          tab.querySelector('summary .n').textContent = (nm ? nm.textContent : '').trim();
+          const lref = tab.querySelector('summary .n-ref');
+          if (lref) lref.textContent = rf ? rf.textContent.trim() : '';
         }
       }
 
@@ -6840,7 +6888,7 @@
          and two things typing one after the other in the same opening is
          the page saying the same trick twice. The tab arrives whole, last,
          with its flag, its title and its minimise. */
-      const nameEl = item.querySelector('.name');
+      const nameEl = item.querySelector('.name .nm') || item.querySelector('.name');
       const refEl  = item.querySelector('.ref');
       /* Stashed the first time the card is seen, and read from the stash
          ever after. Taking the text off the element means taking whatever
@@ -7206,7 +7254,11 @@
            letter by letter — rather than simply going with the box. It is
            the last thing the reader was looking at, and it leaves rather
            than disappears. Paced to be gone before the box is. */
-        const lid = catalogue.querySelector('.nation:not([hidden]) > summary .n');
+        const lid  = catalogue.querySelector('.nation:not([hidden]) > summary .n');
+        const lref = catalogue.querySelector('.nation:not([hidden]) > summary .n-ref');
+        /* The code comes off first and the name follows, so the line
+           unwrites from its own end rather than the two going at once. */
+        if (lref && lref.textContent) bmuErase(lref, 6);
         if (lid) bmuErase(lid, 6);   // off the lid quickly; it is leaving, not being read
       }, ARRIVED + HOLD));
       // 4 — the field starts returning over the tail of the shut, never after it
