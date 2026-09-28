@@ -2980,6 +2980,8 @@
         img:"NLA1990SOGCR.png", ref:"NLA1990SOGCR", mat:"Nylon" },
       { n:"dutch", name:"Dutch Royal Army 1990s KL Bilaminate M65 Jacket Liner", cat:"Liners",
         img:"NLRA1990KBM65JL.png", ref:"NLRA1990KBM65JL", mat:"Nylon" },
+      { n:"dutch", name:"Dutch Army 1990s DPM Duffle Deployment Bag", cat:"Bags",
+        img:"NLA1990DDDB.png", ref:"NLA1990DDDB", mat:"Cotton" },
       /* ---------------- EAST GERMAN ---------------- */
       { n:"east-german", name:"East German Army 1960s NVA Raindrop Strichmuster Camouflage Jacket", cat:"Jackets",
         img:"EGA1960NRSCJ.png", ref:"EGA1960NRSCJ", mat:"Cotton" },
@@ -3017,6 +3019,8 @@
         img:"IA1960DAMR.png", ref:"IA1960DAMR", mat:"Cotton" },
       { n:"italian", name:"Italian Army 1970s Roma 75 Olive Drab Trousers", cat:"Trousers",
         img:"IA1970R75ODT.png", ref:"IA1970R75ODT", mat:"Cotton" },
+      { n:"italian", name:"Italian Navy 1990s Raw Denim Trousers", cat:"Trousers",
+        img:"IN1990RDT.png", ref:"IN1990RDT", mat:"Cotton" },
       /* ---------------- NORWEGIAN ---------------- */
       { n:"norwegian", name:"Norwegian Army 1950s M51 Thermal Liner Parka", cat:"Parkas",
         img:"NA1950M51TLP.png", ref:"NA1950M51TLP", mat:"Wool" },
@@ -6582,18 +6586,19 @@
       // first press frames the garment, the way the circle's random pick
       // does; only a second press on the same one opens its record
       if (focusedItem !== item){
-        /* Framed below the size the record will show it at, so that opening
-           it is a zoom IN. Measured against the record's own slot rather
-           than against maxScale: maxScale is a property of the photograph,
-           so framing by it made the second press a zoom in for a small
-           picture and a zoom OUT for a large one — the same press going
-           two different ways depending on the garment. A fraction of the
-           slot is the same move every time. */
-        const fimg = item.querySelector('img');
-        const fnow = (fimg || item).getBoundingClientRect().width;
-        const fwant = recordSlotWidth() * 0.62;
-        glide(() => focusItem(item, fnow > 4 ? sc * (fwant / fnow)
-                                             : maxScale() * 0.45));
+        /* Selecting a garment brings it right up — this is the reader
+           picking one out of seventy-odd and wanting to look at it, and it
+           is the only move that press makes.
+
+           It was briefly framed small, so that opening it afterwards would
+           be a zoom IN to the record's own size. That bought the direction
+           of the second move at the price of the first, and the first is
+           the one the reader spends time in: the garment came forward a
+           little and sat there, and selecting stopped reading as picking
+           something up. The second move being a settle rather than a zoom
+           is the cheaper thing to give up — it is still ONE move, and
+           everything that made it two is fixed elsewhere. */
+        glide(() => focusItem(item, maxScale() * 0.68));
         return;
       }
 
