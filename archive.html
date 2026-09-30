@@ -1227,40 +1227,6 @@
       .info-inner.sourcing{ animation:none; opacity:.85; }
     }
 
-    /* The sizing mark sits under the word being counted out, on the line
-       the record itself will start on once there is one. Same mark, same
-       size and same behaviour as the tally's — one info button, used
-       twice. */
-    .info-size{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      margin-top:10px;
-      font-size:10.5px;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:#8a8a8a;
-    }
-    .size-info{
-      width:14px; height:14px;
-      flex:none;
-      padding:0;
-      border:none;
-      background:none;
-      cursor:pointer;
-      color:#b4b4b4;
-      display:block;
-      transition:color .24s cubic-bezier(.4,0,.2,1);
-    }
-    .size-info:hover, .size-info:focus-visible{ color:var(--ink); }
-    .size-info svg{ width:14px; height:14px; display:block; }
-    .size-info .ico-stroke{
-      fill:none;
-      stroke:currentColor;
-      stroke-width:1.5;
-      stroke-linecap:round;
-    }
-
     /* ---------- empty state ---------- */
     .empty{
       border:1.5px solid var(--line);
@@ -2713,7 +2679,6 @@
        rather than opening an empty section or changing the count line,
        which reads as a page fault rather than an answer. -->
   <div id="noData" role="status" aria-live="polite" aria-hidden="true">No Data Saved</div>
-  <div class="bmu-pop" id="sizePop" role="tooltip">Military surplus has a unique sizing system: one equals small, two is medium and three means large.<br>Due to the difference in sizing over years and nations we define with this methodology when archiving and in production.</div>
   <div class="bmu-pop" id="countPop" role="tooltip">Github has its cons, storage wise. So consider this a BETA version—we’ll have every single military garment on MarshalOS.<br>The number ninety nine is found on all British labels acting as the Nato Stock Number (NSN) and a worthy detail to note.</div>
 
   <!-- EXPLORE — every garment in the archive as one spiral -->
@@ -3346,19 +3311,7 @@
                 <button type="button" class="req-send">Send request</button>
                 <div class="req-msg" role="status"></div>
               </div></div>
-              <div class="info-panel">
-                <div class="info-inner"></div>
-                <!-- The one thing about this garment we can answer while the
-                     record itself is still being fetched. -->
-                <div class="info-size">
-                  <button type="button" class="size-info" aria-label="About our sizing">
-                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                      <g class="ico-stroke"><circle cx="8" cy="8" r="6.1"/><path d="M8 7.3 V11.3"/><path d="M8 4.7 V5.3"/></g>
-                    </svg>
-                  </button>
-                  <span>Sizing</span>
-                </div>
-              </div>
+              <div class="info-panel"><div class="info-inner"></div></div>
               <div class="actions">
                 <button type="button" class="btn-line req-toggle" aria-expanded="false">Request</button>
                 <button type="button" class="btn-line info-toggle" aria-expanded="false">Info</button>
@@ -4479,16 +4432,6 @@
       infoBtn.addEventListener('click', () => {
         // from the request form this doubles as the way back out
         if (infoPane.classList.contains('open')) { sourcing(false); setState('idle'); return; }
-        /* The sizing mark is wired the first time this panel is opened, not
-           when the card is built. Every mark puts a listener on the window
-           for its leash, and there are eighty-seven cards — wiring them all
-           up front is eighty-seven of them for the one or two a reader ever
-           opens. */
-        const sizeBtn = el.querySelector('.size-info');
-        if (sizeBtn && !sizeBtn.__wired){
-          sizeBtn.__wired = true;
-          wireInfoMark(sizeBtn, document.getElementById('sizePop'));
-        }
         sourcing(true);
         setState('info');
       });
