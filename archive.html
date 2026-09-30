@@ -625,18 +625,20 @@
        page off the top edge. */
     @media (max-width:640px){
       body.solo-from-field .wrap{ margin-top:0; margin-bottom:auto; }
-      /* ---------- ONE GARMENT, AND NOTHING PAST IT ----------
-         A record opened from the field is the whole of what there is to
-         look at: the box, and the minimise that puts it back. Scrolling
-         there only ever took the reader off it — the list underneath is
-         not theirs to be in, they came from the field — so the page does
-         not scroll while it is open. The card and its buttons still take
-         a press; it is the page behind them that is held. */
-      html.solo-held, body.solo-held{
-        overflow:hidden;
-        overscroll-behavior:none;
-        touch-action:pan-x;
-      }
+      /* ---------- THE RECORD IS TALLER THAN THE SCREEN ----------
+         It was held still here — the thinking being that the box and its
+         minimise were the whole of what there was to look at. They are not:
+         Request opens a form and Info opens a panel, and on a phone both of
+         them run off the bottom of the screen with no way to reach them.
+
+         So it scrolls. The garment still arrives centred, and what is under
+         it is the rest of its own record rather than a list the reader did
+         not ask for.
+
+         The room at the foot is the dock's: three 46px squares standing
+         34px off the bottom, and the card was finishing directly behind
+         them. */
+      body.solo-from-field #catalogue{ padding-bottom:132px; }
     }
     /* The shelf is named on the tab above and again in the list; saying it a
        third time inside the garment's own card was the card repeating its
@@ -3188,6 +3190,23 @@
       try { history.pushState({ g:n }, '', want); } catch {}
     }
 
+    /* ---------- A RECORD OPENS SHUT ----------
+       Request and Info are a card's own state, and a card is wired once and
+       then reused — so a reader who left a garment with its Info panel open
+       came back to that garment and found it open again, several garments
+       later. That is not where they left off; it is a panel in the way of
+       the garment they just asked for. Every card is put back to idle when
+       a record opens, not only the one being opened, so no second card is
+       left holding a panel open behind this one.
+
+       Declared HERE, not beside wireCard. This script is one long top-level
+       block and wireCard is called while the list is first rendered, which
+       is above the line wireCard is written on — a const declared down there
+       is still in its dead zone when the first card reaches it, and the
+       whole page stops. */
+    const panelResets = [];
+    function resetPanels(){ panelResets.forEach(f => f()); }
+
     function slugBase(name){
       return name.toLowerCase()
         .replace(/[’']/g, '')
@@ -4411,6 +4430,8 @@
       const hpField = el.querySelector('.req-hp');
       if (hpField) hpField.value = '';
 
+      panelResets.push(() => { sourcing(false); setState('idle'); });
+
       function setState(state){   // 'idle' | 'request' | 'info'
         reqPanel.classList.toggle('open', state === 'request');
         infoPane.classList.toggle('open', state === 'info');
@@ -4687,7 +4708,6 @@
     function goHome(){
       markUrl(null);                    // the record is being left: /archive
       document.body.classList.remove('solo-from-field');
-      holdForRecord(false);
       document.body.style.removeProperty('--solo-drop');
       document.body.classList.remove('solo-closing', 'solo-shutting');
       document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
@@ -5946,14 +5966,26 @@
          place, and leaving a garment in it should not leave the place. */
       const wantSaved = savedOnly && savedIds.length;
 
-      /* The gate is shown once, on the first visit to the field. Coming
-         back to a field that is already loaded should not put a door in
-         front of it again. */
-      if (!revealed && !spiralBuilt){
+      /* The gate is shown once, on the first visit to the field — and the
+         first visit is the first time the reader ASKS for the field, not
+         the first time it happens to be built.
+
+         On a phone the field is put up in idle time behind the list, so by
+         the time the circle is pressed it is already built and the gate was
+         skipped: the reader went straight into a field whose photographs
+         were still arriving. The door is what says the archive is being
+         loaded, and it belongs in front of the press that asks for it.
+         `revealed` — set by opening the gate, and never unset — is what
+         keeps it to once a visit. */
+      if (!revealed){
         spiral.classList.add('sp-waiting');
         document.body.classList.add('gated');
         revEl.hidden = false;
-        revEl.classList.add('drawing');
+        /* Armed already: every photograph landed while the field was being
+           built quietly behind the list, so the mark is finished and the
+           door is only waiting to be pushed. Putting it back into `drawing`
+           here would restart an outline that has nothing left to draw. */
+        revEl.classList.add(revArmed ? 'ready' : 'drawing');
         const len = revTrace.getTotalLength();
         revTrace.style.strokeDasharray = len;
         revEl.style.setProperty('--rev-len', len);
@@ -6584,7 +6616,6 @@
          is standing on its own, and it was only ever taken off on the way
          back to the field — so a reader who left a record for the LIST
          arrived at a list with no filter on it. */
-      holdForRecord(false);
       document.body.classList.remove('solo-from-field', 'solo-build',
                                      'solo-drawing', 'solo-closing', 'solo-shutting');
       document.body.style.removeProperty('--solo-drop');
@@ -6823,20 +6854,10 @@
        released to settle into the card. The garment holds still, and the
        layout comes to it.
        ------------------------------------------------------------------ */
-    /* The page is held still for as long as a record opened from the field
-       is up, and let go the moment it closes. Both ends in one place so the
-       two can never get out of step and strand the reader on a page that
-       will not move. */
-    function holdForRecord(on){
-      const hold = !!on && SMALL_SCREEN();
-      document.documentElement.classList.toggle('solo-held', hold);
-      document.body.classList.toggle('solo-held', hold);
-    }
-
     function openRecord(item){
+      resetPanels();          // it opens shut, every time
       document.body.style.removeProperty('--solo-drop');
       document.body.classList.add('solo-from-field');
-      holdForRecord(true);
       const img = item.querySelector('img');
       const from = (img || item).getBoundingClientRect();
 
@@ -7342,8 +7363,6 @@
            flashed back into place on its way out. That was the flicker. */
         document.body.classList.add('field-returning');
         document.body.classList.remove('solo-from-field');
-        holdForRecord(false);
-      holdForRecord(false);
         document.body.style.removeProperty('--solo-drop');
         soloId = null;
         q.value = '';
@@ -7720,6 +7739,7 @@
        having to be built and torn down first. Back and forward move between
        the garment and the archive the way they would between two pages. */
     function openNumber(n){
+      resetPanels();          // it opens shut, every time
       const id = NO_GARMENT.get(Number(n));
       if (!id) return false;
       if (!explore.hidden) endExplore(false);
