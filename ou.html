@@ -315,26 +315,29 @@
          and they belong at the top of the screen. */
       #siteFooter{ padding-top:26px; }
 
-      /* ---------- LET'S TALK, ON ARRIVAL ----------
+      /* ---------- LET'S TALK OPENS WHEN IT IS SEEN ----------
          There is no hover on a phone, so the box that opens and the arrow
          that arrives in the room it makes had no way of happening — the one
-         thing in the footer asking to be pressed looked like a label. It
-         plays itself once, as the footer comes up, and stays open. */
-      /* Shut until it gets here. Without this the touch rule below has
-         already opened it — width:20px, arrow in place — before the footer
-         is anywhere near the screen, so there was nothing left for the
-         arrival to play. Held closed at this width, and opened by .in.
-         Both of these outrank that rule on specificity, and .in outranks
-         these, so the order is: shut, then open, once. */
+         thing in the footer asking to be pressed looked like a label.
+
+         It plays when the BUTTON is on screen, not when the footer arrives.
+         The footer's reveal fires a screenful earlier, with the button still
+         well below the fold, so the one thing it was meant to draw the eye
+         to had already finished opening by the time anyone could see it.
+         Sent here by the header's tool or scrolled to by hand, it is the
+         same moment either way: the button in view. Once, and it stays.
+
+         Shut until then — without this the touch rule further down has
+         already opened it and there is nothing left to play. */
       #siteFooter .foot-talk .talk-well{ width:0; }
       #siteFooter .foot-talk svg{ opacity:0; }
-      #siteFooter.in .foot-talk .talk-well{
+      #siteFooter .foot-talk.talk-seen .talk-well{
         width:20px;
-        transition:width .5s cubic-bezier(.4,0,.2,1) .5s;
+        transition:width .5s cubic-bezier(.4,0,.2,1);
       }
-      #siteFooter.in .foot-talk svg{
+      #siteFooter .foot-talk.talk-seen svg{
         opacity:1;
-        transition:opacity .34s cubic-bezier(.4,0,.2,1) .8s;
+        transition:opacity .34s cubic-bezier(.4,0,.2,1) .3s;
       }
 
       /* ---------- THE TOP OF THE FOOTER, ON A PHONE ----------
@@ -1701,6 +1704,33 @@
       if (document.body.classList.contains('head-on') &&
           !document.body.classList.contains('at-footer')) dropFill();
     }, { passive:true });
+
+    /* ---------- LET'S TALK, WHEN IT IS ACTUALLY ON SCREEN ----------
+       Not when the footer arrives — that is a screenful early, with the
+       button still below the fold, so it finished opening before anyone
+       could see it happen. The button watches for itself instead, and
+       answers the same way whichever way the reader got here: sent by the
+       header's tool, or scrolled to by hand.
+
+       Most of it has to be on screen, not a sliver: a button whose top
+       edge has just cleared the fold is not something anyone is looking
+       at yet. It plays once and the watcher is dropped — it stays open,
+       and there is nothing to run a second time. */
+    (function talkOnSight(){
+      const talk = document.querySelector('#siteFooter .foot-talk');
+      if (!talk) return;
+      if (!window.matchMedia('(hover: none)').matches) return;   // a pointer has hover
+      if (!('IntersectionObserver' in window)){ talk.classList.add('talk-seen'); return; }
+      const io = new IntersectionObserver(entries => {
+        for (const e of entries){
+          if (!e.isIntersecting) continue;
+          talk.classList.add('talk-seen');
+          io.disconnect();
+        }
+      }, { threshold:0.75 });
+      io.observe(talk);
+    })();
+
     hdToggle.addEventListener('click', () => {
       if (document.body.classList.contains('at-footer')){
         anchoring = false;
