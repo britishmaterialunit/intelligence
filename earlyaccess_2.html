@@ -713,10 +713,21 @@
        reader down to the footer. Where there is no pointer there is no
        hover to inherit: the fill is something we set, and the press that
        leaves for the footer clears it. */
-    @media (hover: none){
-      #siteHead:hover{ background:transparent; }
-    }
     #siteHead.head-on{ background:#262626; }
+    #siteHead.head-on .hd-trace{ opacity:0; transition:none; }
+    #siteHead.head-on .hd-fill{ opacity:1; fill:#fff; transition:none; }
+
+    /* ---------- ONE MARK ON THE LINE ----------
+       At the footer the footer's own mark is the one that sits on the
+       header's line — it is the one that draws itself and carries the
+       slogan out beside it. The header's is the same mark again at a
+       different size, stacked on top of it, which is what made the logo
+       look doubled and slightly wrong. It stays down here whatever the bar
+       is doing. */
+    body.at-footer #siteHead .hd-mark,
+    body.at-footer #siteHead:hover .hd-mark,
+    body.at-footer #siteHead.head-lit .hd-mark,
+    body.at-footer #siteHead.head-on .hd-mark{ opacity:0; pointer-events:none; }
 
     /* ---------- AND THE FOOTER'S HEAD SITS ON IT ----------
        Anchored, the footer's own mark, slogan and plus share the header's
@@ -885,6 +896,9 @@
         height:calc(46px + env(safe-area-inset-top));
       }
       .hd-mark svg{ height:15px; }
+      /* the same 15, so the footer's mark lands on the header's line at the
+         header's size rather than two points larger than it */
+      .foot-mark{ height:15px; }
       .hd-tools{ gap:15px; }
       /* symmetric padding, otherwise the 24/40 split lands the mark 8px high */
       #page{
@@ -1166,6 +1180,26 @@
        usefully say. */
     @media (pointer: coarse){
       input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+    }
+    /* ---------- NO POINTER, NO HOVER ----------
+       Everything :hover was dressing, stood down. The mark's filled face is
+       white BECAUSE the bar behind it goes dark; with the bar left clear and
+       the fill still switched on, the mark went white on a white page and
+       the header vanished at the top of every page. A finger leaves :hover
+       stuck behind it, so on a touch screen none of this is inherited —
+       head-on carries the dark bar and the white mark instead.
+
+       Placed here, after every rule it has to beat: these all match at the
+       same weight, so the last one written is the one that counts. */
+    @media (hover: none){
+      #siteHead:hover{ background:transparent; }
+      #siteHead:hover .hd-trace,
+      body.scrolled #siteHead:hover .hd-trace,
+      body.at-footer #siteHead:hover .hd-trace{ opacity:1; transition:none; }
+      #siteHead:hover .hd-fill,
+      body.scrolled #siteHead:hover .hd-fill,
+      body.at-footer #siteHead:hover .hd-fill{ opacity:0; }
+      body.scrolled #siteHead:hover .hd-mark{ opacity:1; }
     }
 </style>
 </head>
@@ -1604,13 +1638,20 @@
            head is within reach of the header it has to share a line with —
            not the moment the footer edges into view, which is a screen and
            a half earlier and reads as the row moving for no reason. */
-        const head = siteFooter.querySelector('.foot-head');
-        const hRect = document.querySelector('#siteHead')
-                      ? document.querySelector('#siteHead').getBoundingClientRect()
-                      : { bottom:54 };
-        if (head && !anchoring){
-          const near = head.getBoundingClientRect().top - hRect.bottom < 150;
-          plusAside(near && arrived, false);
+        /* Measured between the two things that actually collide: the plus
+           rising up the page, and the header's tools sitting still at the
+           top of it. A hundred and fifty pixels of warning moved the row
+           while they were most of a screen apart and read as the plus
+           shying away from nothing. Forty is about one transition's worth
+           of scrolling — it starts as they come within reach of each other
+           and is done by the time they are level, so the tools never pass
+           over the plus and the plus never has to be caught up with. */
+        const plus = document.getElementById('footMore');
+        const tool = document.querySelector('#siteHead .hd-ico');
+        if (plus && tool && !anchoring){
+          const gap = plus.getBoundingClientRect().top
+                    - tool.getBoundingClientRect().bottom;
+          plusAside(arrived && gap < 40, false);
         }
 
         /* ---------- AND THE BOTTOM SETTLES ITSELF ----------

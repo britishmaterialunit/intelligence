@@ -248,6 +248,26 @@
     @media (pointer: coarse){
       input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
     }
+    /* ---------- NO POINTER, NO HOVER ----------
+       Everything :hover was dressing, stood down. The mark's filled face is
+       white BECAUSE the bar behind it goes dark; with the bar left clear and
+       the fill still switched on, the mark went white on a white page and
+       the header vanished at the top of every page. A finger leaves :hover
+       stuck behind it, so on a touch screen none of this is inherited —
+       head-on carries the dark bar and the white mark instead.
+
+       Placed here, after every rule it has to beat: these all match at the
+       same weight, so the last one written is the one that counts. */
+    @media (hover: none){
+      #siteHead:hover{ background:transparent; }
+      #siteHead:hover .hd-trace,
+      body.scrolled #siteHead:hover .hd-trace,
+      body.at-footer #siteHead:hover .hd-trace{ opacity:1; transition:none; }
+      #siteHead:hover .hd-fill,
+      body.scrolled #siteHead:hover .hd-fill,
+      body.at-footer #siteHead:hover .hd-fill{ opacity:0; }
+      body.scrolled #siteHead:hover .hd-mark{ opacity:1; }
+    }
 </style>
 
   <style>
@@ -1603,10 +1623,21 @@
        the sandwich lives in stayed dark after the press that sent the reader
        to the footer. Where there is no pointer there is no hover to inherit:
        the fill is something we set, and the press that leaves clears it. */
-    @media (hover: none){
-      #siteHead:hover{ background:transparent; }
-    }
     #siteHead.head-on{ background:#262626; }
+    #siteHead.head-on .hd-trace{ opacity:0; transition:none; }
+    #siteHead.head-on .hd-fill{ opacity:1; fill:#fff; transition:none; }
+
+    /* ---------- ONE MARK ON THE LINE ----------
+       At the footer the footer's own mark is the one that sits on the
+       header's line — it is the one that draws itself and carries the
+       slogan out beside it. The header's is the same mark again at a
+       different size, stacked on top of it, which is what made the logo
+       look doubled and slightly wrong. It stays down here whatever the bar
+       is doing. */
+    body.at-footer #siteHead .hd-mark,
+    body.at-footer #siteHead:hover .hd-mark,
+    body.at-footer #siteHead.head-lit .hd-mark,
+    body.at-footer #siteHead.head-on .hd-mark{ opacity:0; pointer-events:none; }
     /* .foot-inner is positioned with a z-index of its own, so it is a
        stacking context and a z-index inside it is ranked by ITS index. The
        context itself rises, and only while the bar is lit. */
@@ -1768,6 +1799,9 @@
         height:calc(46px + env(safe-area-inset-top));
       }
       .hd-mark svg{ height:15px; }
+      /* the same 15, so the footer's mark lands on the header's line at the
+         header's size rather than two points larger than it */
+      .foot-mark{ height:15px; }
       .hd-tools{ gap:15px; }
       /* symmetric padding, otherwise the 24/40 split lands the mark 8px high */
       #page{
@@ -3395,12 +3429,17 @@
           /* The row steps aside once the footer's own head is within reach
              of the header it has to share a line with — not the moment the
              footer edges into view, a screen and a half earlier. */
-          const head = siteFooter.querySelector('.foot-head');
-          const hb = document.querySelector('#siteHead');
-          const bottom = hb ? hb.getBoundingClientRect().bottom : 54;
-          if (head && !window.__bmuAnchoring){
-            const near = head.getBoundingClientRect().top - bottom < 150;
-            document.body.classList.toggle('plus-aside', near && inView);
+          /* Measured between the two things that actually collide: the plus
+             rising up the page and the header's tools sitting still at the
+             top of it. A hundred and fifty pixels of warning moved the row
+             while they were most of a screen apart. Forty is about one
+             transition's worth of scrolling. */
+          const plus = document.getElementById('footMore');
+          const tool = document.querySelector('#siteHead .hd-ico');
+          if (plus && tool && !window.__bmuAnchoring){
+            const gap = plus.getBoundingClientRect().top
+                      - tool.getBoundingClientRect().bottom;
+            document.body.classList.toggle('plus-aside', inView && gap < 40);
           }
           /* Reaching the end by hand leaves the head part-way down the
              screen, which is not where the sandwich puts it. The same place
