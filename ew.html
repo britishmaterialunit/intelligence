@@ -366,9 +366,42 @@
          alone left the marks it reveals — and the minus it turns into —
          standing where they were, so opened at the footer the row ran back
          under the header's tools and the minus sat on top of the logos it
-         belongs to. The row is one thing; it moves as one. */
-      body.at-footer .foot-partners{ transform:translateX(-62px); }
+         belongs to. The row is one thing; it moves as one.
+
+         Driven by plus-aside rather than at-footer: at-footer is true as
+         soon as the footer is a little way into view, which had the row
+         stepping aside for tools that were still most of a screen away.
+         plus-aside is set when the two are actually near each other — or
+         at once, with foot-now holding the transition, when the reader
+         asked for the footer outright and there is no approach to watch. */
+      body.plus-aside .foot-partners{ transform:translateX(-62px); }
+
+      /* ---------- THE CLOSING RULE SITS AT THE FOOT ----------
+         Anchored, the footer's head is at the top of the screen and its
+         closing rule — the name, the copyright, PRIVACY — ended wherever
+         the copy above it happened to stop, with a screenful of nothing
+         under it. That nothing was the room the page needs in order to
+         scroll far enough to anchor at all; it was simply all of it below
+         the last line rather than any of it inside the footer.
+
+         The footer takes the screen it is anchored on, and the rule is
+         pushed to the bottom of it — touching the foot of the screen with
+         a little space under, which is where a closing rule belongs. The
+         space that was dead under it is now breathing room above it. */
+      #siteFooter{ display:flex; }
+      .foot-inner{
+        display:flex;
+        flex-direction:column;
+        width:100%;
+        /* the screen, less the 16px the anchor leaves above the mark and
+           the little space kept under the closing rule */
+        min-height:calc(100dvh - 40px);
+      }
+      /* addressed through the footer so it outranks .foot-base's own
+         margin-top, which is written later in the sheet */
+      #siteFooter .foot-base{ margin-top:auto; }
       .foot-partners{ transition:transform .42s cubic-bezier(.4,0,.2,1); }
+      body.foot-now .foot-partners{ transition:none; }
       .fp-more{ transition:color .3s cubic-bezier(.4,0,.2,1); }
     }
 
@@ -707,6 +740,33 @@
     body.entered #siteHead{ opacity:1; pointer-events:auto; }
     #siteHead:hover,
     #siteHead.head-lit{ background:#262626; }
+    /* ---------- THE FILL IS A STATE, NOT A LINGERING TOUCH ----------
+       A finger leaves :hover stuck on whatever it last touched, so the bar
+       the sandwich lives in stayed dark after the press that sent the
+       reader down to the footer. Where there is no pointer there is no
+       hover to inherit: the fill is something we set, and the press that
+       leaves for the footer clears it. */
+    @media (hover: none){
+      #siteHead:hover{ background:transparent; }
+    }
+    #siteHead.head-on{ background:#262626; }
+
+    /* ---------- AND THE FOOTER'S HEAD SITS ON IT ----------
+       Anchored, the footer's own mark, slogan and plus share the header's
+       line. Lit, the header lays a dark ground across that line — so they
+       are lifted above it and turned white, and read as the header's own
+       rather than being covered by it. */
+    /* .foot-inner is positioned with a z-index of its own, which makes it a
+       stacking context — so a z-index inside it, however high, is still
+       ranked below the header by ITS index rather than by the child's. The
+       context itself has to rise, and only while the bar is lit. */
+    body.head-on .foot-inner{ z-index:61; }
+    body.at-footer .foot-head{ position:relative; z-index:61; }
+    body.head-on .foot-slogan,
+    body.head-on .fp-more{ color:#fff; }
+    body.head-on .foot-fill{ fill:#fff; }
+    body.head-on .foot-trace{ stroke:#fff; }
+    body.head-on .fp img{ filter:invert(1) grayscale(1); }
 
     /* the footer's own measure, so the corner mark and the footer mark sit
        on one line down the left edge — and the tools land on the footer's
@@ -1503,46 +1563,107 @@
 
     const siteFooter = document.getElementById('siteFooter');
     const hdToggle   = document.getElementById('hdToggle');
+
+    /* ---------- THE FOOTER'S RESTING PLACE ----------
+       On a phone the footer's own MARK is brought to exactly where the
+       header's mark already is, so the two stack, the slogan runs out
+       beside them and the plus finishes level with the header's two tools:
+       one row at the top of the screen. Measured rather than written down,
+       because the header's mark sits at a different height on a phone than
+       on a pointer screen and the footer's head moves with what is above
+       it. On a pointer screen the footer is shorter than the window, so it
+       simply ends at the bottom of the screen, which is what a footer does. */
+    const PHONE = () => window.matchMedia('(max-width: 640px)').matches;
+
+    function footerAnchorTop(){
+      const fMark = siteFooter.querySelector('.foot-mark');
+      const hMark = document.querySelector('#siteHead .hd-mark');
+      if (!fMark || !hMark) return null;
+      return Math.round(window.scrollY
+                      + fMark.getBoundingClientRect().top
+                      - hMark.getBoundingClientRect().top);
+    }
+    /* The page ends at the footer, so there is nothing under it to scroll
+       INTO and the travel stops short however exactly it is aimed. The
+       shortfall is given to the footer as ground below itself — its own
+       ground, so nothing new is visible. */
+    function makeFooterRoom(to){
+      const room = Math.ceil(to - (document.documentElement.scrollHeight - window.innerHeight));
+      if (room > 0){
+        const had = parseFloat(getComputedStyle(siteFooter).paddingBottom) || 0;
+        siteFooter.style.paddingBottom = Math.round(had + room) + 'px';
+      }
+    }
+    /* The plus steps aside for the header's two tools. Asked for outright —
+       the sandwich — it is simply already there when the page arrives, with
+       nothing to watch travel. Scrolled to by hand, it waits until the two
+       are actually near each other and then moves, so the reader sees it
+       make the room rather than finding it made. */
+    function plusAside(on, immediate){
+      if (immediate){
+        document.body.classList.add('foot-now');
+        document.body.classList.toggle('plus-aside', !!on);
+        void siteFooter.offsetWidth;
+        requestAnimationFrame(() => document.body.classList.remove('foot-now'));
+        return;
+      }
+      document.body.classList.toggle('plus-aside', !!on);
+    }
+    let anchoring = false;
+    function anchorFooter(smooth){
+      const to = footerAnchorTop();
+      if (to === null) return false;
+      makeFooterRoom(to);
+      anchoring = true;
+      window.scrollTo({ top:to, behavior: smooth ? 'smooth' : 'auto' });
+      setTimeout(() => { anchoring = false; }, smooth ? 900 : 60);
+      return true;
+    }
+
+
+    /* The fill, and the one place it is turned on and off. Lit, the footer's
+       head is white and sits above the dark ground; dropped, everything goes
+       back to reading on white. */
+    const siteHeadEl = document.getElementById('siteHead');
+    function dropFill(){
+      if (siteHeadEl) siteHeadEl.classList.remove('head-lit', 'head-on');
+      document.body.classList.remove('head-on');
+      try { hdToggle.blur(); } catch(_){}
+    }
+    function liftFill(){
+      if (siteHeadEl) siteHeadEl.classList.add('head-on');
+      document.body.classList.add('head-on');
+    }
+    /* At the footer the bar is a thing to press: it lights, and the
+       footer's head lights with it. Pressing it again puts it out. The
+       tools inside it keep their own jobs — this only answers a press on
+       the bar itself. */
+    if (siteHeadEl) siteHeadEl.addEventListener('click', e => {
+      if (!PHONE()) return;
+      if (!document.body.classList.contains('at-footer')) return;
+      if (e.target.closest('.hd-ico, .hd-mark, a, button')) return;
+      if (document.body.classList.contains('head-on')) dropFill(); else liftFill();
+    });
+    /* Leaving the footer takes the fill with it. */
+    window.addEventListener('scroll', () => {
+      if (document.body.classList.contains('head-on') &&
+          !document.body.classList.contains('at-footer')) dropFill();
+    }, { passive:true });
     hdToggle.addEventListener('click', () => {
       if (document.body.classList.contains('at-footer')){
+        anchoring = false;
         window.scrollTo({ top:0, behavior:'smooth' });
+      } else if (PHONE()){
+        /* The room is made and the plus put where it belongs BEFORE the
+           travel, so the page the reader lands on is already settled. */
+        plusAside(true, true);
+        /* And the bar the press landed on lets go of its fill. A finger
+           leaves :hover behind it, so without this the reader arrives at
+           the footer with a dark band still across the top. */
+        dropFill();
+        if (!anchorFooter(true)) siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
       } else {
-        /* ---------- THE TWO MARKS MEET ----------
-           Not the top of the footer — the footer's own MARK, brought to
-           exactly where the header's mark already is. Aligning the footer's
-           top edge left its head a hundred-odd pixels down the screen, with
-           the header sitting above it and the plus out on its own line, so
-           the two halves read as two rows that happened to be near each
-           other. Landed on the header's own line, the footer's mark comes
-           to rest underneath the header's, the slogan runs out beside it
-           and the plus finishes level with the header's two tools: one row
-           at the top of the screen.
-
-           Measured rather than written down, because the header's mark sits
-           at a different height on a phone than on a pointer screen, and
-           the footer's head moves with whatever is above it. */
-        const fMark = siteFooter.querySelector('.foot-mark');
-        const hMark = document.querySelector('#siteHead .hd-mark');
-        if (fMark && hMark){
-          const to = window.scrollY
-                   + fMark.getBoundingClientRect().top
-                   - hMark.getBoundingClientRect().top;
-          /* The page ends at the footer, so there was nothing under it to
-             scroll INTO and the travel stopped a hundred pixels short of
-             where it was aimed — the two marks never met however exactly
-             the target was worked out. The shortfall is measured and given
-             to the footer as room below itself. It is the footer's own
-             ground, so nothing new is visible; it simply becomes possible
-             to put the footer's head at the top of the screen. */
-          const room = Math.ceil(to - (document.documentElement.scrollHeight - window.innerHeight));
-          if (room > 0){
-            const had = parseFloat(getComputedStyle(siteFooter).paddingBottom) || 0;
-            siteFooter.style.paddingBottom = Math.round(had + room) + 'px';
-          }
-          window.scrollTo({ top:Math.round(to), behavior:'smooth' });
-        } else {
-          siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
-        }
+        siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
       }
     });
 
@@ -1586,6 +1707,7 @@
         setTimeout(() => bmuType(SLOGAN, footSlogan, 55), traceMs * 0.8);
       }
 
+      let settleAgain = null;
       function check(){
         const r  = siteFooter.getBoundingClientRect();
         const vh = window.innerHeight;
@@ -1599,6 +1721,43 @@
         document.body.classList.toggle('at-footer', arrived);
         hdToggle.setAttribute('aria-label', arrived ? 'Back to top' : 'Go to the footer');
         if (inView && !shown) revealFooter();
+
+        if (!PHONE()){ document.body.classList.toggle('plus-aside', arrived); return; }
+
+        /* ---------- THE PLUS WAITS FOR THEM TO BE NEAR ----------
+           Scrolled to by hand, the row steps aside once the footer's own
+           head is within reach of the header it has to share a line with —
+           not the moment the footer edges into view, which is a screen and
+           a half earlier and reads as the row moving for no reason. */
+        const head = siteFooter.querySelector('.foot-head');
+        const hRect = document.querySelector('#siteHead')
+                      ? document.querySelector('#siteHead').getBoundingClientRect()
+                      : { bottom:54 };
+        if (head && !anchoring){
+          const near = head.getBoundingClientRect().top - hRect.bottom < 150;
+          plusAside(near && arrived, false);
+        }
+
+        /* ---------- AND THE BOTTOM SETTLES ITSELF ----------
+           Reaching the end of the page by hand leaves the footer's head
+           part-way down the screen, which is not where pressing the
+           sandwich puts it — the same place should look the same however
+           the reader got there. At the bottom, it takes up the same rest.
+           Once, and never while a travel of its own is still running. */
+        const atEnd = window.scrollY >= (document.documentElement.scrollHeight - window.innerHeight) - 2;
+        if (arrived && atEnd){
+          if (anchoring){
+            /* A travel of its own is still running. Rather than drop the
+               request — the last scroll event of a flick is often the one
+               that lands on the end, and nothing would come after it to ask
+               again — it is asked again once that travel is done. */
+            clearTimeout(settleAgain);
+            settleAgain = setTimeout(check, 260);
+          } else {
+            const to = footerAnchorTop();
+            if (to !== null && Math.abs(to - window.scrollY) > 4) anchorFooter(true);
+          }
+        }
       }
       window.addEventListener('scroll', check, { passive:true });
       window.addEventListener('resize', check);

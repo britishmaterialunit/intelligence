@@ -1246,8 +1246,27 @@
          standing where they were, so opened at the footer the row ran back
          under the header's tools and the minus sat on top of the logos it
          belongs to. The row is one thing; it moves as one. */
-      body.at-footer .foot-partners{ transform:translateX(-62px); }
+      /* plus-aside, not at-footer: at-footer is true as soon as the footer
+         edges into view, which had the row stepping aside for tools still
+         most of a screen away. foot-now holds the transition for a press
+         that asks for the footer outright, where there is no approach to
+         watch and the row should simply already be there. */
+      body.plus-aside .foot-partners{ transform:translateX(-62px); }
       .foot-partners{ transition:transform .42s cubic-bezier(.4,0,.2,1); }
+      body.foot-now .foot-partners{ transition:none; }
+
+      /* The footer takes the screen it is anchored on, and its closing rule
+         sits at the foot of it with a little space under — rather than
+         ending wherever the copy above it stopped, with the scroll room
+         showing as a screenful of nothing beneath. */
+      #siteFooter{ display:flex; }
+      .foot-inner{
+        display:flex;
+        flex-direction:column;
+        width:100%;
+        min-height:calc(100dvh - 40px);
+      }
+      #siteFooter .foot-base{ margin-top:auto; }
       .fp-more{ transition:color .3s cubic-bezier(.4,0,.2,1); }
     }
 
@@ -1580,6 +1599,24 @@
     body.entered #siteHead{ opacity:1; pointer-events:auto; }
     #siteHead:hover,
     #siteHead.head-lit{ background:#262626; }
+    /* A finger leaves :hover stuck on whatever it last touched, so the bar
+       the sandwich lives in stayed dark after the press that sent the reader
+       to the footer. Where there is no pointer there is no hover to inherit:
+       the fill is something we set, and the press that leaves clears it. */
+    @media (hover: none){
+      #siteHead:hover{ background:transparent; }
+    }
+    #siteHead.head-on{ background:#262626; }
+    /* .foot-inner is positioned with a z-index of its own, so it is a
+       stacking context and a z-index inside it is ranked by ITS index. The
+       context itself rises, and only while the bar is lit. */
+    body.head-on .foot-inner{ z-index:61; }
+    body.at-footer .foot-head{ position:relative; z-index:61; }
+    body.head-on .foot-slogan,
+    body.head-on .fp-more{ color:#fff; }
+    body.head-on .foot-fill{ fill:#fff; }
+    body.head-on .foot-trace{ stroke:#fff; }
+    body.head-on .fp img{ filter:invert(1) grayscale(1); }
 
     /* the footer's own measure, so the corner mark and the footer mark sit
        on one line down the left edge — and the tools land on the footer's
@@ -3352,6 +3389,36 @@
         document.body.classList.toggle('at-footer', inView);
         if (window.bmuSyncHeadTool) window.bmuSyncHeadTool();
 
+        if (!window.matchMedia('(max-width: 640px)').matches){
+          document.body.classList.toggle('plus-aside', inView);
+        } else {
+          /* The row steps aside once the footer's own head is within reach
+             of the header it has to share a line with — not the moment the
+             footer edges into view, a screen and a half earlier. */
+          const head = siteFooter.querySelector('.foot-head');
+          const hb = document.querySelector('#siteHead');
+          const bottom = hb ? hb.getBoundingClientRect().bottom : 54;
+          if (head && !window.__bmuAnchoring){
+            const near = head.getBoundingClientRect().top - bottom < 150;
+            document.body.classList.toggle('plus-aside', near && inView);
+          }
+          /* Reaching the end by hand leaves the head part-way down the
+             screen, which is not where the sandwich puts it. The same place
+             should look the same however the reader got there. */
+          const atEnd = window.scrollY >= (document.documentElement.scrollHeight - window.innerHeight) - 2;
+          if (inView && atEnd && window.bmuAnchorFooter){
+            if (window.__bmuAnchoring){
+              /* asked again once the travel it is waiting on is done — the
+                 last scroll event of a flick is often the one that lands on
+                 the end, and nothing comes after it to ask twice */
+              clearTimeout(window.__bmuSettle);
+              window.__bmuSettle = setTimeout(window.bmuFooterCheck, 260);
+            } else {
+              window.bmuAnchorFooter(true);
+            }
+          }
+        }
+
         /* Measured against how far this footer can actually rise, not a fixed
            slice of the viewport: a short footer never reaches a fixed mark, so
            the fade would stall part-way and never resolve. Starting at the
@@ -3378,8 +3445,53 @@
 
        The footer keeps its place in the document either way, so this is one
        smooth scroll and nothing else. */
+    /* Shared with the scroll handler, which settles the bottom of the page
+       on the same rest the sandwich puts it on. */
+    window.__bmuAnchoring = false;
+    window.bmuAnchorFooter = function(smooth){
+      const fMark = siteFooter && siteFooter.querySelector('.foot-mark');
+      const hMark = document.querySelector('#siteHead .hd-mark');
+      if (!fMark || !hMark) return false;
+      const to = Math.round(window.scrollY
+               + fMark.getBoundingClientRect().top
+               - hMark.getBoundingClientRect().top);
+      if (Math.abs(to - window.scrollY) < 4) return false;
+      const room = Math.ceil(to - (document.documentElement.scrollHeight - window.innerHeight));
+      if (room > 0){
+        const had = parseFloat(getComputedStyle(siteFooter).paddingBottom) || 0;
+        siteFooter.style.paddingBottom = Math.round(had + room) + 'px';
+      }
+      window.__bmuAnchoring = true;
+      window.scrollTo({ top:to, behavior: smooth ? 'smooth' : 'auto' });
+      setTimeout(() => { window.__bmuAnchoring = false; }, smooth ? 900 : 60);
+      return true;
+    };
+    /* The fill lets go when the reader leaves for the footer, and the bar
+       can be lit again once they are there. */
+    function dropFill(){
+      const h = document.getElementById('siteHead');
+      if (h) h.classList.remove('head-lit', 'head-on');
+      document.body.classList.remove('head-on');
+    }
+    (function litAtFooter(){
+      const h = document.getElementById('siteHead');
+      if (!h) return;
+      h.addEventListener('click', e => {
+        if (!window.matchMedia('(max-width: 640px)').matches) return;
+        if (!document.body.classList.contains('at-footer')) return;
+        if (e.target.closest('.hd-ico, .hd-mark, a, button')) return;
+        if (document.body.classList.contains('head-on')) dropFill();
+        else { h.classList.add('head-on'); document.body.classList.add('head-on'); }
+      });
+      window.addEventListener('scroll', () => {
+        if (document.body.classList.contains('head-on') &&
+            !document.body.classList.contains('at-footer')) dropFill();
+      }, { passive:true });
+    })();
+
     function goToFooter(){
       if (!siteFooter) return;
+      dropFill();
       if (typeof opsState !== 'undefined' && opsState !== 'closed'){
         opsFooterPass = true;
       }
@@ -3395,7 +3507,16 @@
          of the screen. */
       const fMark = siteFooter.querySelector('.foot-mark');
       const hMark = document.querySelector('#siteHead .hd-mark');
-      if (fMark && hMark){
+      /* The two marks meet on a phone only. On a pointer screen the
+         footer is shorter than the window, so pulling its head up to the
+         header would leave the page hanging with empty ground under it —
+         there the footer simply ends at the bottom of the screen, which
+         is what a footer does. */
+      if (fMark && hMark && window.matchMedia('(max-width: 640px)').matches){
+        document.body.classList.add('foot-now');
+        document.body.classList.add('plus-aside');
+        void siteFooter.offsetWidth;
+        requestAnimationFrame(() => document.body.classList.remove('foot-now'));
         const to = window.scrollY
                  + fMark.getBoundingClientRect().top
                  - hMark.getBoundingClientRect().top;
@@ -3413,7 +3534,7 @@
         }
         window.scrollTo({ top:Math.round(to), behavior:'smooth' });
       } else {
-        siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
+        siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
       }
     }
 
