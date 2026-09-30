@@ -3850,7 +3850,6 @@
       /* First press frames the garment, second opens it — the archive's own
          two-step, so nothing opens under a finger that was only dragging. */
       let framed = null;
-      let openPending = null;                  // a garment already on its way
       $('cvField').addEventListener('click', e => {
         if (moved > 6) return;                 // that was a drag
         const tile = e.target.closest('.cv-item');
@@ -3860,36 +3859,18 @@
         if (tile && tile.classList.contains('cv-rest')) return;
         if (!tile){ framed = null; markAside(); return; }
         $('cvFieldHint').classList.add('gone');
-        /* ONE press. It used to take two — one to frame the garment and
-           another to open it — and the second was a press for something the
-           first had already said. Now the press does both: the garment comes
-           forward while the rest of the field steps back, and when it has
-           come to rest the tab fades in around it. */
-        if (openPending) return;              // one is already on its way
+        /* ONE press, and it opens. It took two once — one to frame the
+           garment and another to open it — and then one with a zoom in
+           front of it, the garment coming forward for half a second before
+           the tab arrived. Both were a wait in the way of the same answer:
+           the press already says which garment, and the tab is what was
+           asked for. It opens.
+
+           framed is still set, so the field remembers which one was chosen
+           when the reader comes back to it. */
         framed = tile;
         markAside();
-        const p = [parseFloat(tile.style.left), parseFloat(tile.style.top)];
-        /* Big enough to be the only thing being looked at. A tile is 130px
-           wide, so the scale is read off the box rather than guessed: the
-           garment comes up to about two thirds of the shorter side. */
-        const box = $('cvField').getBoundingClientRect();
-        const want = (Math.min(box.width, box.height) * 0.66) / 130;
-        glidePlane(() => {
-          sc = Math.max(sc, Math.min(3.6, want));
-          tx = -p[0] * sc; ty = -p[1] * sc;
-          applyPlane();
-        });
-        /* After the move, not during it: the tab arriving over a garment
-           still travelling is the handover this used to have. */
-        const id = tile.dataset.id;
-        openPending = setTimeout(() => {
-          openPending = null;
-          /* The reader may have left the field while the garment was still
-             travelling. A tab opening over a view they have already walked
-             out of is not one they asked for. */
-          if ($('cvField').hidden) return;
-          openSolo(id);
-        }, REDUCED ? 0 : 560);
+        openSolo(tile.dataset.id);
       });
       function markAside(){
         plane().querySelectorAll('.cv-item:not(.cv-rest)').forEach(el => {
