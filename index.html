@@ -382,6 +382,7 @@
       align-items:center;
     }
 
+
     #navRow{
       position:relative;
       width:100%;
@@ -3263,24 +3264,11 @@
            row comes up from under the line as a single mark; then they are
            let go and run out to their places, two to the left and two to the
            right. It is the Operations box closing, played as an arrival. */
-        const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (!REDUCED){
-          /* Gathered with nothing animating, committed, and only then are
-             transitions handed back — so the row rises as one box and the
-             four run out of it, rather than arriving, un-arriving and
-             arriving again. */
-          navRow.classList.add('no-anim');
-          convergeButtons();
-          void navRow.offsetWidth;
-          navRow.classList.remove('no-anim');
-        }
-        navRow.classList.add('visible');
+        raiseRow();
         // the page only becomes scrollable — and the footer only exists —
         // once the reader is actually inside the site
         document.body.classList.add('entered');
         if (window.bmuFooterCheck) window.bmuFooterCheck();
-        // once the row itself has arrived, not while it is still travelling
-        if (!REDUCED) setTimeout(releaseButtons, 460);
       });
     });
 
@@ -3395,12 +3383,38 @@
       if (typeof opsState !== 'undefined' && opsState !== 'closed'){
         opsFooterPass = true;
       }
-      /* Its head, not its foot. Aligning the bottom put the mark and the
-         line it carries wherever the footer's own height happened to leave
-         them — often off the top of a phone. Started instead: the mark, the
-         slogan and the marks beside them land at the top of the screen and
-         the rest of the footer follows down from there. */
-      siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
+      /* ---------- THE TWO MARKS MEET ----------
+         Not the top of the footer — the footer's own MARK, brought to
+         exactly where the header's mark already is. Aligning the footer's
+         top edge left its head a hundred-odd pixels down the screen, with
+         the header sitting above it and the plus out on its own line, so
+         the two halves read as two rows that happened to be near each
+         other. Landed on the header's own line, the footer's mark comes to
+         rest underneath the header's, the slogan runs out beside it and the
+         plus finishes level with the header's two tools: one row at the top
+         of the screen. */
+      const fMark = siteFooter.querySelector('.foot-mark');
+      const hMark = document.querySelector('#siteHead .hd-mark');
+      if (fMark && hMark){
+        const to = window.scrollY
+                 + fMark.getBoundingClientRect().top
+                 - hMark.getBoundingClientRect().top;
+        /* The page ends at the footer, so there was nothing under it to
+           scroll INTO and the travel stopped a hundred pixels short of
+           where it was aimed — the two marks never met however exactly the
+           target was worked out. The shortfall is measured and given to the
+           footer as room below itself. It is the footer's own ground, so
+           nothing new is visible; it simply becomes possible to put the
+           footer's head at the top of the screen. */
+        const room = Math.ceil(to - (document.documentElement.scrollHeight - window.innerHeight));
+        if (room > 0){
+          const had = parseFloat(getComputedStyle(siteFooter).paddingBottom) || 0;
+          siteFooter.style.paddingBottom = Math.round(had + room) + 'px';
+        }
+        window.scrollTo({ top:Math.round(to), behavior:'smooth' });
+      } else {
+        siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
     }
 
 
@@ -3796,14 +3810,26 @@
        so left alone the button reads as belonging to nothing. Lift it to sit
        under the field, and drop it back into the row on the way out — the
        drop is what lets it rejoin the other four cleanly. */
-    const JOIN_LIFT_GAP = 30;
+    /* The same gap the repository's button keeps from the paragraph above
+       it, which is the row's own 12px. It was 30 here, so the one panel
+       with a field to type into put the most space between the field and
+       the button that acts on it — the two panels read as two different
+       pages. One number, both panels, both screen sizes. */
+    const JOIN_LIFT_GAP = 12;
     function raiseJoinButton(){
-      /* Repository does not lift. Its panel is a statement being written
-         out, not a field waiting to be typed into, and the button under it
-         is the one thing on the screen that should hold still while it is
-         read. A resize used to lift it anyway. */
-      if (joinMode === 'repo') return;
-      const el = joinSlide;
+      /* BOTH panels, and the same gap on every screen. It used to lift the
+         join panel only, by thirty, and leave the repository's button
+         wherever the row happened to fall — so the button sat a different
+         distance under the thing it acts on depending on which panel was
+         open and how tall that panel's copy was. Two panels of one page
+         reading as two different pages.
+
+         The gap is the constant now, not the position: whatever is above
+         the button, the button sits JOIN_LIFT_GAP under it.
+
+         It is still only set when the panel opens and on a real resize, so
+         the repository's button holds still while its statement is read. */
+      const el = joinMode === 'repo' ? repoLede : joinSlide;
       if (!el) return;
       const box = el.getBoundingClientRect();
       const row = navRow.getBoundingClientRect();
@@ -3829,6 +3855,35 @@
     }
     function releaseButtons(){
       navRow.querySelectorAll('.bm-button').forEach(b => { b.style.transform = ''; });
+    }
+
+    /* ---------- THE ROW ALWAYS ARRIVES THE SAME WAY ----------
+       Gathered into the Operations box, brought up as one mark, and then
+       let go of so the four run out from under it. Operations is the middle
+       of the row and the thing the rest of the page is about, so it is what
+       they come out of every time.
+
+       It used to be written into the front door and nowhere else, so that
+       was the only way in that played it: arriving from another page, or on
+       a hash — /#operations, the footer, the mark in the archive's header —
+       simply put all five down in their places at once, and the box the
+       others are supposed to emerge from was just one of five. One
+       function, called by every arrival. */
+    function raiseRow(){
+      const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!REDUCED){
+        /* Gathered with nothing animating, committed, and only then are
+           transitions handed back — so the row rises as one box and the
+           four run out of it, rather than arriving, un-arriving and
+           arriving again. */
+        navRow.classList.add('no-anim');
+        convergeButtons();
+        void navRow.offsetWidth;
+        navRow.classList.remove('no-anim');
+      }
+      navRow.classList.add('visible');
+      // once the row itself has arrived, not while it is still travelling
+      if (!REDUCED) setTimeout(releaseButtons, 460);
     }
 
     const archBtn  = document.getElementById('archBtn');
@@ -4212,7 +4267,13 @@
       claimUrl('/repository');
       /* the blurb is the whole panel: it writes itself and that is the end
          of it. The cloth bars that used to come up under it are gone. */
-      bmuTypeRich(repoLede, REPO_LEDE_HTML, 14, null, live);
+      bmuTypeRich(repoLede, REPO_LEDE_HTML, 14, null, () => {
+        /* Placed once the statement has finished writing itself, because
+           until then it has no height to sit under. From here it holds
+           still — nothing re-places it but a real resize. */
+        if (live()) raiseJoinButton();
+        return true;
+      }, live);
     }
 
     /* The opening run backwards: the field and the address go, the one
@@ -4778,7 +4839,7 @@
       logoSvg.classList.add('svg-faded');
       textOutput.classList.add('show-text');
       textContent.textContent = mainText;   // the typed copy, already typed
-      navRow.classList.add('visible');
+      raiseRow();
       document.body.classList.add('entered');
     }
 
@@ -4837,7 +4898,7 @@
         }
 
         bmuType(mainText, textContent, 20, () => {
-          navRow.classList.add('visible');
+          raiseRow();
           document.body.classList.add('entered');
           if (window.bmuFooterCheck) window.bmuFooterCheck();
         });

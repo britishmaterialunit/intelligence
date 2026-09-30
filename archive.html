@@ -454,31 +454,10 @@
       border:1.5px dashed rgba(0,0,0,.35);
       background:transparent;
     }
-    /* The name and the code are one flowing line, not two columns. As
-       separate flex items the code sat at the far end of the bar, level
-       with the minimise, however many lines the name had wrapped to — a
-       gap the width of the screen rather than a space between two words.
-       Wrapped together in one item they set as ordinary inline text, so
-       the code follows the last word wherever that word ends up.
-
-       They stay two ELEMENTS, though: the lid is written and unwritten by
-       setting textContent, and one element holding both would lose the
-       code's span the moment either was typed. */
+    /* The lid carries the name and nothing else. The garment's code lives
+       on the card, where there is room to read it. */
     .nation > summary .n-wrap{ flex:none; min-width:0; }
     .nation > summary .n{ display:inline; }
-    /* The garment's code on the lid: the same gap and the same grey it has
-       on the card. Empty on every tab but the one holding a single garment,
-       and :empty keeps it from taking the gap when there is nothing in it. */
-    .nation > summary .n-ref{
-      display:inline;
-      margin-left:.55em;
-      font-size:9.5px;
-      letter-spacing:.14em;
-      font-weight:400;
-      color:#b4b4b4;
-      white-space:nowrap;
-    }
-    .nation > summary .n-ref:empty{ margin-left:0; }
     .nation > summary .qty{
       flex:1;
       margin-left:-6px;          /* sits just after the name, not adrift */
@@ -631,6 +610,34 @@
        from the field, because it is only there that a garment is already
        somewhere on the glass when the record is built. */
     body.solo-from-field #catalogue{ padding-top:var(--solo-drop, 0px); }
+    /* ---------- THE GARMENT DOES NOT RIDE ----------
+       .wrap is centred in a full-height column, so the page re-centres every
+       time the card changes size — and the card changes size for the whole
+       length of the build, growing a record underneath the garment. The
+       garment was carried upwards by that, which on a phone is the slide
+       that appears just before the box is drawn around it: the garment
+       nudged out from under the line that is meant to be enclosing it.
+
+       Anchored for the length of the build, the growth all happens
+       downwards and the garment stays on the pixel the press left it on.
+       Only on a phone: on a pointer screen the record opens sideways, the
+       card barely changes height, and the centring is what keeps a short
+       page off the top edge. */
+    @media (max-width:640px){
+      body.solo-from-field .wrap{ margin-top:0; margin-bottom:auto; }
+      /* ---------- ONE GARMENT, AND NOTHING PAST IT ----------
+         A record opened from the field is the whole of what there is to
+         look at: the box, and the minimise that puts it back. Scrolling
+         there only ever took the reader off it — the list underneath is
+         not theirs to be in, they came from the field — so the page does
+         not scroll while it is open. The card and its buttons still take
+         a press; it is the page behind them that is held. */
+      html.solo-held, body.solo-held{
+        overflow:hidden;
+        overscroll-behavior:none;
+        touch-action:pan-x;
+      }
+    }
     /* The shelf is named on the tab above and again in the list; saying it a
        third time inside the garment's own card was the card repeating its
        surroundings back. */
@@ -651,7 +658,14 @@
     }
     body.single-result .item{
       flex-direction:row;
-      --card-w:min(94vw, 760px);
+      /* The room INSIDE the tab, not the width of the page. The tab is
+         min(94vw, 880px) and insets its contents by 17px a side; the card
+         was measured against the raw 94vw, so anywhere the page was narrow
+         enough for 94vw to beat 760 — an iPad, at either orientation — the
+         card was wider than the box it sits in and the record hung out of
+         the right-hand edge of the tab. 17px at 768, 6px at 820, and on a
+         desktop none at all, which is why it stayed hidden. */
+      --card-w:min(min(94vw, 880px) - 34px, 760px);
       /* The 46% the slot settles at, named once so the build state and the
          script can both be held to it. Measured off the card's content box,
          which is what the 46% below is a percentage of — the card's own
@@ -1780,6 +1794,34 @@
       transition:filter .9s cubic-bezier(.4,0,.2,1);
       pointer-events:none;
     }
+
+    /* ---------- THE FIELD COMES UP UNEVENLY ----------
+       Seventy-odd garments appearing together is one flat event. Each one
+       arrives on its own clock instead — up, part-way back, and up to stay
+       — so the field reads as coming on rather than being switched on. The
+       delay is per garment and random, set once when the field is built.
+
+       It runs UNDER the gate as well, while everything is still blurred and
+       the mark is over it: what is behind the blur should already be busy
+       by the time the reader is let through to it.
+
+       Deliberately not on the way back from a record. There the field is
+       already up and the reader is returning to a garment they were just
+       looking at; flickering the whole archive at them reads as the page
+       having gone wrong. See flickerNext. */
+    #spiral.sp-arriving .sp-item{
+      animation:spArrive 1s cubic-bezier(.4,0,.2,1) both;
+      animation-delay:var(--flick, 0ms);
+    }
+    @keyframes spArrive{
+      0%   { opacity:0; }
+      48%  { opacity:.42; }
+      62%  { opacity:.12; }
+      100% { opacity:1; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      #spiral.sp-arriving .sp-item{ animation:none; }
+    }
     /* Blur alone still shows the shapes, and shapes resolving one by one is
        the thing being hidden. A halftone laid over the field breaks what is
        left into dots — the garments read as a printed ground rather than as
@@ -1982,6 +2024,20 @@
     .dq-hint .dh-text{ overflow:hidden; text-overflow:ellipsis; }
     /* the input gives up the room rather than running underneath the chip */
     #dockSearch.has-hint #dq{ padding-right:290px; }
+
+    /* Only ever on screen if a Spotify link is what was given; an mp3 plays
+       with nothing to show. Sits above the bar, on the bar's own measure. */
+    .bmu-spotify{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:92px;
+      width:min(94vw, 880px);
+      z-index:79;
+      border:1px solid var(--line);
+      background:var(--bg);
+    }
+    .bmu-spotify iframe{ display:block; }
 
     .dock-sq{
       flex:none;
@@ -2751,6 +2807,7 @@
       <span class="face-stack">
         <img class="face is-on" src="/circle-white.svg" alt="" aria-hidden="true" width="16" height="16">
         <img class="face" src="/menu-white.svg" alt="" aria-hidden="true" width="16" height="16">
+        <img class="face face-play" src="/play-white.svg" alt="" aria-hidden="true" width="16" height="16">
       </span>
     </button>
     <!-- Only for a reader who is signed in, and only on the list: the way
@@ -3224,8 +3281,7 @@
 
       details.innerHTML =
         `<summary>${flag}` +
-        `<span class="n-wrap"><span class="n">${esc(nation.label)}</span>` +
-        `<span class="n-ref"></span></span>` +
+        `<span class="n-wrap"><span class="n">${esc(nation.label)}</span></span>` +
         `<span class="qty">${mine.length}</span>` +
         `<span class="sign" aria-hidden="true"></span></summary>` +
         `<div class="nbody"></div>`;
@@ -3697,25 +3753,17 @@
       allNations.forEach(d => {
         const label = d.querySelector('summary .n');
         if (label) label.textContent = d.dataset.label;
-        const lref = d.querySelector('summary .n-ref');
-        if (lref) lref.textContent = '';
       });
       if (lone){
         const only = catalogue.querySelector('.item:not([hidden])');
         const tab  = only && only.closest('.nation');
         if (tab){
-          /* The name and the code, kept apart. Taking .name's textContent
-             gave one run with no gap in it — the span that holds the code
-             on the card is what puts the space there, and text has no
-             spans — so the lid read "…DRESS JACKETBA2010NFRROSDJ", the
-             code welded to the last word and in the name's own ink. Each
-             goes in its own element, and the code gets the gap and the
-             grey it has on the card. */
-          const nm  = only.querySelector('.name .nm') || only.querySelector('.name');
-          const rf  = only.querySelector('.name .ref');
+          /* The NAME only — .name's own textContent would bring the code
+             along with it, welded to the last word, because the span that
+             holds the code on the card is what puts the space there and
+             text has no spans. */
+          const nm = only.querySelector('.name .nm') || only.querySelector('.name');
           tab.querySelector('summary .n').textContent = (nm ? nm.textContent : '').trim();
-          const lref = tab.querySelector('summary .n-ref');
-          if (lref) lref.textContent = rf ? rf.textContent.trim() : '';
         }
       }
 
@@ -4583,7 +4631,20 @@
       dq.tabIndex = 0;
       dockClear.tabIndex = 0;
       dq.value = q.value;
-      dq.focus({ preventScroll:true });
+      /* ---------- THE KEYBOARD WAITS TO BE ASKED ----------
+         On a phone, focusing the field is what raises the keyboard, and the
+         keyboard arrived in the same moment the bar was still opening. The
+         bar had not finished becoming a bar, so there was nothing settled
+         for rideTheKeyboard to lift, and it ended up behind the keys.
+
+         Opening the bar and starting to type are two things on a phone, and
+         the reader does them in that order: the box opens, and a press in it
+         is what asks for the keyboard. By then the bar is at its full width
+         and sitting still, and lifting it above the keys is one clean move.
+
+         A pointer has no keyboard to raise, so nothing is gained by making
+         someone click twice: it still takes the caret on open. */
+      if (!SMALL_SCREEN()) dq.focus({ preventScroll:true });
     }
 
     /* The search bar is permanent now, so the dock is no longer tied to
@@ -4623,6 +4684,7 @@
     function goHome(){
       markUrl(null);                    // the record is being left: /archive
       document.body.classList.remove('solo-from-field');
+      holdForRecord(false);
       document.body.style.removeProperty('--solo-drop');
       document.body.classList.remove('solo-closing', 'solo-shutting');
       document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
@@ -5094,7 +5156,7 @@
         openExplore();
       }
       clusterSearch(term.toLowerCase(), true);   // gather, do not merely dim
-      dq.focus({ preventScroll:true });
+      if (!SMALL_SCREEN()) dq.focus({ preventScroll:true });
       return true;
     }
     dqHint.addEventListener('click', e => { e.stopPropagation(); takeHint(); });
@@ -5451,6 +5513,7 @@
             .filter(Boolean).join(' ').toLowerCase()
             .split(/[^a-z0-9]+/).filter(Boolean).join('|');
           el.dataset.alias  = (nation.alias || []).join('|');
+          el.style.setProperty('--flick', Math.round(Math.random() * 850) + 'ms');
           spiral.appendChild(el);
           watchLoad(el.querySelector('img'));
         });
@@ -5778,6 +5841,23 @@
        garment mid-flight was enough to start the field undoing itself. */
     let soloLock = false;
 
+    /* Whether the next opening of the field plays its arrival. True by
+       default; returnToExplore is the only thing that clears it, and it is
+       set again as soon as that one return has been served. */
+    let flickerNext = true;
+    let flickerOff = null;
+    function armFlicker(){
+      if (!flickerNext){ flickerNext = true; return; }
+      clearTimeout(flickerOff);
+      spiral.classList.remove('sp-arriving');
+      void spiral.offsetWidth;              // so a second opening replays it
+      spiral.classList.add('sp-arriving');
+      /* Taken off once it has run. Left on, the animation's `both` holds
+         every garment at its end state and a garment added or re-laid out
+         afterwards would start the whole thing again. */
+      flickerOff = setTimeout(() => spiral.classList.remove('sp-arriving'), 2000);
+    }
+
     /* One bookmark button, two jobs: with a garment framed it keeps that
        garment; with the whole field showing it gathers what is kept. */
     function offerSave(el){
@@ -5841,6 +5921,12 @@
          again and listens for them again. Set at the top, before any of the
          paths below can return early. */
       soloLock = false;
+      /* The field's own arrival. Here rather than in buildSpiral because
+         this is what OPENS it — under the gate on a first load, and again
+         whenever the reader comes to it from the list. The one opening it
+         does not play for is the return from a record, which clears the
+         flag on its way in. */
+      armFlicker();
       /* And the shelf is let go of. Coming into the field from the saved list
          used to arrive holding it — the reader pressed the circle, which
          means the whole archive, and got back the handful they had kept. The
@@ -6007,10 +6093,21 @@
        page with a question typed on it — a view with nothing in it, reached
        by a glyph the reader had to swipe past to get between the two views
        that do hold the archive. There is the field and there is the list. */
-    const FACE = { explore: faceEls[0], list: faceEls[1] };
+    const FACE = { explore: faceEls[0], list: faceEls[1], play: faceEls[2] };
+    /* What the button WEARS is where it goes, not where the reader already
+       is. On the list that is the circle — pressing it opens the field — and
+       in the field it is still the circle, because the field is what the
+       circle is for and the reader must always have it. The other faces are
+       a scroll away in both.
+
+       'waiting' is the one exception, and it is not a view: it is the moment
+       before the field exists, when the circle would be offering a room that
+       has not been built. It wears the list's own glyph until there is
+       something behind the circle to open. See waitForTheField. */
     const ORDER = {
-      explore: ['explore', 'list'],
-      list:    ['list', 'explore'],
+      explore: ['explore', 'list', 'play'],
+      list:    ['explore', 'list', 'play'],
+      waiting: ['list', 'explore'],
     };
     let faceMode = 'explore';
     let faces = ORDER.explore.map(k => FACE[k]);
@@ -6022,7 +6119,10 @@
       setFace(0, true);            // whichever glyph now leads
     }
     let faceIx = 0;
-    const FACE_LABEL = { explore:'Explore the archive', list:'Nation list' };
+    const FACE_LABEL = { explore:'Explore the archive', list:'Nation list',
+                         play:'Play the archive\u2019s music' };
+    /* faceMode names a set of faces, not a view; 'waiting' borrows the
+       list's label because the list's glyph is what it is showing. */
 
     function currentFace(){ return ORDER[faceMode][faceIx]; }
 
@@ -6083,6 +6183,81 @@
       if (e.pointerId === fid) fid = null;
     }));
 
+    /* ---------- THE ARCHIVE'S MUSIC ----------
+       ONE place to put the track, and nothing else to change:
+
+         src      an audio file this site serves — /sound/archive.mp3, or
+                  any URL that returns audio. This is the one that plays
+                  through the button.
+         spotify  a Spotify share link. Spotify will not hand a raw track to
+                  a page — their player has to do it — so a link here opens
+                  a small embedded player instead of playing in place. An
+                  mp3 is the one that keeps the button silent-to-loud with
+                  nothing else on screen; the Spotify branch is here so a
+                  link is not useless if that is what turns up.
+
+       Left empty, the play face is not offered at all — a button that says
+       it plays something and then does nothing is worse than no button. */
+    const BMU_SOUND = {
+      src:     '',
+      spotify: '',
+    };
+
+    let sound = null, soundOn = false, spotifyBox = null;
+
+    function soundReady(){ return !!(BMU_SOUND.src || BMU_SOUND.spotify); }
+
+    /* The face is in the DOM either way; what changes is whether the stack
+       will ever stop on it. */
+    if (!soundReady()){
+      ORDER.explore = ['explore', 'list'];
+      ORDER.list    = ['explore', 'list'];
+    }
+
+    function toggleSound(){
+      if (!soundReady()) return;
+
+      /* Spotify: their embed, opened once and left. It carries its own
+         transport, so this button hands over to it rather than pretending
+         to drive it. */
+      if (!BMU_SOUND.src && BMU_SOUND.spotify){
+        if (spotifyBox){ spotifyBox.remove(); spotifyBox = null; setPlayFace(false); return; }
+        const id = (BMU_SOUND.spotify.match(/(track|album|playlist|episode)\/([A-Za-z0-9]+)/) || []);
+        if (!id[1]) return;
+        spotifyBox = Object.assign(document.createElement('div'), { className:'bmu-spotify' });
+        spotifyBox.innerHTML =
+          `<iframe src="https://open.spotify.com/embed/${id[1]}/${id[2]}" ` +
+          `width="100%" height="80" frameborder="0" loading="lazy" ` +
+          `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`;
+        document.body.appendChild(spotifyBox);
+        setPlayFace(true);
+        return;
+      }
+
+      if (!sound){
+        sound = new Audio(BMU_SOUND.src);
+        sound.loop = true;
+        sound.preload = 'none';
+        /* However it stops — ended, an error, the reader's own controls —
+           the glyph says what is true. */
+        ['pause','ended','error'].forEach(ev =>
+          sound.addEventListener(ev, () => setPlayFace(false)));
+        sound.addEventListener('play', () => setPlayFace(true));
+      }
+      if (soundOn){ sound.pause(); return; }
+      /* A refused play is not an error to the reader — some browsers want a
+         gesture they consider more deliberate than this one. It simply does
+         not start, and the glyph stays as it was. */
+      const p = sound.play();
+      if (p && p.catch) p.catch(() => setPlayFace(false));
+    }
+
+    function setPlayFace(on){
+      soundOn = !!on;
+      if (FACE.play) FACE.play.src = on ? '/pause-white.svg' : '/play-white.svg';
+      dockExplore.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+
     dockExplore.addEventListener('click', e => {
       if (swiped){ swiped = false; return; }       // that was a swipe
 
@@ -6091,6 +6266,8 @@
       if (gateShut()){ openGate(); return; }
 
       const face = currentFace();
+
+      if (face === 'play'){ toggleSound(); return; }
 
       if (face === 'list'){
         // the listed nations, showing everything — not whatever the field
@@ -6404,6 +6581,7 @@
          is standing on its own, and it was only ever taken off on the way
          back to the field — so a reader who left a record for the LIST
          arrived at a list with no filter on it. */
+      holdForRecord(false);
       document.body.classList.remove('solo-from-field', 'solo-build',
                                      'solo-drawing', 'solo-closing', 'solo-shutting');
       document.body.style.removeProperty('--solo-drop');
@@ -6612,11 +6790,21 @@
        Stacked, the slot is the whole card, and the card is the nation's own
        width less its padding. Side by side, it is 46% of the card, less the
        rule between them — the same 46% the stylesheet names. */
+    /* One answer to "is this a phone", asked in a few places during the
+       handover. Read at the moment it is asked rather than cached, because a
+       window can be resized between one record and the next. */
+    function SMALL_SCREEN(){
+      return window.matchMedia('(max-width: 640px)').matches;
+    }
+
     function recordSlotWidth(){
       if (window.matchMedia('(max-width: 640px)').matches){
         return Math.max(80, window.innerWidth * 0.94 - 36);
       }
-      const card = Math.min(window.innerWidth * 0.94, 760);
+      /* The same measure the stylesheet uses for --card-w, or the zoom
+         stops at a size the record does not show it at and the garment
+         corrects the difference the moment the card opens. */
+      const card = Math.min(Math.min(window.innerWidth * 0.94, 880) - 34, 760);
       return Math.max(80, (card - 3) * 0.46);
     }
 
@@ -6632,9 +6820,20 @@
        released to settle into the card. The garment holds still, and the
        layout comes to it.
        ------------------------------------------------------------------ */
+    /* The page is held still for as long as a record opened from the field
+       is up, and let go the moment it closes. Both ends in one place so the
+       two can never get out of step and strand the reader on a page that
+       will not move. */
+    function holdForRecord(on){
+      const hold = !!on && SMALL_SCREEN();
+      document.documentElement.classList.toggle('solo-held', hold);
+      document.body.classList.toggle('solo-held', hold);
+    }
+
     function openRecord(item){
       document.body.style.removeProperty('--solo-drop');
       document.body.classList.add('solo-from-field');
+      holdForRecord(true);
       const img = item.querySelector('img');
       const from = (img || item).getBoundingClientRect();
 
@@ -6818,9 +7017,20 @@
                  so for as long as this was the only thing on the element,
                  the garment's width had no transition at all and snapped to
                  46% of the card the instant the record opened. That snap was
-                 the garment appearing to vanish. */
-              slot.style.transition = 'transform .82s cubic-bezier(.4,0,.2,1), ' +
-                                      'flex-basis .62s cubic-bezier(.4,0,.2,1)';
+                 the garment appearing to vanish.
+
+                 On a phone the garment does not travel at all. The press
+                 that opened it left it where it already was — the screen is
+                 the garment's own width there, so there is nowhere for it to
+                 go — and sliding it afterwards is a movement with nothing to
+                 show: it reads as the garment being nudged out from under
+                 the box that is about to be drawn around it. Whatever is
+                 left after the drop is taken up in one frame, before the
+                 stroke starts, and the width still eases. */
+              slot.style.transition = SMALL_SCREEN()
+                ? 'flex-basis .62s cubic-bezier(.4,0,.2,1)'
+                : 'transform .82s cubic-bezier(.4,0,.2,1), ' +
+                  'flex-basis .62s cubic-bezier(.4,0,.2,1)';
               slot.style.transform = 'none';
               soloTimers.push(setTimeout(() => {
                 /* The transition is deliberately NOT cleared here. The card
@@ -7084,6 +7294,7 @@
          back around it — so what crosses over is only the furniture. */
       const showField = () => {
         holdChosen = true;          // the garment just left stays lit
+        flickerNext = false;        // returning is not arriving
         openExplore();
         if (toAll){
           /* Asked for all of them rather than for the one just left. Any
@@ -7128,6 +7339,8 @@
            flashed back into place on its way out. That was the flicker. */
         document.body.classList.add('field-returning');
         document.body.classList.remove('solo-from-field');
+        holdForRecord(false);
+      holdForRecord(false);
         document.body.style.removeProperty('--solo-drop');
         soloId = null;
         q.value = '';
@@ -7206,11 +7419,7 @@
            letter by letter — rather than simply going with the box. It is
            the last thing the reader was looking at, and it leaves rather
            than disappears. Paced to be gone before the box is. */
-        const lid  = catalogue.querySelector('.nation:not([hidden]) > summary .n');
-        const lref = catalogue.querySelector('.nation:not([hidden]) > summary .n-ref');
-        /* The code comes off first and the name follows, so the line
-           unwrites from its own end rather than the two going at once. */
-        if (lref && lref.textContent) bmuErase(lref, 6);
+        const lid = catalogue.querySelector('.nation:not([hidden]) > summary .n');
         if (lid) bmuErase(lid, 6);   // off the lid quickly; it is leaving, not being read
       }, ARRIVED + HOLD));
       // 4 — the field starts returning over the tail of the shut, never after it
@@ -7468,7 +7677,7 @@
 
          Every garment reports back, and there is a floor under it in case a
          picture never arrives — the door is not held shut by one failure. */
-      setFaceMode('list');
+      setFaceMode('waiting');
       (function waitForTheField(){
         let handed = false;
         const hand = () => {
