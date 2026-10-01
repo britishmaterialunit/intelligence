@@ -4967,16 +4967,24 @@
     window.addEventListener('wheel', (e) => {
       if (opsState !== 'open') return;
       if (e.deltaY >= 0){ upAcc = 0; return; }
-      /* The pointer is in the box. Whatever the paper does with the gesture
-         is the box's business; closing is not. It used to close as soon as
-         the paper reached its own top, so reading up through the whitepaper
-         ran off the end of it and threw the box away — the reader was at the
-         top of what they were reading, not finished with it. */
-      /* e.target is a Node for any real wheel, but not for one dispatched
-         at the window — contains() throws on that, and a throw in a scroll
+      /* ---------- SCROLLING UP IS THE WAY OUT ----------
+         Up closes the box and gives the row of buttons back. The one thing
+         that comes first is the whitepaper itself: if it is scrolled down,
+         the gesture belongs to it until it reaches its own top, so reading
+         back up through the text does not throw the box away mid-paragraph.
+         Once the paper is at its top, the next push up closes.
+
+         I had made this return whenever the pointer was inside the box at
+         all — which, the box being most of the screen, meant there was no
+         way out by scrolling and the reader was stuck with it.
+
+         e.target is a Node for any real wheel, but not for one dispatched
+         at the window; contains() throws on that, and a throw in a scroll
          handler takes the rest of the handler with it. */
+      const body = opsSheet.querySelector('.ops-body');
       const t = e.target;
-      if (t && t.nodeType && opsBtn.contains(t)){ upAcc = 0; return; }
+      const inPaper = body && t && t.nodeType && body.contains(t);
+      if (inPaper && body.scrollTop > 2) return;
       upAcc += -e.deltaY;
       clearTimeout(upTimer);
       upTimer = setTimeout(() => { upAcc = 0; }, 250);
