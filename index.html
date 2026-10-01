@@ -4886,9 +4886,13 @@
         // swipe up — only once the body is scrolled to its end
         // (otherwise the gesture is just scrolling the whitepaper)
         if (dy < -70 && Math.abs(dy) > Math.abs(dx) * 1.5){
+          /* Only from outside the paper. Reaching the end of the whitepaper
+             used to be the cue to close, so reading to the bottom threw the
+             box away at exactly the moment the reader got there — finishing
+             the text is not asking to leave. Sideways still closes, and so
+             does the cross. */
           const body = opsSheet.querySelector('.ops-body');
-          const atEnd = body.scrollHeight - body.scrollTop - body.clientHeight < 6;
-          if (!body.contains(e.target) || atEnd){ sx = sy = null; closeOps(); }
+          if (!body.contains(e.target)){ sx = sy = null; closeOps(); }
         }
         // swipe down (a scroll-up gesture) — the same two-stage climb the
         // wheel takes: back to the sheet from the footer, out of it from
@@ -4916,27 +4920,21 @@
         return;
       }
 
-      /* ---------- THE BOX KEEPS THE GESTURE ----------
-         With Operations open and the cursor inside it, the wheel belongs to
-         the box: the whitepaper scrolls, in either direction, for as long as
-         it has anywhere to go. What the wheel does NOT do from in here is
-         move the page off the box or close it — the reader is reading, and
-         neither of those is something they asked for.
+      /* ---------- THE WHEEL IS THE READER'S ----------
+         Scrolling with the cursor in the box scrolls: the whitepaper first,
+         for as long as it has anywhere to go, and the page after that.
+         Nothing is held.
 
-         So the paper scrolls first and the page is held only at the ends of
-         it. Closing is still the ×, a swipe, or a scroll with the pointer
-         somewhere other than the thing being read — see the window handler
-         below, which stays out of the way while the cursor is in here. */
-      if (!window.matchMedia('(hover: hover)').matches) return;
-      const body = opsSheet.querySelector('.ops-body');
-      if (body && e.target && e.target.nodeType && body.contains(e.target)){
-        const down = e.deltaY > 0;
-        const room = down
-          ? body.scrollHeight - body.clientHeight - body.scrollTop
-          : body.scrollTop;
-        if (room > 1) return;          // the paper still has somewhere to go
-      }
-      e.preventDefault();
+         I had held the page here, so that the box could not slide out from
+         under the pointer. On a screen where the whitepaper fits — which is
+         most of them — that left the wheel doing nothing at all: no paper to
+         move and no page either. A box that swallows the gesture is worse
+         than one that scrolls away, because the reader cannot tell it from a
+         page that has stopped working.
+
+         What the wheel must not do is CLOSE it. That is handled below, and
+         in the swipe, and it is the whole of what "don't let scrolling lose
+         the box" needed to mean. */
     }, { passive:false });
 
     /* Scrolling UP while Operations is open, in two stages — unless the
