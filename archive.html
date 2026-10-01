@@ -5574,9 +5574,14 @@
       revealed = true;
       /* Through the door and into the field: whatever the button was
          wearing, it wears the circle now, and it turns over rather than
-         simply being a different picture. */
+         simply being a different picture.
+
+         Nothing to turn over on a pointer screen, where the archive opens
+         on the field and the button has worn the circle from the start —
+         a reel there is the same glyph rolling past itself. */
+      const wore = currentFace();
       setFaceMode('explore');
-      reelFaces();
+      if (wore !== 'explore') reelFaces();
       document.body.classList.remove('gated');
       spiral.classList.remove('sp-waiting');
       // stop taking presses immediately — the field underneath is live from
@@ -7857,18 +7862,17 @@
     setFaceMode('explore');
     setFace(0, true);
 
-    /* ---------- EVERY ARRIVAL LANDS ON THE LIST ----------
-       It was the phone that opened on the list and a pointer screen that
-       went straight into the field. But the field is the thing that takes
-       time to build, and opening onto it means opening onto a gate with
-       nothing to do behind it — the reader waits before they have been
-       given anything. The list is ready on the first paint, it is the whole
-       archive in a form that can be read and searched immediately, and the
-       field is a press away once it is up.
+    /* ---------- THE PHONE OPENS ON THE LIST, A POINTER ON THE FIELD ----------
+       A pointer screen goes straight into the field: it is the archive's own
+       view, there is room on the screen for it, and the machine looking at
+       it has the memory to hold seventy-odd photographs at once.
 
-       SMALL is kept: it still decides the things that are genuinely about
-       the size of the screen, further down. */
-    if (true){
+       A phone opens on the list instead. The field is the thing that takes
+       time to build there, and opening onto it means opening onto a door
+       with nothing yet behind it; the list is ready on the first paint and
+       is the whole archive in a form that can be read and searched at once,
+       with the field a press away as soon as it is up. */
+    if (SMALL){
       nationsOpen = true;
       setBrowsing(true);
       document.body.classList.add('dock-list');
@@ -7897,8 +7901,10 @@
         const hand = () => {
           if (handed) return;
           handed = true;
+          const wore = currentFace();
           setFaceMode('explore');
-          reelFaces();                // the list's glyph rolls over to the circle
+          // the list's glyph rolls over to the circle — only if it was wearing it
+          if (wore !== 'explore') reelFaces();
         };
         /* The field is raised here rather than on the press. The button is
            holding the door shut until there is something behind it, so
@@ -7919,6 +7925,10 @@
         else setTimeout(raise, 400);
         setTimeout(hand, 12000);        // a build that never lands is not a lock
       })();
+    } else {
+      openExplore();
+      openDock();
+      updateDock();
     }
     startSuggestions();   // the running suggestion is the bar's own prompt
 
