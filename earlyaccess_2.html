@@ -729,8 +729,20 @@
        is doing. */
     body.at-footer #siteHead .hd-mark,
     body.at-footer #siteHead:hover .hd-mark,
-    body.at-footer #siteHead.head-lit .hd-mark,
-    body.at-footer #siteHead.head-on .hd-mark{ opacity:0; pointer-events:none; }
+    body.at-footer #siteHead.head-lit .hd-mark{ opacity:0; pointer-events:none; }
+    /* ---------- NEVER TWO MARKS ----------
+       Unlit at the footer, the footer's own mark is the one on the line and
+       the header's stays down. Lit, the header is about to be the thing on
+       screen — the reader has pressed the way out — so they change places:
+       the header's comes up and the footer's steps down. One mark on that
+       line at any moment, in either state. */
+    body.at-footer #siteHead.head-on .hd-mark{ opacity:1; pointer-events:auto; }
+    /* Gone at once, not faded. Fading it took two hundred milliseconds
+       during which the header's mark was already up and both were on the
+       line together — which is the one thing this rule exists to prevent.
+       The header's own .45s fade-in covers the swap. */
+    body.head-on .foot-mark,
+    body.head-on .foot-slogan{ opacity:0; transition:none; }
 
     /* ---------- AND THE FOOTER'S HEAD SITS ON IT ----------
        Anchored, the footer's own mark, slogan and plus share the header's
@@ -1207,7 +1219,12 @@
        Placed here, after every rule it has to beat: these all match at the
        same weight, so the last one written is the one that counts. */
     @media (hover: none){
-      #siteHead:hover{ background:transparent; }
+      /* :not(.head-on) because a pseudo-class outranks a plain class — a
+         bare #siteHead:hover beat #siteHead.head-on and kept the bar clear
+         while the lit state said otherwise. The stuck hover a finger leaves
+         behind is exactly when that happens: press the explore mark at the
+         footer and the fill it asked for never arrived. */
+      #siteHead:hover:not(.head-on){ background:transparent; }
       #siteHead:hover .hd-trace,
       body.scrolled #siteHead:hover .hd-trace,
       body.at-footer #siteHead:hover .hd-trace{ opacity:1; transition:none; }
@@ -1567,21 +1584,36 @@
       if (siteHeadEl) siteHeadEl.classList.add('head-on');
       document.body.classList.add('head-on');
     }
-    /* At the footer the bar is a thing to press: it lights, and the
-       footer's head lights with it. Pressing it again puts it out. The
-       tools inside it keep their own jobs — this only answers a press on
-       the bar itself. */
-    if (siteHeadEl) siteHeadEl.addEventListener('click', e => {
-      if (!PHONE()) return;
-      if (!document.body.classList.contains('at-footer')) return;
-      if (e.target.closest('.hd-ico, .hd-mark, a, button')) return;
-      if (document.body.classList.contains('head-on')) dropFill(); else liftFill();
-    });
-    /* Leaving the footer takes the fill with it. */
-    window.addEventListener('scroll', () => {
-      if (document.body.classList.contains('head-on') &&
-          !document.body.classList.contains('at-footer')) dropFill();
-    }, { passive:true });
+    /* ---------- WHO LIGHTS THE BAR ----------
+       Not the bar itself. At the footer that strip of screen IS the
+       footer's head — its mark, its slogan, its plus — and a press on the
+       empty part of it was lighting a header over the thing the reader was
+       actually pressing on.
+
+       It is lit by the two tools that take the reader AWAY from the footer,
+       at the moment they do it: the arrow back to the top, and the mark
+       that leads to the archive. In both the header is about to be the
+       thing on screen, so it arrives already being it rather than fading up
+       after the page has settled.
+
+       The sandwich on the way DOWN never lights it — see dropFill in the
+       footer handler. Down here the header is not the subject. */
+    function litExit(el){
+      if (!el) return;
+      el.addEventListener('click', () => {
+        if (!PHONE()) return;
+        if (!document.body.classList.contains('at-footer')) return;
+        liftFill();
+      }, true);                 // before the tool's own handler runs
+    }
+    litExit(hdToggle);
+    litExit(document.getElementById('hdExplore'));
+
+    /* Lit on the way out, and it stays lit: the reader pressed the arrow to
+       come back to the top and the header is what is up here. Nothing on
+       the way drops it — a scroll-watcher put it out mid-climb, which is
+       the reader watching the thing they just asked for undo itself. Going
+       back DOWN is what clears it, and the sandwich does that itself. */
 
     /* ---------- LET'S TALK, WHEN IT IS ACTUALLY ON SCREEN ----------
        Not when the footer arrives — that is a screenful early, with the
