@@ -751,6 +751,14 @@
        stacking context — so a z-index inside it, however high, is still
        ranked below the header by ITS index rather than by the child's. The
        context itself has to rise, and only while the bar is lit. */
+    /* At the footer the footer's head shares the header's line, so it has
+       to be ABOVE it — not only while the bar is lit. Under it, the header
+       was swallowing every tap aimed at the plus: the first press hit the
+       header and lit it, which raised the row, and only then could a second
+       press reach the plus. Two presses for one thing, and the plus
+       apparently lost in between. Raised whenever the reader is down here,
+       the plus is simply the plus. */
+    body.at-footer .foot-inner{ z-index:61; }
     body.head-on .foot-inner{ z-index:61; }
     body.at-footer .foot-head{ position:relative; z-index:61; }
     body.head-on .foot-slogan,
@@ -897,7 +905,11 @@
     body.at-footer .hd-up{ opacity:1; transform:rotate(180deg); }
     /* white on the black ground, so they pop rather than sink */
     #siteHead:hover .hd-ico,
-    #siteHead.head-lit .hd-ico{ color:#fff; }
+    #siteHead.head-lit .hd-ico,
+    /* lit at the footer, the header's own two tools read with the plus
+       beside them rather than staying grey on a black ground — the three
+       are one row and they come up together */
+    #siteHead.head-on .hd-ico{ color:#fff; }
     .hd-ico:hover{ color:#fff; transform:scale(1.1); }
 
     /* ---------- MOBILE ---------- */

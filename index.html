@@ -1644,6 +1644,14 @@
     /* .foot-inner is positioned with a z-index of its own, so it is a
        stacking context and a z-index inside it is ranked by ITS index. The
        context itself rises, and only while the bar is lit. */
+    /* At the footer the footer's head shares the header's line, so it has
+       to be ABOVE it — not only while the bar is lit. Under it, the header
+       was swallowing every tap aimed at the plus: the first press hit the
+       header and lit it, which raised the row, and only then could a second
+       press reach the plus. Two presses for one thing, and the plus
+       apparently lost in between. Raised whenever the reader is down here,
+       the plus is simply the plus. */
+    body.at-footer .foot-inner{ z-index:61; }
     body.head-on .foot-inner{ z-index:61; }
     body.at-footer .foot-head{ position:relative; z-index:61; }
     body.head-on .foot-slogan,
@@ -1790,7 +1798,11 @@
     body.at-footer .hd-up{ opacity:1; transform:rotate(180deg); }
     /* white on the black ground, so they pop rather than sink */
     #siteHead:hover .hd-ico,
-    #siteHead.head-lit .hd-ico{ color:#fff; }
+    #siteHead.head-lit .hd-ico,
+    /* lit at the footer, the header's own two tools read with the plus
+       beside them rather than staying grey on a black ground — the three
+       are one row and they come up together */
+    #siteHead.head-on .hd-ico{ color:#fff; }
     .hd-ico:hover{ color:#fff; transform:scale(1.1); }
 
     /* ---------- MOBILE ---------- */
@@ -3585,6 +3597,14 @@
         document.body.classList.add('plus-aside');
         void siteFooter.offsetWidth;
         requestAnimationFrame(() => document.body.classList.remove('foot-now'));
+        /* The travel is a journey of its own, so the proximity rule stands
+           down for its duration. Without this the scroll handler runs all
+           the way down, finds the footer's head still a screen away, takes
+           plus-aside straight back off, and only puts it on again at the
+           end — which is the plus arriving late to a place it had already
+           been put. */
+        window.__bmuAnchoring = true;
+        setTimeout(() => { window.__bmuAnchoring = false; }, 900);
         const to = window.scrollY
                  + fMark.getBoundingClientRect().top
                  - hMark.getBoundingClientRect().top;
@@ -4963,6 +4983,35 @@
       }
       closeOps();
     }
+
+    /* ---------- IT FADES AWAY, AND SHUTS WHEN YOU COME BACK ----------
+       Scrolled down to the footer the box fades out and STAYS open — the
+       reader has gone to look at something else, not finished with it, and
+       a box that puts itself away behind their back is the thing that used
+       to lose their place.
+
+       Coming back is what closes it. The box folds down into the button it
+       grew out of as the row of buttons becomes reachable again, so the
+       reader arrives at the top to a row they can use rather than to a
+       sheet still standing open over it — and without having to push a
+       second time to say so.
+
+       Only if they went away. Opening Operations at the top of the page and
+       not moving is not "coming back", and the flag is what tells the two
+       apart. */
+    let opsWentDown = false;
+    window.addEventListener('scroll', () => {
+      if (typeof opsState === 'undefined' || opsState !== 'open'){
+        opsWentDown = false;
+        return;
+      }
+      if (document.body.classList.contains('at-footer')){ opsWentDown = true; return; }
+      /* The whole row on screen, which is the point the box came from. */
+      if (opsWentDown && window.scrollY <= 8){
+        opsWentDown = false;
+        closeOps();
+      }
+    }, { passive:true });
 
     window.addEventListener('wheel', (e) => {
       if (opsState !== 'open') return;

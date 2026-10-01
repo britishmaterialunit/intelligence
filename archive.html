@@ -2080,6 +2080,29 @@
 
     /* Only ever on screen if a Spotify link is what was given; an mp3 plays
        with nothing to show. Sits above the bar, on the bar's own measure. */
+    /* Said and gone. The dock's own measure and the dock's own ground, so
+       it reads as the bar answering rather than a notice from the page. */
+    .bmu-nodata{
+      position:fixed;
+      left:50%;
+      bottom:92px;
+      transform:translateX(-50%) translateY(6px);
+      z-index:81;
+      padding:7px 12px;
+      background:var(--line);
+      color:#fff;
+      font-size:10.5px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .26s cubic-bezier(.4,0,.2,1),
+                 transform .32s cubic-bezier(.4,0,.2,1);
+    }
+    .bmu-nodata.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+    @media (max-width:640px){ .bmu-nodata{ bottom:96px; } }
+    @media (prefers-reduced-motion:reduce){ .bmu-nodata{ transition:none; } }
+
     .bmu-spotify{
       position:fixed;
       left:50%;
@@ -5769,7 +5792,23 @@
       const margin = Math.max(70, Math.min(150, window.innerWidth * 0.14));
       const fit = Math.min(window.innerWidth, window.innerHeight - 150) /
                   ((reach + margin) * 2);
-      sc = Math.max(0.08, Math.min(maxScale(), fit));
+      /* ---------- A PHONE DOES NOT FIT THE WHOLE CLUSTER ----------
+         Fitting every garment of a cluster into 390 points leaves them
+         around 33px across — a field of thumbnails too small to be read as
+         garments, where the same cluster on a pointer screen comes out at
+         59. Fitting is the wrong goal on a narrow screen: the reader can
+         pan, and what they need first is to see what they have asked for.
+
+         So the phone goes partway in instead — the fit, pushed toward the
+         framing a single garment would get, which is the midpoint between
+         seeing all of it and being able to see any of it. The cluster is
+         centred either way; what changes is how close. */
+      let want = fit;
+      if (SMALL_SCREEN()){
+        const close = maxScale() * 0.42;       // a garment at reading size
+        if (close > fit) want = fit + (close - fit) * 0.5;
+      }
+      sc = Math.max(0.08, Math.min(maxScale(), want));
       tx = -cx * sc; ty = -cy * sc - 40;
       applyTransform();
     }
@@ -5815,8 +5854,14 @@
 
        Pressing enter is the choosing. THAT regathers: the matches come into
        a spiral of their own and everything else goes. */
+    /* Whether the field is standing in a gathered cluster rather than
+       merely dimmed around a word being typed. The two want different
+       things from the next keystroke — see the !gather branch. */
+    let clusterGathered = false, reGather = null;
+
     function clusterSearch(term, gather){
       clearTimeout(clusterTimer);
+      if (gather) clearTimeout(reGather);
       unframe();
       const els = [...spiral.children];
 
@@ -5834,6 +5879,7 @@
         () => els.forEach(el => { el.style.transition = ''; }), MOVE_MS + 80);
 
       if (!term){
+        clusterGathered = false;
         els.forEach(el => el.classList.remove('sp-dim', 'sp-gone', 'sp-grey'));
         slide();
         layoutSpiral(spiralMode);
@@ -5865,6 +5911,23 @@
           el.classList.toggle('sp-grey', !hit.includes(el));
           el.classList.remove('sp-dim', 'sp-gone');
         });
+
+        /* ---------- UNLESS A CLUSTER IS ALREADY GATHERED ----------
+           Typing a new nation while standing in the British cluster greyed
+           the British correctly and then left the reader looking at them:
+           the view was still gathered and zoomed on where they had been
+           put, so the garments actually being asked for were somewhere off
+           the edge of the screen. Greying says "not these"; it cannot say
+           "these, over here".
+
+           So once a cluster has been gathered, a new term re-gathers. Not
+           on the keystroke — that is the view being thrown about under an
+           unfinished word, which is what the paragraph above is for — but
+           once the typing stops. */
+        if (clusterGathered){
+          clearTimeout(reGather);
+          reGather = setTimeout(() => clusterSearch(term, true), 420);
+        }
         return;
       }
 
@@ -5880,6 +5943,7 @@
         el.classList.remove('sp-dim', 'sp-gone');
       });
       takeCentre(hit);
+      clusterGathered = true;
 
       clusterTimer = setTimeout(() => {
         glide(() => fitTo(hit), 800);
@@ -6312,15 +6376,12 @@
 
     function soundReady(){ return !!(BMU_SOUND.src || BMU_SOUND.spotify); }
 
-    /* The face is in the DOM either way; what changes is whether the stack
-       will ever stop on it. */
-    if (!soundReady()){
-      ORDER.explore = ['explore', 'list'];
-      ORDER.list    = ['explore', 'list'];
-    }
-
     function toggleSound(){
-      if (!soundReady()) return;
+      /* Nothing to play yet. The face stays in the stack — the tool is
+         announced, and saying so plainly is better than a button that
+         answers a press with nothing at all. The moment BMU_SOUND is
+         filled in this branch stops being reached. */
+      if (!soundReady()){ sayNoData(); return; }
 
       /* Spotify: their embed, opened once and left. It carries its own
          transport, so this button hands over to it rather than pretending
@@ -6357,6 +6418,23 @@
       if (p && p.catch) p.catch(() => setPlayFace(false));
     }
 
+    /* One line, where the reader's hand already is: under the bar, on the
+       bar's own measure, gone again on its own. */
+    let noDataEl = null, noDataOff = null;
+    function sayNoData(){
+      if (!noDataEl){
+        noDataEl = Object.assign(document.createElement('div'),
+          { className:'bmu-nodata', role:'status' });
+        noDataEl.textContent = 'No data';
+        document.body.appendChild(noDataEl);
+      }
+      noDataEl.classList.remove('show');
+      void noDataEl.offsetWidth;          // so a second press says it again
+      noDataEl.classList.add('show');
+      clearTimeout(noDataOff);
+      noDataOff = setTimeout(() => noDataEl.classList.remove('show'), 1700);
+    }
+
     function setPlayFace(on){
       soundOn = !!on;
       if (FACE.play) FACE.play.src = on ? '/pause-white.svg' : '/play-white.svg';
@@ -6375,10 +6453,19 @@
       if (face === 'play'){ toggleSound(); return; }
 
       if (face === 'list'){
-        // the listed nations, showing everything — not whatever the field
-        // happened to be filtered to. The dock stays: explore is where the
-        // searching happens now, and its bar is the one the reader has.
+        /* ---------- THE LIST, FROM THE TOP ----------
+           Pressed from the field this brings the list up. Pressed while the
+           reader is ALREADY on the list it means the other thing the glyph
+           can mean: put it back as it was. Every nation shut, the search
+           cleared, and the whole archive listed again from the first row —
+           after a reader has opened six nations and searched twice, the way
+           back to a readable list was closing all of them by hand.
+
+           Same call either way; what the reset adds is the shutting and the
+           replay of the list's own arrival. */
+        const alreadyListed = explore.hidden;
         toList({ keepDock:true });
+        if (alreadyListed) resetList();
         return;
       }
 
@@ -6669,6 +6756,26 @@
 
     /* Everything that lands on the tab list goes through here, so the dock's
        state and the face order can never disagree about which view is up. */
+    /* Every tab shut, nothing searched, and the list played in again the
+       way it arrives on a first visit. */
+    function resetList(){
+      resetPanels();
+      allNations.forEach(d => { d.open = false; });
+      nationsOpen = true;
+      dq.value = '';
+      q.value = '';
+      syncGhost();
+      paintHint('');
+      filter();
+      /* The arrival animation is driven by the class the shell carries, so
+         it is taken off and put back with a reflow between — without that
+         the browser coalesces the two and nothing replays. */
+      document.body.classList.remove('browsing');
+      void catalogue.offsetWidth;
+      document.body.classList.add('browsing');
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
     function toList(opt){
       const keepDock = !!(opt && opt.keepDock);
       /* Which garment the reader was standing on, before that is cleared.
