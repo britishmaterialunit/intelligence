@@ -4916,22 +4916,24 @@
         return;
       }
 
-      /* ---------- THE BOX DOES NOT SLIDE OUT FROM UNDER THE POINTER ----------
-         With Operations open and the cursor inside it, a scroll down took
-         the whole page with it and the box the reader was reading left the
-         screen — they had not asked to go anywhere, they were reading.
-         While the pointer is in the box, down belongs to the box.
+      /* ---------- THE BOX KEEPS THE GESTURE ----------
+         With Operations open and the cursor inside it, the wheel belongs to
+         the box: the whitepaper scrolls, in either direction, for as long as
+         it has anywhere to go. What the wheel does NOT do from in here is
+         move the page off the box or close it — the reader is reading, and
+         neither of those is something they asked for.
 
-         The whitepaper inside scrolls first and keeps its own gesture; the
-         page is only held once that has nothing left to give. Up is left
-         alone: it is the deliberate way out, two-staged by the window
-         handler below, and at the top of the page there is nowhere to
-         scroll off to anyway. */
-      if (e.deltaY <= 0) return;
+         So the paper scrolls first and the page is held only at the ends of
+         it. Closing is still the ×, a swipe, or a scroll with the pointer
+         somewhere other than the thing being read — see the window handler
+         below, which stays out of the way while the cursor is in here. */
       if (!window.matchMedia('(hover: hover)').matches) return;
       const body = opsSheet.querySelector('.ops-body');
-      if (body && body.contains(e.target)){
-        const room = body.scrollHeight - body.clientHeight - body.scrollTop;
+      if (body && e.target && e.target.nodeType && body.contains(e.target)){
+        const down = e.deltaY > 0;
+        const room = down
+          ? body.scrollHeight - body.clientHeight - body.scrollTop
+          : body.scrollTop;
         if (room > 1) return;          // the paper still has somewhere to go
       }
       e.preventDefault();
@@ -4967,8 +4969,16 @@
     window.addEventListener('wheel', (e) => {
       if (opsState !== 'open') return;
       if (e.deltaY >= 0){ upAcc = 0; return; }
-      const body = opsSheet.querySelector('.ops-body');
-      if (body.contains(e.target) && body.scrollTop > 2) return;
+      /* The pointer is in the box. Whatever the paper does with the gesture
+         is the box's business; closing is not. It used to close as soon as
+         the paper reached its own top, so reading up through the whitepaper
+         ran off the end of it and threw the box away — the reader was at the
+         top of what they were reading, not finished with it. */
+      /* e.target is a Node for any real wheel, but not for one dispatched
+         at the window — contains() throws on that, and a throw in a scroll
+         handler takes the rest of the handler with it. */
+      const t = e.target;
+      if (t && t.nodeType && opsBtn.contains(t)){ upAcc = 0; return; }
       upAcc += -e.deltaY;
       clearTimeout(upTimer);
       upTimer = setTimeout(() => { upAcc = 0; }, 250);
