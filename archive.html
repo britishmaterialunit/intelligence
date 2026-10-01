@@ -1845,7 +1845,24 @@
        already up and the reader is returning to a garment they were just
        looking at; flickering the whole archive at them reads as the page
        having gone wrong. See flickerNext. */
-    #spiral.sp-arriving .sp-item{
+    /* ---------- ON THE SLOT, NOT THE GARMENT ----------
+       The arrival animates the garment's PICTURE; the garment itself keeps
+       its own opacity for whatever the field is saying about it — dimmed,
+       greyed, or full strength in a cluster.
+
+       Run on .sp-item this fought the cluster and won: an animation beats a
+       class, and `both` holds its last keyframe, so for the whole second the
+       flicker was armed every garment was pinned at full strength and the
+       cluster only appeared once it let go. That was the flat middle — the
+       field arriving, standing there complete, and only then sorting itself
+       out. Two transitions queued where there should be one.
+
+       Split across the two elements they compose instead: the picture
+       flickers up while the garment settles to whatever the cluster makes
+       it, and the screen shows the product of the two. Opening on no
+       cluster is unchanged — everything settles at 1 and the flicker is the
+       only thing moving. */
+    #spiral.sp-arriving .sp-item .sp-slot{
       animation:spArrive 1s cubic-bezier(.4,0,.2,1) both;
       animation-delay:var(--flick, 0ms);
     }
@@ -1856,7 +1873,7 @@
       100% { opacity:1; }
     }
     @media (prefers-reduced-motion:reduce){
-      #spiral.sp-arriving .sp-item{ animation:none; }
+      #spiral.sp-arriving .sp-item .sp-slot{ animation:none; }
     }
     /* Blur alone still shows the shapes, and shapes resolving one by one is
        the thing being hidden. A halftone laid over the field breaks what is
