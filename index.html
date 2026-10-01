@@ -4913,7 +4913,28 @@
         clearTimeout(wheelTimer);
         wheelTimer = setTimeout(() => { wheelAcc = 0; }, 250);
         if (Math.abs(wheelAcc) > 140){ wheelAcc = 0; closeOps(); }
+        return;
       }
+
+      /* ---------- THE BOX DOES NOT SLIDE OUT FROM UNDER THE POINTER ----------
+         With Operations open and the cursor inside it, a scroll down took
+         the whole page with it and the box the reader was reading left the
+         screen — they had not asked to go anywhere, they were reading.
+         While the pointer is in the box, down belongs to the box.
+
+         The whitepaper inside scrolls first and keeps its own gesture; the
+         page is only held once that has nothing left to give. Up is left
+         alone: it is the deliberate way out, two-staged by the window
+         handler below, and at the top of the page there is nowhere to
+         scroll off to anyway. */
+      if (e.deltaY <= 0) return;
+      if (!window.matchMedia('(hover: hover)').matches) return;
+      const body = opsSheet.querySelector('.ops-body');
+      if (body && body.contains(e.target)){
+        const room = body.scrollHeight - body.clientHeight - body.scrollTop;
+        if (room > 1) return;          // the paper still has somewhere to go
+      }
+      e.preventDefault();
     }, { passive:false });
 
     /* Scrolling UP while Operations is open, in two stages — unless the

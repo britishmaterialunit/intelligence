@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./archive/**)",
+      "Read(./flags/**)",
+      "Read(./partners/**)",
+      "Read(./patterns/**)",
+      "Read(./Assets/**)",
+      "Read(./_incoming/**)",
+      "Read(./*.png)",
+      "Read(./*.svg)",
+      "Read(./*.pdf)"
+    ]
+  }
+}

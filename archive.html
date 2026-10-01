@@ -1615,6 +1615,40 @@
     }
     .face-stack .face.is-on{ opacity:1; transform:translateY(0); }
     .face-stack .face.is-out{ opacity:0; transform:translateY(-120%); }
+    /* ---------- THE REEL ----------
+       Entering the field is the one face change that is a moment rather
+       than a adjustment, so it gets a reel rather than the plain slide the
+       stack uses between tools: the list's glyph rolls up and off the top
+       while the circle comes up from under it, both stretched along the
+       way. The stretch is what sells it — a glyph travelling that fast
+       would smear, and a reel that moves without smearing reads as two
+       pictures being swapped rather than one wheel turning.
+
+       The stack already clips, so there is nothing to hide: the glyphs
+       simply pass behind its edges. */
+    .face-stack.reel .face.is-out{
+      animation:reelOut .46s cubic-bezier(.55,0,.35,1) both;
+    }
+    .face-stack.reel .face.is-on{
+      animation:reelIn .52s cubic-bezier(.3,0,.2,1) both;
+    }
+    @keyframes reelOut{
+      0%  { opacity:1; transform:translateY(0)     scaleY(1); }
+      60% { opacity:0; transform:translateY(-150%) scaleY(1.6); }
+      100%{ opacity:0; transform:translateY(-150%) scaleY(1); }
+    }
+    @keyframes reelIn{
+      0%  { opacity:0; transform:translateY(160%) scaleY(1.6); }
+      34% { opacity:0; transform:translateY(160%) scaleY(1.6); }
+      76% { opacity:1; transform:translateY(-14%) scaleY(1.12); }
+      90% { opacity:1; transform:translateY(4%)   scaleY(1); }
+      100%{ opacity:1; transform:translateY(0)    scaleY(1); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .face-stack.reel .face.is-out,
+      .face-stack.reel .face.is-on{ animation:none; }
+    }
+
     /* the periodic reminder that this button carries more than one tool */
     #dockExplore.hinting .face.is-on{ animation:faceHint .9s cubic-bezier(.4,0,.2,1); }
     @keyframes faceHint{
@@ -5498,6 +5532,11 @@
     function openGate(){
       if (revealed || !revArmed) return;
       revealed = true;
+      /* Through the door and into the field: whatever the button was
+         wearing, it wears the circle now, and it turns over rather than
+         simply being a different picture. */
+      setFaceMode('explore');
+      reelFaces();
       document.body.classList.remove('gated');
       spiral.classList.remove('sp-waiting');
       // stop taking presses immediately — the field underneath is live from
@@ -6146,6 +6185,20 @@
     };
     let faceMode = 'explore';
     let faces = ORDER.explore.map(k => FACE[k]);
+
+    /* The reel is asked for, never automatic: most face changes are the
+       reader scrolling the stack between tools, and a wheel spinning every
+       time they do would be noise. Only arriving in the field asks. */
+    let reelOff = null;
+    function reelFaces(){
+      const stack = dockExplore.querySelector('.face-stack');
+      if (!stack) return;
+      clearTimeout(reelOff);
+      stack.classList.remove('reel');
+      void stack.offsetWidth;          // so a second arrival plays it again
+      stack.classList.add('reel');
+      reelOff = setTimeout(() => stack.classList.remove('reel'), 700);
+    }
 
     function setFaceMode(mode){
       if (mode === faceMode) return;
@@ -7680,13 +7733,28 @@
     setFaceMode('explore');
     setFace(0, true);
 
-    if (SMALL){
+    /* ---------- EVERY ARRIVAL LANDS ON THE LIST ----------
+       It was the phone that opened on the list and a pointer screen that
+       went straight into the field. But the field is the thing that takes
+       time to build, and opening onto it means opening onto a gate with
+       nothing to do behind it — the reader waits before they have been
+       given anything. The list is ready on the first paint, it is the whole
+       archive in a form that can be read and searched immediately, and the
+       field is a press away once it is up.
+
+       SMALL is kept: it still decides the things that are genuinely about
+       the size of the screen, further down. */
+    if (true){
       nationsOpen = true;
       setBrowsing(true);
       document.body.classList.add('dock-list');
       filter();
       syncGhost();
-      collapseDock();
+      /* The bar opens on a pointer screen and stays shut on a phone. Opening
+         it puts the caret in the field, and a caret on a phone is a keyboard
+         over half the screen before the reader has asked for one — see
+         openDock, which declines to take focus there. */
+      if (SMALL) collapseDock(); else openDock();
       updateDock();
 
       /* ---------- THE WAY INTO THE FIELD WAITS FOR THE FIELD ----------
@@ -7705,7 +7773,8 @@
         const hand = () => {
           if (handed) return;
           handed = true;
-          setFaceMode('explore');     // turns the glyph over, on its own transition
+          setFaceMode('explore');
+          reelFaces();                // the list's glyph rolls over to the circle
         };
         /* The field is raised here rather than on the press. The button is
            holding the door shut until there is something behind it, so
@@ -7726,10 +7795,6 @@
         else setTimeout(raise, 400);
         setTimeout(hand, 12000);        // a build that never lands is not a lock
       })();
-    } else {
-      openExplore();
-      openDock();
-      updateDock();
     }
     startSuggestions();   // the running suggestion is the bar's own prompt
 
