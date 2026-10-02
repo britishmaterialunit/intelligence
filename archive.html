@@ -6560,6 +6560,78 @@
       return els;
     }
 
+    /* ---------- STEPPING THROUGH THE FIELD ----------
+       Once a garment is framed, the arrow keys walk from it to the next one
+       in that direction. Not before: an arrow pressed at a field showing
+       seventy-odd garments has no "next" to mean, and taking the keyboard
+       off a reader who is only scrolling the page is worse than not
+       offering it. The frame is what gives the arrows somewhere to stand,
+       and it is set by a first press on a garment or by the circle's own
+       travel — either counts, neither opens anything.
+
+       A record is a different view with its own ways out, so the keys stay
+       out of it entirely.
+
+       Within a cluster the walk is closed: only the gathered garments are
+       reachable, because the greyed ones are context the field has already
+       said are not the subject. Outside a cluster the whole field is in
+       play. Either way it is the same rule — step among whatever is
+       currently at full strength.
+
+       "Next in that direction" is the nearest garment inside a cone about
+       the axis, scored so that distance along the axis costs less than
+       distance across it: the eye reads a run of garments as a row even
+       when they are not level, and a pure nearest-neighbour jumps sideways
+       out of the row it is in. */
+    function steppable(){
+      return [...spiral.children].filter(el =>
+        !el.classList.contains('sp-dim') &&
+        !el.classList.contains('sp-grey') &&
+        !el.classList.contains('sp-gone') &&
+        !el.classList.contains('sp-rest'));
+    }
+
+    function stepFrom(el, dx, dy){
+      const pool = steppable();
+      if (pool.length < 2) return null;
+      const ax = parseFloat(el.style.left) || 0;
+      const ay = parseFloat(el.style.top)  || 0;
+      let best = null, bestScore = Infinity;
+      for (const other of pool){
+        if (other === el) continue;
+        const ox = (parseFloat(other.style.left) || 0) - ax;
+        const oy = (parseFloat(other.style.top)  || 0) - ay;
+        const along  = ox * dx + oy * dy;           // with the arrow
+        if (along <= 1) continue;                   // behind it, or level
+        const across = Math.abs(ox * dy - oy * dx); // off to the side
+        if (across > along * 1.6) continue;         // outside the cone
+        const score = along + across * 2.2;
+        if (score < bestScore){ bestScore = score; best = other; }
+      }
+      return best;
+    }
+
+    document.addEventListener('keydown', e => {
+      const DIRS = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
+      const dir = DIRS[e.key];
+      if (!dir) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      /* Somebody is typing. The bar is the one place on this page that
+         wants its own arrow keys. */
+      const t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (!window.matchMedia('(hover: hover)').matches) return;   // no keyboard to speak of
+      if (explore.hidden) return;                 // the list has its own keys
+      if (soloId || document.body.classList.contains('single-result')) return;
+      if (soloLock) return;                       // a garment is already on its way
+      if (!focusedItem || !focusedItem.isConnected) return;   // nothing framed to step from
+
+      const next = stepFrom(focusedItem, dir[0], dir[1]);
+      if (!next) return;
+      e.preventDefault();
+      glide(() => focusItem(next, maxScale() * 0.68));
+    });
+
     /* ---------- where the circle travels to ----------
        Not a fresh coin toss each press. A coin toss on seventy-odd garments
        still hands back the one just shown often enough to read as the
