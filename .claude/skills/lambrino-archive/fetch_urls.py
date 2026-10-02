@@ -69,6 +69,7 @@ NATIONS = {
     'spanish':       ('Spanish',       'SP'),
     'swedish':       ('Swedish',       'SW'),
     'swiss':         ('Swiss',         'CH'),
+    'turkish':       ('Turkish',       'T'),
     'united-states': ('United States', 'US'),
     'yugoslav':      ('Yugoslav',      'Y'),
 }
