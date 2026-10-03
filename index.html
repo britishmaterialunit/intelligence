@@ -4684,10 +4684,20 @@
     joinBtn.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openJoin('join'); }
     });
+    /* ---------- REPOSITORY IS A PAGE NOW ----------
+       It was a panel on this page, holding a short blurb. It holds the
+       wholesale registration as well now — a notice, a dozen fields, an
+       agreement and the policy behind it — which is more than a panel
+       sitting over the button row can carry. The button goes there.
+
+       openRepo and its panel are left where they are: /#repository still
+       opens them, and the footer's own Repository link now points at the
+       page, so nothing that used to work has stopped. */
     const repoBtn = document.getElementById('repoBtn');
-    repoBtn.addEventListener('click', openRepo);
+    const toRepo = () => { window.location.href = '/repository'; };
+    repoBtn.addEventListener('click', toRepo);
     repoBtn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openRepo(); }
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toRepo(); }
     });
     joinInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter'){ e.preventDefault(); submitJoin(); }
