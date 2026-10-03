@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Repository | British Material Unit (BMU)</title>
+  <link rel="canonical" href="https://britishmaterialunit.com/" />
+  <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
+
+  <!-- Repository is a state of the home page, not a document of its own.
+       Opening it there puts /repository in the address bar without a
+       navigation, so this page is only ever reached cold — a shared link, a
+       reload, a bookmark — and its one job is to hand the reader back to
+       the state they were promised.
+
+       replace(), not href: the reader should not have to press Back twice
+       to get out of a redirect they never saw. -->
+  <meta name="robots" content="noindex, follow" />
+  <script>
+    window.location.replace('/#repository' + window.location.search);
+  </script>
+  <noscript><meta http-equiv="refresh" content="0; url=/#repository" /></noscript>
+
+  <style>
+    body{
+      margin:0;
+      min-height:100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#ffffff;
+      color:#222;
+      font-family:Helvetica, Arial, sans-serif;
+      font-size:13px;
+      letter-spacing:.08em;
+    }
+    a{ color:#222; }
+  
+    /* ---------- NO ZOOM WHEN A FIELD IS TAPPED ----------
+       Safari zooms the whole page in whenever it is about to put a caret in
+       a field set smaller than 16px, and then leaves the reader at that
+       zoom with the page too wide to read. Nothing in CSS switches that
+       off; the only thing it answers to is the size itself. So every field
+       a reader can actually type in is 16px on a touch screen. The type
+       there is a little larger than on a pointer screen, which is the
+       trade for the page not jumping every time someone starts typing. */
+    /* !important because this has to beat every field's own rule, and some
+       of them are set by id — a field set to 12px by an id selector would
+       otherwise go on zooming the page whatever this said. There is no size
+       below 16 that is safe here, so there is nothing for a later rule to
+       usefully say. */
+    @media (pointer: coarse){
+      input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+    }
+</style>
+</head>
+<body>
+  <!-- seen only if the redirect cannot run -->
+  <p>Taking you to <a href="/#repository">the repository</a>.</p>
+</body>
+</html>
