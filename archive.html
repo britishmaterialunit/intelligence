@@ -2719,7 +2719,7 @@
     <nav class="hd-tools" aria-label="Leave the archive">
       <!-- the private shelves: a head and shoulders, drawn in the same line
            as the index beside it -->
-      <a class="hd-ico" id="hdColl" href="/collections" aria-label="Files — sign in">
+      <a class="hd-ico" id="hdColl" href="/files" aria-label="Files — sign in">
         <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
           <g class="ico-stroke">
             <circle cx="8" cy="5.4" r="2.6"/>
@@ -2888,7 +2888,7 @@
     </button>
     <!-- Only for a reader who is signed in, and only on the list: the way
          back to their own file from inside the archive. -->
-    <a id="dockFile" class="dock-sq" href="/collections" aria-label="Your files">
+    <a id="dockFile" class="dock-sq" href="/files" aria-label="Your files">
       <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
         <path d="M4 2.2 h5.2 l3 3 v8.6 h-8.2 Z"/>
         <path d="M9.2 2.2 v3 h3"/>
@@ -4077,7 +4077,7 @@
        the other end of the same interest. Once joined it never asks again.
        ============================================================ */
     const JOIN_KEY   = 'bmu.archive.joined';
-    const JOIN_LEDE  = 'Join to open your collection.';
+    const JOIN_LEDE  = 'Join to open your files.';
     const gateEl     = document.getElementById('joinGate');
     const jgLede     = document.getElementById('jgLede');
     const jgInput    = document.getElementById('jgInput');
@@ -7918,7 +7918,7 @@
     if (hdHome)  hdHome.addEventListener('click',  e => { e.preventDefault(); leaveTo('/#home'); });
     if (hdIndex) hdIndex.addEventListener('click', e => { e.preventDefault(); leaveTo('/#footer'); });
     const hdColl = document.getElementById('hdColl');
-    if (hdColl)  hdColl.addEventListener('click',  e => { e.preventDefault(); leaveTo('/collections'); });
+    if (hdColl)  hdColl.addEventListener('click',  e => { e.preventDefault(); leaveTo('/files'); });
 
     pruneSaved();
     paintSaved();
@@ -8084,7 +8084,7 @@
 
     /* ---------- SIGNED IN, ON EVERY PAGE ----------
        The sign-in is kept by Supabase in this origin's own storage, so it
-       survives leaving /collections — but only that page ever looked at it,
+       survives leaving /files — but only that page ever looked at it,
        and everywhere else the reader appeared to be a stranger again. The
        session is read here directly rather than by loading the whole client
        for one boolean: what the archive needs to know is whether there is a

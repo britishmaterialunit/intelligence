@@ -725,9 +725,7 @@
        underneath it in the same place, so the seam falls inside one
        continuous motion rather than at a blink. */
     #opsBtn.settle-down{
-      transition:transform .66s cubic-bezier(.4,0,.2,1),
-                 width .66s cubic-bezier(.65,0,.35,1),
-                 left .66s cubic-bezier(.65,0,.35,1);
+      transition:transform .66s cubic-bezier(.4,0,.2,1);
       transform:translateY(var(--settle, 140px));
       pointer-events:none;
     }
@@ -4722,17 +4720,13 @@
       } catch(_){}
     }
 
-    /* The width the box has to arrive at: the dock on the sign-up page is
-       min(92vw, 420px) wide with a 34px gap under it, and calc(100% - 32px)
-       with 20px under it on a phone. Kept here rather than guessed, because
-       a box that lands a few pixels off the one it is becoming reads as two
-       boxes rather than one. */
-    function dockGeometry(){
-      const phone = window.innerWidth <= 640;
-      return phone
-        ? { w: window.innerWidth - 32,                        gap: 20 }
-        : { w: Math.min(window.innerWidth * 0.92, 420),       gap: 34 };
-    }
+    /* How far the Access button's own line sits off the bottom of the
+       screen: the dock's 34px gap plus the Exit standing under it (32px and
+       an 8px space, 30 and 8 on a phone). The width is not asked for here —
+       the dock is the row's own width, so the box is already the right size
+       the moment it has finished expanding and has nothing left to do but
+       fall. */
+    function dockGap(){ return window.innerWidth <= 640 ? 58 : 74; }
 
     /* ---------- LEAVING FOR THE REPOSITORY ----------
        Archive's sequence, held at the end instead of let go of: converge,
@@ -4763,11 +4757,11 @@
         opsBtn.classList.add('expanding');
       }
 
+      /* It stays at the width it has just expanded to — that width IS the
+         Access button's — and only the word on it changes. Archive narrows
+         back to one button here because it is going somewhere with no box
+         waiting for it; this one is already the box it is about to become. */
       later(() => {
-        const rowW = navRow.getBoundingClientRect().width;
-        const w = soloWidth();
-        opsBtn.style.left  = ((rowW - w) / 2) + 'px';
-        opsBtn.style.width = w + 'px';
         opsBtn.classList.add('join-solo');
         opsLabel.textContent = 'Access';
         opsBtn.setAttribute('aria-label', 'Access');
@@ -4777,21 +4771,18 @@
       later(() => { window.location.href = '/repository'; }, 860 + 660);
     }
 
-    /* Down to the dock's own line, widening to the dock's own width as it
-       goes, and no fade: the last frame of this page is the box standing
-       exactly where the next page puts the Access button. */
+    /* Straight down to the dock's line, at the size it already is, and no
+       fade: the last frame of this page is the box standing exactly where
+       the next page puts the Access button.
+
+       The distance is written down on the way out. The Exit on that page
+       climbs back by the same number, so the two halves of the journey are
+       one move rather than two guesses at it. */
     function settleToDock(){
-      const dock = dockGeometry();
       const r    = opsBtn.getBoundingClientRect();
-      const rowW = navRow.getBoundingClientRect().width;
-      const rowL = navRow.getBoundingClientRect().left;
-      opsBtn.style.setProperty('--settle',
-        Math.max(0, Math.round(window.innerHeight - dock.gap - r.bottom)) + 'px');
-      /* the box is positioned inside the row, so the dock's centre has to be
-         expressed in the row's own coordinates */
-      const want = Math.min(dock.w, rowW);
-      opsBtn.style.left  = ((window.innerWidth / 2) - rowL - (want / 2)) + 'px';
-      opsBtn.style.width = want + 'px';
+      const fall = Math.max(0, Math.round(window.innerHeight - dockGap() - r.bottom));
+      try { sessionStorage.setItem('bmu.repo.fall', String(fall)); } catch(_){}
+      opsBtn.style.setProperty('--settle', fall + 'px');
       void opsBtn.offsetWidth;
       opsBtn.classList.add('settle-down');
     }

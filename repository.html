@@ -948,6 +948,50 @@
     .hd-ico:hover{ color:#fff; transform:scale(1.1); }
 
     /* ---------- MOBILE ---------- */
+    /* ---------- THE SHEET ARRIVING ----------
+       The copy falls into place from above rather than fading up out of
+       nothing: the reader has just watched a box come DOWN the home page,
+       and the page it landed on arrives the same way. Each block is a beat
+       behind the one over it, so the sheet reads top to bottom as it lands.
+       Held off the paint by a class on <html>, so nothing is seen in its
+       finished position first. */
+    .fall{
+      opacity:0;
+      transform:translateY(-16px);
+    }
+    html.fall-ready .fall{
+      transition:opacity .5s cubic-bezier(.4,0,.2,1) var(--fd, 0ms),
+                 transform .62s cubic-bezier(.3,0,.2,1) var(--fd, 0ms);
+    }
+    html.fall-ready .fall.landed{
+      opacity:1;
+      transform:none;
+    }
+    @media (prefers-reduced-motion:reduce){
+      .fall, html.fall-ready .fall{ opacity:1; transform:none; transition:none; }
+    }
+
+    /* ---------- BACK TO THE HOME PAGE ----------
+       The fall, run backwards. Everything the box came down past fades out
+       first, and then the box climbs to where the button row stands on the
+       home page and the next document takes over there. */
+    body.ws-leaving #partner > *:not(.p-sec),
+    body.ws-leaving .ws-form,
+    body.ws-leaving #siteFooter,
+    body.ws-leaving #siteHead,
+    body.ws-leaving .ws-exit,
+    body.ws-leaving .ws-agree,
+    body.ws-leaving .ws-msg{
+      opacity:0;
+      transition:opacity .42s cubic-bezier(.4,0,.2,1);
+      pointer-events:none;
+    }
+    body.ws-leaving{ overflow:hidden; }
+    .ws-dock.ws-rising{
+      transition:transform .66s cubic-bezier(.4,0,.2,1);
+      transform:translateX(-50%) translateY(calc(var(--rise, 240px) * -1));
+    }
+
     @media (max-width:640px){
       :root{ --bar-h:30px; }
       #siteHead{
@@ -1554,15 +1598,16 @@
       position:fixed;
       left:50%;
       bottom:34px;
+      /* the width the button row on the home page expands to, so the box
+         that travels down from it arrives at its own size and does not
+         have to change on landing */
+      width:min(92vw, 720px);
       transform:translateX(-50%);
       z-index:70;
-      width:min(92vw, 420px);
       display:flex;
       flex-direction:column;
       align-items:center;
-      transition:width .55s cubic-bezier(.65,0,.35,1);
     }
-    .ws-dock.ws-open{ width:min(94vw, 640px); }
 
     /* The dock floats over the form, so every part of it is opaque — a
        transparent strip here reads as two pages printed on top of each
@@ -1622,13 +1667,11 @@
       transition:max-height .58s cubic-bezier(.65,0,.35,1),
                  opacity .3s cubic-bezier(.4,0,.2,1);
     }
-    /* the width goes first and the height follows it, so the box opens out
-       and then climbs rather than doing both at once */
+    /* straight up, nothing sideways: the box is already the width it is
+       meant to be, and spreading it would undo the landing */
     .ws-dock.ws-open .ws-terms{
       max-height:min(58vh, 460px);
       opacity:1;
-      transition:max-height .58s cubic-bezier(.65,0,.35,1) .18s,
-                 opacity .28s cubic-bezier(.4,0,.2,1) .18s;
     }
     .ws-terms-inner{
       border:1.5px solid var(--line);
@@ -1684,6 +1727,30 @@
     .ws-terms-body p{ margin:0 0 11px; }
     .ws-terms-body a{ color:var(--ink); }
 
+    /* The way back, in the join field's own grey: a second box under the
+       first, filled rather than outlined, so it reads as the quieter of the
+       two without needing a word to say so. */
+    .ws-exit{
+      display:block;
+      width:100%;
+      height:32px;
+      line-height:32px;
+      margin-top:8px;
+      padding:0 6px;
+      border:none;
+      background:#e9e9e9;
+      color:#777;
+      font-family:var(--font);
+      font-size:13px;
+      text-align:center;
+      white-space:nowrap;
+      cursor:pointer;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1),
+                 color .3s cubic-bezier(.4,0,.2,1),
+                 opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    .ws-exit:hover{ background:#e0e0e0; color:#444; }
+
     .ws-msg{
       width:100%;
       margin:0;
@@ -1696,16 +1763,17 @@
     @media (max-width:640px){
       /* full width on a phone, and closer to the bottom edge — there is no
          room to float a panel with margins either side of it */
-      .ws-dock, .ws-dock.ws-open{ bottom:20px; width:calc(100% - 32px); }
+      .ws-dock{ bottom:20px; width:min(96vw, 440px); }
       .ws-dock.ws-open .ws-terms, .ws-terms-inner{ max-height:min(52vh, 420px); }
       .ws-terms-body{ font-size:11px; }
       /* the row's buttons are 30px on a phone, and this is one of them */
       .ws-access{ height:30px; line-height:27px; }
+      .ws-exit{ height:30px; line-height:30px; }
       #partner{ padding-bottom:130px; }
     }
 
     @media (prefers-reduced-motion:reduce){
-      .ws-dock, .ws-terms{ transition:none; }
+      .ws-dock, .ws-terms, .ws-dock.ws-rising{ transition:none; }
     }
 </style>
 </head>
@@ -1912,6 +1980,7 @@
         </label>
 
         <button type="submit" class="ws-access" id="wsSend" form="wsForm">Access</button>
+        <button type="button" class="ws-exit" id="wsExit">Exit</button>
       </div>
 
     </section>
@@ -2825,6 +2894,72 @@
         if (t && t.nodeType && dock.contains(t)) return;
         closeTerms();
       });
+
+      /* ---------- THE SHEET ARRIVING ----------
+         Marked in script rather than in the markup, so a reader without it
+         gets the page standing still and whole rather than a column of
+         invisible blocks. */
+      (function fallIn(){
+        const root = document.documentElement;
+        const parts = [].concat(
+          [].slice.call(document.querySelectorAll('#partner > .p-line, #partner > .ws-notice, #partner > .p-body')),
+          [].slice.call(document.querySelectorAll('.ws-form > *'))
+        );
+        if (!parts.length) return;
+        parts.forEach((el, i) => {
+          el.classList.add('fall');
+          el.style.setProperty('--fd', (i * 70) + 'ms');
+        });
+        root.classList.add('fall-ready');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          parts.forEach(el => el.classList.add('landed'));
+        }));
+      })();
+
+      /* ---------- THE WAY BACK ----------
+         The arrival run backwards: the paper goes away, everything the box
+         came down past fades off, and the box climbs by exactly the distance
+         it fell — the home page wrote that distance down on its way out, so
+         the two halves of the move are the same move.
+
+         Somebody who arrived here directly never set it, so the fallback
+         puts the box where the row stands: a little under two thirds down
+         the screen. */
+      const exit = document.getElementById('wsExit');
+      let goingBack = false;
+
+      function riseDistance(){
+        let px = 0;
+        try { px = parseFloat(sessionStorage.getItem('bmu.repo.fall')) || 0; } catch(_){}
+        if (!px){
+          const gap = window.innerWidth <= 640 ? 58 : 74;
+          px = Math.max(120, Math.round(window.innerHeight * 0.65) - gap);
+        }
+        return px;
+      }
+
+      exit.addEventListener('click', () => {
+        if (goingBack) return;
+        goingBack = true;
+        closeTerms();
+        document.body.classList.add('ws-leaving');
+        /* the paper has its own .58s to get out of the way; the climb waits
+           for it, or the box takes the open terms up the screen with it */
+        const wait = isOpen() ? 240 : 0;
+        setTimeout(() => {
+          dock.style.setProperty('--rise', riseDistance() + 'px');
+          void dock.offsetWidth;
+          dock.classList.add('ws-rising');
+        }, wait);
+        /* ...and the home page is asked for while the box is still moving,
+           so the row it is climbing towards is already there when it lands */
+        setTimeout(() => { window.location.href = '/#home'; }, wait + 620);
+      });
+      try {
+        const l = document.createElement('link');
+        l.rel = 'prefetch'; l.href = '/'; l.as = 'document';
+        document.head.appendChild(l);
+      } catch(_){}
 
     })();
 </script>

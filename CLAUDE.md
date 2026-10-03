@@ -10,9 +10,9 @@ one self-contained HTML file with its CSS in `<style>` and its JS in `<script>`.
 |---|---|
 | `index.html` | home — the door, button row, Operations/Join/Repository panels |
 | `archive.html` | the archive — list view, explore field, garment records. `ITEMS` holds every garment |
-| `collections.html` | **Files** (the signed-in reviewer's view). Supabase config in `collections-config.js` |
+| `files.html` | **Files** (the signed-in reviewer's view). Supabase config in `files-config.js`. The Supabase table is still `bmu_collections` — the page was renamed, the database was not |
 | `contact.html` `ew.html` `ou.html` `earlyaccess_2.html` `privacy.html` | content pages |
-| `join.html` `repository.html` | redirect stubs to `/#join`, `/#repository` |
+| `join.html` | redirect stub to `/#join`. `collections.html` redirects to `/files` — reviewers were emailed the old address |
 
 Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `soframa`, `*_greenscreen`,
 `archive_1`) are **old variants — not live. Don't edit them.**
