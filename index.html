@@ -1921,7 +1921,15 @@
          buttons behind the bar would show through its edges — take them
          out entirely instead */
       #navRow.ops-engaged .bm-button:not(#opsBtn){ opacity:0; }
-      .typewriter-text{ font-size:11pt; }
+      /* ---------- THE BLURB HOLDS THREE LINES ----------
+         At 11pt it ran to four on every phone, and the fourth carried
+         "repositories and systems" on its own — a line of tail. A fixed
+         size cannot hold three across the widths phones come in: 10pt fits
+         at 390 and spills again at 375. Tied to the width instead, the
+         measure keeps the same number of words per line whatever the
+         screen, and the clamp stops it going illegible on a very narrow
+         one or overgrown on a very wide one. */
+      .typewriter-text{ font-size:clamp(11.5px, 3.4vw, 14px); }
       /* three columns will not fit a phone — stack them */
       .foot-cols{ grid-template-columns:1fr; gap:26px; }
       /* The body already insets the page by 16px, and the footer was adding
