@@ -719,6 +719,19 @@
        is opening keeps its cross — and fades as it travels, so what the
        next document puts at the foot of the screen arrives in the space the
        box has just left. */
+    /* The repository door is the same fall without the fading. The box is
+       not leaving — it is going to the foot of the sign-up sheet and
+       standing there, and the Access button on the next page comes up
+       underneath it in the same place, so the seam falls inside one
+       continuous motion rather than at a blink. */
+    #opsBtn.settle-down{
+      transition:transform .66s cubic-bezier(.4,0,.2,1),
+                 width .66s cubic-bezier(.65,0,.35,1),
+                 left .66s cubic-bezier(.65,0,.35,1);
+      transform:translateY(var(--settle, 140px));
+      pointer-events:none;
+    }
+
     #opsBtn.drift-off{
       transition:transform .66s cubic-bezier(.4,0,.2,1),
                  opacity .66s cubic-bezier(.4,0,.2,1);
@@ -4295,8 +4308,9 @@
          animate home would play the departure backwards in front of a
          reader who has already left and returned. */
       opsBtn.style.transition = 'none';
-      opsBtn.classList.remove('expanding', 'join-solo', 'sending', 'sent', 'drift-off');
+      opsBtn.classList.remove('expanding', 'join-solo', 'sending', 'sent', 'drift-off', 'settle-down');
       opsBtn.style.removeProperty('--drift');
+      opsBtn.style.removeProperty('--settle');
       opsBtn.style.transform = '';
       opsBtn.style.opacity = '';
       opsBtn.style.left = '';
@@ -4694,8 +4708,100 @@
        opens them, and the footer's own Repository link now points at the
        page, so nothing that used to work has stopped. */
     const repoBtn = document.getElementById('repoBtn');
-    const toRepo = () => { window.location.href = '/repository'; };
+
+    let repoWarmed = false;
+    function warmRepo(){
+      if (repoWarmed) return;
+      repoWarmed = true;
+      try {
+        const l = document.createElement('link');
+        l.rel = 'prefetch';
+        l.href = '/repository';
+        l.as = 'document';
+        document.head.appendChild(l);
+      } catch(_){}
+    }
+
+    /* The width the box has to arrive at: the dock on the sign-up page is
+       min(92vw, 420px) wide with a 34px gap under it, and calc(100% - 32px)
+       with 20px under it on a phone. Kept here rather than guessed, because
+       a box that lands a few pixels off the one it is becoming reads as two
+       boxes rather than one. */
+    function dockGeometry(){
+      const phone = window.innerWidth <= 640;
+      return phone
+        ? { w: window.innerWidth - 32,                        gap: 20 }
+        : { w: Math.min(window.innerWidth * 0.92, 420),       gap: 34 };
+    }
+
+    /* ---------- LEAVING FOR THE REPOSITORY ----------
+       Archive's sequence, held at the end instead of let go of: converge,
+       widen, back down to one box reading Access, then down the screen to
+       the foot of it — and there it stays. */
+    function goRepo(ev){
+      if (ev) ev.preventDefault();
+      warmRepo();
+      if (leaving) return;
+      if (joinState !== 'off' || opsState !== 'closed'){ location.href = '/repository'; return; }
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        location.href = '/repository';
+        return;
+      }
+      leaving = true;
+      leftBtn = opsBtn;
+      document.body.classList.add('arch-leaving');
+      bmuUntype(textContent, 5);
+      joinState = 'opening';
+      navRow.classList.add('ops-engaged', 'join-mode');
+      convergeButtons();
+
+      if (!isStacked()){
+        flipPin();
+        opsBtn.style.left  = '0px';
+        opsBtn.style.width = '100%';
+      } else {
+        opsBtn.classList.add('expanding');
+      }
+
+      later(() => {
+        const rowW = navRow.getBoundingClientRect().width;
+        const w = soloWidth();
+        opsBtn.style.left  = ((rowW - w) / 2) + 'px';
+        opsBtn.style.width = w + 'px';
+        opsBtn.classList.add('join-solo');
+        opsLabel.textContent = 'Access';
+        opsBtn.setAttribute('aria-label', 'Access');
+      }, 420);
+
+      later(() => { settleToDock(); }, 860);
+      later(() => { window.location.href = '/repository'; }, 860 + 660);
+    }
+
+    /* Down to the dock's own line, widening to the dock's own width as it
+       goes, and no fade: the last frame of this page is the box standing
+       exactly where the next page puts the Access button. */
+    function settleToDock(){
+      const dock = dockGeometry();
+      const r    = opsBtn.getBoundingClientRect();
+      const rowW = navRow.getBoundingClientRect().width;
+      const rowL = navRow.getBoundingClientRect().left;
+      opsBtn.style.setProperty('--settle',
+        Math.max(0, Math.round(window.innerHeight - dock.gap - r.bottom)) + 'px');
+      /* the box is positioned inside the row, so the dock's centre has to be
+         expressed in the row's own coordinates */
+      const want = Math.min(dock.w, rowW);
+      opsBtn.style.left  = ((window.innerWidth / 2) - rowL - (want / 2)) + 'px';
+      opsBtn.style.width = want + 'px';
+      void opsBtn.offsetWidth;
+      opsBtn.classList.add('settle-down');
+    }
+
+    const toRepo = goRepo;
     repoBtn.addEventListener('click', toRepo);
+    /* asked for at the hover, so the document is already on its way by the
+       time the box has finished falling */
+    repoBtn.addEventListener('pointerenter', warmRepo);
+    repoBtn.addEventListener('touchstart', warmRepo, { passive:true });
     repoBtn.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toRepo(); }
     });

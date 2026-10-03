@@ -1403,7 +1403,27 @@
     #partner .p-body a:hover,
     .ws-notice a:hover{ color:var(--ink); }
 
-    .ws-form{ margin-top:8px; max-width:600px; }
+    /* Centred, while Open and Repository stay where they are on the left.
+       The page reads as a heading with a form under it rather than two
+       columns that never line up. */
+    .ws-form{ margin:8px auto 0; max-width:600px; }
+    /* Everything from the strapline down shares the form's column and its
+       centre line. Open and Repository stay where they were — the heading
+       is the page's masthead, not part of what is being filled in. */
+    #partner > .p-line,
+    #partner > .ws-notice,
+    #partner > .p-body{ width:100%; max-width:600px; margin-left:auto; margin-right:auto; }
+    /* room at the foot for the dock, which is fixed over the page */
+    #partner{ padding-bottom:150px; }
+    .ws-screen{
+      max-width:600px;
+      margin:26px auto 0;
+      font-size:11px;
+      line-height:1.75;
+      letter-spacing:.02em;
+      color:#8a8a8a;
+      text-align:center;
+    }
     .ws-group{
       border:none;
       padding:0;
@@ -1506,23 +1526,6 @@
       cursor:pointer;
     }
 
-    .ws-send{
-      display:block;
-      width:100%;
-      max-width:260px;
-      padding:11px 18px;
-      border:1.5px solid var(--line);
-      background:var(--line);
-      color:#fff;
-      font-family:var(--font);
-      font-size:11px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      cursor:pointer;
-      transition:opacity .3s cubic-bezier(.4,0,.2,1);
-    }
-    .ws-send:hover{ opacity:.78; }
-    .ws-send[disabled]{ opacity:.45; cursor:default; }
     .ws-msg{
       margin-top:12px;
       font-size:11px;
@@ -1533,81 +1536,176 @@
     }
     .ws-msg.ws-bad{ color:#b00020; }
 
-    /* ---------- the policy box ---------- */
-    .ws-policy{ position:fixed; inset:0; z-index:200; }
-    .ws-policy-veil{
-      position:absolute; inset:0;
-      background:rgba(255,255,255,.86);
-      backdrop-filter:blur(2px);
+    @media (max-width:640px){
+      /* one field per row — two columns of 170px is not a form anybody
+         can fill in with a thumb */
+      .ws-group{ grid-template-columns:minmax(0, 1fr); gap:16px; }
+      .ws-screen{ font-size:10.5px; }
     }
-    .ws-policy-box{
-      position:absolute;
-      left:50%; top:50%;
-      transform:translate(-50%, -50%);
-      width:min(92vw, 640px);
-      max-height:min(80vh, 760px);
+
+    /* ============================================================
+       THE DOCK
+       The button the reader arrived on, stopped at the foot of the screen
+       and left there. The terms grow out of it: wider first, then upward —
+       the Operations box run the other way up, because there is no room
+       below a thing that is already sitting on the bottom edge.
+       ============================================================ */
+    .ws-dock{
+      position:fixed;
+      left:50%;
+      bottom:34px;
+      transform:translateX(-50%);
+      z-index:70;
+      width:min(92vw, 420px);
       display:flex;
       flex-direction:column;
+      align-items:center;
+      transition:width .55s cubic-bezier(.65,0,.35,1);
+    }
+    .ws-dock.ws-open{ width:min(94vw, 640px); }
+
+    /* The dock floats over the form, so every part of it is opaque — a
+       transparent strip here reads as two pages printed on top of each
+       other. When the paper is out, the three parts close up into one
+       continuous panel. */
+    .ws-agree{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      width:100%;
+      margin:0;
+      padding:11px 14px;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      border-bottom:none;
+      font-size:11px;
+      line-height:1.5;
+      text-align:center;
+      cursor:pointer;
+    }
+
+    /* The same box as the home page's button row, down to the height and
+       the type: it IS that box. It travels down from the row on the home
+       page and lands here, and a box that changed size or face across the
+       seam would read as two boxes rather than one arriving. */
+    .ws-access{
+      display:block;
+      width:100%;
+      height:32px;
+      line-height:29px;
+      padding:0 6px;
       border:1.5px solid var(--line);
       background:var(--bg);
+      color:#000;
+      font-family:var(--font);
+      font-size:13px;
+      text-align:center;
+      white-space:nowrap;
+      cursor:pointer;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1),
+                 color .3s cubic-bezier(.4,0,.2,1);
     }
-    .ws-policy-head{
+    .ws-access:hover{ background:var(--faint); }
+    .ws-access[disabled]{ opacity:.45; cursor:default; }
+
+    /* ---------- the terms, grown out of the button ----------
+       Height, not display: a box that appears cannot be watched arriving.
+       It is laid out at full height and held at none, and letting go of the
+       hold is what runs it. */
+    .ws-terms{
+      width:100%;
+      max-height:0;
+      overflow:hidden;
+      background:var(--bg);
+      opacity:0;
+      transition:max-height .58s cubic-bezier(.65,0,.35,1),
+                 opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    /* the width goes first and the height follows it, so the box opens out
+       and then climbs rather than doing both at once */
+    .ws-dock.ws-open .ws-terms{
+      max-height:min(58vh, 460px);
+      opacity:1;
+      transition:max-height .58s cubic-bezier(.65,0,.35,1) .18s,
+                 opacity .28s cubic-bezier(.4,0,.2,1) .18s;
+    }
+    .ws-terms-inner{
+      border:1.5px solid var(--line);
+      border-bottom:none;
+      display:flex;
+      flex-direction:column;
+      max-height:min(58vh, 460px);
+    }
+    .ws-terms-head{
       flex:none;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:16px;
-      padding:14px 16px;
+      padding:12px 14px;
       border-bottom:1.5px solid var(--line);
     }
-    .ws-policy-head h2{
+    .ws-terms-head h2{
       margin:0;
-      font-size:11px;
+      font-size:10.5px;
       letter-spacing:.18em;
       text-transform:uppercase;
       font-weight:bold;
     }
-    .ws-policy-x{
+    .ws-terms-x{
       flex:none;
-      width:26px; height:26px;
-      border:none;
-      background:none;
-      font-size:18px;
-      line-height:1;
-      color:#8a8a8a;
-      cursor:pointer;
+      width:24px; height:24px;
+      border:none; background:none;
+      font-size:17px; line-height:1;
+      color:#8a8a8a; cursor:pointer;
       transition:color .22s cubic-bezier(.4,0,.2,1);
     }
-    .ws-policy-x:hover{ color:var(--ink); }
-    /* The long part. It scrolls inside itself so the page behind it stays
-       where the reader left it — they are in the middle of a form. */
-    .ws-policy-body{
+    .ws-terms-x:hover{ color:var(--ink); }
+    .ws-terms-body{
       flex:1 1 auto;
       overflow-y:auto;
       -webkit-overflow-scrolling:touch;
       overscroll-behavior:contain;
-      padding:18px 16px 24px;
-      font-size:12px;
+      padding:16px 14px 20px;
+      font-size:11.5px;
       line-height:1.75;
       color:#444;
+      text-align:left;
     }
-    .ws-policy-body h3{
-      margin:22px 0 8px;
-      font-size:10.5px;
+    .ws-terms-body h3{
+      margin:20px 0 7px;
+      font-size:10px;
       letter-spacing:.16em;
       text-transform:uppercase;
       color:var(--ink);
     }
-    .ws-policy-body h3:first-child{ margin-top:0; }
-    .ws-policy-body p{ margin:0 0 12px; }
-    .ws-policy-body a{ color:var(--ink); }
+    .ws-terms-body h3:first-child{ margin-top:0; }
+    .ws-terms-body p{ margin:0 0 11px; }
+    .ws-terms-body a{ color:var(--ink); }
+
+    .ws-msg{
+      width:100%;
+      margin:0;
+      padding:0 14px 8px;
+      background:transparent;
+      text-align:center;
+    }
+    .ws-msg:empty{ padding:0; min-height:0; }
 
     @media (max-width:640px){
-      /* one field per row — two columns of 170px is not a form anybody
-         can fill in with a thumb */
-      .ws-group{ grid-template-columns:minmax(0, 1fr); gap:16px; }
-      .ws-send{ max-width:none; }
-      .ws-policy-box{ width:94vw; max-height:84vh; }
+      /* full width on a phone, and closer to the bottom edge — there is no
+         room to float a panel with margins either side of it */
+      .ws-dock, .ws-dock.ws-open{ bottom:20px; width:calc(100% - 32px); }
+      .ws-dock.ws-open .ws-terms, .ws-terms-inner{ max-height:min(52vh, 420px); }
+      .ws-terms-body{ font-size:11px; }
+      /* the row's buttons are 30px on a phone, and this is one of them */
+      .ws-access{ height:30px; line-height:27px; }
+      #partner{ padding-bottom:130px; }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      .ws-dock, .ws-terms{ transition:none; }
     }
 </style>
 </head>
@@ -1661,16 +1759,16 @@
     <!-- Said before anything is typed, not after. Somebody who is not a
          trade customer should find that out on the way in rather than at
          the point their account is deleted. -->
-    <p class="ws-notice" id="wsNotice">Before registering please be aware that the registration process is strictly for wholesale purposes. All accounts are screened before being authorised. Any accounts found to be not belonging to a trade customer will be deleted upon screening.</p>
+    <!-- The box at the top answers the question the page's own title
+         raises. Somebody who has to ask what a repository is cannot be
+         expected to want an account in one. -->
+    <p class="ws-notice" id="wsNotice"><strong>What&rsquo;s a repository?</strong> It&rsquo;s our standing holding of military surplus textile &mdash; available for donation and for acquisition, listed with the pattern metrics that say what can be cut from it. A trade account is how you reach it.</p>
 
     <p class="p-body">Not ready to open an account? Search for military garments via our <a href="/archive">archive</a> and request for sourcing for small production runs, or visit <a href="/contact#unit">Unit U</a> our open-studio. Alternatively, request for a <a href="/contact">demo</a> of MarshalOS, our garment to garment remanufacturing software.</p>
 
     <section class="p-sec">
-      <h2>Register</h2>
-
       <form class="ws-form" id="wsForm" novalidate>
         <fieldset class="ws-group">
-          <legend class="ws-legend">Your Personal Details</legend>
           <label class="ws-field" for="wsFirst">
             <span class="ws-label">First Name<span class="ws-req" aria-hidden="true">*</span></span>
             <input class="ws-input" id="wsFirst" name="First Name" type="text"
@@ -1751,30 +1849,30 @@
              anything in it is a machine, and the send is dropped. -->
         <input type="text" class="ws-hp" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-        <label class="ws-agree" for="wsAgree">
-          <input type="checkbox" id="wsAgree" name="Privacy policy accepted" value="yes" required>
-          <span class="ws-agree-box" aria-hidden="true"></span>
-          <span class="ws-agree-text">I have read and agree to the <button type="button" class="ws-policy-open" id="wsPolicyOpen">Privacy Policy</button>.</span>
-        </label>
-
-        <button type="submit" class="ws-send" id="wsSend">Register</button>
-        <div class="ws-msg" id="wsMsg" role="status"></div>
+        <!-- What used to stand at the top of the page. It belongs here:
+             the moment it actually bears on is the one before somebody
+             commits their details, not the one before they read what a
+             repository is. -->
+        <p class="ws-screen">Before registering please be aware that the registration process is strictly for wholesale purposes. All accounts are screened before being authorised. Any accounts found to be not belonging to a trade customer will be deleted upon screening.</p>
       </form>
-    </section>
-  </main>
 
-  <!-- ---------- THE POLICY, ON THE PAGE ----------
-       Read where it is agreed to, not on a page the reader has to leave the
-       half-filled form to go and find. A long box, scrolled inside itself,
-       dismissed by the cross, the backdrop or Escape. -->
-  <div class="ws-policy" id="wsPolicy" hidden>
-    <div class="ws-policy-veil" id="wsPolicyVeil"></div>
-    <div class="ws-policy-box" role="dialog" aria-modal="true" aria-labelledby="wsPolicyTitle">
-      <div class="ws-policy-head">
-        <h2 id="wsPolicyTitle">Privacy Policy</h2>
-        <button type="button" class="ws-policy-x" id="wsPolicyClose" aria-label="Close the privacy policy">&#215;</button>
-      </div>
-      <div class="ws-policy-body" id="wsPolicyBody" tabindex="0">
+      <!-- ---------- THE DOCK ----------
+           The button the reader arrived on. It travels down from the home
+           page's row and stops here, at the foot of the screen, and stays
+           put — so the thing they pressed to come here is the thing they
+           press to finish.
+
+           The terms grow out of it: wider first, then upward, which is the
+           Operations box run the other way up. -->
+      <div class="ws-dock" id="wsDock">
+        <div class="ws-terms" id="wsTerms" aria-hidden="true">
+          <div class="ws-terms-inner">
+            <div class="ws-terms-head">
+              <h2 id="wsPolicyTitle">Privacy Policy</h2>
+              <button type="button" class="ws-terms-x" id="wsPolicyClose" aria-label="Close the privacy policy">&#215;</button>
+            </div>
+            <div class="ws-terms-body" id="wsPolicyBody" tabindex="0">
+
         <h3>What is this Privacy Policy for?</h3>
         <p>This privacy policy is for this website britishmaterialunit.com and served by British Material Unit (BMU) and governs the privacy of its users who choose to use it.</p>
         <p>The policy sets out the different areas where user privacy is concerned and outlines the obligations &amp; requirements of the users, the website and website owners. Furthermore the way this website processes, stores and protects user data and information will also be detailed within this policy.</p>
@@ -1802,10 +1900,24 @@
         <h3>Shortened Links in Social Media</h3>
         <p>This website and its owners through their social media platform accounts may share web links to relevant web pages. By default some social media platforms shorten lengthy url’s [web addresses].</p>
         <p>Users are advised to take caution and good judgement before clicking any shortened url’s published on social media platforms by this website and it’s owners. Despite the best efforts to ensure only genuine url’s are published many social media platforms are prone to spam and hacking and therefore this website and it’s owners cannot be held liable for any damages or implications caused by visiting any shortened links.</p>
-      </div>
-    </div>
-  </div>
+            </div>
+          </div>
+        </div>
 
+        <div class="ws-msg" id="wsMsg" role="status"></div>
+        <label class="ws-agree" for="wsAgree">
+          <input type="checkbox" id="wsAgree" name="Privacy policy accepted" value="yes" required>
+          <span class="ws-agree-box" aria-hidden="true"></span>
+          <span class="ws-agree-text">I have read and agree to the <button type="button" class="ws-policy-open" id="wsPolicyOpen">Privacy Policy</button>.</span>
+        </label>
+
+        <button type="submit" class="ws-access" id="wsSend" form="wsForm">Access</button>
+      </div>
+
+    </section>
+  </main>
+
+  
 
   <footer id="siteFooter">
     <div class="foot-inner">
@@ -2660,34 +2772,60 @@
         }
       });
 
-      /* ---------- the policy, opened where it is agreed to ---------- */
-      const box   = document.getElementById('wsPolicy');
+      /* ---------- the terms, grown out of the button ----------
+         The Operations box the other way up. There is nothing below a box
+         that is already resting on the bottom edge, so the dock widens
+         first and the paper climbs out of the top of the button.
+
+         The scroll inside it is its own: a wheel that reaches the end of
+         the paper must not carry on and take the page with it, and a press
+         anywhere outside puts it away. */
+      const dock  = document.getElementById('wsDock');
+      const terms = document.getElementById('wsTerms');
       const open  = document.getElementById('wsPolicyOpen');
       const shut  = document.getElementById('wsPolicyClose');
-      const veil  = document.getElementById('wsPolicyVeil');
       const body  = document.getElementById('wsPolicyBody');
       let lastFocus = null;
 
-      function openPolicy(){
+      const isOpen = () => dock.classList.contains('ws-open');
+
+      function openTerms(){
+        if (isOpen()) return;
         lastFocus = document.activeElement;
-        box.hidden = false;
-        document.documentElement.style.overflow = 'hidden';
+        dock.classList.add('ws-open');
+        terms.setAttribute('aria-hidden', 'false');
         body.scrollTop = 0;
-        body.focus({ preventScroll:true });
+        /* after the climb, not during it — focusing a box that is still
+           0px tall scrolls the page to find it */
+        setTimeout(() => { if (isOpen()) body.focus({ preventScroll:true }); }, 420);
       }
-      function closePolicy(){
-        box.hidden = true;
-        document.documentElement.style.overflow = '';
+      function closeTerms(){
+        if (!isOpen()) return;
+        dock.classList.remove('ws-open');
+        terms.setAttribute('aria-hidden', 'true');
         if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll:true });
       }
+
       /* The label wraps the checkbox, so a press on the link inside it would
          otherwise tick the box on the way past. */
-      open.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openPolicy(); });
-      shut.addEventListener('click', closePolicy);
-      veil.addEventListener('click', closePolicy);
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && !box.hidden) closePolicy();
+      open.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        isOpen() ? closeTerms() : openTerms();
       });
+      shut.addEventListener('click', closeTerms);
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeTerms();
+      });
+      /* a press outside the dock puts the paper away; a press inside it,
+         including on the button and the agreement, leaves it open */
+      document.addEventListener('pointerdown', e => {
+        if (!isOpen()) return;
+        const t = e.target;
+        if (t && t.nodeType && dock.contains(t)) return;
+        closeTerms();
+      });
+
     })();
 </script>
 </body>
