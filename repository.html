@@ -971,6 +971,19 @@
       .fall, html.fall-ready .fall{ opacity:1; transform:none; transition:none; }
     }
 
+    /* ---------- THE FOOTER UNDER THE DOCK ----------
+       The dock is fixed, so scrolling to the end of the page brings the
+       footer up behind it and the two read as one another's noise. The
+       footer stands down while anything in the dock is over it and comes
+       back the moment it is clear. */
+    #siteFooter{
+      transition:opacity .42s cubic-bezier(.4,0,.2,1);
+    }
+    body.dock-over #siteFooter{
+      opacity:0;
+      pointer-events:none;
+    }
+
     /* ---------- BACK TO THE HOME PAGE ----------
        The fall, run backwards. Everything the box came down past fades out
        first, and then the box climbs to where the button row stands on the
@@ -1123,28 +1136,6 @@
       justify-content:center;
       padding:120px 0 90px;
     }
-    .p-role{
-      font-size:10px;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      color:#9a9a9a;
-      min-height:1.2em;
-    }
-    .p-name{
-      margin:14px 0 0;
-      font-size:clamp(34px, 7vw, 68px);
-      font-weight:400;
-      letter-spacing:-.01em;
-      line-height:1.02;
-      min-height:1em;
-    }
-    .p-line{
-      margin:18px 0 0;
-      max-width:52ch;
-      font-size:14px;
-      line-height:1.55;
-      color:var(--ink);
-    }
     .p-body{
       margin:20px 0 0;
       max-width:60ch;
@@ -1294,7 +1285,6 @@
       .p-body{ font-size:12.5px; }
       /* the name has to shrink with the phone or it sets the page's width
          and pushes the whole column off the header's left edge */
-      .p-name{ font-size:clamp(28px, 9vw, 44px); }
     }
 
 
@@ -1423,7 +1413,7 @@
        inside so it is still readable once something has been typed.
        ============================================================ */
     .ws-notice{
-      margin:0 0 26px;
+      margin:0 0 14px;
       padding:14px 16px;
       border:1.5px solid var(--line);
       font-size:12px;
@@ -1454,19 +1444,31 @@
     /* Everything from the strapline down shares the form's column and its
        centre line. Open and Repository stay where they were — the heading
        is the page's masthead, not part of what is being filled in. */
-    #partner > .p-line,
     #partner > .ws-notice,
     #partner > .p-body{ width:100%; max-width:600px; margin-left:auto; margin-right:auto; }
+    /* the box is the top of the page now, so it carries the space the
+       heading used to stand in */
+    #partner > .ws-notice{ margin-top:8px; }
+    /* and the paragraph answering it sits straight underneath, not a
+       section away */
+    #partner > .p-body{ margin-top:14px; }
     /* room at the foot for the dock, which is fixed over the page */
-    #partner{ padding-bottom:150px; }
+    /* 120px of it stood under a heading this page no longer has */
+    #partner{ padding-top:76px; padding-bottom:150px; }
+    /* Two lines, and three at the narrowest. The measure is what decides
+       that, not the type size: 600px of 11px copy ran to four lines, so the
+       note is given the width it needs and the size is left alone. The
+       balance keeps the two lines even rather than a long one and a stub. */
     .ws-screen{
-      max-width:600px;
+      max-width:none;
+      width:min(96vw, 720px);
       margin:26px auto 0;
       font-size:11px;
       line-height:1.75;
       letter-spacing:.02em;
       color:#8a8a8a;
       text-align:center;
+      text-wrap:balance;
     }
     .ws-group{
       border:none;
@@ -1517,6 +1519,27 @@
        simply turned red at them. */
     .ws-input.ws-bad{ border-bottom-color:#b00020; }
     .ws-select{ cursor:pointer; }
+    .ws-hidden{ display:none; }
+
+    /* The archive's own flag for whichever country is chosen, standing at
+       the end of the field rather than inside the list: a select cannot
+       carry a picture in its options, and the one that matters is the one
+       already picked. */
+    .ws-field-flag{ position:relative; }
+    .ws-flag{
+      position:absolute;
+      right:0;
+      bottom:9px;
+      width:20px;
+      height:auto;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    .ws-flag.on{ opacity:1; }
+    /* the chevron the browser draws sits at the right edge, so the list
+       itself stops short of the flag rather than running under it */
+    .ws-field-flag .ws-select{ padding-right:30px; }
     /* off the page, never in the tab order, never read out */
     .ws-hp{ position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
 
@@ -1584,7 +1607,11 @@
       /* one field per row — two columns of 170px is not a form anybody
          can fill in with a thumb */
       .ws-group{ grid-template-columns:minmax(0, 1fr); gap:16px; }
-      .ws-screen{ font-size:10.5px; }
+      /* Three lines on a phone, which 11px will not do at this measure
+         however it is wrapped — 282 characters need about 94 to a line and
+         11px fits 70. The letter-spacing goes with it; there is none to
+         spare at this width. */
+      .ws-screen{ font-size:clamp(8px, 2.5vw, 10px); letter-spacing:0; }
     }
 
     /* ============================================================
@@ -1730,26 +1757,35 @@
     /* The way back, in the join field's own grey: a second box under the
        first, filled rather than outlined, so it reads as the quieter of the
        two without needing a word to say so. */
+    /* The way back, in the join field's own grey and carrying the same
+       cross the home page closes a panel with. A word here would have been
+       a third thing to read in a stack of two; the mark says it. */
     .ws-exit{
-      display:block;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       width:100%;
       height:32px;
-      line-height:32px;
       margin-top:8px;
-      padding:0 6px;
+      padding:0;
       border:none;
       background:#e9e9e9;
-      color:#777;
-      font-family:var(--font);
-      font-size:13px;
-      text-align:center;
-      white-space:nowrap;
       cursor:pointer;
       transition:background-color .3s cubic-bezier(.4,0,.2,1),
-                 color .3s cubic-bezier(.4,0,.2,1),
                  opacity .3s cubic-bezier(.4,0,.2,1);
     }
-    .ws-exit:hover{ background:#e0e0e0; color:#444; }
+    .ws-exit svg{ width:16px; height:16px; display:block; overflow:visible; }
+    .ws-exit path{
+      fill:none;
+      stroke:#777;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      transition:stroke .3s cubic-bezier(.4,0,.2,1);
+    }
+    .ws-exit:hover{ background:#e0e0e0; }
+    .ws-exit:hover path{ stroke:#222; }
+    .ws-exit:focus-visible{ outline:1.5px solid var(--ink); outline-offset:2px; }
 
     .ws-msg{
       width:100%;
@@ -1820,9 +1856,6 @@
    </div>
   </header>
   <main id="partner">
-    <div class="p-role" id="pRole" data-text="Open"></div>
-    <h1 class="p-name" id="pName" data-text="Repository"></h1>
-    <p class="p-line">A wholesale trade account with British Material Unit.</p>
 
     <!-- Said before anything is typed, not after. Somebody who is not a
          trade customer should find that out on the way in rather than at
@@ -1860,7 +1893,6 @@
         </fieldset>
 
         <fieldset class="ws-group">
-          <legend class="ws-legend">Your Address</legend>
           <label class="ws-field" for="wsCompany">
             <span class="ws-label">Company<span class="ws-req" aria-hidden="true">*</span></span>
             <input class="ws-input" id="wsCompany" name="Company" type="text"
@@ -1891,8 +1923,11 @@
             <input class="ws-input" id="wsPost" name="Post Code" type="text"
                    autocomplete="postal-code" placeholder="Post Code" required>
           </label>
-          <label class="ws-field" for="wsCountry">
+          <label class="ws-field ws-field-flag" for="wsCountry">
             <span class="ws-label">Country<span class="ws-req" aria-hidden="true">*</span></span>
+            <!-- the archive's own flag for whichever country is chosen; empty
+                 and hidden until there is one to show -->
+            <img class="ws-flag" id="wsFlag" alt="" aria-hidden="true">
             <select class="ws-input ws-select" id="wsCountry" name="Country" autocomplete="country-name" required>
               <option value="United Kingdom" selected>United Kingdom</option>
               <option value="Ireland">Ireland</option>
@@ -1908,7 +1943,12 @@
           </label>
           <label class="ws-field" for="wsRegion">
             <span class="ws-label">Region / State</span>
-            <input class="ws-input" id="wsRegion" name="Region / State" type="text"
+            <!-- Filled from the country above. Somewhere not on the country
+                 list has no list of its own either, so the field falls back
+                 to the box it used to be. -->
+            <select class="ws-input ws-select" id="wsRegion" name="Region / State"
+                    autocomplete="address-level1"></select>
+            <input class="ws-input ws-hidden" id="wsRegionFree" name="Region / State" type="text"
                    autocomplete="address-level1" placeholder="Region / State">
           </label>
         </fieldset>
@@ -1980,7 +2020,12 @@
         </label>
 
         <button type="submit" class="ws-access" id="wsSend" form="wsForm">Access</button>
-        <button type="button" class="ws-exit" id="wsExit">Exit</button>
+        <button type="button" class="ws-exit" id="wsExit" aria-label="Exit to the home page">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M3.9 3.9 L12.1 12.1"/>
+            <path d="M12.1 3.9 L3.9 12.1"/>
+          </svg>
+        </button>
       </div>
 
     </section>
@@ -2818,6 +2863,10 @@
 
         const data = { _subject: 'Wholesale account registration', _template: 'table' };
         form.querySelectorAll('.ws-input').forEach(el => {
+          /* the region's two fields share a name and take it in turns; the
+             one standing down is disabled, and a disabled field is not part
+             of the answer */
+          if (el.disabled) return;
           const v = String(el.value).trim();
           if (v) data[el.name] = v;
         });
@@ -2895,6 +2944,124 @@
         closeTerms();
       });
 
+      /* ============================================================
+         WHERE THEY ARE
+         The region field is filled from the country above it, because
+         "Region / State" as an empty box asks somebody in Lincolnshire and
+         somebody in Nebraska the same question and gets two different kinds
+         of answer. Somewhere not on the country list has no list of its own
+         either, so the field falls back to the box it used to be.
+
+         The flags are the archive's own, which already holds one for every
+         country on this list.
+         ============================================================ */
+      const FLAGS = {
+        'United Kingdom':'ukflag', 'Ireland':'irelandflag', 'France':'franceflag',
+        'Germany':'germanyflag', 'Netherlands':'netherlandsflag', 'Belgium':'belgiumflag',
+        'Spain':'spainflag', 'Italy':'italyflag', 'United States':'usaflag'
+      };
+
+      const REGIONS = {
+        'United Kingdom':['England','Scotland','Wales','Northern Ireland'],
+        'Ireland':['Carlow','Cavan','Clare','Cork','Donegal','Dublin','Galway','Kerry',
+          'Kildare','Kilkenny','Laois','Leitrim','Limerick','Longford','Louth','Mayo',
+          'Meath','Monaghan','Offaly','Roscommon','Sligo','Tipperary','Waterford',
+          'Westmeath','Wexford','Wicklow'],
+        'France':['Auvergne-Rhone-Alpes','Bourgogne-Franche-Comte','Bretagne',
+          'Centre-Val de Loire','Corse','Grand Est','Hauts-de-France','Ile-de-France',
+          'Normandie','Nouvelle-Aquitaine','Occitanie','Pays de la Loire',
+          "Provence-Alpes-Cote d'Azur",'Guadeloupe','Guyane','La Reunion','Martinique',
+          'Mayotte'],
+        'Germany':['Baden-Wurttemberg','Bayern','Berlin','Brandenburg','Bremen','Hamburg',
+          'Hessen','Mecklenburg-Vorpommern','Niedersachsen','Nordrhein-Westfalen',
+          'Rheinland-Pfalz','Saarland','Sachsen','Sachsen-Anhalt','Schleswig-Holstein',
+          'Thuringen'],
+        'Netherlands':['Drenthe','Flevoland','Friesland','Gelderland','Groningen','Limburg',
+          'Noord-Brabant','Noord-Holland','Overijssel','Utrecht','Zeeland','Zuid-Holland'],
+        'Belgium':['Antwerpen','Brussels','Henegouwen / Hainaut','Limburg',
+          'Luik / Liege','Luxemburg / Luxembourg','Namen / Namur','Oost-Vlaanderen',
+          'Vlaams-Brabant','Waals-Brabant / Brabant wallon','West-Vlaanderen'],
+        'Spain':['Andalucia','Aragon','Asturias','Islas Baleares','Canarias','Cantabria',
+          'Castilla-La Mancha','Castilla y Leon','Cataluna','Comunidad Valenciana',
+          'Extremadura','Galicia','La Rioja','Madrid','Murcia','Navarra','Pais Vasco',
+          'Ceuta','Melilla'],
+        'Italy':['Abruzzo','Basilicata','Calabria','Campania','Emilia-Romagna',
+          'Friuli-Venezia Giulia','Lazio','Liguria','Lombardia','Marche','Molise',
+          'Piemonte','Puglia','Sardegna','Sicilia','Toscana','Trentino-Alto Adige',
+          'Umbria',"Valle d'Aosta",'Veneto'],
+        'United States':['Alabama','Alaska','Arizona','Arkansas','California','Colorado',
+          'Connecticut','Delaware','District of Columbia','Florida','Georgia','Hawaii',
+          'Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine',
+          'Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri',
+          'Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico',
+          'New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon',
+          'Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee',
+          'Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin',
+          'Wyoming','American Samoa','Guam','Northern Mariana Islands','Puerto Rico',
+          'U.S. Virgin Islands','Armed Forces Americas','Armed Forces Europe',
+          'Armed Forces Pacific']
+      };
+
+      (function placeFields(){
+        const country = document.getElementById('wsCountry');
+        const region  = document.getElementById('wsRegion');
+        const free    = document.getElementById('wsRegionFree');
+        const flag    = document.getElementById('wsFlag');
+        if (!country || !region || !free || !flag) return;
+
+        function fill(){
+          const where = country.value;
+          const list  = REGIONS[where];
+
+          const file = FLAGS[where];
+          if (file){
+            flag.src = '/flags/' + file + '.png';
+            flag.classList.add('on');
+          } else {
+            flag.classList.remove('on');
+            flag.removeAttribute('src');
+          }
+
+          if (!list){
+            /* nowhere to choose from: the plain box comes back, and the
+               list stands down so two fields never answer at once. It is
+               emptied as well as hidden — the two share a name, and a
+               list still holding last country's answer would have put a
+               German state on an address in Japan. */
+            region.innerHTML = '';
+            region.classList.add('ws-hidden');
+            region.disabled = true;
+            free.classList.remove('ws-hidden');
+            free.disabled = false;
+            return;
+          }
+          free.classList.add('ws-hidden');
+          free.disabled = true;
+          free.value = '';
+          region.classList.remove('ws-hidden');
+          region.disabled = false;
+          region.innerHTML = '';
+          const blank = document.createElement('option');
+          blank.value = '';
+          blank.textContent = 'Region / State';
+          region.appendChild(blank);
+          list.forEach(name => {
+            const o = document.createElement('option');
+            o.value = name;
+            o.textContent = name;
+            region.appendChild(o);
+          });
+        }
+
+        country.addEventListener('change', fill);
+        /* a sent form resets the country to the top of the list, so the
+           region has to be rebuilt for it — reset fires before the fields
+           are actually cleared, hence the wait */
+        const form = document.getElementById('wsForm');
+        if (form) form.addEventListener('reset', () => setTimeout(fill, 0));
+        fill();
+      })();
+
       /* ---------- THE SHEET ARRIVING ----------
          Marked in script rather than in the markup, so a reader without it
          gets the page standing still and whole rather than a column of
@@ -2914,6 +3081,35 @@
         requestAnimationFrame(() => requestAnimationFrame(() => {
           parts.forEach(el => el.classList.add('landed'));
         }));
+      })();
+
+      /* ---------- THE FOOTER UNDER THE DOCK ----------
+         Measured rather than guessed at a scroll depth: the dock grows when
+         the terms are out, and a fixed line down the page would have been
+         wrong the moment they were. The two rectangles are compared, so the
+         footer stands down exactly when something is actually over it. */
+      (function footerUnder(){
+        const foot = document.getElementById('siteFooter');
+        if (!foot) return;
+        let pending = false;
+        function check(){
+          pending = false;
+          const d = dock.getBoundingClientRect();
+          const f = foot.getBoundingClientRect();
+          const over = f.top < d.bottom && f.bottom > d.top;
+          document.body.classList.toggle('dock-over', over);
+        }
+        const ask = () => {
+          if (pending) return;
+          pending = true;
+          requestAnimationFrame(check);
+        };
+        window.addEventListener('scroll', ask, { passive:true });
+        window.addEventListener('resize', ask);
+        /* the terms climbing over the footer is a change in the dock, not
+           in the scroll, so the box is watched as well */
+        if (window.ResizeObserver) new ResizeObserver(ask).observe(dock);
+        check();
       })();
 
       /* ---------- THE WAY BACK ----------
