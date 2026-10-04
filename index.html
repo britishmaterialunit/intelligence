@@ -4226,25 +4226,24 @@
         opsBtn.classList.add('expanding');
       }
 
-      // ...and back down to one button, now reading Archive
+      /* It keeps the width it has just reached and only the word on it
+         changes. Opening out and then shrinking back to a small button
+         before dropping it was two moves where there is one: the box opens,
+         takes the name of where it is going, and leaves. */
       later(() => {
-        const rowW = navRow.getBoundingClientRect().width;
-        const w = soloWidth();
-        opsBtn.style.left  = ((rowW - w) / 2) + 'px';
-        opsBtn.style.width = w + 'px';
         opsBtn.classList.add('join-solo');
         opsLabel.textContent = 'Archive';
         opsBtn.setAttribute('aria-label', 'Archive');
-      }, 420);
+      }, 540);
 
-      // and away: down the screen, fading as it goes
-      later(() => { driftOff(); }, 860);
+      // and away: down the screen, fading as it goes, straight out of the open
+      later(() => { driftOff(); }, 560);
       /* Not until the drift has run its whole .66s. Leaving early froze the
          box on screen part-faded while the archive loaded — the last frame
          of this page is what stays up until the next one paints. That is now
          a short wait rather than a long one, because warmArchive() asked for
          the document back at the press. */
-      later(() => { window.location.href = '/archive'; }, 860 + 660);
+      later(() => { window.location.href = '/archive'; }, 560 + 660);
     }
 
     /* The last beat both doors share: the box leaves the way the reader is
@@ -4769,14 +4768,15 @@
       }
 
       /* It stays at the width it has just expanded to — that width IS the
-         Access button's — and only the word on it changes. Archive narrows
-         back to one button here because it is going somewhere with no box
-         waiting for it; this one is already the box it is about to become. */
+         Access button's — and only the word on it changes. 540 is where
+         Join relabels and 550 is what the width transition takes, so the
+         word lands as the box finishes opening rather than part way
+         through it. */
       later(() => {
         opsBtn.classList.add('join-solo');
         opsLabel.textContent = 'Access';
         opsBtn.setAttribute('aria-label', 'Access');
-      }, 420);
+      }, 540);
 
       /* The arrow becomes the cross on the way over, and the cross is
          already standing in that exact spot when the next document paints.
@@ -4785,8 +4785,11 @@
       scrollCue.classList.add('close-mode');
       scrollCue.setAttribute('aria-label', 'Exit');
 
-      later(() => { settleToDock(); }, 860);
-      later(() => { window.location.href = '/repository'; }, 860 + 660);
+      /* Straight on. The box used to stand still for 440ms between taking
+         the name and starting down, which read as a hesitation rather than
+         a beat; the fall now comes out of the same motion that opened it. */
+      later(() => { settleToDock(); }, 560);
+      later(() => { window.location.href = '/repository'; }, 560 + 660);
     }
 
     /* Straight down to the dock's line, at the size it already is, and no

@@ -997,14 +997,18 @@
       pointer-events:none;
     }
     body.ws-leaving{ overflow:hidden; }
-    /* The sheet leaves the way it arrived, upwards and a beat per block —
-       the last one off is the one nearest the box, so the page clears from
-       the top down as the box climbs through where it was. */
-    html.fall-ready .fall.lifting{
+    /* The sheet goes down into the button rather than up off the top: the
+       box is at the foot of the screen and it is what the page is folding
+       into, so every block travels towards it, shrinks a little as it goes
+       and is gone by the time it gets there. The block nearest the button
+       goes first and the title last, so the page is drawn down into it in
+       order rather than all at once. */
+    html.fall-ready .fall.collapsing{
       opacity:0;
-      transform:translateY(-16px);
-      transition:opacity .4s cubic-bezier(.4,0,.2,1) var(--lf, 0ms),
-                 transform .46s cubic-bezier(.65,0,.35,1) var(--lf, 0ms);
+      transform:translateY(26px) scale(.985);
+      transform-origin:50% 100%;
+      transition:opacity .4s cubic-bezier(.5,0,.75,0) var(--lf, 0ms),
+                 transform .52s cubic-bezier(.5,0,.75,0) var(--lf, 0ms);
     }
     .ws-dock.ws-rising{
       transition:transform .66s cubic-bezier(.4,0,.2,1);
@@ -1669,6 +1673,28 @@
       text-align:center;
       cursor:pointer;
     }
+    /* It comes out of the top of the button the way the terms do, rather
+       than being there before the button has finished arriving. Held at no
+       height and let go of, so the line is watched growing out of the box
+       instead of appearing beside it. The button does not move: the dock is
+       anchored at its foot and everything above it grows upward. */
+    .ws-agree-grow{
+      width:100%;
+      max-height:0;
+      overflow:hidden;
+      opacity:0;
+    }
+    html.ws-live .ws-agree-grow{
+      transition:max-height .5s cubic-bezier(.65,0,.35,1),
+                 opacity .34s cubic-bezier(.4,0,.2,1);
+    }
+    html.ws-live .ws-agree-grow.ws-out{
+      max-height:var(--agree-h, 90px);
+      opacity:1;
+    }
+    /* once it is open the clip comes off, so the focus ring on the box and
+       the underline on the link are not shaved */
+    html.ws-live .ws-agree-grow.ws-settled{ overflow:visible; max-height:none; }
 
     /* The same box as the home page's button row, down to the height and
        the type: it IS that box. It travels down from the row on the home
@@ -2038,11 +2064,13 @@
         </div>
 
         <div class="ws-msg" id="wsMsg" role="status"></div>
+        <div class="ws-agree-grow" id="wsAgreeGrow">
         <label class="ws-agree" for="wsAgree">
           <input type="checkbox" id="wsAgree" name="Privacy policy accepted" value="yes" required>
           <span class="ws-agree-box" aria-hidden="true"></span>
           <span class="ws-agree-text">I have read and agree to the <button type="button" class="ws-policy-open" id="wsPolicyOpen">Privacy Policy</button>.</span>
         </label>
+        </div>
 
         <button type="submit" class="ws-access" id="wsSend" form="wsForm">Access</button>
         <button type="button" class="ws-exit" id="wsExit" aria-label="Exit to the home page">
@@ -3096,6 +3124,27 @@
         fill();
       })();
 
+      /* ---------- THE AGREEMENT, OUT OF THE BUTTON ----------
+         The box has only just landed from the home page. The line above it
+         grows out of its top edge a beat later, the way the terms do, so
+         there is nothing on screen that was not watched arriving. */
+      (function growAgree(){
+        const grow = document.getElementById('wsAgreeGrow');
+        if (!grow) return;
+        document.documentElement.classList.add('ws-live');
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          grow.classList.add('ws-out', 'ws-settled');
+          return;
+        }
+        grow.style.setProperty('--agree-h', grow.scrollHeight + 'px');
+        setTimeout(() => {
+          grow.classList.add('ws-out');
+          setTimeout(() => {
+            if (grow.classList.contains('ws-out')) grow.classList.add('ws-settled');
+          }, 560);
+        }, 260);
+      })();
+
       /* ---------- THE SHEET ARRIVING ----------
          Marked in script rather than in the markup, so a reader without it
          gets the page standing still and whole rather than a column of
@@ -3177,12 +3226,21 @@
         exit.setAttribute('aria-label', 'Returning to the home page');
         closeTerms();
         document.body.classList.add('ws-leaving');
-        /* the sheet goes up, nearest the box last, so the page is clearing
-           in front of the box rather than after it */
+        /* the sheet is drawn down into the button, the block nearest it
+           first and the title last */
+        const last = fallen.length - 1;
         fallen.forEach((el, i) => {
-          el.style.setProperty('--lf', (i * 45) + 'ms');
-          el.classList.add('lifting');
+          el.style.setProperty('--lf', ((last - i) * 42) + 'ms');
+          el.classList.add('collapsing');
         });
+        /* ...and the line above the button folds back into it */
+        const grow = document.getElementById('wsAgreeGrow');
+        if (grow){
+          grow.classList.remove('ws-settled');
+          grow.style.setProperty('--agree-h', grow.scrollHeight + 'px');
+          void grow.offsetWidth;
+          grow.classList.remove('ws-out');
+        }
         /* the paper has its own .58s to get out of the way; the climb waits
            for it, or the box takes the open terms up the screen with it */
         const wait = isOpen() ? 240 : 0;
