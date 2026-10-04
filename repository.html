@@ -955,9 +955,13 @@
        behind the one over it, so the sheet reads top to bottom as it lands.
        Held off the paint by a class on <html>, so nothing is seen in its
        finished position first. */
+    /* The topple the files page opens a file with — tipped back on its
+       top edge and falling flat — rather than a slide. Same gesture, so the
+       sheet reads as a cut of the same system. */
     .fall{
       opacity:0;
-      transform:translateY(-16px);
+      transform:perspective(760px) rotateX(-34deg) translateY(-16px);
+      transform-origin:50% 0;
     }
     html.fall-ready .fall{
       transition:opacity .5s cubic-bezier(.4,0,.2,1) var(--fd, 0ms),
@@ -984,6 +988,17 @@
        the page: the document simply ends after the sheet, and there is
        nothing below to carry on into. */
     body.foot-held #siteFooter{ display:none; }
+
+    /* ...and once the tool HAS asked for it, the footer is the page. The
+       dock is a fixed thing over the middle of the screen; leaving it there
+       put the Access button, the exit and the terms across a footer that was
+       being blanked underneath them for overlapping. Both cannot be on
+       screen, so the one that was asked for stays. */
+    body.foot-shown .ws-dock{
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
+    }
 
     /* ---------- THE FOOTER UNDER THE DOCK ----------
        The dock is fixed, so scrolling to the end of the page brings the
@@ -2455,9 +2470,17 @@
        watching for the top alone would re-take it on the first scroll event
        of the journey, which is still at the top, and the lock would come
        back mid-flight and stop the travel it had just allowed. */
+    let footHold_released = () => false;
     const footHold = (() => {
       let released = false, wentDown = false;
-      function apply(){ document.body.classList.toggle('foot-held', !released); }
+      function apply(){
+        document.body.classList.toggle('foot-held', !released);
+        /* the dock goes with the hold: while the footer is up it is the
+           only thing on the page, and the dock comes back with the gate */
+        document.body.classList.toggle('foot-shown', released);
+        if (released) document.body.classList.remove('dock-over');
+      }
+      footHold_released = () => released;
       window.addEventListener('scroll', () => {
         if (!released) return;
         if (window.scrollY > 40){ wentDown = true; return; }
@@ -3233,6 +3256,12 @@
         let pending = false;
         function check(){
           pending = false;
+          /* Nothing to measure while the footer is the page: the dock has
+             stood down for it, so there is nothing over it to hide it from. */
+          if (footHold_released()){
+            document.body.classList.remove('dock-over');
+            return;
+          }
           const d = dock.getBoundingClientRect();
           const f = foot.getBoundingClientRect();
           const over = f.top < d.bottom && f.bottom > d.top;

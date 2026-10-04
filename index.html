@@ -5339,16 +5339,25 @@
          in the row's flow leaves it at the width of nothing, which is a
          14px sliver where a button should be. */
       opsBtn.classList.remove('join-solo');
+      /* The box arrives already open, so this is the second half of Join's
+         close and nothing but: the word comes off, the box narrows into its
+         slot and the four run out from under it. It used to sit still for
+         420ms first, waiting for a widening that had already happened on
+         the page before. */
       later(() => {
         opsLabel.textContent = 'Operations';
         opsBtn.setAttribute('aria-label', 'Operations');
         const slot = estimateSlot();
         opsBtn.style.left  = slot.left + 'px';
         opsBtn.style.width = slot.width + 'px';
-        navRow.classList.remove('join-mode');
+        /* BOTH, the way closeJoin drops them: ops-engaged holds the four at
+           opacity 0 as well as join-mode, so leaving it on until the landing
+           had them scatter out invisible and then fade in where they stopped,
+           instead of arriving as they travelled. */
+        navRow.classList.remove('join-mode', 'ops-engaged');
         navRow.style.pointerEvents = 'none';   // nothing is clickable mid-flight
         releaseButtons();
-      }, 420);
+      }, 100);
 
       later(() => {
         opsBtn.classList.remove('expanding');
@@ -5359,7 +5368,7 @@
         navRow.classList.remove('ops-engaged');
         navRow.style.pointerEvents = '';
         holdPage.sync();
-      }, 1020);
+      }, 700);
       return true;
     }
 
