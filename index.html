@@ -4669,6 +4669,12 @@
       joinInput.disabled = true;
       showJoinMsg('Sending', true);
 
+      /* Kept as well as sent. Fired here rather than after the email so a
+         slow inbox does not delay it, and never waited on: the reader is
+         waiting on the email, and a database that is down must not be the
+         reason somebody cannot join. See signups.js. */
+      if (window.bmuKeep) window.bmuKeep(joinMode === 'early' ? 'early' : 'join', email);
+
       fetch(JOIN_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
@@ -5788,5 +5794,9 @@ applyVB();
   window.bmuNoWidows = run;             // anything written later asks for it
 })();
   </script>
+  <!-- the keys are public by design; what protects the list is the
+       insert-only policy on the table (setup/signups.sql) -->
+  <script src="/files-config.js"></script>
+  <script src="/signups.js"></script>
 </body>
 </html>

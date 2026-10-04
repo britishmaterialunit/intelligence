@@ -3042,6 +3042,17 @@
         });
         data['Privacy policy accepted'] = 'yes';
 
+        /* Kept as well as sent, and not waited on — see signups.js. The
+           whole form goes into details; the three that would be sorted on
+           are promoted beside it. */
+        if (window.bmuKeep){
+          window.bmuKeep('wholesale', data['E-Mail'] || '', {
+            name:    [data['First Name'], data['Last Name']].filter(Boolean).join(' '),
+            company: data['Company'] || '',
+            details: data
+          });
+        }
+
         send.disabled = true;
         say('Sending\u2026');
         try {
@@ -3420,5 +3431,7 @@
 
     })();
 </script>
+  <script src="/files-config.js"></script>
+  <script src="/signups.js"></script>
 </body>
 </html>

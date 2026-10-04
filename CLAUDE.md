@@ -22,6 +22,19 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `soframa`, `*_greens
   `/archive/<nation>/<type>/<garment>/`
 - Icons are loose `.svg` at root; `flags/`, `partners/`, `patterns/` are images only.
 
+## Form submissions
+
+Everything a reader submits is **emailed via FormSubmit and also written to
+Supabase** (`bmu_signups`, one table, `kind` = join / early / wholesale /
+request). `signups.js` does the write; `files-config.js` carries the keys.
+
+The write is deliberately never waited on — the email is what the reader is
+waiting on, so a database that is down cannot stop somebody joining.
+
+**The publishable key is public. `bmu_signups` lets `anon` INSERT and
+nothing else** — no SELECT policy, or the key printed on the site would
+hand anyone the whole mailing list. See `setup/signups.sql`.
+
 ## Shared chrome
 
 The site header and footer are **duplicated in every page**, not shared. A change to
