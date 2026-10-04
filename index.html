@@ -437,6 +437,12 @@
        just climbed the sign-up sheet. Its own arrival transition is held off
        for the frame that puts it there. */
     #navRow.row-set{ transition:none; }
+    /* And neither does the mark. #scrollCue fades from nothing to .45 over
+       .6s when the page is entered, which on a return is a hole where the
+       arrow should be: the sign-up sheet hands over an arrow at .45 and this
+       page took six tenths of a second to put one back. Held still for the
+       frame that places it. */
+    body.cue-set #scrollCue{ transition:none; }
     @media (prefers-reduced-motion:reduce){
       #navRow{ transform:none; transition:opacity .5s cubic-bezier(.4,0,.2,1); }
     }
@@ -4789,7 +4795,20 @@
          the name and starting down, which read as a hesitation rather than
          a beat; the fall now comes out of the same motion that opened it. */
       later(() => { settleToDock(); }, 560);
-      later(() => { window.location.href = '/repository'; }, 560 + 660);
+      /* The document is asked for part way down rather than at the bottom,
+         so the sheet behind it starts opening while the box is still
+         travelling instead of a quarter of a second after it has stopped.
+
+         Leaving early used to mean landing 13px short, which is a jump. So
+         the distance still to go is handed over, and the sign-up sheet
+         starts its dock up by exactly that and finishes the fall itself —
+         the box does not stop and restart, it crosses the seam mid-move. */
+      later(() => {
+        const gap  = window.innerHeight - opsBtn.getBoundingClientRect().bottom;
+        const left = Math.max(0, Math.round(gap - DOCK_GAP));
+        try { sessionStorage.setItem('bmu.repo.drop', String(left)); } catch(_){}
+        window.location.href = '/repository';
+      }, 560 + 300);
     }
 
     /* Straight down to the dock's line, at the size it already is, and no
@@ -5311,7 +5330,7 @@
       textContent.textContent = mainText;
 
       navRow.classList.add('no-anim', 'row-set', 'ops-engaged', 'join-mode', 'visible');
-      document.body.classList.add('entered');
+      document.body.classList.add('cue-set', 'entered');
       /* The mark is already an arrow: the sign-up sheet swapped it on the
          press rather than leaving it to turn over here. Nothing to do. */
 
@@ -5330,7 +5349,10 @@
       convergeButtons();
       void navRow.offsetWidth;              // committed before anything moves
       navRow.classList.remove('no-anim');
-      requestAnimationFrame(() => navRow.classList.remove('row-set'));
+      requestAnimationFrame(() => {
+        navRow.classList.remove('row-set');
+        document.body.classList.remove('cue-set');
+      });
 
       /* ...and now the close that Join already knows how to do, beat for
          beat: the word comes off, the box narrows into its slot and the

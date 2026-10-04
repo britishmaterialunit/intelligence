@@ -1057,10 +1057,12 @@
     .ws-form > .fall.collapsing,
     html.fall-ready .fall.collapsing{
       opacity:0;
-      transform:translateY(26px) scale(.985);
-      transform-origin:50% 100%;
-      transition:opacity .4s cubic-bezier(.5,0,.75,0) var(--lf, 0ms),
-                 transform .52s cubic-bezier(.5,0,.75,0) var(--lf, 0ms);
+      /* The arrival run backwards: tipped forward onto the edge it fell from
+         and gone, rather than slid. It is the same card, put away. */
+      transform:perspective(760px) rotateX(-26deg) translateY(18px);
+      transform-origin:50% 0;
+      transition:opacity .36s cubic-bezier(.5,0,.75,0) var(--lf, 0ms),
+                 transform .4s cubic-bezier(.5,0,.75,0) var(--lf, 0ms);
     }
     .ws-dock.ws-rising{
       transition:transform .66s cubic-bezier(.4,0,.2,1);
@@ -3230,6 +3232,34 @@
         fill();
       })();
 
+      /* ---------- THE REST OF THE FALL ----------
+         The home page hands the box over part way down and says how far it
+         still has to go. The dock starts up by that much with nothing
+         animating, and then finishes the journey here — so what the reader
+         sees is one box falling across two documents rather than a box that
+         stops, a page change, and a box already landed.
+
+         Nothing else on this page waits for it: the sheet is toppling in at
+         the same time, which is the point of handing over early. */
+      (function finishTheFall(){
+        let drop = 0;
+        try {
+          drop = parseFloat(sessionStorage.getItem('bmu.repo.drop')) || 0;
+          sessionStorage.removeItem('bmu.repo.drop');
+        } catch(_){}
+        if (!(drop > 1)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        dock.style.transition = 'none';
+        dock.style.transform  = 'translateX(-50%) translateY(' + (-drop) + 'px)';
+        void dock.offsetWidth;                       // committed up there
+        dock.style.transition = 'transform .34s cubic-bezier(.25,0,.2,1)';
+        requestAnimationFrame(() => { dock.style.transform = ''; });
+        setTimeout(() => {
+          dock.style.transition = '';
+          dock.style.transform  = '';
+        }, 420);
+      })();
+
       /* ---------- THE AGREEMENT, OUT OF THE BUTTON ----------
          The box has only just landed from the home page. The line above it
          grows out of its top edge a beat later, the way the terms do, so
@@ -3269,9 +3299,13 @@
         });
         root.classList.add('fall-ready');
         fallen = parts;
-        requestAnimationFrame(() => requestAnimationFrame(() => {
+        /* One frame, not two. The blocks are held down by the stylesheet
+           rather than by a class added here, so there is nothing to commit
+           before letting go of them and the sheet starts opening on the
+           first frame the document gets. */
+        requestAnimationFrame(() => {
           parts.forEach(el => el.classList.add('landed'));
-        }));
+        });
       })();
 
       /* ---------- THE FOOTER UNDER THE DOCK ----------
@@ -3338,11 +3372,15 @@
         exit.setAttribute('aria-label', 'Returning to the home page');
         closeTerms();
         document.body.classList.add('ws-leaving');
-        /* the sheet is drawn down into the button, the block nearest it
-           first and the title last */
+        /* The sheet goes first and the box goes after it. It used to leave
+           while the sheet was still standing — the box was past the middle
+           of the screen by 350ms with the page behind it still at full
+           opacity. The blocks nearest the button fold first and the title
+           last, so the sheet is drawn down into the box before the box
+           moves at all. */
         const last = fallen.length - 1;
         fallen.forEach((el, i) => {
-          el.style.setProperty('--lf', ((last - i) * 34) + 'ms');
+          el.style.setProperty('--lf', ((last - i) * 26) + 'ms');
           el.classList.add('collapsing');
         });
         /* ...and the line above the button folds back into it */
@@ -3353,9 +3391,10 @@
           void grow.offsetWidth;
           grow.classList.remove('ws-out');
         }
-        /* the paper has its own .58s to get out of the way; the climb waits
-           for it, or the box takes the open terms up the screen with it */
-        const wait = isOpen() ? 240 : 0;
+        /* The paper has its own .58s to get out of the way, and the sheet
+           its own .4s plus 130ms of stagger — the climb waits for both, or
+           it carries the page up the screen with it. */
+        const wait = (isOpen() ? 240 : 0) + 420;
         setTimeout(() => {
           dock.style.setProperty('--rise', riseDistance() + 'px');
           void dock.offsetWidth;
@@ -3371,7 +3410,7 @@
         /* 760, not 620: the last block to fold is 170ms behind the first
            and takes .52s over it, so leaving at 620 cut the tail of the
            collapse off and the sheet was still on screen as the page went. */
-        setTimeout(() => { window.location.href = '/#home'; }, wait + 760);
+        setTimeout(() => { window.location.href = '/#home'; }, wait + 520);
       });
       try {
         const l = document.createElement('link');
