@@ -971,6 +971,20 @@
       .fall, html.fall-ready .fall{ opacity:1; transform:none; transition:none; }
     }
 
+    /* ---------- THE FOOTER IS NOT SCROLLED INTO ----------
+       The same discipline Join keeps on the home page: while the sheet is
+       up, the footer is not somewhere you arrive at by carrying on
+       downwards. It is reached by the header's own tool and no other way,
+       and once the reader has been down and come back to the top it is put
+       away again.
+
+       Join does this by stopping the page scrolling at all, which cannot
+       work here — the form is twice the height of the screen and has to be
+       scrolled to be filled in. So the gate is on the footer rather than on
+       the page: the document simply ends after the sheet, and there is
+       nothing below to carry on into. */
+    body.foot-held #siteFooter{ display:none; }
+
     /* ---------- THE FOOTER UNDER THE DOCK ----------
        The dock is fixed, so scrolling to the end of the page brings the
        footer up behind it and the two read as one another's noise. The
@@ -1855,7 +1869,7 @@
       /* the row's buttons are 30px on a phone, and this is one of them */
       .ws-access{ height:30px; line-height:27px; }
       /* the mark is 16px on a phone too — it is the same mark */
-      #partner{ padding-bottom:130px; }
+      #partner{ padding-bottom:150px; }   /* the note clears the dock with room, not by 3px */
     }
 
     @media (prefers-reduced-motion:reduce){
@@ -2432,22 +2446,62 @@
       io.observe(talk);
     })();
 
+    /* ---------- THE FOOTER IS NOT SCROLLED INTO ----------
+       See the note by body.foot-held in the stylesheet. The footer is put
+       away until the header's tool asks for it, and put back once the
+       reader has been down and returned to the top.
+
+       The hold comes back only after they have been down AND returned —
+       watching for the top alone would re-take it on the first scroll event
+       of the journey, which is still at the top, and the lock would come
+       back mid-flight and stop the travel it had just allowed. */
+    const footHold = (() => {
+      let released = false, wentDown = false;
+      function apply(){ document.body.classList.toggle('foot-held', !released); }
+      window.addEventListener('scroll', () => {
+        if (!released) return;
+        if (window.scrollY > 40){ wentDown = true; return; }
+        if (wentDown && window.scrollY <= 2){
+          released = false; wentDown = false; apply();
+        }
+      }, { passive:true });
+      apply();
+      return {
+        release(){
+          if (released) return false;
+          released = true; wentDown = false; apply();
+          return true;                     // it was hidden; it needs a frame
+        }
+      };
+    })();
+
     hdToggle.addEventListener('click', () => {
       if (document.body.classList.contains('at-footer')){
         anchoring = false;
         window.scrollTo({ top:0, behavior:'smooth' });
-      } else if (PHONE()){
-        /* The room is made and the plus put where it belongs BEFORE the
-           travel, so the page the reader lands on is already settled. */
-        plusAside(true, true);
-        /* And the bar the press landed on lets go of its fill. A finger
-           leaves :hover behind it, so without this the reader arrives at
-           the footer with a dark band still across the top. */
-        dropFill();
-        if (!anchorFooter(true)) siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
-      } else {
-        siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+        return;
       }
+      /* the one gesture allowed past the gate. If the footer was only just
+         put back it has no geometry yet, so the travel waits a frame for it
+         to be laid out — scrolling to an element of zero height lands at
+         the wrong place. */
+      const justShown = footHold.release();
+      const travel = () => {
+        if (PHONE()){
+          /* The room is made and the plus put where it belongs BEFORE the
+             travel, so the page the reader lands on is already settled. */
+          plusAside(true, true);
+          /* And the bar the press landed on lets go of its fill. A finger
+             leaves :hover behind it, so without this the reader arrives at
+             the footer with a dark band still across the top. */
+          dropFill();
+          if (!anchorFooter(true)) siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
+        } else {
+          siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+        }
+      };
+      if (justShown) requestAnimationFrame(() => requestAnimationFrame(travel));
+      else travel();
     });
 
     /* ---------- the footer, drawn as it is scrolled onto ---------- */

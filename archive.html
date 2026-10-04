@@ -1981,6 +1981,38 @@
        the one thing the reader is looking at. */
     #reveal.going{ opacity:0; transition:opacity .5s cubic-bezier(.4,0,.2,1); }
 
+    /* The way out of the wait. It is the only live thing on the gate until
+       the mark fills, so it is the one that has pointer events while the
+       sheet above it does not. Under the compass, quiet, and gone the
+       moment the field is open. */
+    .rev-list{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:4px;
+      padding:9px 14px;
+      border:1.5px solid var(--line, #222);
+      background:#fff;
+      font-family:inherit;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#222;
+      cursor:pointer;
+      pointer-events:auto;
+      opacity:0;
+      transition:opacity .5s cubic-bezier(.4,0,.2,1) .35s,
+                 background-color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .rev-list svg{ display:block; opacity:.75; }
+    .rev-list:hover{ background:#f5f5f5; }
+    .rev-list:focus-visible{ outline:1.5px solid #222; outline-offset:3px; }
+    body.gated .rev-list{ opacity:1; }
+    #reveal.going .rev-list{ opacity:0; transition:opacity .2s linear; pointer-events:none; }
+    /* On a phone the list is where the archive opens anyway, so there is
+       nothing here to offer a way out of. */
+    @media (max-width:760px){ .rev-list{ display:none; } }
+
     /* The bar is not usable while the field is still coming: typing into a
        search that cannot show you what it finds is a dead end. It greys out
        with the garments and comes back with them. The circle in the middle
@@ -2834,6 +2866,20 @@
           <path id="revTrace" class="rev-trace" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
           <path id="revFill" class="rev-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
         </svg>
+      </button>
+      <!-- The field can take a moment to come, and a reader who does not
+           want to wait for it should not have to. The list is the other
+           view of the same archive and it is ready immediately, so it is
+           offered here rather than only on the bar behind the gate. -->
+      <button type="button" id="revList" class="rev-list">
+        <!-- the dock's own list mark, inline because the file is white-on-
+             white and this button is not -->
+        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">
+          <g stroke="#222" stroke-width="1.6" stroke-linecap="round" fill="none">
+            <path d="M2.6 4.6 H13.4"/><path d="M2.6 8 H13.4"/><path d="M2.6 11.4 H13.4"/>
+          </g>
+        </svg>
+        <span>Open the list instead</span>
       </button>
     </div>
   </div>
@@ -3809,7 +3855,7 @@
       });
       savedTabQty.textContent = savedIds.length;
       // its own section: present only while the bookmark is selected
-      savedTab.hidden = !savedOnly || savedIds.length === 0;
+      savedTab.hidden = !savedOnly || savedIds.length === 0 || !!soloId;
       if (savedTab.hidden) savedTab.open = false;
     }
 
@@ -3863,6 +3909,19 @@
         else if (soloId) d.open = hits > 0;
         else d.open = NATIONS.find(x => x.key === d.dataset.nation).open;
       });
+
+      /* One garment means one garment. Opening something out of the saved
+         cluster left savedOnly standing — which is right, it is what brings
+         the reader back to their own shelf afterwards — but the shelf's own
+         tab is outside the catalogue and does not answer to soloId, so the
+         reader got the record they asked for with the whole collection
+         still listed under it. The shelf stands down while a garment is
+         open and comes back when it closes. */
+      if (savedTab){
+        const hideShelf = !savedOnly || savedIds.length === 0 || !!soloId;
+        savedTab.hidden = hideShelf;
+        if (hideShelf) savedTab.open = false;
+      }
 
       // a lone result is presented on its own, without section furniture
       const lone = !!soloId || (!!term && shown === 1);
@@ -5618,6 +5677,28 @@
     // pointerup rather than click: it fires on the element under the pointer
     // and does not care where the press began
     if (revEl) revEl.addEventListener('pointerup', openGate);
+
+    /* ...and the way out of the wait. The gate takes a press anywhere on
+       itself, so this has to say the press was for it and not for the door —
+       otherwise the field opens behind the list the reader just asked for.
+       The gate is spent either way: a reader who has chosen the list has
+       answered the question the door was asking. */
+    const revListBtn = document.getElementById('revList');
+    if (revListBtn){
+      revListBtn.addEventListener('pointerup', e => { e.stopPropagation(); });
+      revListBtn.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        revealed = true;
+        document.body.classList.remove('gated');
+        spiral.classList.remove('sp-waiting');
+        revEl.classList.remove('ready', 'drawing');
+        revEl.style.pointerEvents = 'none';
+        revEl.classList.add('going');
+        setTimeout(() => { revEl.hidden = true; }, 520);
+        toList();
+      });
+    }
 
     function buildSpiral(){
       if (spiralBuilt) return;
