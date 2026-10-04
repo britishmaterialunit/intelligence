@@ -1371,6 +1371,112 @@
     @media (pointer: coarse){
       input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
     }
+
+    /* ============================================================
+       THE PARTNER SET
+       Three pages read as one: East West, Ramco, and the booking page
+       they both end at. Each carries its own number in the corner and the
+       way through to the next, and the move between them is a slide — out
+       to the left going on, out to the right coming back.
+
+       They are separate documents, so the slide is two halves of one
+       gesture: the page leaving writes down which way it went, and the
+       page arriving comes in from the other side. The header and the
+       footer take no part in it; only the column between them moves.
+
+       The rest of a page — everything under the opening paragraph — is
+       held back while that is happening. Ramco is three times the height
+       of East West, and a slide between two pages of wildly different
+       length reads as a jump rather than a step. Every page in the set is
+       its title and its opening paragraph while it is moving, and the rest
+       comes in afterwards.
+       ============================================================ */
+    #partner{ position:relative; }
+
+    .pg-index{
+      position:absolute;
+      top:120px;
+      right:0;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      z-index:3;
+    }
+    .pg-num{
+      font-size:10px;
+      letter-spacing:.22em;
+      color:#9a9a9a;
+      font-variant-numeric:tabular-nums;
+    }
+    .pg-arrow{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:16px; height:16px;
+      padding:0; border:none; background:none;
+      cursor:pointer;
+      opacity:.45;
+      position:relative;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1);
+    }
+    /* the mark stays 16px but the target does not — a thumb needs more */
+    .pg-arrow::after{ content:''; position:absolute; inset:-11px; }
+    .pg-arrow svg{ width:16px; height:16px; display:block; overflow:visible; }
+    .pg-arrow path{
+      fill:none;
+      stroke:#000;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .pg-arrow:hover{ opacity:.8; }
+    .pg-arrow:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
+
+    /* ---------- the rest of the page ----------
+       Laid out at its full height and held at none, so letting go of the
+       hold is what runs it. It comes in from under itself rather than
+       simply appearing: the page grows downward into what it is. */
+    .p-more{
+      overflow:hidden;
+      max-height:0;
+      opacity:0;
+      transform:translateY(-10px);
+    }
+    html.pg-ready .p-more{
+      transition:max-height .72s cubic-bezier(.65,0,.35,1),
+                 opacity .5s cubic-bezier(.4,0,.2,1) .1s,
+                 transform .6s cubic-bezier(.3,0,.2,1) .1s;
+    }
+    html.pg-ready .p-more.pg-shown{
+      max-height:var(--more-h, 2000px);
+      opacity:1;
+      transform:none;
+    }
+    /* once it is open and settled the clip comes off, so anything inside
+       that overflows its own box — a popup, a focus ring — is not cut */
+    html.pg-ready .p-more.pg-settled{ overflow:visible; max-height:none; }
+
+    /* ---------- the slide ---------- */
+    #partner{
+      transition:transform .46s cubic-bezier(.65,0,.35,1),
+                 opacity .38s cubic-bezier(.4,0,.2,1);
+    }
+    body.pg-still #partner{ transition:none; }
+    body.pg-from-right #partner{ transform:translateX(42px); opacity:0; }
+    body.pg-from-left  #partner{ transform:translateX(-42px); opacity:0; }
+    body.pg-out-left   #partner{ transform:translateX(-42px); opacity:0; }
+    body.pg-out-right  #partner{ transform:translateX(42px); opacity:0; }
+    body.pg-moving{ overflow-x:hidden; }
+
+    @media (prefers-reduced-motion:reduce){
+      #partner, .p-more, html.pg-ready .p-more{ transition:none; }
+      .p-more{ max-height:none; opacity:1; transform:none; overflow:visible; }
+    }
+
+    @media (max-width:640px){
+      /* level with the role line, which sits at 92 on every phone width */
+      .pg-index{ top:92px; gap:9px; }
+    }
 </style>
 </head>
 <!-- `entered` from the markup: this page has no front door to open, so the
@@ -1416,6 +1522,12 @@
    </div>
   </header>
   <main id="partner">
+    <!-- which of the three this is, and the way through them -->
+    <nav class="pg-index" aria-label="Partner pages">
+      <button type="button" class="pg-arrow pg-back" data-href="/ew" aria-label="Back to East West"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.2 2.6 L4.6 8 L10.2 13.4"/></svg></button>
+      <span class="pg-num">02</span>
+      <button type="button" class="pg-arrow pg-next" data-href="/contact" aria-label="On to MarshalOS"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5.8 2.6 L11.4 8 L5.8 13.4"/></svg></button>
+    </nav>
     <div class="p-role" id="pRole" data-text="Circular Partner"></div>
     <h1 class="p-name" id="pName" data-text="Ramco"></h1>
     <p class="p-line">Operation Upcycle — reutilising surplus textile waste via reverse engineering.</p>
@@ -2080,6 +2192,139 @@
   else run();
   window.bmuNoWidows = run;             // anything written later asks for it
 })();
-  </script>
+  
+    /* ============================================================
+       THE PARTNER SET
+       See the note by .pg-index in the stylesheet. Three documents, one
+       gesture: the page leaving says which way it went and the page
+       arriving comes in from the other side.
+       ============================================================ */
+    (function partnerSet(){
+      const main = document.getElementById('partner');
+      const nav  = document.querySelector('.pg-index');
+      if (!main || !nav) return;
+      const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const DIR_KEY = 'bmu.pg.dir';
+
+      /* Everything under the opening paragraph is the rest of the page.
+         Collected rather than marked up, so a page can gain a section
+         without this having to be told about it. */
+      const body = main.querySelector('.p-body');
+      let more = null;
+      if (body && body.nextElementSibling){
+        more = document.createElement('div');
+        more.className = 'p-more';
+        let n = body.nextElementSibling;
+        while (n){
+          const next = n.nextElementSibling;
+          more.appendChild(n);
+          n = next;
+        }
+        main.appendChild(more);
+      }
+
+      function showMore(){
+        if (!more || REDUCED) return;
+        more.style.setProperty('--more-h', more.scrollHeight + 'px');
+        more.classList.add('pg-shown');
+        /* the clip comes off once it has finished, so a section that
+           overflows its own box is not cut for the rest of the visit */
+        setTimeout(() => {
+          if (more.classList.contains('pg-shown')) more.classList.add('pg-settled');
+        }, 820);
+      }
+      function hideMore(){
+        if (!more || REDUCED) return;
+        more.classList.remove('pg-settled');
+        more.style.setProperty('--more-h', more.scrollHeight + 'px');
+        void more.offsetWidth;
+        more.classList.remove('pg-shown');
+      }
+
+      /* ---------- arriving ---------- */
+      document.documentElement.classList.add('pg-ready');
+      let came = null;
+      try { came = sessionStorage.getItem(DIR_KEY); sessionStorage.removeItem(DIR_KEY); } catch(_){}
+
+      if (came && !REDUCED){
+        document.body.classList.add('pg-still', 'pg-moving');
+        document.body.classList.add(came === 'next' ? 'pg-from-right' : 'pg-from-left');
+        void main.offsetWidth;                     // committed before it moves
+        document.body.classList.remove('pg-still');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          document.body.classList.remove('pg-from-right', 'pg-from-left');
+          setTimeout(() => document.body.classList.remove('pg-moving'), 480);
+        }));
+      }
+
+      /* The rest waits for the heading to finish writing itself: the page
+         is its title and its opening paragraph until the title is actually
+         there. Watched rather than timed, because the two lines are
+         different lengths on every page in the set. */
+      (function whenTyped(){
+        const nameEl = document.getElementById('pName');
+        const want = nameEl ? (nameEl.dataset.text || '') : '';
+        let waited = 0;
+        (function look(){
+          const done = !nameEl || nameEl.textContent.length >= want.length;
+          if (done || waited > 4000){ setTimeout(showMore, came ? 120 : 260); return; }
+          waited += 80;
+          setTimeout(look, 80);
+        })();
+      })();
+
+      /* ---------- leaving ---------- */
+      let going = false;
+      function go(href, dir){
+        if (going || !href) return;
+        going = true;
+        if (REDUCED){ location.href = href; return; }
+        try { sessionStorage.setItem(DIR_KEY, dir); } catch(_){}
+        document.body.classList.add('pg-moving');
+        /* the rest folds away first, so the page is down to its smallest
+           before it starts travelling and the two pages are the same shape
+           at the moment one replaces the other */
+        hideMore();
+        window.scrollTo({ top:0, behavior: window.scrollY > 600 ? 'auto' : 'smooth' });
+        setTimeout(() => {
+          document.body.classList.add(dir === 'next' ? 'pg-out-left' : 'pg-out-right');
+        }, more ? 300 : 40);
+        setTimeout(() => { location.href = href; }, (more ? 300 : 40) + 440);
+      }
+
+      const nextBtn = nav.querySelector('.pg-next');
+      const backBtn = nav.querySelector('.pg-back');
+      if (nextBtn) nextBtn.addEventListener('click', () => go(nextBtn.dataset.href, 'next'));
+      if (backBtn) backBtn.addEventListener('click', () => go(backBtn.dataset.href, 'back'));
+
+      /* ---------- and by hand ----------
+         A sideways drag does what the arrows do. Held to gestures that are
+         clearly sideways, so scrolling the page never turns a page. */
+      let x0 = null, y0 = null, live = false;
+      main.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1) return;
+        x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; live = true;
+      }, { passive:true });
+      main.addEventListener('touchend', e => {
+        if (!live) return;
+        live = false;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - x0, dy = t.clientY - y0;
+        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+        if (dx < 0 && nextBtn) go(nextBtn.dataset.href, 'next');
+        if (dx > 0 && backBtn) go(backBtn.dataset.href, 'back');
+      }, { passive:true });
+
+      /* ...and by keyboard, when nothing is being typed into */
+      document.addEventListener('keydown', e => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const t = e.target;
+        if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+        if (t && t.isContentEditable) return;
+        if (e.key === 'ArrowRight' && nextBtn) go(nextBtn.dataset.href, 'next');
+        if (e.key === 'ArrowLeft'  && backBtn) go(backBtn.dataset.href, 'back');
+      });
+    })();
+</script>
 </body>
 </html>
