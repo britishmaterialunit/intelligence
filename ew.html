@@ -426,6 +426,21 @@
     }
     /* single source of truth: the slogan waits on 80% of this */
     #siteFooter{ --trace-ms:4200ms; }
+    /* ---------- CARRIED OVER, NOT REBUILT ----------
+       The footer is laid out at nothing and resolves out of a field of dots
+       as it is scrolled onto. Coming from another page in this set that is
+       wrong twice over: the reader has already watched it resolve, and
+       setting .in on arrival still ran the half-second fade from zero, so
+       the footer blinked in on every page change.
+
+       Held still for the frame that places it, the way the row is on the
+       home page. The class goes on, the state commits with nothing
+       animating, and the transition is handed back the frame after. */
+    #siteFooter.foot-set{
+      transition:none;
+      -webkit-mask-image:none;
+              mask-image:none;
+    }
     #siteFooter.in .foot-trace{
       animation:trace var(--trace-ms) ease-in-out forwards;
     }
@@ -1919,11 +1934,18 @@
       let shown = false;
       function footerStraightToDone(){
         shown = true;
+        /* no transition for the frame that places it, or the footer fades up
+           from nothing on every arrival — which is the blink */
+        siteFooter.classList.add('foot-set');
         siteFooter.classList.add('in', 'settled', 'filled');
         if (footFill) footFill.classList.add('visible');
         footTrace.style.animation = 'none';
         footTrace.style.strokeDashoffset = '0';
         if (footSlogan) footSlogan.textContent = SLOGAN;
+        void siteFooter.offsetWidth;                 // committed, still
+        requestAnimationFrame(function(){
+          siteFooter.classList.remove('foot-set');   // and it moves again
+        });
       }
       (function carriedOver(){
         let from = null, had = null;
@@ -2237,16 +2259,36 @@
           n = next;
         }
         main.appendChild(more);
+        /* Reserved here, not when it opens. The footer is under all of this,
+           and a page that arrives short and then grows walks the footer up
+           the screen and back down again — across the seam that reads as the
+           footer jumping. The room the rest of the page is going to need is
+           taken at the first frame, so the document is the height it will be
+           before anything has moved. */
+        if (!REDUCED){
+          try { main.style.minHeight = (main.offsetHeight + more.scrollHeight) + 'px'; }
+          catch(_){}
+        }
       }
 
       function showMore(){
         if (!more || REDUCED) return;
+        /* The footer sits under this. With the rest of the page held shut
+           the document is short, so the footer was resting most of a screen
+           higher than it belongs and then sliding down as the rest opened —
+           on a page the reader is at the top of, that is the footer walking
+           up into view and back out again for no reason. The room it is
+           about to need is reserved first, so the footer is at its final
+           place from the first frame and never moves. */
         more.style.setProperty('--more-h', more.scrollHeight + 'px');
         more.classList.add('pg-shown');
         /* the clip comes off once it has finished, so a section that
            overflows its own box is not cut for the rest of the visit */
         setTimeout(() => {
           if (more.classList.contains('pg-shown')) more.classList.add('pg-settled');
+          /* the content is its own height now; the reservation would only
+             hold the page taller than it is */
+          main.style.minHeight = '';
         }, 820);
       }
       function hideMore(){
@@ -2304,6 +2346,12 @@
             f && f.classList.contains('in') ? '1' : '0');
         } catch(_){}
         document.body.classList.add('pg-moving');
+        /* Pinned before anything folds. Without this the document shrinks by
+           whatever the rest of the page was worth as it collapses, and the
+           footer — which is under all of it — rushes up the screen and into
+           view on the way out. It is the same footer on the next page; it
+           should not move at all. */
+        main.style.height = main.offsetHeight + 'px';
         /* the rest folds away first, so the page is down to its smallest
            before it starts travelling and the two pages are the same shape
            at the moment one replaces the other */
