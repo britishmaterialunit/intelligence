@@ -2365,5 +2365,52 @@
       });
     })();
 </script>
+  <!-- A press is a touch screen's hover. On a pointer screen the bar fills
+       dark the moment the cursor is over it, and the mark and the two tools
+       are built to read white on that ground. A touch screen has no hover to
+       inherit, so none of it ever happened: pressing the header did nothing,
+       and — worse — the tools are white whenever head-on is set, so any path
+       that set it without the fill arriving left them white on a white bar
+       and invisible.
+
+       Its own block, deliberately. Appended to whichever script happened to
+       be last, it landed inside a runtime that returns early on most pages
+       and never ran at all. -->
+  <script>
+  (function pressLightsTheBar(){
+    var h = document.getElementById('siteHead');
+    if (!h) return;
+    var off = null;
+    function on(e){
+      /* the pointer type, not a media query: a mouse has hover and does not
+         need this, and emulators disagree about what they report */
+      if (e && e.pointerType === 'mouse') return;
+      clearTimeout(off);
+      h.classList.add('head-on');
+      document.body.classList.add('head-on');
+    }
+    function letGo(ms){
+      clearTimeout(off);
+      off = setTimeout(function(){
+        /* at the footer the tools light the bar on their way out and it is
+           meant to stay lit — that is not this press's to undo */
+        if (document.body.classList.contains('at-footer')) return;
+        h.classList.remove('head-on');
+        document.body.classList.remove('head-on');
+      }, ms);
+    }
+    /* lit on the way down and let go a beat after the finger lifts, so a tap
+       is long enough to be seen rather than a frame nobody catches */
+    h.addEventListener('pointerdown', on, { passive:true });
+    h.addEventListener('pointerup',     function(){ letGo(380); }, { passive:true });
+    h.addEventListener('pointercancel', function(){ letGo(0);   }, { passive:true });
+    h.addEventListener('pointerleave',  function(){ letGo(0);   }, { passive:true });
+    window.addEventListener('scroll', function(){
+      if (document.body.classList.contains('at-footer')) return;
+      if (!h.classList.contains('head-on')) return;
+      letGo(0);
+    }, { passive:true });
+  })();
+  </script>
 </body>
 </html>
