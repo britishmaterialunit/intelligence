@@ -1981,37 +1981,6 @@
        the one thing the reader is looking at. */
     #reveal.going{ opacity:0; transition:opacity .5s cubic-bezier(.4,0,.2,1); }
 
-    /* The way out of the wait. It is the only live thing on the gate until
-       the mark fills, so it is the one that has pointer events while the
-       sheet above it does not. Under the compass, quiet, and gone the
-       moment the field is open. */
-    .rev-list{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      margin-top:4px;
-      padding:9px 14px;
-      border:1.5px solid var(--line, #222);
-      background:#fff;
-      font-family:inherit;
-      font-size:10px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:#222;
-      cursor:pointer;
-      pointer-events:auto;
-      opacity:0;
-      transition:opacity .5s cubic-bezier(.4,0,.2,1) .35s,
-                 background-color .3s cubic-bezier(.4,0,.2,1);
-    }
-    .rev-list svg{ display:block; opacity:.75; }
-    .rev-list:hover{ background:#f5f5f5; }
-    .rev-list:focus-visible{ outline:1.5px solid #222; outline-offset:3px; }
-    body.gated .rev-list{ opacity:1; }
-    #reveal.going .rev-list{ opacity:0; transition:opacity .2s linear; pointer-events:none; }
-    /* On a phone the list is where the archive opens anyway, so there is
-       nothing here to offer a way out of. */
-    @media (max-width:760px){ .rev-list{ display:none; } }
 
     /* The bar is not usable while the field is still coming: typing into a
        search that cannot show you what it finds is a dead end. It greys out
@@ -2866,20 +2835,6 @@
           <path id="revTrace" class="rev-trace" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
           <path id="revFill" class="rev-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
         </svg>
-      </button>
-      <!-- The field can take a moment to come, and a reader who does not
-           want to wait for it should not have to. The list is the other
-           view of the same archive and it is ready immediately, so it is
-           offered here rather than only on the bar behind the gate. -->
-      <button type="button" id="revList" class="rev-list">
-        <!-- the dock's own list mark, inline because the file is white-on-
-             white and this button is not -->
-        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">
-          <g stroke="#222" stroke-width="1.6" stroke-linecap="round" fill="none">
-            <path d="M2.6 4.6 H13.4"/><path d="M2.6 8 H13.4"/><path d="M2.6 11.4 H13.4"/>
-          </g>
-        </svg>
-        <span>Open the list instead</span>
       </button>
     </div>
   </div>
@@ -5678,28 +5633,6 @@
     // and does not care where the press began
     if (revEl) revEl.addEventListener('pointerup', openGate);
 
-    /* ...and the way out of the wait. The gate takes a press anywhere on
-       itself, so this has to say the press was for it and not for the door —
-       otherwise the field opens behind the list the reader just asked for.
-       The gate is spent either way: a reader who has chosen the list has
-       answered the question the door was asking. */
-    const revListBtn = document.getElementById('revList');
-    if (revListBtn){
-      revListBtn.addEventListener('pointerup', e => { e.stopPropagation(); });
-      revListBtn.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        revealed = true;
-        document.body.classList.remove('gated');
-        spiral.classList.remove('sp-waiting');
-        revEl.classList.remove('ready', 'drawing');
-        revEl.style.pointerEvents = 'none';
-        revEl.classList.add('going');
-        setTimeout(() => { revEl.hidden = true; }, 520);
-        toList();
-      });
-    }
-
     function buildSpiral(){
       if (spiralBuilt) return;
       spiralBuilt = true;
@@ -6209,6 +6142,14 @@
         spiral.classList.add('sp-waiting');
         document.body.classList.add('gated');
         revEl.hidden = false;
+        /* And the button beside the bar wears the list's glyph while the
+           door is shut. The field can take a moment and a reader who does
+           not want to wait for it should have somewhere to go: the list is
+           the other view of the same archive and it is ready immediately.
+           'waiting' is the mode that already means this — it is what a
+           phone wears while the field is being built behind the list — and
+           openGate turns it back over to the circle. */
+        setFaceMode('waiting');
         /* Armed already: every photograph landed while the field was being
            built quietly behind the list, so the mark is finished and the
            door is only waiting to be pushed. Putting it back into `drawing`
@@ -6285,8 +6226,13 @@
       document.body.style.overflow = 'hidden';
       // the dock returns to the middle of the screen for explore
       dock.classList.remove('moved');
-      setFaceMode('explore');        // explore always opens on the circle
-      setFace(0, true);
+      /* Explore always opens on the circle — unless the door is still shut,
+         where the circle would be offering a room that is still being built.
+         There the list leads, and openGate turns it back over. */
+      if (!document.body.classList.contains('gated')){
+        setFaceMode('explore');
+        setFace(0, true);
+      }
       buildSpiral();
       [...spiral.children].forEach(el => { el.style.transition = ''; el.style.opacity = ''; });
       fitSpiral();
@@ -6552,9 +6498,27 @@
     dockExplore.addEventListener('click', e => {
       if (swiped){ swiped = false; return; }       // that was a swipe
 
-      // while the field is still arriving this button is the gate's key and
-      // nothing else — the views it would otherwise reach are not ready
-      if (gateShut()){ openGate(); return; }
+      /* While the door is shut this button is either the key or the way
+         round — whichever glyph it is wearing. The circle opens the field it
+         is holding shut; the list goes to the list, and spends the gate on
+         the way, because a reader who has chosen the list has answered the
+         question the door was asking. */
+      if (gateShut()){
+        if (currentFace() === 'list'){
+          revealed = true;
+          document.body.classList.remove('gated');
+          spiral.classList.remove('sp-waiting');
+          revEl.classList.remove('ready', 'drawing');
+          revEl.style.pointerEvents = 'none';
+          revEl.classList.add('going');
+          setTimeout(() => { revEl.hidden = true; }, 520);
+          setFaceMode('explore');     // the list is reached; the circle leads again
+          toList({ keepDock:true });
+          return;
+        }
+        openGate();
+        return;
+      }
 
       const face = currentFace();
 

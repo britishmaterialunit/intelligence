@@ -957,8 +957,18 @@
        finished position first. */
     /* The topple the files page opens a file with — tipped back on its
        top edge and falling flat — rather than a slide. Same gesture, so the
-       sheet reads as a cut of the same system. */
-    .fall{
+       sheet reads as a cut of the same system.
+
+       Named by selector rather than by a class the script adds. The script
+       sits at the foot of the body, so by the time it could mark these the
+       browser has already painted them standing in their finished places:
+       the reveal was a flicker of the whole sheet appearing, blanking and
+       coming back, or nothing at all. They are down before the first paint
+       and the script only lets go of them. A reader with no script gets the
+       sheet whole — see the noscript rule under this block. */
+    #partner > .ws-notice,
+    #partner > .p-body,
+    .ws-form > *{
       opacity:0;
       transform:perspective(760px) rotateX(-34deg) translateY(-16px);
       transform-origin:50% 0;
@@ -967,12 +977,19 @@
       transition:opacity .5s cubic-bezier(.4,0,.2,1) var(--fd, 0ms),
                  transform .62s cubic-bezier(.3,0,.2,1) var(--fd, 0ms);
     }
-    html.fall-ready .fall.landed{
+    /* Scoped to match the rule that holds them down. That one is written
+       through #partner, so a bare .fall.landed could never outrank it and
+       the box at the top of the sheet stayed at nothing while everything
+       under it arrived. */
+    #partner > .fall.landed,
+    .ws-form > .fall.landed,
+    .fall.landed{
       opacity:1;
       transform:none;
     }
     @media (prefers-reduced-motion:reduce){
-      .fall, html.fall-ready .fall{ opacity:1; transform:none; transition:none; }
+      #partner > .ws-notice, #partner > .p-body, .ws-form > *,
+      html.fall-ready .fall{ opacity:1; transform:none; transition:none; }
     }
 
     /* ---------- THE FOOTER IS NOT SCROLLED INTO ----------
@@ -1032,6 +1049,12 @@
        and is gone by the time it gets there. The block nearest the button
        goes first and the title last, so the page is drawn down into it in
        order rather than all at once. */
+    /* Scoped like the two rules above it for the same reason, and written
+       after .landed so it wins the tie: the box and the paragraph are held
+       through #partner, and an unscoped .collapsing left them standing at
+       full opacity while everything in the form folded away under them. */
+    #partner > .fall.collapsing,
+    .ws-form > .fall.collapsing,
     html.fall-ready .fall.collapsing{
       opacity:0;
       transform:translateY(26px) scale(.985);
@@ -1891,6 +1914,12 @@
       .ws-dock, .ws-terms, .ws-dock.ws-rising{ transition:none; }
     }
 </style>
+  <noscript><style>
+    /* nothing is going to let go of them, so they were never held */
+    #partner > .ws-notice, #partner > .p-body, .ws-form > *{
+      opacity:1 !important; transform:none !important;
+    }
+  </style></noscript>
 </head>
 <!-- `entered` from the markup: this page has no front door to open, so the
      state the home page earns with a click is simply where this one starts.
@@ -3313,7 +3342,7 @@
            first and the title last */
         const last = fallen.length - 1;
         fallen.forEach((el, i) => {
-          el.style.setProperty('--lf', ((last - i) * 42) + 'ms');
+          el.style.setProperty('--lf', ((last - i) * 34) + 'ms');
           el.classList.add('collapsing');
         });
         /* ...and the line above the button folds back into it */
@@ -3339,7 +3368,10 @@
            still reading Access and still alone, and only then let it
            become Operations again. */
         try { sessionStorage.setItem('bmu.repo.back', '1'); } catch(_){}
-        setTimeout(() => { window.location.href = '/#home'; }, wait + 620);
+        /* 760, not 620: the last block to fold is 170ms behind the first
+           and takes .52s over it, so leaving at 620 cut the tail of the
+           collapse off and the sheet was still on screen as the page went. */
+        setTimeout(() => { window.location.href = '/#home'; }, wait + 760);
       });
       try {
         const l = document.createElement('link');
