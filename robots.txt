@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# the old variants kept beside the live pages are not the site
+Disallow: /_incoming/
+Disallow: /setup/
+
+Sitemap: https://britishmaterialunit.com/sitemap.xml

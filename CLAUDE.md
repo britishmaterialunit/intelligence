@@ -17,7 +17,9 @@ one self-contained HTML file with its CSS in `<style>` and its JS in `<script>`.
 Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `soframa`, `*_greenscreen`,
 `archive_1`) are **old variants — not live. Don't edit them.**
 
-- Garment photos + records: `archive/<nation>/<type>/<garment>/<REF>.png` + `.txt`
+- Garment photos + records: `archive/<nation>/<type>/<garment>/<REF>.png` + `.txt`,
+  plus a generated `index.html` — each garment's own crawlable page at
+  `/archive/<nation>/<type>/<garment>/`
 - Icons are loose `.svg` at root; `flags/`, `partners/`, `patterns/` are images only.
 
 ## Shared chrome
@@ -32,3 +34,15 @@ whole project. If unsure which file, ask me.**
 
 Verify by measuring in a browser, not by assuming. Skills: `publish`, `archive-ingest`,
 `lambrino-archive`.
+
+## After adding or renaming a garment
+
+```bash
+python3 tools/seo_build.py        # --dry-run to see what it would do
+```
+
+Rewrites every garment's `index.html`, the `<noscript>` index inside
+`archive.html` (between the `BMU-SEO-INDEX` markers), `sitemap.xml` and
+`robots.txt`, all from `ITEMS` and the folders on disk. It only writes those;
+it never touches a `.txt` record or a photograph. `ITEMS` is the list of what
+is published — a folder that is not in it gets no page.
