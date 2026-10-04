@@ -1418,11 +1418,32 @@
        its title and its opening paragraph while it is moving, and the rest
        comes in afterwards.
        ============================================================ */
-    #partner{ position:relative; }
+    #partner{
+      position:relative;
+      /* ---------- THE FOOTER SITS IN ONE PLACE ----------
+         The three pages in this set are read as one thing you page through,
+         and the footer has to be where it was on the last one. Their heads
+         are different lengths — Ramco's opening paragraph is nearly twice
+         East West's — so measuring any of them to match the others is a
+         number that goes out of date the first time a word is changed.
+
+         The first screen is a screen instead. Every page in the set opens
+         at exactly the viewport's height less the header, so the footer
+         begins on the same line on all three whatever is written above it,
+         and whatever is below pushes it down from there. */
+      min-height:calc(100dvh - 54px);
+      /* and it fills that height from the top. The column was centred in
+         itself, which did nothing while the content was taller than the box
+         and dropped East West's head to the middle of the screen the moment
+         the box was given a height of its own. */
+      justify-content:flex-start;
+    }
 
     .pg-index{
       position:absolute;
-      top:120px;
+      /* 118, not 120: the row is centred on itself and the role is set on
+         its own line, which left the number two pixels low against it */
+      top:118px;
       right:0;
       display:flex;
       align-items:center;
@@ -1483,16 +1504,20 @@
        that overflows its own box — a popup, a focus ring — is not cut */
     html.pg-ready .p-more.pg-settled{ overflow:visible; max-height:none; }
 
-    /* ---------- the slide ---------- */
+    /* ---------- no sliding ----------
+       The column used to travel sideways between pages. It is gone: the
+       page changes, the head is in the same place on the next one and the
+       footer is on the same line, so there is nothing for a slide to
+       explain. What is left is the opacity, which is what carries the
+       change without moving anything. */
     #partner{
-      transition:transform .46s cubic-bezier(.65,0,.35,1),
-                 opacity .38s cubic-bezier(.4,0,.2,1);
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
     }
     body.pg-still #partner{ transition:none; }
-    body.pg-from-right #partner{ transform:translateX(42px); opacity:0; }
-    body.pg-from-left  #partner{ transform:translateX(-42px); opacity:0; }
-    body.pg-out-left   #partner{ transform:translateX(-42px); opacity:0; }
-    body.pg-out-right  #partner{ transform:translateX(42px); opacity:0; }
+    body.pg-from-right #partner,
+    body.pg-from-left  #partner,
+    body.pg-out-left   #partner,
+    body.pg-out-right  #partner{ opacity:0; }
     body.pg-moving{ overflow-x:hidden; }
 
     @media (prefers-reduced-motion:reduce){
@@ -1502,7 +1527,7 @@
 
     @media (max-width:640px){
       /* level with the role line, which sits at 92 on every phone width */
-      .pg-index{ top:92px; gap:9px; }
+      .pg-index{ top:90px; gap:9px; }
     }
 </style>
 </head>
@@ -2412,16 +2437,6 @@
           n = next;
         }
         main.appendChild(more);
-        /* Reserved here, not when it opens. The footer is under all of this,
-           and a page that arrives short and then grows walks the footer up
-           the screen and back down again — across the seam that reads as the
-           footer jumping. The room the rest of the page is going to need is
-           taken at the first frame, so the document is the height it will be
-           before anything has moved. */
-        if (!REDUCED){
-          try { main.style.minHeight = (main.offsetHeight + more.scrollHeight) + 'px'; }
-          catch(_){}
-        }
       }
 
       function showMore(){
@@ -2439,9 +2454,6 @@
            overflows its own box is not cut for the rest of the visit */
         setTimeout(() => {
           if (more.classList.contains('pg-shown')) more.classList.add('pg-settled');
-          /* the content is its own height now; the reservation would only
-             hold the page taller than it is */
-          main.style.minHeight = '';
         }, 820);
       }
       function hideMore(){
@@ -2499,12 +2511,6 @@
             f && f.classList.contains('in') ? '1' : '0');
         } catch(_){}
         document.body.classList.add('pg-moving');
-        /* Pinned before anything folds. Without this the document shrinks by
-           whatever the rest of the page was worth as it collapses, and the
-           footer — which is under all of it — rushes up the screen and into
-           view on the way out. It is the same footer on the next page; it
-           should not move at all. */
-        main.style.height = main.offsetHeight + 'px';
         /* the rest folds away first, so the page is down to its smallest
            before it starts travelling and the two pages are the same shape
            at the moment one replaces the other */
