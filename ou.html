@@ -1920,8 +1920,40 @@
         getComputedStyle(siteFooter).getPropertyValue('--trace-ms')
       ) || 4200;
 
+      /* ---------- ALREADY DRAWN ----------
+         Moving between the pages in this set is one gesture across three
+         documents, and the footer is the same footer on all three. Left to
+         itself each arrival would draw the mark again and retype the
+         slogan — four seconds of a thing the reader has already watched,
+         restarting because the document changed.
+
+         So the state is carried over: the page being left says whether its
+         footer was up, and a page arriving from inside the set with that
+         said puts it straight into its finished state, with nothing
+         animating. A reader who has not been down to it yet still gets the
+         draw, on whichever page they first scroll to it. */
       let shown = false;
+      function footerStraightToDone(){
+        shown = true;
+        siteFooter.classList.add('in', 'settled', 'filled');
+        if (footFill) footFill.classList.add('visible');
+        footTrace.style.animation = 'none';
+        footTrace.style.strokeDashoffset = '0';
+        if (footSlogan) footSlogan.textContent = SLOGAN;
+      }
+      (function carriedOver(){
+        let from = null, had = null;
+        try {
+          /* read, not consumed — the partner-set script below takes the
+             direction off itself once it has used it */
+          from = sessionStorage.getItem('bmu.pg.dir');
+          had  = sessionStorage.getItem('bmu.pg.foot');
+        } catch(_){}
+        if (from && had === '1') footerStraightToDone();
+      })();
+
       function revealFooter(){
+        if (shown) return;
         shown = true;
         siteFooter.classList.add('in');
         setTimeout(() => siteFooter.classList.add('settled'), 1500);
@@ -2279,7 +2311,14 @@
         if (going || !href) return;
         going = true;
         if (REDUCED){ location.href = href; return; }
-        try { sessionStorage.setItem(DIR_KEY, dir); } catch(_){}
+        try {
+          sessionStorage.setItem(DIR_KEY, dir);
+          /* and whether the footer was up, so the page being gone to does
+             not draw it all over again — see footerStraightToDone */
+          const f = document.getElementById('siteFooter');
+          sessionStorage.setItem('bmu.pg.foot',
+            f && f.classList.contains('in') ? '1' : '0');
+        } catch(_){}
         document.body.classList.add('pg-moving');
         /* the rest folds away first, so the page is down to its smallest
            before it starts travelling and the two pages are the same shape
