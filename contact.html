@@ -1115,6 +1115,14 @@
       font-size:14px;
       line-height:1.55;
       color:var(--ink);
+      /* Two lines held, whether this one needs them or not. The three pages
+         in this set are read as one thing you page through, and the heading
+         block has to land in the same place on each — East West's strapline
+         is one line and Ramco's is two, so the paragraph under it sat 22px
+         lower on Ramco and the whole page stepped down as you moved between
+         them. Two is the most any of the three takes, at every width from
+         320 up, so nothing is clipped and nothing is left short. */
+      min-height:calc(2 * 1.55em);
     }
     .p-body{
       margin:20px 0 0;
