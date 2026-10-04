@@ -1801,6 +1801,13 @@
       stroke-linecap:round;
       stroke-linejoin:round;
     }
+    /* No turn, no fade: the cross is replaced by the arrow in one frame on
+       the press, so what the home page paints a moment later is the mark
+       already in the state this one left it. Watching it rotate here and
+       then arrive rotated there was the same gesture played twice. */
+    .xa-arrow{ display:none; }
+    .ws-exit.to-arrow .xa-cross{ display:none; }
+    .ws-exit.to-arrow .xa-arrow{ display:block; }
     .ws-exit:hover{ opacity:.8; }
     .ws-exit:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
 
@@ -2015,6 +2022,7 @@
         <h3>External Links</h3>
         <p>Although this website only looks to include quality, safe and relevant external links users should always adopt a policy of caution before clicking any external web links mentioned throughout this website.</p>
         <p>The owners of this website cannot guarantee or verify the contents of any externally linked website despite their best efforts. Users should therefore note they click on external links at their own risk and this website and its owners cannot be held liable for any damages or implications caused by visiting any external links mentioned.</p>
+        <p>Some of those links are to our partners. We name them on this site and link to them &mdash; Ramco, whose Operation Upcycle initiative is at operationupcycle.co.uk, East West, and the sourcing, development and remanufacturing partners shown in our footer. They are separate organisations and we do not control what they do. Following a link to one of them takes you off this site, and from that point their own privacy notice applies rather than this one. Naming a partner here is not an endorsement of their data practices, and you should read their notice before giving them anything. We do not pass your details to a partner unless you have asked us to put you in touch, and we will say so at the time.</p>
         <h3>Adverts and Sponsored Links</h3>
         <p>This website may contain sponsored links and adverts. These will typically be served through our advertising partners, to whom may have detailed privacy policies relating directly to the adverts they serve.</p>
         <p>Clicking on any such adverts will send you to the advertisers website through a referral program which may use cookies and will tracks the number of referrals sent from this website. This may include the use of cookies which may in turn be saved on your computer’s hard drive. Users should therefore note they click on sponsored external links at their own risk and this website and its owners cannot be held liable for any damages or implications caused by visiting any external links mentioned.</p>
@@ -2038,9 +2046,18 @@
 
         <button type="submit" class="ws-access" id="wsSend" form="wsForm">Access</button>
         <button type="button" class="ws-exit" id="wsExit" aria-label="Exit to the home page">
+          <!-- both marks in the one box, the same way the home page carries
+               them, so pressing this swaps straight to the arrow the next
+               page is going to show rather than animating into it there -->
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path d="M3.9 3.9 L12.1 12.1"/>
-            <path d="M12.1 3.9 L3.9 12.1"/>
+            <g class="xa-cross">
+              <path d="M3.9 3.9 L12.1 12.1"/>
+              <path d="M12.1 3.9 L3.9 12.1"/>
+            </g>
+            <g class="xa-arrow">
+              <path d="M8 2.6 V12.8"/>
+              <path d="M3.5 8.3 L8 12.9 L12.5 8.3"/>
+            </g>
           </svg>
         </button>
       </div>
@@ -3156,6 +3173,8 @@
       exit.addEventListener('click', () => {
         if (goingBack) return;
         goingBack = true;
+        exit.classList.add('to-arrow');
+        exit.setAttribute('aria-label', 'Returning to the home page');
         closeTerms();
         document.body.classList.add('ws-leaving');
         /* the sheet goes up, nearest the box last, so the page is clearing

@@ -5309,8 +5309,8 @@
 
       navRow.classList.add('no-anim', 'row-set', 'ops-engaged', 'join-mode', 'visible');
       document.body.classList.add('entered');
-      scrollCue.classList.add('close-mode');
-      scrollCue.setAttribute('aria-label', 'Exit');
+      /* The mark is already an arrow: the sign-up sheet swapped it on the
+         press rather than leaving it to turn over here. Nothing to do. */
 
       /* the same branch the way out takes, so the way back is laid out the
          way the way out left it however the row is arranged */
@@ -5355,9 +5355,6 @@
         dropGhost();
         navRow.classList.remove('ops-engaged');
         navRow.style.pointerEvents = '';
-        // the arrow only comes back once all five buttons are home
-        scrollCue.classList.remove('close-mode');
-        scrollCue.setAttribute('aria-label', 'Scroll to the footer');
         holdPage.sync();
       }, 1020);
       return true;
