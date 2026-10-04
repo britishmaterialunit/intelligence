@@ -988,11 +988,8 @@
        The fall, run backwards. Everything the box came down past fades out
        first, and then the box climbs to where the button row stands on the
        home page and the next document takes over there. */
-    body.ws-leaving #partner > *:not(.p-sec),
-    body.ws-leaving .ws-form,
     body.ws-leaving #siteFooter,
     body.ws-leaving #siteHead,
-    body.ws-leaving .ws-exit,
     body.ws-leaving .ws-agree,
     body.ws-leaving .ws-msg{
       opacity:0;
@@ -1000,9 +997,25 @@
       pointer-events:none;
     }
     body.ws-leaving{ overflow:hidden; }
+    /* The sheet leaves the way it arrived, upwards and a beat per block —
+       the last one off is the one nearest the box, so the page clears from
+       the top down as the box climbs through where it was. */
+    html.fall-ready .fall.lifting{
+      opacity:0;
+      transform:translateY(-16px);
+      transition:opacity .4s cubic-bezier(.4,0,.2,1) var(--lf, 0ms),
+                 transform .46s cubic-bezier(.65,0,.35,1) var(--lf, 0ms);
+    }
     .ws-dock.ws-rising{
       transition:transform .66s cubic-bezier(.4,0,.2,1);
       transform:translateX(-50%) translateY(calc(var(--rise, 240px) * -1));
+    }
+    /* The mark does not go up with the box. It is the home page's arrow and
+       it belongs at the foot of the screen, so it is pushed back down by
+       exactly what the dock is lifting it by and stays where it stands. */
+    .ws-dock.ws-rising .ws-exit{
+      transition:transform .66s cubic-bezier(.4,0,.2,1);
+      transform:translateY(var(--rise, 240px));
     }
 
     @media (max-width:640px){
@@ -1624,7 +1637,7 @@
     .ws-dock{
       position:fixed;
       left:50%;
-      bottom:34px;
+      bottom:24px;
       /* the width the button row on the home page expands to, so the box
          that travels down from it arrives at its own size and does not
          have to change on landing */
@@ -1757,35 +1770,39 @@
     /* The way back, in the join field's own grey: a second box under the
        first, filled rather than outlined, so it reads as the quieter of the
        two without needing a word to say so. */
-    /* The way back, in the join field's own grey and carrying the same
-       cross the home page closes a panel with. A word here would have been
-       a third thing to read in a stack of two; the mark says it. */
+    /* The home page's own mark, standing in the same place it stands there:
+       16px, centred, 24px off the bottom edge. It IS that mark — the arrow
+       turns into this cross on the way over, and the cross is still here
+       when the next document paints, so the one thing that does not move
+       across the seam is the thing the reader last looked at. No box around
+       it, for the same reason there is none around it on the home page. */
     .ws-exit{
       display:flex;
       align-items:center;
       justify-content:center;
-      width:100%;
-      height:32px;
-      margin-top:8px;
+      width:16px;
+      height:16px;
+      margin-top:18px;
       padding:0;
       border:none;
-      background:#e9e9e9;
+      background:none;
       cursor:pointer;
-      transition:background-color .3s cubic-bezier(.4,0,.2,1),
-                 opacity .3s cubic-bezier(.4,0,.2,1);
+      opacity:.45;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1);
     }
+    /* the mark stays 16px but the target does not — a thumb needs more */
+    .ws-exit{ position:relative; }
+    .ws-exit::after{ content:''; position:absolute; inset:-13px; }
     .ws-exit svg{ width:16px; height:16px; display:block; overflow:visible; }
     .ws-exit path{
       fill:none;
-      stroke:#777;
+      stroke:#000;
       stroke-width:1.6;
       stroke-linecap:round;
       stroke-linejoin:round;
-      transition:stroke .3s cubic-bezier(.4,0,.2,1);
     }
-    .ws-exit:hover{ background:#e0e0e0; }
-    .ws-exit:hover path{ stroke:#222; }
-    .ws-exit:focus-visible{ outline:1.5px solid var(--ink); outline-offset:2px; }
+    .ws-exit:hover{ opacity:.8; }
+    .ws-exit:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
 
     .ws-msg{
       width:100%;
@@ -1799,12 +1816,12 @@
     @media (max-width:640px){
       /* full width on a phone, and closer to the bottom edge — there is no
          room to float a panel with margins either side of it */
-      .ws-dock{ bottom:20px; width:min(96vw, 440px); }
+      .ws-dock{ width:min(96vw, 440px); }
       .ws-dock.ws-open .ws-terms, .ws-terms-inner{ max-height:min(52vh, 420px); }
       .ws-terms-body{ font-size:11px; }
       /* the row's buttons are 30px on a phone, and this is one of them */
       .ws-access{ height:30px; line-height:27px; }
-      .ws-exit{ height:30px; line-height:30px; }
+      /* the mark is 16px on a phone too — it is the same mark */
       #partner{ padding-bottom:130px; }
     }
 
@@ -3066,6 +3083,7 @@
          Marked in script rather than in the markup, so a reader without it
          gets the page standing still and whole rather than a column of
          invisible blocks. */
+      let fallen = [];
       (function fallIn(){
         const root = document.documentElement;
         const parts = [].concat(
@@ -3078,6 +3096,7 @@
           el.style.setProperty('--fd', (i * 70) + 'ms');
         });
         root.classList.add('fall-ready');
+        fallen = parts;
         requestAnimationFrame(() => requestAnimationFrame(() => {
           parts.forEach(el => el.classList.add('landed'));
         }));
@@ -3139,6 +3158,12 @@
         goingBack = true;
         closeTerms();
         document.body.classList.add('ws-leaving');
+        /* the sheet goes up, nearest the box last, so the page is clearing
+           in front of the box rather than after it */
+        fallen.forEach((el, i) => {
+          el.style.setProperty('--lf', (i * 45) + 'ms');
+          el.classList.add('lifting');
+        });
         /* the paper has its own .58s to get out of the way; the climb waits
            for it, or the box takes the open terms up the screen with it */
         const wait = isOpen() ? 240 : 0;
@@ -3149,6 +3174,11 @@
         }, wait);
         /* ...and the home page is asked for while the box is still moving,
            so the row it is climbing towards is already there when it lands */
+        /* The home page needs to know this is a return rather than an
+           arrival: it has to put the box down where this one left it,
+           still reading Access and still alone, and only then let it
+           become Operations again. */
+        try { sessionStorage.setItem('bmu.repo.back', '1'); } catch(_){}
         setTimeout(() => { window.location.href = '/#home'; }, wait + 620);
       });
       try {

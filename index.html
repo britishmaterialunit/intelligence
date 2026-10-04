@@ -432,6 +432,11 @@
        the middle before the opening had begun — the reader saw the row twice
        before it arrived. Held for one reflow, it is simply where they start. */
     #navRow.no-anim .bm-button{ transition:none; }
+    /* Coming back from the repository the row does not rise into place — it
+       is already in place, because the box standing in it is the one that
+       just climbed the sign-up sheet. Its own arrival transition is held off
+       for the frame that puts it there. */
+    #navRow.row-set{ transition:none; }
     @media (prefers-reduced-motion:reduce){
       #navRow{ transform:none; transition:opacity .5s cubic-bezier(.4,0,.2,1); }
     }
@@ -514,6 +519,11 @@
        fading, so the page is empty by the time the archive paints. */
     body.entered.arch-leaving #scrollCue,
     body.entered.arch-leaving #scrollCue.close-mode{ opacity:0; }
+    /* ...except on the way to the repository, where the mark is the one
+       thing that is meant to survive the seam: it turns from arrow to cross
+       and the next document paints a cross in that same spot. */
+    body.entered.arch-leaving.repo-leaving #scrollCue,
+    body.entered.arch-leaving.repo-leaving #scrollCue.close-mode{ opacity:.45; }
     body.entered.arch-leaving .typewriter-text{
       opacity:0;
       transition:opacity 1.1s cubic-bezier(.4,0,.2,1);
@@ -4721,12 +4731,13 @@
     }
 
     /* How far the Access button's own line sits off the bottom of the
-       screen: the dock's 34px gap plus the Exit standing under it (32px and
-       an 8px space, 30 and 8 on a phone). The width is not asked for here —
-       the dock is the row's own width, so the box is already the right size
-       the moment it has finished expanding and has nothing left to do but
-       fall. */
-    function dockGap(){ return window.innerWidth <= 640 ? 58 : 74; }
+       screen: the mark's own 24px, plus the 16px mark, plus the 18px between
+       them. The same on every screen, because the mark is in the same place
+       on every screen. The width is not asked for here — the dock is the
+       row's own width, so the box is already the right size the moment it
+       has finished expanding and has nothing left to do but fall. */
+    const DOCK_GAP = 58;
+    function dockGap(){ return DOCK_GAP; }
 
     /* ---------- LEAVING FOR THE REPOSITORY ----------
        Archive's sequence, held at the end instead of let go of: converge,
@@ -4743,7 +4754,7 @@
       }
       leaving = true;
       leftBtn = opsBtn;
-      document.body.classList.add('arch-leaving');
+      document.body.classList.add('arch-leaving', 'repo-leaving');
       bmuUntype(textContent, 5);
       joinState = 'opening';
       navRow.classList.add('ops-engaged', 'join-mode');
@@ -4766,6 +4777,13 @@
         opsLabel.textContent = 'Access';
         opsBtn.setAttribute('aria-label', 'Access');
       }, 420);
+
+      /* The arrow becomes the cross on the way over, and the cross is
+         already standing in that exact spot when the next document paints.
+         One mark, two documents: the thing the reader is looking at is the
+         thing that does not move. */
+      scrollCue.classList.add('close-mode');
+      scrollCue.setAttribute('aria-label', 'Exit');
 
       later(() => { settleToDock(); }, 860);
       later(() => { window.location.href = '/repository'; }, 860 + 660);
@@ -5264,6 +5282,87 @@
       document.body.classList.add('entered');
     }
 
+    /* ---------- COMING BACK FROM THE REPOSITORY ----------
+       The box that left this page is the box that is arriving back on it,
+       so this page does not raise a row — it puts that one box down exactly
+       where the sign-up sheet last had it, still reading Access and still
+       alone, and only then lets it become Operations and the four run out
+       from under it. Everything is committed with transitions switched off
+       first, so the first frame is the end of the last page rather than a
+       row of five buttons flashing up and then rearranging itself.
+
+       The mark is already a cross for the same reason, and turns back into
+       the arrow once the row is home. */
+    function enterFromRepo(){
+      if (document.body.classList.contains('entered')) return false;
+      let used = false;
+      try {
+        used = sessionStorage.getItem('bmu.repo.back') === '1';
+        sessionStorage.removeItem('bmu.repo.back');
+      } catch(_){}
+      if (!used) return false;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+
+      logoSvg.classList.add('svg-faded');
+      textOutput.classList.add('show-text');
+      textContent.textContent = mainText;
+
+      navRow.classList.add('no-anim', 'row-set', 'ops-engaged', 'join-mode', 'visible');
+      document.body.classList.add('entered');
+      scrollCue.classList.add('close-mode');
+      scrollCue.setAttribute('aria-label', 'Exit');
+
+      /* the same branch the way out takes, so the way back is laid out the
+         way the way out left it however the row is arranged */
+      if (!isStacked()){
+        flipPin();
+        opsBtn.style.left  = '0px';
+        opsBtn.style.width = '100%';
+      } else {
+        opsBtn.classList.add('expanding');
+      }
+      opsBtn.classList.add('join-solo');
+      opsLabel.textContent = 'Access';
+      opsBtn.setAttribute('aria-label', 'Access');
+      convergeButtons();
+      void navRow.offsetWidth;              // committed before anything moves
+      navRow.classList.remove('no-anim');
+      requestAnimationFrame(() => navRow.classList.remove('row-set'));
+
+      /* ...and now the close that Join already knows how to do, beat for
+         beat: the word comes off, the box narrows into its slot and the
+         other four run out from under it. Written in the same order as
+         closeJoin's own landing — clearing the width before the box is back
+         in the row's flow leaves it at the width of nothing, which is a
+         14px sliver where a button should be. */
+      opsBtn.classList.remove('join-solo');
+      later(() => {
+        opsLabel.textContent = 'Operations';
+        opsBtn.setAttribute('aria-label', 'Operations');
+        const slot = estimateSlot();
+        opsBtn.style.left  = slot.left + 'px';
+        opsBtn.style.width = slot.width + 'px';
+        navRow.classList.remove('join-mode');
+        navRow.style.pointerEvents = 'none';   // nothing is clickable mid-flight
+        releaseButtons();
+      }, 420);
+
+      later(() => {
+        opsBtn.classList.remove('expanding');
+        opsBtn.style.left = '';
+        opsBtn.style.width = '';
+        opsBtn.style.top = '';
+        dropGhost();
+        navRow.classList.remove('ops-engaged');
+        navRow.style.pointerEvents = '';
+        // the arrow only comes back once all five buttons are home
+        scrollCue.classList.remove('close-mode');
+        scrollCue.setAttribute('aria-label', 'Scroll to the footer');
+        holdPage.sync();
+      }, 1020);
+      return true;
+    }
+
     /* Back out of /join or /repository closes the panel rather than leaving
        the reader on a page whose URL says one thing and whose screen says
        another. */
@@ -5326,7 +5425,9 @@
         return;
       }
 
-      enterInstant();
+      /* A return from the repository puts the box down where it left it and
+         lets it become Operations; anything else raises the row as usual. */
+      if (!enterFromRepo()) enterInstant();
 
       /* The panel is opened a beat after arrival rather than on it: each of
          these measures the button row it grows out of, and that row has
