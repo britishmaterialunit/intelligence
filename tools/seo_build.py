@@ -118,7 +118,7 @@ PAGE = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>{title_esc} | BMU Archive</title>
+<title>{title_esc} | BMU</title>
 <meta name="description" content="{desc_esc}" />
 <link rel="canonical" href="{url}" />
 <link rel="icon" href="/bmufavicon.svg" type="image/svg+xml" />
