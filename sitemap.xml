@@ -332,6 +332,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/bulgarian/webbing/bulgarian-army-1960s-wool-water-bottle/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/bulgarian/webbing/bulgarian-army-1960s-wool-water-bottle/BUA1960WWB.png</image:loc>
+      <image:title>Bulgarian Army 1960s Wool Water Bottle</image:title>
+      <image:caption>Bulgarian Army 1960s Wool Water Bottle — Bulgarian military surplus webbing, archive ref BUA1960WWB</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/chinese/webbing/chinese-peoples-liberation-army-1980s-type-81-olive-green-ak-bandolier-chest-rig/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
