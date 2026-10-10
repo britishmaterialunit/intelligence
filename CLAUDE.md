@@ -49,7 +49,36 @@ whole project. If unsure which file, ask me.**
 Verify by measuring in a browser, not by assuming. Skills: `publish`, `archive-ingest`,
 `lambrino-archive`.
 
-## After adding or renaming a garment
+## Adding a garment
+
+Name the photograph as the garment and drop it in `_incoming/`:
+
+```
+_incoming/German Army 1990s Flecktarn Parka Hood [GA1990FPH].png
+_incoming/French Army 1980s Bermuda F2 Shorts {Cotton}.png
+_incoming/dutch/Some Jacket.png          # subfolder overrides the nation
+```
+
+`[REF]` is the archive code and the filename it is saved as; left off, it is
+derived the way the register already spells them. `{Material}` is the
+material facet, `Unlisted` when left off. Then:
+
+```bash
+python3 tools/ingest.py           # plan — prints what it would do, writes nothing
+python3 tools/ingest.py --write   # files it, writes the ITEMS entry, runs seo_build
+python3 tools/check.py            # does the register agree with the disk?
+```
+
+**A `.txt` record is not required.** The live page holds every record back
+behind Sourcing and never fetches it, and `seo_build` falls back to a generic
+description. A garment is complete with its photograph and its `ITEMS`
+entry; write a record when there is something to say.
+
+**`ITEMS` is still the register** — a folder that is not in it is invisible:
+no card, no cluster, no page, no sitemap entry. `ingest.py` writes the entry
+so you do not have to, and `check.py` reports any folder that was missed.
+
+## After adding or renaming a garment by hand
 
 ```bash
 python3 tools/seo_build.py        # --dry-run to see what it would do
