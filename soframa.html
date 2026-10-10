@@ -1,44 +1,2495 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
-  <title>Soframa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="SOFRAMA — research and development partner to British Material Unit. Circular exit strategy, fibre-to-fibre recycling and garment-to-garment remanufacturing." />
+  <!-- Held back. The page is live so the Research & Development button has
+       somewhere to go, but nothing indexes it and nothing links to it from
+       the partners reel until the work is announced. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="author" content="British Material Unit" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700&display=swap" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="BMU" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="canonical" href="https://britishmaterialunit.com/soframa" />
+  <link rel="icon" href="bmufavicon.svg" type="image/svg+xml" />
+
+
+  <!-- The card Instagram, WhatsApp, iMessage and the rest show when this
+       link is pasted. One mark on white for every page on the site: left to
+       themselves the scrapers screenshot whatever the page happened to be
+       doing, and most of these pages are a line of type on white at the
+       moment they load. Absolute URLs — a scraper has no page to resolve a
+       relative one from. A square beside it, because WhatsApp crops to one
+       and shows it small. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://britishmaterialunit.com/soframa" />
+  <meta property="og:site_name" content="British Material Unit (BMU)" />
+  <meta property="og:locale" content="en_GB" />
+  <meta property="og:title" content="SOFRAMA | BMU" />
+  <meta property="og:description" content="Research &amp; Development Partner. Circular exit strategy, archive conservation." />
+  <meta property="og:image" content="https://britishmaterialunit.com/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:alt" content="British Material Unit" />
+  <meta property="og:image" content="https://britishmaterialunit.com/og-square.png" />
+  <meta property="og:image:width" content="800" />
+  <meta property="og:image:height" content="800" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SOFRAMA | BMU" />
+  <meta name="twitter:description" content="Research &amp; Development Partner. Circular exit strategy, archive conservation." />
+  <meta name="twitter:image" content="https://britishmaterialunit.com/og.png" />
+  <meta name="twitter:image:alt" content="British Material Unit" />
+
+  <title>SOFRAMA | BMU</title>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "url": "https://britishmaterialunit.com/soframa",
+    "name": "SOFRAMA \u2014 Research & Development Partner | BMU",
+    "description": "Circular exit strategy, fibre-to-fibre recycling and garment-to-garment remanufacturing.",
+    "isPartOf": { "@id": "https://britishmaterialunit.com/#website" },
+    "about": { "@type": "Organization", "name": "SOFRAMA" }
+  }
+  </script>
+
   <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: #ffffff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: Helvetica, sans-serif;
-      color: #222;
+    /* ---------- NO ORPHANS ----------
+       A last line of one word reads as a mistake, and "software" alone under
+       a sentence was exactly that. text-wrap:pretty asks the browser to even
+       the rag and refuse to leave a word stranded; where it is not supported
+       the copy simply wraps as it did. */
+    p, .cl-lede, .cl-sub, .repo-lede, .repo-note, .ni-sub, .ni-title,
+    .p-body, .typewriter-text, .info-inner, .foot-col span, .cv-tabname,
+    .cl-name, .cv-soloname, .dq-pick, .cv-pop, .bmu-pop, .fp-pop{
+      text-wrap:pretty;
     }
-    .typewriter {
-      max-width: 90%;
-      font-size: 14pt;
-      text-align: center;
-      white-space: pre-wrap;
-      line-height: 1.5;
+
+    :root{
+      --ink:#222222;
+      --line:#000000;
+      --bg:#ffffff;
+      --faint:#f0f0f0;
+      --font:'Inter Tight', Helvetica, Arial, sans-serif;
+      /* the height of a button, the Operations bar and the arrow — the
+         sheet geometry is measured off it, so it is set in one place */
+      --bar-h:32px;
     }
-  </style>
+    *{ box-sizing:border-box; }
+    html{ height:100%; scroll-behavior:smooth; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:var(--font);
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:0 16px;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
+
+    #page{
+      width:100%;
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:24px 0 40px;
+    }
+    /* ---------- FOOTER ---------- */
+    /* scroll cue — only once the reader is in, gone once they arrive */
+    #scrollCue{
+      position:fixed;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%);
+      width:16px; height:16px;
+      z-index:30;
+      display:grid; place-items:center;
+      padding:0;
+      border:0;                 /* no box — the mark stands on its own */
+      background:none;
+      cursor:pointer;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .6s cubic-bezier(.4,0,.2,1);
+    }
+    body.entered #scrollCue{ opacity:.45; pointer-events:auto; }
+    body.entered #scrollCue:hover{ opacity:.8; }
+    body.entered.at-footer #scrollCue{ opacity:0; pointer-events:none; }
+    /* while Join holds the row this is the only way out, so it stays up
+       and stays live even at the footer */
+    body.entered #scrollCue.close-mode,
+    body.entered.at-footer #scrollCue.close-mode{ opacity:.8; pointer-events:auto; }
+    #scrollCue:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
+    /* the mark stays 16px but the target does not — a thumb needs more
+       than that, and the pseudo-element grows the hit area without
+       moving the arrow or drawing anything */
+    #scrollCue::after{ content:''; position:absolute; inset:-13px; }
+
+    #scrollCue svg{ width:16px; height:16px; display:block; overflow:visible; }
+    #scrollCue path{
+      fill:none;
+      stroke:#000;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    /* both marks share the one box and swap by turning through each
+       other, so the cue never blinks empty */
+    .fa-arrow, .fa-cross{
+      transform-box:fill-box;
+      transform-origin:50% 50%;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1), transform .38s cubic-bezier(.65,0,.35,1);
+    }
+    .fa-cross{ opacity:0; transform:rotate(-90deg) scale(.55); }
+    #scrollCue.close-mode .fa-arrow{ opacity:0; transform:rotate(90deg) scale(.55); }
+    #scrollCue.close-mode .fa-cross{ opacity:1; transform:none; }
+
+    /* the footer does not exist until the reader has entered the site by
+       clicking the mark, then it fades up as they scroll onto it */
+    /* the dot radius is registered so it can be animated — a plain custom
+       property would jump straight to its end value */
+    @property --dot-r{
+      syntax:'<length>';
+      inherits:false;
+      initial-value:0px;
+    }
+
+    #siteFooter{
+      display:none;
+      position:relative;
+      width:100%;
+      flex:none;
+      padding:60px 16px 46px;
+      font-family:var(--font);
+      color:var(--ink);
+      opacity:0;
+      /* the footer resolves out of a field of dots as it is scrolled onto:
+         each 5px tile holds one dot that grows until the tiles meet and
+         the mask is solid */
+      --dot-r:0px;
+      -webkit-mask-image:radial-gradient(circle, #000 var(--dot-r), transparent calc(var(--dot-r) + .7px));
+              mask-image:radial-gradient(circle, #000 var(--dot-r), transparent calc(var(--dot-r) + .7px));
+      -webkit-mask-size:5px 5px;
+              mask-size:5px 5px;
+      transition:opacity .55s cubic-bezier(.4,0,.2,1), --dot-r 1.25s cubic-bezier(.4,0,.2,1);
+    }
+    body.entered #siteFooter{ display:block; }
+    /* and it is taken off the page entirely, so a scroll cannot reach it */
+    /* The footer used to be taken out of the flow while Operations was
+       open, which moved it every time the sheet opened or shut and made the
+       page jump under anyone standing on it. It stays put now: an open
+       sheet grows the row it lives in, so the footer is pushed below the
+       fold on its own without being removed from the document. */
+    #siteFooter.in{
+      opacity:1;
+      --dot-r:4px;          /* > half the 5px tile diagonal, so it closes up */
+    }
+    /* once resolved the mask is dropped altogether: it can never be left
+       part-drawn, and text renders without a mask over it */
+    #siteFooter.settled{
+      -webkit-mask-image:none;
+              mask-image:none;
+    }
+
+    /* inner width keeps the hairline clear of the screen edges */
+    .foot-inner{
+      position:relative;
+      z-index:1;
+      width:min(92vw, 1100px);
+      margin:0 auto;
+    }
+
+    /* The slogan sits with the mark, not three columns away from it. On a
+       1100px footer a 3-track grid threw it most of the width clear of the
+       thing it belongs to, which read as two unrelated items. */
+    .foot-head{
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+
+    /* ---------- who we work with ----------
+       Pushed to the far end of the same row the mark and the line sit on, so
+       the three read as one band across the top of the footer. Grey at rest
+       because they are somebody else's marks on our page; black when the
+       pointer picks one out. */
+    .foot-partners{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      flex:none;
+    }
+    /* the gap is a margin rather than the row's gap, so a mark that is not
+       showing can take it back with it */
+    .fp{ display:block; line-height:0; margin-left:22px; }
+    .fp img{
+      height:22px;
+      width:auto;
+      max-width:64px;
+      object-fit:contain;
+      display:block;
+      opacity:.34;
+      transition:opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    .fp[data-who]{ cursor:help; }
+    .fp:hover img{ opacity:1; }
+
+    /* Held back until the plus is pressed. They sit at the left-hand end of
+       the row, so opening them grows the group towards the mark. */
+    .fp.is-extra{
+      max-width:0;
+      margin-left:0;
+      opacity:0;
+      overflow:hidden;
+      transition:max-width .55s cubic-bezier(.4,0,.2,1),
+                 margin-left .55s cubic-bezier(.4,0,.2,1),
+                 opacity .4s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-head.partners-open .fp.is-extra{ max-width:64px; margin-left:22px; opacity:1; }
+
+    /* The line goes back into the mark to make the room: it slides left and
+       fades as it goes, and gives its width up so the marks can have it. */
+    .foot-slogan{
+      transition:opacity .4s cubic-bezier(.4,0,.2,1),
+                 transform .55s cubic-bezier(.4,0,.2,1),
+                 max-width .55s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-head.partners-open .foot-slogan{
+      opacity:0;
+      transform:translateX(-28px);
+      max-width:0;
+      overflow:hidden;
+      white-space:nowrap;
+    }
+
+    /* Plus into minus: one bar stays, the other closes. Padding and a
+       negative margin the way .hd-ico does it, so the glyph's own edge lands
+       on the measure's edge and it sits directly under the sandwich. */
+    .fp-more{
+      flex:none;
+      padding:8px;
+      margin:-8px;
+      margin-left:14px;
+      border:0;
+      background:none;
+      line-height:0;
+      cursor:pointer;
+      color:#b0b0b0;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .fp-more:hover{ color:var(--ink); }
+    /* the header's own icon size, so the two read as one column */
+    .fp-more svg{ width:15px; height:15px; display:block; }
+    .fp-more .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+    }
+    .fp-vert{
+      transform-origin:50% 50%;
+      transition:transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-head.partners-open .fp-vert{ transform:scaleY(0); }
+    @media (prefers-reduced-motion:reduce){
+      .fp.is-extra, .foot-slogan, .fp-vert{ transition:none; }
+    }
+
+    /* the same box the Files page hangs off its info mark: one rule, one
+       line, tight to the words, and it rides the cursor */
+    .fp-pop{
+      position:fixed;
+      left:0; top:0;
+      z-index:200;
+      padding:3px 6px;
+      background:var(--bg);
+      border:1.5px solid #000;
+      font-size:10.5px;
+      line-height:1.25;
+      letter-spacing:.03em;
+      color:var(--ink);
+      white-space:nowrap;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .22s cubic-bezier(.4,0,.2,1);
+    }
+    .fp-pop.show{ opacity:1; }
+
+    @media (max-width:760px){
+      /* The head lands just under the fixed header rather than 60px below
+         it: the mark, the line and the plus are what the reader has come for
+         and they belong at the top of the screen. */
+      #siteFooter{ padding-top:26px; }
+
+      /* ---------- LET'S TALK OPENS WHEN IT IS SEEN ----------
+         There is no hover on a phone, so the box that opens and the arrow
+         that arrives in the room it makes had no way of happening — the one
+         thing in the footer asking to be pressed looked like a label.
+
+         It plays when the BUTTON is on screen, not when the footer arrives.
+         The footer's reveal fires a screenful earlier, with the button still
+         well below the fold, so the one thing it was meant to draw the eye
+         to had already finished opening by the time anyone could see it.
+         Sent here by the header's tool or scrolled to by hand, it is the
+         same moment either way: the button in view. Once, and it stays.
+
+         Shut until then — without this the touch rule further down has
+         already opened it and there is nothing left to play. */
+      #siteFooter .foot-talk .talk-well{ width:0; }
+      #siteFooter .foot-talk svg{ opacity:0; }
+      #siteFooter .foot-talk.talk-seen .talk-well{
+        width:20px;
+        transition:width .5s cubic-bezier(.4,0,.2,1);
+      }
+      #siteFooter .foot-talk.talk-seen svg{
+        opacity:1;
+        transition:opacity .34s cubic-bezier(.4,0,.2,1) .3s;
+      }
+
+      /* ---------- THE TOP OF THE FOOTER, ON A PHONE ----------
+         One line: the mark and the line it carries on the left, the plus at
+         the right-hand end. It used to wrap, which put the marks on a row of
+         their own UNDER the plus and left the mark and slogan sitting above
+         everything with nothing beside them. Nothing wraps — at rest the plus
+         is the only thing out there, and it fits. */
+      .foot-head{ flex-wrap:nowrap; align-items:center; gap:10px; }
+      .foot-partners{ margin-left:auto; width:auto; }
+      .fp{ margin-left:10px; }
+      .foot-head.partners-open .fp.is-extra{ margin-left:10px; }
+      .fp img{ height:16px; max-width:44px; }
+      /* opened on a phone there are five marks and a plus on one line, so
+         they are allowed to run and be dragged rather than squeezed */
+      .foot-head.partners-open .foot-partners{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .foot-head.partners-open .foot-partners::-webkit-scrollbar{ display:none; }
+
+      /* ---------- MEETING THE HEADER ----------
+         At the footer the head lands under the fixed header, and the plus sat
+         directly beneath the header's own two tools. It steps aside by
+         exactly their width so the three read as one row above the divider,
+         and steps back when the reader leaves. */
+      /* The whole group steps aside, not just the plus. Moving the button
+         alone left the marks it reveals — and the minus it turns into —
+         standing where they were, so opened at the footer the row ran back
+         under the header's tools and the minus sat on top of the logos it
+         belongs to. The row is one thing; it moves as one.
+
+         Driven by plus-aside rather than at-footer: at-footer is true as
+         soon as the footer is a little way into view, which had the row
+         stepping aside for tools that were still most of a screen away.
+         plus-aside is set when the two are actually near each other — or
+         at once, with foot-now holding the transition, when the reader
+         asked for the footer outright and there is no approach to watch. */
+      body.plus-aside .foot-partners{ transform:translateX(-62px); }
+
+      /* ---------- THE CLOSING RULE SITS AT THE FOOT ----------
+         Anchored, the footer's head is at the top of the screen and its
+         closing rule — the name, the copyright, PRIVACY — ended wherever
+         the copy above it happened to stop, with a screenful of nothing
+         under it. That nothing was the room the page needs in order to
+         scroll far enough to anchor at all; it was simply all of it below
+         the last line rather than any of it inside the footer.
+
+         The footer takes the screen it is anchored on, and the rule is
+         pushed to the bottom of it — touching the foot of the screen with
+         a little space under, which is where a closing rule belongs. The
+         space that was dead under it is now breathing room above it. */
+      #siteFooter{ display:flex; }
+      .foot-inner{
+        display:flex;
+        flex-direction:column;
+        width:100%;
+        /* the screen, less the 16px the anchor leaves above the mark and
+           the little space kept under the closing rule */
+        min-height:calc(100dvh - 40px);
+      }
+      /* addressed through the footer so it outranks .foot-base's own
+         margin-top, which is written later in the sheet */
+      #siteFooter .foot-base{ margin-top:auto; }
+      .foot-partners{ transition:transform .42s cubic-bezier(.4,0,.2,1); }
+      body.foot-now .foot-partners{ transition:none; }
+      .fp-more{ transition:color .3s cubic-bezier(.4,0,.2,1); }
+    }
+
+    .foot-mark{
+      height:17px; width:auto;   /* matches .hd-mark in the header */
+      display:block;
+      align-self:center;
+      justify-self:start;
+    }
+    /* the hero's draw-then-fill, reused at footer scale.
+       .9 rendered the same ~1px line as the hero, far too heavy on a mark
+       this small. .45 halved it; .35 takes it down another step to a
+       ~0.39px hairline. */
+    .foot-trace{
+      fill:none;
+      stroke:var(--ink);
+      stroke-width:.35;
+      stroke-dashoffset:9999;
+    }
+    /* single source of truth: the slogan waits on 80% of this */
+    #siteFooter{ --trace-ms:4200ms; }
+    /* ---------- CARRIED OVER, NOT REBUILT ----------
+       The footer is laid out at nothing and resolves out of a field of dots
+       as it is scrolled onto. Coming from another page in this set that is
+       wrong twice over: the reader has already watched it resolve, and
+       setting .in on arrival still ran the half-second fade from zero, so
+       the footer blinked in on every page change.
+
+       Held still for the frame that places it, the way the row is on the
+       home page. The class goes on, the state commits with nothing
+       animating, and the transition is handed back the frame after. */
+    #siteFooter.foot-set{
+      transition:none;
+      -webkit-mask-image:none;
+              mask-image:none;
+    }
+    #siteFooter.in .foot-trace{
+      animation:trace var(--trace-ms) ease-in-out forwards;
+    }
+    /* The run itself. It lives in the home page's hero block, which is not
+       part of the chrome these pages are built from — so every page but that
+       one named an animation that did not exist here, and the mark never
+       drew at all: it sat hidden for four seconds and then the fill put it
+       on screen in one frame. That is the "skip". */
+    @keyframes trace{ to{ stroke-dashoffset:0; } }
+    .foot-fill{
+      fill:var(--ink);
+      stroke:none;
+      opacity:0;
+      transition:opacity 1s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-fill.visible{ opacity:1; }
+    /* The drawn outline hands over to the fill rather than staying underneath
+       it. Both together put a stroke around every filled edge, which is what
+       made the mark read heavy at rest — and why hovering, which dropped the
+       outline, appeared to thin it. It is the thinner one all the time now;
+       the draw still runs, it just steps aside when the fill arrives. */
+    #siteFooter.filled .foot-trace{
+      opacity:0;
+      transition:opacity .8s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* The footer mark answers to a hover the way the header's does: it fills
+       solid and the drawn outline stands down, both in one frame. The header
+       fills white because its ground goes near-black; this one is on the page
+       itself, so it fills in ink. Same gesture, the colour the ground asks
+       for. Applied here rather than per page — this block is the one the
+       partner pages are built from. */
+    .foot-head{ cursor:default; }
+    /* Hovering brings the fill forward early if the draw has not finished;
+       once it has, there is nothing for a hover to change — which is the
+       point. The mark looks the same whether or not the pointer is on it. */
+    /* (a hover while it is drawing commits the fill — see revealFooter —
+       rather than showing it only for as long as the pointer stays) */
+
+    /* flex-centres the text inside its reserved height so it sits on the
+       mark's centre line rather than riding above it while it types */
+    .foot-slogan{
+      display:flex;
+      align-items:center;
+      min-height:17px;              /* the mark's height */
+      font-size:11.5px;
+      line-height:1.2;
+      letter-spacing:.02em;
+      color:#888;
+    }
+
+    .foot-rule{
+      height:1px;
+      background:#e6e6e6;
+      margin:22px 0 34px;
+    }
+
+    /* Tracks sized to their contents rather than three equal thirds: the two
+       link lists are short and the contact block is not, so equal thirds left
+       a trench of dead space beside the lists and broke the address. */
+    .foot-cols{
+      display:grid;
+      grid-template-columns:minmax(0,.85fr) minmax(0,.85fr) minmax(0,1.3fr);
+      gap:clamp(24px, 5vw, 68px);
+      align-items:start;
+    }
+    .foot-col{
+      display:flex;
+      flex-direction:column;
+      gap:9px;
+      min-width:0;
+    }
+    .foot-col h3{
+      margin:0 0 8px;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:bold;
+      color:var(--ink);
+    }
+    .foot-col a,
+    .foot-col span{
+      font-size:11.5px;
+      line-height:1.55;
+      color:#666;
+      text-decoration:none;
+    }
+    .foot-col a{
+      width:fit-content;
+      cursor:pointer;
+      transition:color .25s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-col a:hover{ color:var(--ink); }
+
+    /* Early Access is parked. Pressing it goes nowhere: the padlock fades
+       up over the word in black, holds a beat, and fades away again. */
+    .foot-col a.foot-locked{ position:relative; }
+    /* The mark sits after the words rather than over them: a lock lying on
+       top of the label hid what it was locking. It is simply there. */
+    .foot-col a.foot-locked{ display:inline-flex; align-items:center; gap:7px; }
+    .foot-lock{
+      width:12px; height:12px;
+      flex:none;
+      display:block;
+      opacity:.45;
+      pointer-events:none;
+      transition:opacity .35s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-locked:hover .foot-lock,
+    .foot-locked.flash .foot-lock{ opacity:1; }
+    .foot-locked.flash{ color:#d0d0d0; }
+
+    /* the address is one block of information, so it sets on its own tight
+       rhythm — the column's 9px gap is for lists, not for a postal address */
+    /* The column is pushed apart so the address falls to the bottom of it —
+       its last line then sits on the same baseline as the last service in
+       the column beside it, which is where the eye expects a footer to end. */
+    /* Tightened so the column's content ends on the same line as the last
+       service beside it. Adding Let's Talk made this the tallest column, and
+       the address then hung below everything else in the row. */
+    .foot-id{ gap:5px; display:flex; flex-direction:column; }
+    .foot-addr{
+      font-style:normal;
+      font-size:11.5px;
+      line-height:1.65;
+      color:#666;
+    }
+
+    /* The one thing in the footer asking to be pressed, so it is the one
+       thing wearing a box. Bold and title-cased, as the partner names are. */
+    /* The same measure as a button on the home page's row, and starting on
+       the same left edge as the address and the address line above it — it
+       belongs to that column, not floating in the middle of it.
+
+       Pressing is not a colour change: the box runs outwards to the right
+       and the arrow arrives in the room it made. The rule is the thing that
+       moves, which is the gesture the rest of the site is built on. */
+    /* No fixed measure. The box is cut to "Let's Talk" and nothing else, so
+       it reads as a label that happens to be pressable rather than a sixth
+       copy of the home row's button. align-self:flex-start in a column flex
+       parent is what shrink-wraps it; there is no width here to keep in step
+       with the type. */
+    .foot-talk{
+      align-self:flex-start;
+      display:inline-flex;
+      align-items:center;
+      flex:none;
+      /* the top gap carries the collapsed mail-message row above it as well,
+         so the two numbers differ to put the box the same distance from
+         hello@ above as from Unit U below */
+      margin:7px 0 12px;
+      padding:7px 12px;
+      border:1.5px solid var(--line);
+      color:var(--ink);
+      text-decoration:none;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.01em;
+      white-space:nowrap;
+    }
+    /* The well is the only thing with a width, and the box is sized from it:
+       growing the well from nothing grows the box, so the rule runs outwards
+       and the arrow arrives in exactly the room it made — never a gap left
+       over between the arrow and the right edge, at any point in the run.
+       The curve is a ramp rather than a symmetrical ease: it leaves quickly
+       and settles slowly, which is what reads as smooth on a short travel. */
+    .talk-well{
+      width:0;
+      overflow:hidden;
+      display:flex;
+      justify-content:flex-end;
+      transition:width .5s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-talk:hover .talk-well,
+    .foot-talk:focus-visible .talk-well{ width:20px; }
+    .foot-talk svg{
+      width:12px; height:12px;
+      display:block;
+      flex:none;
+      margin-left:8px;
+      opacity:0;
+      transition:opacity .34s cubic-bezier(.4,0,.2,1) .1s;
+    }
+    .foot-talk:hover svg,
+    .foot-talk:focus-visible svg{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){
+      .talk-well{ transition:none; }
+    }
+    /* No pointer to hover with. On a phone the box never opened and the
+       arrow never arrived, so the one thing in the footer asking to be
+       pressed looked like a label that had stopped working — the whole
+       gesture was built on a state touch does not have. It arrives open
+       instead: full width, arrow in place, nothing to reveal. */
+    @media (hover: none){
+      .talk-well{ width:20px; transition:none; }
+      .foot-talk svg{ opacity:1; transition:none; }
+    }
+    .talk-arrow{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    /* closing rule: identity left, copyright right */
+    .foot-base{
+      margin-top:40px;
+      padding-top:18px;
+      border-top:1.5px solid #e6e6e6;
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+    .foot-org{
+      font-size:11.5px;
+      font-weight:bold;
+      color:var(--ink);
+    }
+    .foot-copy{
+      font-size:10.5px;
+      letter-spacing:.06em;
+      color:#999;
+    }
+    .foot-legal{ display:flex; gap:18px; }
+    .foot-legal a{
+      font-size:10.5px;
+      letter-spacing:.06em;
+      color:#999;
+      text-decoration:none;
+      transition:color .25s cubic-bezier(.4,0,.2,1);
+    }
+    .foot-legal a:hover{ color:var(--ink); }
+
+    /* the confirmation the address copied — it takes no room until it has
+       something to say, so the contact block does not shift */
+    #footMailMsg{
+      display:block;
+      height:0;
+      overflow:hidden;
+      font-size:10px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:#999;
+      opacity:0;
+      transition:opacity .25s cubic-bezier(.4,0,.2,1), height .25s cubic-bezier(.4,0,.2,1);
+    }
+    #footMailMsg.show{ height:1.5em; opacity:1; }
+
+    /* ---------- copied ----------
+       A word saying "Copied to clipboard" is a sentence where a mark will
+       do. The tick slides out of the address to the right, holds, then
+       slides back left and fades into it — the well closing is what carries
+       it home, so nothing is left sitting in the gap. Grey, because it is a
+       receipt rather than a thing to read. */
+    .mail-copy{ display:inline-flex; align-items:center; max-width:100%; }
+    .mail-tick{
+      width:0;
+      overflow:hidden;
+      display:flex;
+      flex:none;
+      transition:width .42s cubic-bezier(.4,0,.2,1);
+    }
+    .mail-copy.copied .mail-tick{ width:19px; }
+    .mail-tick svg{
+      width:11px; height:11px;
+      display:block; flex:none;
+      margin-left:8px;
+      opacity:0;
+      transform:translateX(-7px);
+      transition:opacity .28s cubic-bezier(.4,0,.2,1),
+                 transform .42s cubic-bezier(.4,0,.2,1);
+    }
+    .mail-copy.copied .mail-tick svg{ opacity:1; transform:translateX(0); }
+    .mt-mark{
+      fill:none;
+      stroke:#a6a6a6;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    @media (prefers-reduced-motion:reduce){
+      .mail-tick, .mail-tick svg{ transition:none; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .animated-path, .foot-trace{ animation-duration:.01s; }
+      /* no dot dissolve when motion is unwelcome — show it plainly */
+      #siteFooter{ transition:none; --dot-r:4px; }
+      #opsBtn, #opsSheet, #navRow{ transition:none; }
+      /* same resting state, reached instantly: the drawn outline, unfilled */
+      #siteHead{ transition:background-color .2s cubic-bezier(.4,0,.2,1); }
+      html{ scroll-behavior:auto; }
+    }
+
+    /* ---------- SITE HEADER ---------- */
+    /* Only exists once the reader is inside the site — it rides in on the
+       same beat as the button row. See-through over the white page; on
+       hover it fills to near-black, which is the whole reason the mark and
+       the two tools are built to read on either ground. */
+    #siteHead{
+      position:fixed;
+      top:0; left:0; right:0;
+      z-index:60;
+      height:54px;
+      display:flex;
+      align-items:center;
+      background:transparent;
+      opacity:0;
+      pointer-events:none;
+      transition:background-color .35s cubic-bezier(.4,0,.2,1), opacity .9s cubic-bezier(.4,0,.2,1);
+    }
+    body.entered #siteHead{ opacity:1; pointer-events:auto; }
+    #siteHead:hover,
+    #siteHead.head-lit{ background:#262626; }
+    /* ---------- THE FILL IS A STATE, NOT A LINGERING TOUCH ----------
+       A finger leaves :hover stuck on whatever it last touched, so the bar
+       the sandwich lives in stayed dark after the press that sent the
+       reader down to the footer. Where there is no pointer there is no
+       hover to inherit: the fill is something we set, and the press that
+       leaves for the footer clears it. */
+    #siteHead.head-on{ background:#262626; }
+    #siteHead.head-on .hd-trace{ opacity:0; transition:none; }
+    #siteHead.head-on .hd-fill{ opacity:1; fill:#fff; transition:none; }
+
+    /* ---------- ONE MARK ON THE LINE ----------
+       At the footer the footer's own mark is the one that sits on the
+       header's line — it is the one that draws itself and carries the
+       slogan out beside it. The header's is the same mark again at a
+       different size, stacked on top of it, which is what made the logo
+       look doubled and slightly wrong. It stays down here whatever the bar
+       is doing. */
+    body.at-footer #siteHead .hd-mark,
+    body.at-footer #siteHead:hover .hd-mark,
+    body.at-footer #siteHead.head-lit .hd-mark{ opacity:0; pointer-events:none; }
+    /* ---------- NEVER TWO MARKS ----------
+       Unlit at the footer, the footer's own mark is the one on the line and
+       the header's stays down. Lit, the header is about to be the thing on
+       screen — the reader has pressed the way out — so they change places:
+       the header's comes up and the footer's steps down. One mark on that
+       line at any moment, in either state. */
+    body.at-footer #siteHead.head-on .hd-mark{ opacity:1; pointer-events:auto; }
+    /* Gone at once, not faded. Fading it took two hundred milliseconds
+       during which the header's mark was already up and both were on the
+       line together — which is the one thing this rule exists to prevent.
+       The header's own .45s fade-in covers the swap. */
+    body.head-on .foot-mark,
+    body.head-on .foot-slogan{ opacity:0; transition:none; }
+
+    /* ---------- AND THE FOOTER'S HEAD SITS ON IT ----------
+       Anchored, the footer's own mark, slogan and plus share the header's
+       line. Lit, the header lays a dark ground across that line — so they
+       are lifted above it and turned white, and read as the header's own
+       rather than being covered by it. */
+    /* .foot-inner is positioned with a z-index of its own, which makes it a
+       stacking context — so a z-index inside it, however high, is still
+       ranked below the header by ITS index rather than by the child's. The
+       context itself has to rise, and only while the bar is lit. */
+    /* At the footer the footer's head shares the header's line, so it has
+       to be ABOVE it — not only while the bar is lit. Under it, the header
+       was swallowing every tap aimed at the plus: the first press hit the
+       header and lit it, which raised the row, and only then could a second
+       press reach the plus. Two presses for one thing, and the plus
+       apparently lost in between. Raised whenever the reader is down here,
+       the plus is simply the plus. */
+    body.at-footer .foot-inner{ z-index:61; }
+    body.head-on .foot-inner{ z-index:61; }
+    body.at-footer .foot-head{ position:relative; z-index:61; }
+    body.head-on .foot-slogan,
+    body.head-on .fp-more{ color:#fff; }
+    body.head-on .foot-fill{ fill:#fff; }
+    body.head-on .foot-trace{ stroke:#fff; }
+    body.head-on .fp img{ filter:invert(1) grayscale(1); }
+
+    /* the footer's own measure, so the corner mark and the footer mark sit
+       on one line down the left edge — and the tools land on the footer's
+       right edge in the same way */
+    .hd-inner{
+      width:min(92vw, 1100px);
+      height:100%;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* --- the mark, top left --- */
+    .hd-mark{
+      display:block;
+      transition:opacity .45s cubic-bezier(.4,0,.2,1);
+      line-height:0;
+      text-decoration:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-mark svg{ height:17px; width:auto; display:block; overflow:visible; }
+    /* Grey, to sit with the two tools on the right rather than shout over
+       them, and stroke only — the filled version was a second state the mark
+       did not need. */
+    .hd-trace{
+      fill:none;
+      stroke:#999;
+      stroke-width:.5;
+      transition:stroke .35s cubic-bezier(.4,0,.2,1), opacity .3s cubic-bezier(.4,0,.2,1);
+    }
+    /* The corner mark no longer draws itself. It was the third thing on
+       screen doing that gesture — the hero on arrival, the footer as it is
+       scrolled onto, and the archive's own gate — and a mark that redraws in
+       the corner of every page turns a signature into a tic. It is simply
+       there. The footer keeps the draw: that one is the reader arriving
+       somewhere, not passing something. */
+    .hd-fill{
+      fill:var(--ink);
+      stroke:none;
+      opacity:0;
+      transition:opacity .35s cubic-bezier(.4,0,.2,1), fill .35s cubic-bezier(.4,0,.2,1);
+    }
+    /* Activated, the header goes near-black and the mark fills solid white
+       — not a white outline. Both halves switch in ONE frame, before the
+       ground has begun to move: transition:none on the way in, the normal
+       one on the way back out. A crossfade here is the change you can see. */
+    #siteHead:hover .hd-trace,
+    #siteHead.head-lit .hd-trace{
+      opacity:0;
+      transition:none;
+    }
+    #siteHead:hover .hd-fill,
+    #siteHead.head-lit .hd-fill{
+      opacity:1;
+      fill:#fff;
+      transition:none;
+    }
+
+    /* At the footer the mark is already on the page, twice the size and
+       drawing itself — a second copy in the corner is just a repeat. It
+       stands down, and only a hover brings it back, in white on the dark
+       ground. The tools stay put either way. */
+
+    /* The mark is fixed over a page that scrolls underneath it, so the
+       moment the reader moves it is sitting on top of their content. It
+       stands down as soon as the page leaves the top and comes back when
+       they return — or on a hover, which darkens the header behind it and
+       gives it a ground of its own to read against. */
+    body.scrolled #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+    }
+    body.scrolled #siteHead:hover .hd-mark,
+    body.scrolled #siteHead.head-lit .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.scrolled #siteHead:hover .hd-trace,
+    body.scrolled #siteHead.head-lit .hd-trace{ opacity:0; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill,
+    body.scrolled #siteHead.head-lit .hd-fill{ opacity:1; fill:#fff; transition:none; }
+
+    body.at-footer #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .45s cubic-bezier(.4,0,.2,1);
+    }
+    body.at-footer #siteHead:hover .hd-mark,
+    body.at-footer #siteHead.head-lit .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.at-footer #siteHead:hover .hd-trace,
+    body.at-footer #siteHead.head-lit .hd-trace{ opacity:0; transition:none; }
+    body.at-footer #siteHead:hover .hd-fill,
+    body.at-footer #siteHead.head-lit .hd-fill{ opacity:1; fill:#fff; transition:none; }
+
+    /* --- explore + index, top right --- */
+
+    .hd-tools{ display:flex; align-items:center; gap:18px; }
+    .hd-ico{
+      display:block;
+      line-height:0;
+      padding:8px;
+      margin:-8px;
+      border:0;
+      background:none;
+      cursor:pointer;
+      /* the footer's "British Material Unit ◎ 2026" grey */
+      color:#999;
+      transition:color .3s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.4,0,.2,1);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .hd-ico svg{ display:block; width:15px; height:15px; }
+
+    .hd-ico .ico-fill{ fill:currentColor; }
+    .hd-ico .ico-stroke{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+    }
+    #hdExplore svg{ width:13px; height:13px; }
+    .hd-ico .ico-stroke{ stroke-linejoin:round; }
+
+    /* index ⇄ arrow, swapping by turning through each other so the tool is
+       never empty mid-change. The arrow is the cue's own two paths, so the
+       pair cannot drift apart. */
+    .hd-menu, .hd-up{
+      transform-box:fill-box;
+      transform-origin:50% 50%;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1), transform .38s cubic-bezier(.65,0,.35,1);
+    }
+    .hd-up{ opacity:0; transform:rotate(90deg) scale(.55); }
+    body.at-footer .hd-menu{ opacity:0; transform:rotate(-90deg) scale(.55); }
+    body.at-footer .hd-up{ opacity:1; transform:rotate(180deg); }
+    /* white on the black ground, so they pop rather than sink */
+    #siteHead:hover .hd-ico,
+    #siteHead.head-lit .hd-ico,
+    /* lit at the footer, the header's own two tools read with the plus
+       beside them rather than staying grey on a black ground — the three
+       are one row and they come up together */
+    #siteHead.head-on .hd-ico{ color:#fff; }
+    .hd-ico:hover{ color:#fff; transform:scale(1.1); }
+
+    /* ---------- MOBILE ---------- */
+    @media (max-width:640px){
+      :root{ --bar-h:30px; }
+      #siteHead{
+        height:46px;
+        padding-top:env(safe-area-inset-top);
+        height:calc(46px + env(safe-area-inset-top));
+      }
+      .hd-mark svg{ height:15px; }
+      /* the same 15, so the footer's mark lands on the header's line at the
+         header's size rather than two points larger than it */
+      .foot-mark{ height:15px; }
+      .hd-tools{ gap:15px; }
+      /* symmetric padding, otherwise the 24/40 split lands the mark 8px high */
+      #page{
+        padding-top:max(24px, env(safe-area-inset-top));
+        padding-bottom:max(24px, env(safe-area-inset-bottom));
+      }
+      /* Grid rather than a centred flex column: two equal flexible tracks
+         pin the logo square to the true centre and the nav hangs off its
+         bottom edge without pulling it up. */
+      #page{
+        display:grid;
+        grid-template-rows:1fr auto 1fr;
+        justify-items:center;
+        height:100dvh;        /* definite height, or the fr tracks size to
+                                 content and stop balancing */
+      }
+      .container{ grid-row:2; align-self:center; }
+      /* At 88vw the mark ran to both edges of a phone. It is sized off the
+         viewport instead: a third of the width, so a second copy of the
+         mark would fit either side of it. The square around it is left at
+         full width — it is what carries the typed copy. */
+      .svg-wrapper{
+        inset:auto;
+        top:50%; left:50%;
+        transform:translate(-50%, -50%);
+        width:clamp(118px, 34vw, 210px);
+        aspect-ratio:1 / 1;
+      }
+      /* On a phone the copy is the tallest thing on the screen and its
+         height moves with the wrap. The square stops being a square here and
+         lets the copy set its own height, so the row can simply sit under it
+         — a fixed negative margin was pulling the buttons up into whatever
+         the last line happened to be. */
+      .container{
+        aspect-ratio:auto;
+        width:min(92vw, 400px);
+        height:auto;
+        min-height:clamp(118px, 34vw, 210px);
+      }
+      .typewriter-text{
+        position:static;
+        inset:auto;
+        padding:0 4px;
+      }
+      #navStack{
+        grid-row:3;
+        align-self:start;
+        width:min(96vw, 440px);
+        margin-top:22px;      /* below the copy, always */
+      }
+      /* one row on a phone as well — five narrow buttons read better than
+         a 240px column, and the Operations/Join choreography is then the
+         same motion on every screen */
+      #navRow{ gap:6px; }
+      /* back to the 13px of the desktop row, but "Early Access" is 5.78em
+         of the face and it is what sets the floor: five of those plus the
+         gaps only reach 13px around a 448px-wide phone, so the size tracks
+         the viewport up to that cap and the row never truncates. */
+      /* The row was being made to fit by squeezing: 3px gaps, a 1.5px rule
+         that reads as heavy at phone scale, and letters tightened against
+         each other. The result was five cramped boxes that looked nothing
+         like the desktop's.
+
+         It is scaled down instead of squashed. The rule thins with the row,
+         the gap keeps its proportion, and the type stays at its own spacing
+         — the same five boxes, further away. */
+      .bm-button{
+        font-size:min(12px, 2.42vw);
+        padding:0 4px;
+        letter-spacing:0;
+      }
+      /* the sheet is nearly the full width of a phone, so the faded
+         buttons behind the bar would show through its edges — take them
+         out entirely instead */
+      #navRow.ops-engaged .bm-button:not(#opsBtn){ opacity:0; }
+      .typewriter-text{ font-size:11pt; }
+      /* three columns will not fit a phone — stack them */
+      .foot-cols{ grid-template-columns:1fr; gap:26px; }
+      /* The body already insets the page by 16px, and the footer was adding
+         16 more of its own — so .foot-inner's measure started 16px inside
+         the header's, and the corner mark, the page's heading and the footer
+         mark each sat on a different left edge. The inner measure is the
+         only thing that should be deciding this. */
+      #siteFooter{ padding:44px 0 38px; }
+      .foot-slogan{ white-space:nowrap; }
+      /* stacked columns do not need the desktop trench between them */
+      .foot-cols{ gap:26px; }
+      /* ---------- THE CLOSING RULE, ON A PHONE ----------
+         Three things on one line is three things fighting for a 358px
+         measure. The name takes the left with its copyright under it — they
+         are the same statement said twice — and Privacy keeps the right,
+         level with the name. A two-column grid rather than a wrapping row,
+         so the copyright cannot be thrown under Privacy instead. */
+      .foot-base{
+        margin-top:30px;
+        display:grid;
+        grid-template-columns:1fr auto;
+        align-items:baseline;
+        column-gap:14px;
+        row-gap:4px;
+      }
+      .foot-org{ grid-column:1; grid-row:1; }
+      .foot-legal{ grid-column:2; grid-row:1; justify-self:end; }
+      .foot-copy{ grid-column:1; grid-row:2; }
+    }
+
+    /* ---------- PARTNER PAGE ----------
+       The home page's chrome around a single subject. No intro to sit
+       through: the reader arrived here from a named link and the page is
+       already open — which is why body carries `entered` from the markup
+       rather than earning it with a click. */
+    #partner{
+      width:min(92vw, 1100px);
+      margin:0 auto;
+      flex:1 0 auto;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:120px 0 90px;
+    }
+    .p-role{
+      font-size:10px;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+      min-height:1.2em;
+    }
+    .p-name{
+      margin:14px 0 0;
+      font-size:clamp(34px, 7vw, 68px);
+      font-weight:400;
+      letter-spacing:-.01em;
+      line-height:1.02;
+      min-height:1em;
+    }
+    .p-line{
+      margin:18px 0 0;
+      max-width:52ch;
+      font-size:14px;
+      line-height:1.55;
+      color:var(--ink);
+      /* Two lines held, whether this one needs them or not. The three pages
+         in this set are read as one thing you page through, and the heading
+         block has to land in the same place on each — East West's strapline
+         is one line and Ramco's is two, so the paragraph under it sat 22px
+         lower on Ramco and the whole page stepped down as you moved between
+         them. Two is the most any of the three takes, at every width from
+         320 up, so nothing is clipped and nothing is left short. */
+      min-height:calc(2 * 1.55em);
+    }
+    .p-body{
+      margin:20px 0 0;
+      max-width:60ch;
+      font-size:13px;
+      line-height:1.7;
+      color:#6a6a6a;
+    }
+    /* each section is introduced by a rule, the way the footer is */
+    .p-rule{
+      height:1.5px;
+      background:#e2e2e2;
+      margin:46px 0 0;
+    }
+    .p-sec{ margin-top:34px; }
+    .p-sec h2{
+      margin:0 0 16px;
+      font-size:10px;
+      font-weight:400;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+    }
+
+    /* ---------- a link, as a plate rather than a line of blue ---------- */
+    .p-link{
+      display:block;
+      max-width:560px;
+      padding:16px 18px;
+      border:1.5px solid var(--line);
+      text-decoration:none;
+      color:var(--ink);
+      background:var(--bg);
+      transition:background-color .3s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.4,0,.2,1);
+    }
+    .p-link:hover{ background:var(--faint); transform:translateY(-2px); }
+    .p-link + .p-link{ margin-top:10px; }
+    .pl-kind{
+      display:block;
+      font-size:9px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+    }
+    .pl-title{
+      display:block;
+      margin-top:7px;
+      font-size:14px;
+      line-height:1.4;
+    }
+    .pl-host{
+      display:block;
+      margin-top:6px;
+      font-size:11px;
+      letter-spacing:.04em;
+      color:#9a9a9a;
+    }
+
+    /* ---------- the film under the announcement ----------
+       It belongs to the announcement above it rather than to a section of
+       its own, so it sits directly beneath the plate.
+
+       Narrower than that plate on purpose. Instagram's embed enforces its
+       own width from inside its own stylesheet — it cannot be widened from
+       out here, and a reel is portrait anyway, so a 560px card would run to
+       a thousand pixels tall. The slot is cut to what the embed actually
+       takes so the narrower box reads as a decision rather than a failure. */
+    .p-film{
+      margin-top:12px;
+      max-width:326px;
+    }
+    .p-film .instagram-media{
+      border-radius:0 !important;
+      box-shadow:none !important;
+      margin:0 !important;
+    }
+
+    /* ---------- the reel ----------
+       Instagram's own embed, with a plate underneath it that is shown only
+       if the embed never arrives. A reel shared by token can refuse to
+       render for anyone not signed in, and a silent empty box is worse
+       than a link that plainly works. */
+    .p-reel{ max-width:400px; }
+    .p-reel iframe, .p-reel .instagram-media{ max-width:100% !important; }
+    .p-reel blockquote.instagram-media{
+      border:1.5px solid var(--line) !important;
+      border-radius:0 !important;
+      box-shadow:none !important;
+      margin:0 !important;
+    }
+
+    /* The mark is fixed over a page that scrolls underneath it, so the
+       moment the reader moves it is sitting on top of their content — on a
+       partner page that means directly on top of the copy. It stands down
+       as soon as the page leaves the top, and a hover brings it back on the
+       dark ground the header gives it. */
+    body.scrolled #siteHead .hd-mark{
+      opacity:0;
+      pointer-events:none;
+    }
+    body.scrolled #siteHead:hover .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+    body.scrolled #siteHead:hover .hd-trace{ opacity:0; transition:none; }
+    body.scrolled #siteHead:hover .hd-fill{ opacity:1; fill:#fff; transition:none; }
+
+    /* ---------- NO POINTER, NO HOVER ----------
+       Everything :hover was dressing, stood down. The mark's filled face is
+       white BECAUSE the bar behind it goes dark; with the bar left clear and
+       the fill still switched on, the mark went white on a white page and
+       the header vanished at the top of every page. A finger leaves :hover
+       stuck behind it, so on a touch screen none of this is inherited —
+       head-on carries the dark bar and the white mark instead.
+
+       Placed here, after every rule it has to beat: these all match at the
+       same weight, so the last one written is the one that counts. */
+    @media (hover: none){
+      /* :not(.head-on) because a pseudo-class outranks a plain class — a
+         bare #siteHead:hover beat #siteHead.head-on and kept the bar clear
+         while the lit state said otherwise. The stuck hover a finger leaves
+         behind is exactly when that happens: press the explore mark at the
+         footer and the fill it asked for never arrived. */
+      #siteHead:hover:not(.head-on){ background:transparent; }
+      #siteHead:hover .hd-trace,
+      body.scrolled #siteHead:hover .hd-trace,
+      body.at-footer #siteHead:hover .hd-trace{ opacity:1; transition:none; }
+      #siteHead:hover .hd-fill,
+      body.scrolled #siteHead:hover .hd-fill,
+      body.at-footer #siteHead:hover .hd-fill{ opacity:0; }
+      body.scrolled #siteHead:hover .hd-mark{ opacity:1; }
+    }
+
+
+    /* The shared chrome retires the mark at the footer, because the home
+       page's footer carries a large copy of it and a second in the corner
+       is just a repeat. A partner page is short enough that its footer can
+       already be in view on arrival, and that rule would then take the mark
+       away before the reader had moved at all. Here it is the scroll that
+       decides, not the footer. */
+    body.at-footer:not(.scrolled) #siteHead .hd-mark{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    @media (max-width:640px){
+      #partner{ padding:92px 0 70px; }
+      .p-body{ font-size:12.5px; }
+      /* the name has to shrink with the phone or it sets the page's width
+         and pushes the whole column off the header's left edge */
+      .p-name{ font-size:clamp(28px, 9vw, 44px); }
+    }
+
+
+    /* ---------- BOOKING ----------
+       Cal.com's own scheduler, framed the way everything else on the site
+       is framed: one black rule around it and nothing else. It is given a
+       tall box because the calendar decides its own height, and a short one
+       leaves the reader scrolling inside a scroller. */
+    .book-wrap{ position:relative; max-width:900px; }
+    .book-frame{
+      position:relative;
+      width:100%;
+      height:min(78vh, 760px);
+      /* no rule: the calendar draws its own card inside, and a second box
+         around it read as a frame around a frame */
+      border:0;
+      background:var(--bg);
+      overflow:hidden;
+    }
+    /* The embed carries a Cal.com badge in a band below the calendar card,
+       and being cross-origin it cannot be reached into. The band is covered
+       by a strip of the page's own background, inside the same black rule,
+       so what shows is the calendar and nothing else.
+
+       Running the frame taller and clipping the bottom was tried first and
+       does not work: the badge is anchored under the card, not to the
+       bottom of the frame, so a taller frame just adds empty space beneath
+       it. The height below is measured against where the band actually
+       falls — see the note in the handover, this is a cover, and the
+       supported way to drop the badge is Cal.com's own paid setting. */
+    .book-frame iframe{
+      width:100%; height:100%;
+      border:0;
+      display:block;
+    }
+    .book-mask{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:var(--badge-cover, 186px);
+      background:var(--bg);
+      pointer-events:none;
+    }
+    /* Cal's help widget sits in the bottom-right in its own typeface and its
+       own blue — it belongs to their product, not to this page. Covered the
+       same way the badge is, and for the same reason. */
+    .book-help{
+      position:absolute;
+      right:0; bottom:0;
+      width:132px; height:132px;
+      background:var(--bg);
+      pointer-events:none;
+    }
+
+    /* ---------- the three things that can be booked ----------
+       One row of plates, one of them live. They are buttons rather than
+       links: the calendar underneath changes in place, so nothing about
+       the page is actually navigated. */
+    .book-tabs{
+      display:flex;
+      gap:-1.5px;
+      margin:0 0 14px;
+      flex-wrap:wrap;
+      /* the same measure as the calendar under them — they were running the
+         full column width while it stopped at 900, so the row overhung it */
+      max-width:900px;
+    }
+    .book-tab{
+      flex:1 1 0;
+      min-width:120px;
+      padding:11px 10px;
+      font-family:var(--font);
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink);
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      margin-right:-1.5px;   /* one shared rule between neighbours */
+      cursor:pointer;
+      transition:background-color .3s cubic-bezier(.4,0,.2,1), color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .book-tab:last-child{ margin-right:0; }
+    .book-tab:hover{ background:var(--faint); }
+    .book-tab[aria-selected="true"]{
+      background:var(--line);
+      color:var(--bg);
+      position:relative;
+      z-index:1;
+    }
+    .book-note{
+      margin:12px 0 0;
+      max-width:60ch;
+      font-size:11px;
+      line-height:1.6;
+      color:#9a9a9a;
+      min-height:1.6em;
+    }
+    @media (max-width:640px){
+      .book-frame{ height:min(74vh, 620px); }
+      .book-tab{ flex:1 1 100%; margin-right:0; margin-bottom:-1.5px; }
+      .book-tabs{ display:block; }
+    }
+
+  
+    /* ---------- NO ZOOM WHEN A FIELD IS TAPPED ----------
+       Safari zooms the whole page in whenever it is about to put a caret in
+       a field set smaller than 16px, and then leaves the reader at that
+       zoom with the page too wide to read. Nothing in CSS switches that
+       off; the only thing it answers to is the size itself. So every field
+       a reader can actually type in is 16px on a touch screen. The type
+       there is a little larger than on a pointer screen, which is the
+       trade for the page not jumping every time someone starts typing. */
+    /* !important because this has to beat every field's own rule, and some
+       of them are set by id — a field set to 12px by an id selector would
+       otherwise go on zooming the page whatever this said. There is no size
+       below 16 that is safe here, so there is nothing for a later rule to
+       usefully say. */
+    @media (pointer: coarse){
+      input:not([type="hidden"]), textarea, select{ font-size:16px !important; }
+    }
+
+    /* ============================================================
+       THE PARTNER SET
+       This page is built on the set's chrome but stands outside it — it
+       carries 00, no arrow leads on from it, and nothing links to it but
+       the Research & Development line in the footer. The rest of this note
+       describes the set it borrows from, and is kept because it is why the
+       measurements below are what they are.
+
+       Three pages read as one: East West, Ramco, and the booking page
+       they both end at. Each carries its own number in the corner and the
+       way through to the next, and the move between them is a slide — out
+       to the left going on, out to the right coming back.
+
+       They are separate documents, so the slide is two halves of one
+       gesture: the page leaving writes down which way it went, and the
+       page arriving comes in from the other side. The header and the
+       footer take no part in it; only the column between them moves.
+
+       The rest of a page — everything under the opening paragraph — is
+       held back while that is happening. Ramco is three times the height
+       of East West, and a slide between two pages of wildly different
+       length reads as a jump rather than a step. Every page in the set is
+       its title and its opening paragraph while it is moving, and the rest
+       comes in afterwards.
+       ============================================================ */
+    #partner{
+      position:relative;
+      /* ---------- THE FOOTER SITS IN ONE PLACE ----------
+         The three pages in this set are read as one thing you page through,
+         and the footer has to be where it was on the last one. Their heads
+         are different lengths — Ramco's opening paragraph is nearly twice
+         East West's — so measuring any of them to match the others is a
+         number that goes out of date the first time a word is changed.
+
+         The first screen is a screen instead. Every page in the set opens
+         at exactly the viewport's height less the header, so the footer
+         begins on the same line on all three whatever is written above it,
+         and whatever is below pushes it down from there. */
+      min-height:calc(100dvh - 54px);
+      /* and it fills that height from the top. The column was centred in
+         itself, which did nothing while the content was taller than the box
+         and dropped East West's head to the middle of the screen the moment
+         the box was given a height of its own. */
+      justify-content:flex-start;
+    }
+
+    .pg-index{
+      position:absolute;
+      /* 118, not 120: the row is centred on itself and the role is set on
+         its own line, which left the number two pixels low against it */
+      top:118px;
+      right:0;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      z-index:3;
+    }
+    .pg-num{
+      font-size:10px;
+      letter-spacing:.22em;
+      color:#9a9a9a;
+      font-variant-numeric:tabular-nums;
+    }
+    .pg-arrow{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:16px; height:16px;
+      padding:0; border:none; background:none;
+      cursor:pointer;
+      opacity:.45;
+      position:relative;
+      transition:opacity .28s cubic-bezier(.4,0,.2,1);
+    }
+    /* the mark stays 16px but the target does not — a thumb needs more */
+    .pg-arrow::after{ content:''; position:absolute; inset:-11px; }
+    .pg-arrow svg{ width:16px; height:16px; display:block; overflow:visible; }
+    .pg-arrow path{
+      fill:none;
+      stroke:#000;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .pg-arrow:hover{ opacity:.8; }
+    .pg-arrow:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
+
+    /* ---------- the rest of the page ----------
+       Laid out at its full height and held at none, so letting go of the
+       hold is what runs it. It comes in from under itself rather than
+       simply appearing: the page grows downward into what it is. */
+    .p-more{
+      overflow:hidden;
+      max-height:0;
+      opacity:0;
+      transform:translateY(-10px);
+    }
+    html.pg-ready .p-more{
+      transition:max-height .72s cubic-bezier(.65,0,.35,1),
+                 opacity .5s cubic-bezier(.4,0,.2,1) .1s,
+                 transform .6s cubic-bezier(.3,0,.2,1) .1s;
+    }
+    html.pg-ready .p-more.pg-shown{
+      max-height:var(--more-h, 2000px);
+      opacity:1;
+      transform:none;
+    }
+    /* once it is open and settled the clip comes off, so anything inside
+       that overflows its own box — a popup, a focus ring — is not cut */
+    html.pg-ready .p-more.pg-settled{ overflow:visible; max-height:none; }
+
+    /* ---------- no sliding ----------
+       The column used to travel sideways between pages. It is gone: the
+       page changes, the head is in the same place on the next one and the
+       footer is on the same line, so there is nothing for a slide to
+       explain. What is left is the opacity, which is what carries the
+       change without moving anything. */
+    #partner{
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
+    }
+    body.pg-still #partner{ transition:none; }
+    body.pg-from-right #partner,
+    body.pg-from-left  #partner,
+    body.pg-out-left   #partner,
+    body.pg-out-right  #partner{ opacity:0; }
+    body.pg-moving{ overflow-x:hidden; }
+
+    @media (prefers-reduced-motion:reduce){
+      #partner, .p-more, html.pg-ready .p-more{ transition:none; }
+      .p-more{ max-height:none; opacity:1; transform:none; overflow:visible; }
+    }
+
+    @media (max-width:640px){
+      /* level with the role line, which sits at 92 on every phone width */
+      .pg-index{ top:90px; gap:9px; }
+    }
+</style>
 </head>
-<body>
-  <div class="typewriter" id="text"></div>
+<!-- `entered` from the markup: this page has no front door to open, so the
+     state the home page earns with a click is simply where this one starts.
+     Every body.entered rule in the shared chrome depends on it. -->
+<body class="entered">
+  <!-- SITE HEADER — arrives with the button row, once the typewriter has
+       finished. See-through over the white page, near-black on hover, so
+       the mark and the two tools each have to read on both grounds. -->
+  <header id="siteHead">
+   <div class="hd-inner">
+    <a class="hd-mark" id="hdMark" href="/#home" aria-label="British Material Unit — home">
+      <svg viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path id="hdTrace" class="hd-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+        <path id="hdFill" class="hd-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+      </svg>
+    </a>
+
+    <nav class="hd-tools" aria-label="Explore">
+      <a class="hd-ico" id="hdExplore" href="/archive" aria-label="Explore the archive">
+        <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+          <path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
+        </svg>
+      </a>
+      <!-- One tool, two states, turning through each other the way the
+           scroll cue's arrow and cross do. At the top it is the index and
+           takes you down; at the footer it is the cue's own arrow turned
+           up, and brings you back. -->
+      <button class="hd-ico" id="hdToggle" type="button" aria-label="Go to the footer">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <g class="ico-stroke hd-menu">
+            <path d="M2.6 4.6 H13.4"/>
+            <path d="M2.6 8 H13.4"/>
+            <path d="M2.6 11.4 H13.4"/>
+          </g>
+          <g class="ico-stroke hd-up">
+            <path d="M8 2.6 V12.8"/>
+            <path d="M3.5 8.3 L8 12.9 L12.5 8.3"/>
+          </g>
+        </svg>
+      </button>
+    </nav>
+   </div>
+  </header>
+  <main id="partner">
+    <!-- which of the three this is, and the way through them -->
+    <!-- 00, and no arrow on: this page sits outside the numbered run of
+         partner pages and nothing leads on from it. The only way in is the
+         Research & Development line in the footer, and the only way out is
+         back to Operations. -->
+    <nav class="pg-index" aria-label="Partner pages">
+      <button type="button" class="pg-arrow pg-back" data-href="/#operations" aria-label="Back to Operations"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.2 2.6 L4.6 8 L10.2 13.4"/></svg></button>
+      <span class="pg-num">00</span>
+    </nav>
+    <div class="p-role" id="pRole" data-text="Research &amp; Development Partner"></div>
+    <h1 class="p-name" id="pName" data-text="SOFRAMA"></h1>
+    <p class="p-line">Circular exit strategy, archive conservation.</p>
+    <p class="p-body">SOFRAMA is a Franco-British partnership in which we work on their circular exit strategy — the route a surplus holding takes when it leaves service for good, rather than the route it takes to the next wholesale buyer. The work is research and development led, concentrated on fibre-to-fibre recycling and garment-to-garment remanufacturing, so that material coming off the shelf re-enters production as fibre or as a finished garment instead of leaving as waste. Alongside it we are conserving their archive, recording what the holding contains and what each piece is, so that the decision to recycle, remanufacture or keep a garment is made against a record rather than against a pallet.</p>
+  </main>
+
+  <footer id="siteFooter">
+    <div class="foot-inner">
+
+      <div class="foot-head">
+        <svg class="foot-mark" viewBox="0 9.1 32 13.6" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="British Material Unit">
+          <path id="footTrace" class="foot-trace" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+          <path id="footFill" class="foot-fill" d="M32,15h-11s8-5.9,8-5.9h-3.5l-3.5,2.5h0c-.1.1-.4.3-.6.4l.6-.4h0l-3.3,2.4v-4.9h-2v4.9h0l-5.2-3.8c-1.4-1-2.9-1.1-2.9-1.1H0v2h8.8l1.6.9H0v2h13.3l1.3.9H0v2h14.6l-1.3.9H0v2h10.4l-1.6.9H0v2h8.7s1.5-.1,2.9-1.1l5.2-3.8h0v4.9h2v-4.9h0l5.2,3.8c1.4,1,2.9,1.1,2.9,1.1h5.1v-2h-4.5c-.7,0-2-.5-2.8-1.1l-3.7-2.7h11v-2h0Z"/>
+        </svg>
+        <span class="foot-slogan" id="footSlogan"></span>
+        <!-- Who we work with. Grey until the pointer is on one, and each
+             says who it is and what we did for them, in the same box the
+             Files page uses for its own note.
+
+             Three stand at rest. The plus opens the rest, and they arrive at
+             the left-hand end of the row so the group grows towards the mark
+             rather than off the page. -->
+        <div class="foot-partners" aria-label="Who we work with">
+          <span class="fp is-extra" data-who="Seeing Red (Sourcing)"><img src="/partners/seal.png" alt="Seeing Red" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Elstar Hamburg (Product Development)"><img src="/partners/elstar.png" alt="Elstar Hamburg" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Raeburn (Sourcing)"><img src="/partners/rose.png" alt="Raeburn" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Yaku (Sourcing)"><img src="/partners/yaku.png" alt="Yaku" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Maxime Black (Sourcing)"><img src="/partners/spheres.png" alt="Maxime Black" loading="lazy"></span>
+          <!-- the same 16px grid, the same 1.6 stroke and the same 2.6-13.4
+               extent as the header's sandwich, sitting directly under it -->
+          <button class="fp-more" id="footMore" type="button" aria-expanded="false" aria-label="Show everyone we work with">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <g class="ico-stroke">
+                <path d="M2.6 8 H13.4"/>
+                <path class="fp-vert" d="M8 2.6 V13.4"/>
+              </g>
+            </svg>
+          </button>
+        </div>
+        <div class="fp-pop" id="footPartnerPop" role="tooltip"></div>
+      </div>
+
+      <div class="foot-rule" role="presentation"></div>
+
+      <div class="foot-cols">
+        <nav class="foot-col" aria-label="Site index">
+          <h3>Index</h3>
+          <!-- Join, Operations and Repository all happen up on this page, so
+               the footer returns the reader there and plays them rather than
+               navigating away to a page that does not exist -->
+          <a href="/#join">Join</a>
+          <a href="#" class="foot-locked" aria-disabled="true" aria-label="Early Access, locked">Early Access<img class="foot-lock" src="/lock-solid.svg" alt="" aria-hidden="true" /></a>
+          <a href="/#operations">Operations</a>
+          <a href="/repository">Repository</a>
+          <a href="/archive">Archive</a>
+        </nav>
+
+        <div class="foot-col">
+          <h3>Capabilities</h3>
+          <span>Sourcing</span>
+          <span>Waste Disposals</span>
+          <span>Remanufacturing</span>
+          <span>Product Development</span>
+          <!-- The only way in to SOFRAMA. The page is held back from the
+               partners reel, so this line in Capabilities is what leads to it. -->
+          <a href="/soframa">Research &amp; Development</a>
+        </div>
+
+        <div class="foot-col foot-id">
+          <h3>Contact</h3>
+          <span class="mail-copy" id="footMailWrap">
+            <a href="mailto:hello@britishmaterialunit.com" id="footMail"
+               data-mail="hello@britishmaterialunit.com">hello@britishmaterialunit.com</a>
+            <!-- the tick comes out of the address and goes back into it -->
+            <span class="mail-tick" aria-hidden="true">
+              <svg viewBox="0 0 16 16" focusable="false">
+                <path class="mt-mark" d="M3.4 8.5 L6.5 11.6 L12.6 5.1"/>
+              </svg>
+            </span>
+          </span>
+          <span id="footMailMsg" role="status" aria-live="polite"></span>
+          <!-- the address breaks where a postal address breaks, not wherever
+               the column happens to run out -->
+          <!-- Let's Talk stands between the address and the contact line,
+               and the address is pushed to the foot of the column so its last
+               line sits on the same baseline as the last service. -->
+          <a class="foot-talk" href="/contact">
+            <span>Let's Talk</span>
+            <span class="talk-well">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <g class="talk-arrow">
+                  <path d="M4.5 11.5 L11.5 4.5"/>
+                  <path d="M5.8 4.5 H11.5 V10.2"/>
+                </g>
+              </svg>
+            </span>
+          </a>
+          <address class="foot-addr">Unit U, Wrexham Road<br />SS15 6PX, England<br />United Kingdom</address>
+        </div>
+      </div>
+
+      <!-- the identity and the copyright close the footer on their own rule,
+           rather than hanging off the bottom of the address -->
+      <div class="foot-base">
+        <span class="foot-org">British Material Unit (BMU)</span>
+        <nav class="foot-legal" aria-label="Legal">
+          <a href="/privacy.html">PRIVACY</a>
+        </nav>
+        <span class="foot-copy">British Material Unit ◎ 2026</span>
+      </div>
+
+    </div>
+  </footer>
 
   <script>
-    const textElement = document.getElementById('text');
-    const fullText = `Soframa — Franco-British Partnership\nCircular Exit Strategy`;
+    /* ---------- the name types itself, as it does everywhere else ----------
+       Reduced motion gets the finished text rather than a performance. */
+    const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    let i = 0;
-    function type() {
-      if (i < fullText.length) {
-        textElement.textContent += fullText.charAt(i);
-        i++;
-        setTimeout(type, 30);
+    /* Two runs on one element interleave their letters — the page's arrival
+       typing the heading while something else retypes it produced exactly
+       that. Each element carries the id of the run that owns it, and a run
+       that finds it no longer owns the element stops on the spot. */
+    let typeRun = 0;
+    function bmuType(text, el, delay, done){
+      const tok = ++typeRun;
+      el.dataset.run = tok;
+      let i = 0;
+      el.textContent = '';
+      (function tick(){
+        if (String(el.dataset.run) !== String(tok)) return;
+        if (i < text.length){
+          el.textContent += text.charAt(i++);
+          setTimeout(tick, delay);
+        } else if (done){ done(); }
+      })();
+    }
+
+    /* Not every page composed from this chrome has a typed heading — Early
+       Access is a drawing on a field and has none. Reading .dataset off a
+       missing element threw here, and the throw took the whole of the rest
+       of this script with it, including the footer's own reveal: the footer
+       was in the document and simply never came up. */
+    const roleEl = document.getElementById('pRole');
+    const nameEl = document.getElementById('pName');
+    const hasHead = !!(roleEl && nameEl);
+    const ROLE = hasHead ? roleEl.dataset.text : '';
+    const NAME = hasHead ? nameEl.dataset.text : '';
+
+    /* On a page whose heading cycles, the tabs own it — the arrival types
+       the role only and leaves the name to whichever tab is selected. One
+       owner per element: two typewriters in one heading interleave their
+       letters, which is exactly what this produced. */
+    const headIsCycled = !!document.querySelector('.book-tab');
+
+    if (!hasHead){
+      // nothing to type
+    } else if (REDUCED){
+      if (!headIsCycled) roleEl.textContent = ROLE;
+      if (!headIsCycled) nameEl.textContent = NAME;
+    } else if (headIsCycled){
+      // both lines belong to the tabs on this page — see the tab script
+    } else {
+      bmuType(ROLE, roleEl, 26, () => setTimeout(() => bmuType(NAME, nameEl, 48), 160));
+    }
+
+    /* ---------- the mark stands down once the page moves ---------- */
+    (function markOnScroll(){
+      let on = null;
+      function sync(){
+        const past = window.scrollY > 24;
+        if (past === on) return;      // only touch the class when it changes
+        on = past;
+        document.body.classList.toggle('scrolled', past);
+      }
+      window.addEventListener('scroll', sync, { passive:true });
+      sync();
+    })();
+
+    /* ---------- the header mark draws once, then holds ---------- */
+    const siteHead = document.getElementById('siteHead');
+    const hdTrace  = document.getElementById('hdTrace');
+    if (siteHead && hdTrace){
+      /* No dash, no draw — see index.html. A dash offset left behind by a
+         removed animation is a mark that never appears at all. */
+    }
+
+
+      /* ---------- THE CURSOR LEAVES ----------
+         With the pointer off the page there is nobody to hover the header,
+         and it sits pale over whatever is underneath it. It fills instead:
+         the same near-black it takes under the cursor, so the mark and the
+         two tools read at full strength for anyone glancing at the tab, a
+         screenshot, or a second monitor.
+
+         mouseleave on the document fires when the pointer crosses the
+         viewport edge and nowhere else — moving between elements inside the
+         page does not reach it. A touch device never fires either of these,
+         so it simply never lights, which is right: there is no cursor to
+         have left. */
+      const litOff = () => siteHead.classList.remove('head-lit');
+      document.addEventListener('mouseleave', () => siteHead.classList.add('head-lit'));
+      document.addEventListener('mouseenter', litOff);
+      // a press anywhere is a pointer that is plainly back
+      document.addEventListener('pointerdown', litOff);
+      window.addEventListener('blur', () => siteHead.classList.add('head-lit'));
+      window.addEventListener('focus', litOff);
+
+    /* the mark goes home; the index tool runs between top and footer */
+    const hdMark = document.getElementById('hdMark');
+    if (hdMark) hdMark.addEventListener('click', e => {
+      e.preventDefault();
+      window.location.href = '/#home';
+    });
+
+    const siteFooter = document.getElementById('siteFooter');
+    const hdToggle   = document.getElementById('hdToggle');
+
+    /* ---------- THE FOOTER'S RESTING PLACE ----------
+       On a phone the footer's own MARK is brought to exactly where the
+       header's mark already is, so the two stack, the slogan runs out
+       beside them and the plus finishes level with the header's two tools:
+       one row at the top of the screen. Measured rather than written down,
+       because the header's mark sits at a different height on a phone than
+       on a pointer screen and the footer's head moves with what is above
+       it. On a pointer screen the footer is shorter than the window, so it
+       simply ends at the bottom of the screen, which is what a footer does. */
+    const PHONE = () => window.matchMedia('(max-width: 640px)').matches;
+
+    function footerAnchorTop(){
+      const fMark = siteFooter.querySelector('.foot-mark');
+      const hMark = document.querySelector('#siteHead .hd-mark');
+      if (!fMark || !hMark) return null;
+      return Math.round(window.scrollY
+                      + fMark.getBoundingClientRect().top
+                      - hMark.getBoundingClientRect().top);
+    }
+    /* The page ends at the footer, so there is nothing under it to scroll
+       INTO and the travel stops short however exactly it is aimed. The
+       shortfall is given to the footer as ground below itself — its own
+       ground, so nothing new is visible. */
+    function makeFooterRoom(to){
+      const room = Math.ceil(to - (document.documentElement.scrollHeight - window.innerHeight));
+      if (room > 0){
+        const had = parseFloat(getComputedStyle(siteFooter).paddingBottom) || 0;
+        siteFooter.style.paddingBottom = Math.round(had + room) + 'px';
       }
     }
-    type();
+    /* The plus steps aside for the header's two tools. Asked for outright —
+       the sandwich — it is simply already there when the page arrives, with
+       nothing to watch travel. Scrolled to by hand, it waits until the two
+       are actually near each other and then moves, so the reader sees it
+       make the room rather than finding it made. */
+    function plusAside(on, immediate){
+      if (immediate){
+        document.body.classList.add('foot-now');
+        document.body.classList.toggle('plus-aside', !!on);
+        void siteFooter.offsetWidth;
+        requestAnimationFrame(() => document.body.classList.remove('foot-now'));
+        return;
+      }
+      document.body.classList.toggle('plus-aside', !!on);
+    }
+    let anchoring = false;
+    function anchorFooter(smooth){
+      const to = footerAnchorTop();
+      if (to === null) return false;
+      makeFooterRoom(to);
+      anchoring = true;
+      window.scrollTo({ top:to, behavior: smooth ? 'smooth' : 'auto' });
+      setTimeout(() => { anchoring = false; }, smooth ? 900 : 60);
+      return true;
+    }
+
+
+    /* The fill, and the one place it is turned on and off. Lit, the footer's
+       head is white and sits above the dark ground; dropped, everything goes
+       back to reading on white. */
+    const siteHeadEl = document.getElementById('siteHead');
+    function dropFill(){
+      if (siteHeadEl) siteHeadEl.classList.remove('head-lit', 'head-on');
+      document.body.classList.remove('head-on');
+      try { hdToggle.blur(); } catch(_){}
+    }
+    function liftFill(){
+      if (siteHeadEl) siteHeadEl.classList.add('head-on');
+      document.body.classList.add('head-on');
+    }
+    /* ---------- WHO LIGHTS THE BAR ----------
+       Not the bar itself. At the footer that strip of screen IS the
+       footer's head — its mark, its slogan, its plus — and a press on the
+       empty part of it was lighting a header over the thing the reader was
+       actually pressing on.
+
+       It is lit by the two tools that take the reader AWAY from the footer,
+       at the moment they do it: the arrow back to the top, and the mark
+       that leads to the archive. In both the header is about to be the
+       thing on screen, so it arrives already being it rather than fading up
+       after the page has settled.
+
+       The sandwich on the way DOWN never lights it — see dropFill in the
+       footer handler. Down here the header is not the subject. */
+    function litExit(el){
+      if (!el) return;
+      el.addEventListener('click', () => {
+        if (!PHONE()) return;
+        if (!document.body.classList.contains('at-footer')) return;
+        liftFill();
+      }, true);                 // before the tool's own handler runs
+    }
+    litExit(hdToggle);
+    litExit(document.getElementById('hdExplore'));
+
+    /* Lit on the way out, and it stays lit: the reader pressed the arrow to
+       come back to the top and the header is what is up here. Nothing on
+       the way drops it — a scroll-watcher put it out mid-climb, which is
+       the reader watching the thing they just asked for undo itself. Going
+       back DOWN is what clears it, and the sandwich does that itself. */
+
+    /* ---------- LET'S TALK, WHEN IT IS ACTUALLY ON SCREEN ----------
+       Not when the footer arrives — that is a screenful early, with the
+       button still below the fold, so it finished opening before anyone
+       could see it happen. The button watches for itself instead, and
+       answers the same way whichever way the reader got here: sent by the
+       header's tool, or scrolled to by hand.
+
+       Most of it has to be on screen, not a sliver: a button whose top
+       edge has just cleared the fold is not something anyone is looking
+       at yet. It plays once and the watcher is dropped — it stays open,
+       and there is nothing to run a second time. */
+    (function talkOnSight(){
+      const talk = document.querySelector('#siteFooter .foot-talk');
+      if (!talk) return;
+      if (!window.matchMedia('(hover: none)').matches) return;   // a pointer has hover
+      if (!('IntersectionObserver' in window)){ talk.classList.add('talk-seen'); return; }
+      const io = new IntersectionObserver(entries => {
+        for (const e of entries){
+          if (!e.isIntersecting) continue;
+          talk.classList.add('talk-seen');
+          io.disconnect();
+        }
+      }, { threshold:0.75 });
+      io.observe(talk);
+    })();
+
+    hdToggle.addEventListener('click', () => {
+      if (document.body.classList.contains('at-footer')){
+        anchoring = false;
+        window.scrollTo({ top:0, behavior:'smooth' });
+      } else if (PHONE()){
+        /* The room is made and the plus put where it belongs BEFORE the
+           travel, so the page the reader lands on is already settled. */
+        plusAside(true, true);
+        /* And the bar the press landed on lets go of its fill. A finger
+           leaves :hover behind it, so without this the reader arrives at
+           the footer with a dark band still across the top. */
+        dropFill();
+        if (!anchorFooter(true)) siteFooter.scrollIntoView({ behavior:'smooth', block:'start' });
+      } else {
+        siteFooter.scrollIntoView({ behavior:'smooth', block:'end' });
+      }
+    });
+
+    /* ---------- the footer, drawn as it is scrolled onto ---------- */
+    const footTrace  = document.getElementById('footTrace');
+    const footFill   = document.getElementById('footFill');
+    const footSlogan = document.getElementById('footSlogan');
+    const SLOGAN     = 'Uniting Intelligence';
+
+    if (siteFooter && footTrace){
+      const len = footTrace.getTotalLength();
+      footTrace.style.strokeDasharray  = len;
+      footTrace.style.strokeDashoffset = len;
+
+      const traceMs = parseFloat(
+        getComputedStyle(siteFooter).getPropertyValue('--trace-ms')
+      ) || 4200;
+
+      /* ---------- ALREADY DRAWN ----------
+         Moving between the pages in this set is one gesture across three
+         documents, and the footer is the same footer on all three. Left to
+         itself each arrival would draw the mark again and retype the
+         slogan — four seconds of a thing the reader has already watched,
+         restarting because the document changed.
+
+         So the state is carried over: the page being left says whether its
+         footer was up, and a page arriving from inside the set with that
+         said puts it straight into its finished state, with nothing
+         animating. A reader who has not been down to it yet still gets the
+         draw, on whichever page they first scroll to it. */
+      let shown = false;
+      function footerStraightToDone(){
+        shown = true;
+        /* no transition for the frame that places it, or the footer fades up
+           from nothing on every arrival — which is the blink */
+        siteFooter.classList.add('foot-set');
+        siteFooter.classList.add('in', 'settled', 'filled');
+        if (footFill) footFill.classList.add('visible');
+        footTrace.style.animation = 'none';
+        footTrace.style.strokeDashoffset = '0';
+        if (footSlogan) footSlogan.textContent = SLOGAN;
+        void siteFooter.offsetWidth;                 // committed, still
+        requestAnimationFrame(function(){
+          siteFooter.classList.remove('foot-set');   // and it moves again
+        });
+      }
+      (function carriedOver(){
+        let from = null, had = null;
+        try {
+          /* read, not consumed — the partner-set script below takes the
+             direction off itself once it has used it */
+          from = sessionStorage.getItem('bmu.pg.dir');
+          had  = sessionStorage.getItem('bmu.pg.foot');
+        } catch(_){}
+        if (from && had === '1') footerStraightToDone();
+      })();
+
+      function revealFooter(){
+        if (shown) return;
+        shown = true;
+        siteFooter.classList.add('in');
+        setTimeout(() => siteFooter.classList.add('settled'), 1500);
+        const fill = () => {
+          if (siteFooter.classList.contains('filled')) return;   // once
+          footFill.classList.add('visible');
+          siteFooter.classList.add('filled');   // the outline steps aside
+          /* the draw is spent: pinned at its end, so no restyle can
+             start it over */
+          footTrace.style.animation = 'none';
+          footTrace.style.strokeDashoffset = '0';
+        };
+        /* No hover shortcut. Jumping to the bottom puts the cursor on the
+           footer as the mark arrives, so the draw it had just started was
+           cut off in its first frames every time. It takes the time it
+           takes, however the reader got here. */
+        // a fallback, so the mark can never be left invisible if
+        // animationend does not arrive
+        footTrace.addEventListener('animationend', fill, { once:true });
+        setTimeout(fill, traceMs + 400);
+        setTimeout(() => bmuType(SLOGAN, footSlogan, 55), traceMs * 0.8);
+      }
+
+      let settleAgain = null;
+      function check(){
+        const r  = siteFooter.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const inView = r.top < vh * 0.88 && r.bottom > 0;
+        /* In view is not the same as arrived at. A short page — Files with one
+           file on it, or none — has its footer on screen from the first frame,
+           so the header opened showing the way back up from somewhere the
+           reader had not been. The tool means "down" until they have actually
+           gone down. */
+        const arrived = inView && window.scrollY > 24;
+        document.body.classList.toggle('at-footer', arrived);
+        hdToggle.setAttribute('aria-label', arrived ? 'Back to top' : 'Go to the footer');
+        if (inView && !shown) revealFooter();
+
+        if (!PHONE()){ document.body.classList.toggle('plus-aside', arrived); return; }
+
+        /* ---------- THE PLUS WAITS FOR THEM TO BE NEAR ----------
+           Scrolled to by hand, the row steps aside once the footer's own
+           head is within reach of the header it has to share a line with —
+           not the moment the footer edges into view, which is a screen and
+           a half earlier and reads as the row moving for no reason. */
+        /* Measured between the two things that actually collide: the plus
+           rising up the page, and the header's tools sitting still at the
+           top of it. A hundred and fifty pixels of warning moved the row
+           while they were most of a screen apart and read as the plus
+           shying away from nothing. Forty is about one transition's worth
+           of scrolling — it starts as they come within reach of each other
+           and is done by the time they are level, so the tools never pass
+           over the plus and the plus never has to be caught up with. */
+        const plus = document.getElementById('footMore');
+        const tool = document.querySelector('#siteHead .hd-ico');
+        if (plus && tool && !anchoring){
+          const gap = plus.getBoundingClientRect().top
+                    - tool.getBoundingClientRect().bottom;
+          plusAside(arrived && gap < 40, false);
+        }
+
+        /* ---------- AND THE BOTTOM SETTLES ITSELF ----------
+           Reaching the end of the page by hand leaves the footer's head
+           part-way down the screen, which is not where pressing the
+           sandwich puts it — the same place should look the same however
+           the reader got there. At the bottom, it takes up the same rest.
+           Once, and never while a travel of its own is still running. */
+        const atEnd = window.scrollY >= (document.documentElement.scrollHeight - window.innerHeight) - 2;
+        if (arrived && atEnd){
+          if (anchoring){
+            /* A travel of its own is still running. Rather than drop the
+               request — the last scroll event of a flick is often the one
+               that lands on the end, and nothing would come after it to ask
+               again — it is asked again once that travel is done. */
+            clearTimeout(settleAgain);
+            settleAgain = setTimeout(check, 260);
+          } else {
+            const to = footerAnchorTop();
+            if (to !== null && Math.abs(to - window.scrollY) > 4) anchorFooter(true);
+          }
+        }
+      }
+      window.addEventListener('scroll', check, { passive:true });
+      window.addEventListener('resize', check);
+      check();
+    }
+
+    /* ---------- the address copies itself ----------
+       A mailto is no use on a machine with no mail client set up, which is
+       most of them. Clicking copies instead, and says so. */
+    /* ---------- the partners' marks ----------
+       A box that says who a mark belongs to, placed off the pointer the way
+       the Files page places its own: to the left where there is room, to the
+       right where there is not, and always inside the window. */
+    (function partnerMarks(){
+      const pop = document.getElementById('footPartnerPop');
+      if (!pop) return;
+      const EDGE = 8;
+      function place(x, y){
+        pop.style.maxWidth = (window.innerWidth - EDGE * 2) + 'px';
+        const r = pop.getBoundingClientRect();
+        const w = r.width || 160, h = r.height || 20;
+        let left = x - w - 12;
+        if (left < EDGE) left = x + 14;
+        left = Math.max(EDGE, Math.min(window.innerWidth - w - EDGE, left));
+        const top = Math.max(EDGE, Math.min(window.innerHeight - h - EDGE, y - h - 12));
+        pop.style.left = Math.round(left) + 'px';
+        pop.style.top  = Math.round(top) + 'px';
+      }
+      /* The plus opens the rest of them and turns into a minus. The line
+         beside the mark is what makes the room, so it goes as they come. */
+      const more = document.getElementById('footMore');
+      const head = more && more.closest('.foot-head');
+      if (more && head){
+        const slogan = document.getElementById('footSlogan');
+
+        /* Opened and then walked away from. The row is a footnote to the
+           footer, not a state the page should still be holding when the
+           reader is somewhere else entirely — so once they leave the footer
+           it folds itself back up and the line comes home. */
+        function fold(){
+          if (!head.classList.contains('partners-open')) return;
+          head.classList.remove('partners-open');
+          more.setAttribute('aria-expanded', 'false');
+          more.setAttribute('aria-label', 'Show everyone we work with');
+          if (slogan && typeof bmuType === 'function' && typeof SLOGAN === 'string'){
+            setTimeout(() => bmuType(SLOGAN, slogan, 55), 300);
+          }
+        }
+        window.addEventListener('scroll', () => {
+          if (!document.body.classList.contains('at-footer')) fold();
+        }, { passive:true });
+        window.addEventListener('pagehide', fold);
+        more.addEventListener('click', () => {
+          const open = head.classList.toggle('partners-open');
+          more.setAttribute('aria-expanded', String(open));
+          more.setAttribute('aria-label', open ? 'Show fewer' : 'Show everyone we work with');
+          /* It left by sliding into the mark; it comes back the way it
+             arrived in the first place, written out. Emptied now so the
+             slide back is of nothing, and typed once it is in place. */
+          if (slogan && typeof bmuType === 'function' && typeof SLOGAN === 'string'){
+            if (open){
+              slogan.textContent = '';
+            } else {
+              setTimeout(() => bmuType(SLOGAN, slogan, 55), 300);
+            }
+          }
+        });
+      }
+
+      /* A finger cannot hover, so a press shows the name and it stays. The
+         finger may wander and the box goes along, on a short leash from where
+         the press landed — and it goes on its own after long enough to have
+         read it. A mouse keeps the hover it already had. */
+      let leash = null, fade = null;
+      const hide = () => pop.classList.remove('show');
+      const readMs = () =>
+        Math.min(12000, Math.max(2200,
+          pop.textContent.trim().split(/\s+/).filter(Boolean).length * 340));
+
+      document.querySelectorAll('.fp[data-who]').forEach(el => {
+        el.addEventListener('pointerenter', e => {
+          if (e.pointerType !== 'mouse') return;
+          pop.textContent = el.dataset.who;
+          pop.classList.add('show');
+          place(e.clientX, e.clientY);
+        });
+        el.addEventListener('pointermove', e => {
+          if (e.pointerType === 'mouse') place(e.clientX, e.clientY);
+        });
+        el.addEventListener('pointerleave', e => {
+          if (e.pointerType === 'mouse') hide();
+        });
+        el.addEventListener('pointerdown', e => {
+          if (e.pointerType === 'mouse') return;
+          e.preventDefault();
+          pop.textContent = el.dataset.who;
+          pop.classList.add('show');
+          leash = { x:e.clientX, y:e.clientY };
+          place(e.clientX, e.clientY);
+          clearTimeout(fade);
+          fade = setTimeout(hide, readMs());
+        });
+      });
+      window.addEventListener('pointermove', e => {
+        if (!leash || !pop.classList.contains('show')) return;
+        const dx = e.clientX - leash.x, dy = e.clientY - leash.y;
+        const d = Math.hypot(dx, dy), MAX = 110;
+        const k = d > MAX ? MAX / d : 1;
+        place(leash.x + dx * k, leash.y + dy * k);
+      }, { passive:true });
+      window.addEventListener('pointerup',     () => { leash = null; });
+      window.addEventListener('pointercancel', () => { leash = null; });
+    })();
+
+    const footMail    = document.getElementById('footMail');
+    const footMailMsg = document.getElementById('footMailMsg');
+    if (footMail && footMailMsg){
+      let timer = null;
+      footMail.addEventListener('click', e => {
+        e.preventDefault();
+        const addr = footMail.dataset.mail;
+        const wrap = document.getElementById('footMailWrap');
+        const done = ok => {
+          /* the tick is the whole answer when it worked; a failure still
+             needs its words, because a mark cannot say what went wrong */
+          if (ok && wrap){
+            wrap.classList.add('copied');
+            footMailMsg.textContent = 'Copied to clipboard';   // for screen readers
+            clearTimeout(timer);
+            timer = setTimeout(() => wrap.classList.remove('copied'), 1500);
+            return;
+          }
+          footMailMsg.textContent = ok ? 'Copied to clipboard' : addr;
+          footMailMsg.classList.add('show');
+          clearTimeout(timer);
+          timer = setTimeout(() => footMailMsg.classList.remove('show'), 2600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(addr).then(() => done(true), () => done(false));
+        } else { done(false); }
+      });
+    }
+  </script>
+<script>
+  /* Early Access, parked: the footer link shows its padlock and goes nowhere */
+  document.querySelectorAll('.foot-locked').forEach(a => {
+    let t;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      clearTimeout(t);
+      a.classList.add('flash');
+      t = setTimeout(() => a.classList.remove('flash'), 1100);
+    });
+  });
+</script>
+
+  <script>
+/* ---------- NO WIDOWS ----------
+   text-wrap:pretty is a hint and browsers are free to ignore it, which is why
+   "software", "surplus" and "note" still ended up alone on a line. This binds
+   the last three words of every run of prose with non-breaking spaces, so the
+   browser cannot put fewer than three on the final line however it wraps.
+
+   It walks the element's last text node only, so links, marks and anything
+   else inside the sentence are left exactly as they are. */
+(function noWidows(){
+  const SEL = 'p, .cl-lede, .repo-lede, .repo-note, .ni-sub, .p-body, ' +
+              '.bmu-pop, .cv-pop, .fp-pop, .info-inner, .cl-sub, .foot-addr';
+  const BIND = 2;                       // two spaces bound = three words held
+  function fix(el){
+    if (!el || el.dataset.nowidow) return;
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let last = null, n;
+    while ((n = walk.nextNode())) if (n.nodeValue.trim()) last = n;
+    if (!last) return;
+    let v = last.nodeValue.replace(/ /g, ' ');
+    let done = 0;
+    v = v.replace(/ (?=[^ ]*$)/, m => (done++, ' '));
+    for (let i = 1; i < BIND && done < BIND; i++){
+      v = v.replace(/ (?=[^ ]* [^ ]*$)/, m => (done++, ' '));
+    }
+    last.nodeValue = v;
+    el.dataset.nowidow = '1';
+  }
+  function run(){ document.querySelectorAll(SEL).forEach(fix); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  window.bmuNoWidows = run;             // anything written later asks for it
+})();
+  
+    /* ============================================================
+       THE PARTNER SET
+       See the note by .pg-index in the stylesheet. Three documents, one
+       gesture: the page leaving says which way it went and the page
+       arriving comes in from the other side.
+       ============================================================ */
+    (function partnerSet(){
+      const main = document.getElementById('partner');
+      const nav  = document.querySelector('.pg-index');
+      if (!main || !nav) return;
+      const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const DIR_KEY = 'bmu.pg.dir';
+
+      /* Everything under the opening paragraph is the rest of the page.
+         Collected rather than marked up, so a page can gain a section
+         without this having to be told about it. */
+      const body = main.querySelector('.p-body');
+      let more = null;
+      if (body && body.nextElementSibling){
+        more = document.createElement('div');
+        more.className = 'p-more';
+        let n = body.nextElementSibling;
+        while (n){
+          const next = n.nextElementSibling;
+          more.appendChild(n);
+          n = next;
+        }
+        main.appendChild(more);
+      }
+
+      function showMore(){
+        if (!more || REDUCED) return;
+        /* The footer sits under this. With the rest of the page held shut
+           the document is short, so the footer was resting most of a screen
+           higher than it belongs and then sliding down as the rest opened —
+           on a page the reader is at the top of, that is the footer walking
+           up into view and back out again for no reason. The room it is
+           about to need is reserved first, so the footer is at its final
+           place from the first frame and never moves. */
+        more.style.setProperty('--more-h', more.scrollHeight + 'px');
+        more.classList.add('pg-shown');
+        /* the clip comes off once it has finished, so a section that
+           overflows its own box is not cut for the rest of the visit */
+        setTimeout(() => {
+          if (more.classList.contains('pg-shown')) more.classList.add('pg-settled');
+        }, 820);
+      }
+      function hideMore(){
+        if (!more || REDUCED) return;
+        more.classList.remove('pg-settled');
+        more.style.setProperty('--more-h', more.scrollHeight + 'px');
+        void more.offsetWidth;
+        more.classList.remove('pg-shown');
+      }
+
+      /* ---------- arriving ---------- */
+      document.documentElement.classList.add('pg-ready');
+      let came = null;
+      try { came = sessionStorage.getItem(DIR_KEY); sessionStorage.removeItem(DIR_KEY); } catch(_){}
+
+      if (came && !REDUCED){
+        document.body.classList.add('pg-still', 'pg-moving');
+        document.body.classList.add(came === 'next' ? 'pg-from-right' : 'pg-from-left');
+        void main.offsetWidth;                     // committed before it moves
+        document.body.classList.remove('pg-still');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          document.body.classList.remove('pg-from-right', 'pg-from-left');
+          setTimeout(() => document.body.classList.remove('pg-moving'), 480);
+        }));
+      }
+
+      /* The rest waits for the heading to finish writing itself: the page
+         is its title and its opening paragraph until the title is actually
+         there. Watched rather than timed, because the two lines are
+         different lengths on every page in the set. */
+      (function whenTyped(){
+        const nameEl = document.getElementById('pName');
+        const want = nameEl ? (nameEl.dataset.text || '') : '';
+        let waited = 0;
+        (function look(){
+          const done = !nameEl || nameEl.textContent.length >= want.length;
+          if (done || waited > 4000){ setTimeout(showMore, came ? 120 : 260); return; }
+          waited += 80;
+          setTimeout(look, 80);
+        })();
+      })();
+
+      /* ---------- leaving ---------- */
+      let going = false;
+      function go(href, dir){
+        if (going || !href) return;
+        going = true;
+        if (REDUCED){ location.href = href; return; }
+        try {
+          sessionStorage.setItem(DIR_KEY, dir);
+          /* and whether the footer was up, so the page being gone to does
+             not draw it all over again — see footerStraightToDone */
+          const f = document.getElementById('siteFooter');
+          sessionStorage.setItem('bmu.pg.foot',
+            f && f.classList.contains('in') ? '1' : '0');
+        } catch(_){}
+        document.body.classList.add('pg-moving');
+        /* the rest folds away first, so the page is down to its smallest
+           before it starts travelling and the two pages are the same shape
+           at the moment one replaces the other */
+        hideMore();
+        window.scrollTo({ top:0, behavior: window.scrollY > 600 ? 'auto' : 'smooth' });
+        setTimeout(() => {
+          document.body.classList.add(dir === 'next' ? 'pg-out-left' : 'pg-out-right');
+        }, more ? 300 : 40);
+        setTimeout(() => { location.href = href; }, (more ? 300 : 40) + 440);
+      }
+
+      const nextBtn = nav.querySelector('.pg-next');
+      const backBtn = nav.querySelector('.pg-back');
+      if (nextBtn) nextBtn.addEventListener('click', () => go(nextBtn.dataset.href, 'next'));
+      if (backBtn) backBtn.addEventListener('click', () => go(backBtn.dataset.href, 'back'));
+
+      /* ---------- and by hand ----------
+         A sideways drag does what the arrows do. Held to gestures that are
+         clearly sideways, so scrolling the page never turns a page. */
+      let x0 = null, y0 = null, live = false;
+      main.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1) return;
+        x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; live = true;
+      }, { passive:true });
+      main.addEventListener('touchend', e => {
+        if (!live) return;
+        live = false;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - x0, dy = t.clientY - y0;
+        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+        if (dx < 0 && nextBtn) go(nextBtn.dataset.href, 'next');
+        if (dx > 0 && backBtn) go(backBtn.dataset.href, 'back');
+      }, { passive:true });
+
+      /* ...and by keyboard, when nothing is being typed into */
+      document.addEventListener('keydown', e => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const t = e.target;
+        if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+        if (t && t.isContentEditable) return;
+        if (e.key === 'ArrowRight' && nextBtn) go(nextBtn.dataset.href, 'next');
+        if (e.key === 'ArrowLeft'  && backBtn) go(backBtn.dataset.href, 'back');
+      });
+    })();
+</script>
+  <!-- A press is a touch screen's hover. On a pointer screen the bar fills
+       dark the moment the cursor is over it, and the mark and the two tools
+       are built to read white on that ground. A touch screen has no hover to
+       inherit, so none of it ever happened: pressing the header did nothing,
+       and — worse — the tools are white whenever head-on is set, so any path
+       that set it without the fill arriving left them white on a white bar
+       and invisible.
+
+       Its own block, deliberately. Appended to whichever script happened to
+       be last, it landed inside a runtime that returns early on most pages
+       and never ran at all. -->
+  <script>
+  (function pressLightsTheBar(){
+    var h = document.getElementById('siteHead');
+    if (!h) return;
+    var off = null;
+    function on(e){
+      /* the pointer type, not a media query: a mouse has hover and does not
+         need this, and emulators disagree about what they report */
+      if (e && e.pointerType === 'mouse') return;
+      clearTimeout(off);
+      h.classList.add('head-on');
+      document.body.classList.add('head-on');
+    }
+    function letGo(ms){
+      clearTimeout(off);
+      off = setTimeout(function(){
+        /* at the footer the tools light the bar on their way out and it is
+           meant to stay lit — that is not this press's to undo */
+        if (document.body.classList.contains('at-footer')) return;
+        h.classList.remove('head-on');
+        document.body.classList.remove('head-on');
+      }, ms);
+    }
+    /* lit on the way down and let go a beat after the finger lifts, so a tap
+       is long enough to be seen rather than a frame nobody catches */
+    h.addEventListener('pointerdown', on, { passive:true });
+    h.addEventListener('pointerup',     function(){ letGo(380); }, { passive:true });
+    h.addEventListener('pointercancel', function(){ letGo(0);   }, { passive:true });
+    h.addEventListener('pointerleave',  function(){ letGo(0);   }, { passive:true });
+    window.addEventListener('scroll', function(){
+      if (document.body.classList.contains('at-footer')) return;
+      if (!h.classList.contains('head-on')) return;
+      letGo(0);
+    }, { passive:true });
+  })();
   </script>
 </body>
 </html>

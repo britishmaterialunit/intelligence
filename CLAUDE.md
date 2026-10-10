@@ -12,9 +12,10 @@ one self-contained HTML file with its CSS in `<style>` and its JS in `<script>`.
 | `archive.html` | the archive — list view, explore field, garment records. `ITEMS` holds every garment |
 | `files.html` | **Files** (the signed-in reviewer's view). Supabase config in `files-config.js`. The Supabase table is still `bmu_collections` — the page was renamed, the database was not |
 | `contact.html` `ew.html` `ou.html` `earlyaccess_2.html` `privacy.html` | content pages |
+| `soframa.html` | the SOFRAMA partner page — built on `ew.html`'s chrome but **held back**: `noindex`, out of the sitemap, out of the partners reel. The only way in is the Research & Development line in every footer's Capabilities column |
 | `join.html` | redirect stub to `/#join`. `collections.html` redirects to `/files` — reviewers were emailed the old address |
 
-Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `soframa`, `*_greenscreen`,
+Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
 `archive_1`) are **old variants — not live. Don't edit them.**
 
 - Garment photos + records: `archive/<nation>/<type>/<garment>/<REF>.png` + `.txt`,
