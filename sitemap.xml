@@ -442,6 +442,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/dutch/shirts/dutch-army-1990s-dpm-shirt/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/dutch/shirts/dutch-army-1990s-dpm-shirt/NLA1990DS.png</image:loc>
+      <image:title>Dutch Army 1990s DPM Shirt</image:title>
+      <image:caption>Dutch Army 1990s DPM Shirt — Dutch military surplus shirt, archive ref NLA1990DS</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/dutch/pullovers/dutch-army-1990s-thermal-olive-brown-norgie-pullover/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
