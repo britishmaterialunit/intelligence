@@ -1062,6 +1062,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/german/bags/german-army-1990s-flektarn-half-tent-bag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/german/bags/german-army-1990s-flektarn-half-tent-bag/GA1990FHTB.png</image:loc>
+      <image:title>German Army 1990s Flektarn Half Tent Bag</image:title>
+      <image:caption>German Army 1990s Flektarn Half Tent Bag — German military surplus bag, archive ref GA1990FHTB</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/west-german/shirts/west-german-army-1970s-field-grey-long-sleeve-field-shirt/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
