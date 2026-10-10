@@ -1690,7 +1690,7 @@
       z-index:1;
       display:flex;
       align-items:center;
-      padding:0 96px 0 42px;
+      padding:0 124px 0 42px;
       font-family:var(--font);
       font-size:12px;
       letter-spacing:.1em;
@@ -1701,17 +1701,20 @@
       overflow:hidden;
       opacity:0;
       transition:opacity .2s cubic-bezier(.4,0,.2,1);
-      -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 112px), transparent calc(100% - 92px));
-              mask-image:linear-gradient(to right, #000 calc(100% - 112px), transparent calc(100% - 92px));
+      -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 140px), transparent calc(100% - 120px));
+              mask-image:linear-gradient(to right, #000 calc(100% - 140px), transparent calc(100% - 120px));
     }
     #dock.open .dghost{ opacity:1; }
     .dghost[hidden]{ display:none; }
 
+    #dqFlagFR{ right:92px; }
     #dqFlag{ right:64px; }
     #dqExplore{ right:36px; }
     #dock.open .dq-tool{ opacity:1; pointer-events:auto; }
-    #dqFlag img{ display:block; height:12px; width:auto; filter:grayscale(1) contrast(1000%) opacity(.35); transition:filter .3s cubic-bezier(.4,0,.2,1); }
-    #dqFlag[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
+    #dqFlag img,
+    #dqFlagFR img{ display:block; height:12px; width:auto; filter:grayscale(1) contrast(1000%) opacity(.35); transition:filter .3s cubic-bezier(.4,0,.2,1); }
+    #dqFlag[aria-pressed="true"] img,
+    #dqFlagFR[aria-pressed="true"] img{ filter:grayscale(1) contrast(1000%); }
     /* Grey while the list holds the page, black while the field does — the
        same reading the flag beside it already gets. It was black in both,
        so in list view the glyph for the other view was the brightest thing
@@ -2013,7 +2016,7 @@
        the side of the tools — and fills it in if it is taken. */
     .dq-hint{
       position:absolute;
-      right:96px; top:50%;
+      right:124px; top:50%;
       transform:translateY(-50%);
       max-width:180px;
       display:flex;
@@ -2044,7 +2047,7 @@
        side by side. Pressing one is the choosing. */
     .dq-picks{
       position:absolute;
-      right:96px; top:50%;
+      right:124px; top:50%;
       transform:translateY(-50%);
       display:flex;
       align-items:center;
@@ -2076,9 +2079,9 @@
     .dq-pick .dp-kind{ font-size:9px; color:#c4c4c4; flex:none; }
     .dq-pick .dp-n{ font-size:9px; color:#c4c4c4; flex:none; }
     /* the input gives up exactly the room the row is taking */
-    #dockSearch.has-picks #dq{ padding-right:calc(var(--picks-w, 200px) + 108px); }
+    #dockSearch.has-picks #dq{ padding-right:calc(var(--picks-w, 200px) + 136px); }
     @media (max-width:640px){
-      .dq-picks{ gap:4px; right:88px; }
+      .dq-picks{ gap:4px; right:116px; }
       .dq-pick{ font-size:9px; padding:3px 7px; gap:4px; }
     }
     @media (prefers-reduced-motion:reduce){ .dq-picks{ transition:none; } }
@@ -2086,7 +2089,7 @@
     .dq-hint .dh-kind{ font-size:9px; color:#c4c4c4; flex:none; }
     .dq-hint .dh-text{ overflow:hidden; text-overflow:ellipsis; }
     /* the input gives up the room rather than running underneath the chip */
-    #dockSearch.has-hint #dq{ padding-right:290px; }
+    #dockSearch.has-hint #dq{ padding-right:318px; }
 
     /* Only ever on screen if a Spotify link is what was given; an mp3 plays
        with nothing to show. Sits above the bar, on the bar's own measure. */
@@ -2181,7 +2184,7 @@
       letter-spacing:.1em;
       text-transform:uppercase;
       color:var(--ink);
-      padding:0 96px 0 42px;   /* room for flag, explore and the ✕ */
+      padding:0 124px 0 42px;  /* room for the two flags, explore and the ✕ */
       border-radius:0;
       -webkit-appearance:none;
       opacity:0;
@@ -2876,6 +2879,14 @@
       <button type="button" id="dqHint" class="dq-hint" tabindex="-1" aria-hidden="true">
         <span class="dh-kind" id="dqHintKind"></span><span class="dh-text" id="dqHintText"></span>
       </button>
+      <!-- Two shelves now, not one. The union flag is ours; the Franco-
+           British flag beside it is the French holding, which is the only
+           other shelf in here big enough to be read as one. They are a pair
+           of toggles that cannot both be down — pressing one lets the other
+           up and re-gathers around itself. -->
+      <button type="button" id="dqFlagFR" class="dq-tool" aria-label="Gather the French garments" tabindex="-1" aria-pressed="false">
+        <img src="/flags/franceukflag.png" alt="" aria-hidden="true">
+      </button>
       <button type="button" id="dqFlag" class="dq-tool" aria-label="Group by nation" tabindex="-1" aria-pressed="false">
         <img src="/flags/ukflag.png" alt="" aria-hidden="true">
       </button>
@@ -3123,6 +3134,14 @@
       { n:"french", name:"French Army 1990s CCE Camouflage Pullover Fleece", cat:"Fleeces",
         img:"FRA1990CCPF.png", ref:"FRA1990CCPF", mat:"Polyester" },
 
+      { n:"french", name:"French Army 1970s Vietnam Jacket", cat:"Jackets",
+        img:"FRA1970VJ.png", ref:"FRA1970VJ", mat:"Cotton" },
+      { n:"french", name:"French Air Force 1990s Combat Flight Jacket", cat:"Jackets",
+        img:"FRAF1990CFJ.png", ref:"FRAF1990CFJ", mat:"Leather" },
+      { n:"french", name:"French Navy 1990s Smock Jacket", cat:"Smocks",
+        img:"FRN1990SJ.png", ref:"FRN1990SJ", mat:"Unlisted" },
+      { n:"french", name:"French Police Municipale 2000s Codura Bulletproof Vest", cat:"Vests",
+        img:"FRPM2000CBV.png", ref:"FRPM2000CBV", mat:"Nylon" },
       { n:"french", name:"French Army 1990s Aerazur EFA Parachute Deployment Bag", cat:"Bags",
         img:"FRA1990AEPDB.png", ref:"FRA1990AEPDB", mat:"Cotton" },
       /* ---------------- GREEK ---------------- */
@@ -4854,6 +4873,7 @@
       nationsOpen = false;
       flagBtn.setAttribute('aria-pressed', 'false');
       dqFlag.setAttribute('aria-pressed', 'false');
+      dqFlagFR.setAttribute('aria-pressed', 'false');
       document.body.classList.remove('closing-tabs');
       allNations.forEach(d => { d.open = false; });
 
@@ -5462,6 +5482,7 @@
       if (!explore.hidden){
         const on = dqFlag.getAttribute('aria-pressed') === 'true';
         dqFlag.setAttribute('aria-pressed', on ? 'false' : 'true');
+        dqFlagFR.setAttribute('aria-pressed', 'false');
         flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
         dq.value = on ? '' : 'British';
         dghost.hidden = dq.value !== '';
@@ -5845,26 +5866,26 @@
       const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
       let reach = 1;
       at.forEach(p => { reach = Math.max(reach, Math.hypot(p[0] - cx, p[1] - cy)); });
-      const margin = Math.max(70, Math.min(150, window.innerWidth * 0.14));
+      /* ---------- A PHONE FITS THE WHOLE CLUSTER ----------
+         This used to go partway in on a narrow screen — the fit pushed
+         halfway toward the framing a single garment gets — on the reasoning
+         that a cluster fitted into 390 points is a field of thumbnails. In
+         use it was the wrong trade: pressing a flag put the reader inside
+         the cluster rather than in front of it, with most of what they had
+         just asked for off the edge of the screen and no sign that it was
+         there. A cluster is a count as much as it is a set of garments, and
+         you cannot read a count you have to pan to reach.
+
+         So every screen fits, and the phone buys its room back from the
+         margin instead — 40 points of air at the edge rather than 70, which
+         is enough to keep the outermost garment clear of the dock without
+         shrinking the rest to get there. */
+      const margin = SMALL_SCREEN()
+        ? 40
+        : Math.max(70, Math.min(150, window.innerWidth * 0.14));
       const fit = Math.min(window.innerWidth, window.innerHeight - 150) /
                   ((reach + margin) * 2);
-      /* ---------- A PHONE DOES NOT FIT THE WHOLE CLUSTER ----------
-         Fitting every garment of a cluster into 390 points leaves them
-         around 33px across — a field of thumbnails too small to be read as
-         garments, where the same cluster on a pointer screen comes out at
-         59. Fitting is the wrong goal on a narrow screen: the reader can
-         pan, and what they need first is to see what they have asked for.
-
-         So the phone goes partway in instead — the fit, pushed toward the
-         framing a single garment would get, which is the midpoint between
-         seeing all of it and being able to see any of it. The cluster is
-         centred either way; what changes is how close. */
-      let want = fit;
-      if (SMALL_SCREEN()){
-        const close = maxScale() * 0.42;       // a garment at reading size
-        if (close > fit) want = fit + (close - fit) * 0.5;
-      }
-      sc = Math.max(0.08, Math.min(maxScale(), want));
+      sc = Math.max(0.08, Math.min(maxScale(), fit));
       tx = -cx * sc; ty = -cy * sc - 40;
       applyTransform();
     }
@@ -6211,6 +6232,7 @@
           if (dghost) dghost.hidden = false;
           paintHint('');
           dqFlag.setAttribute('aria-pressed', 'false');
+          dqFlagFR.setAttribute('aria-pressed', 'false');
           flagBtn.setAttribute('aria-pressed', 'false');
           savedOnly = false;
           document.body.classList.remove('library');
@@ -6587,6 +6609,7 @@
         dghost.hidden = false;
         paintHint('');
         dqFlag.setAttribute('aria-pressed', 'false');
+        dqFlagFR.setAttribute('aria-pressed', 'false');
         flagBtn.setAttribute('aria-pressed', 'false');
         savedOnly = false;
         document.body.classList.remove('library');
@@ -6816,35 +6839,51 @@
       if (!entering){
         flagBtn.setAttribute('aria-pressed', 'false');
         dqFlag.setAttribute('aria-pressed', 'false');
+        dqFlagFR.setAttribute('aria-pressed', 'false');
       }
     });
 
 
     /* ---------- tools inside the dock's own search bar ---------- */
     const dqFlag    = document.getElementById('dqFlag');
+    const dqFlagFR  = document.getElementById('dqFlagFR');
     const dqExplore = document.getElementById('dqExplore');
 
-    /* The union flag is not a layout switch — it is OUR shelf. Pressing it
-       gathers the British garments and nothing else, which is the one
-       cluster this archive is actually built around. Pressing it again puts
-       the whole field back. */
-    dqFlag.addEventListener('click', e => {
-      e.stopPropagation();
-      if (explore.hidden) openExplore();
-      const on = dqFlag.getAttribute('aria-pressed') === 'true';
-      dqFlag.setAttribute('aria-pressed', on ? 'false' : 'true');
-      flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
-      dq.value = on ? '' : 'British';
-      dghost.hidden = dq.value !== '';
-      // a nation is not the shelf: the whole archive stands behind it
-      savedOnly = false;
-      document.body.classList.remove('library');
-      syncLibraryMark();
-      // the flag is the choice; there is nothing left to suggest
-      paintHint('');
-      // the rest of the archive stays, in grey, around the British cluster
-      clusterSearch(on ? '' : 'british', true);
-    });
+    /* A flag is not a layout switch — it is a shelf. The union flag is ours,
+       and the Franco-British flag beside it is the French holding; pressing
+       either gathers that nation and nothing else, and pressing it again
+       puts the whole field back.
+
+       They are one control in two halves. Both down at once would be two
+       clusters fighting for the centre of the field, so taking one lets the
+       other up before it gathers. */
+    function pressFlag(btn, other, key, label){
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (explore.hidden) openExplore();
+        const on = btn.getAttribute('aria-pressed') === 'true';
+        btn.setAttribute('aria-pressed', on ? 'false' : 'true');
+        if (other) other.setAttribute('aria-pressed', 'false');
+        /* flagBtn is the list's own nation toggle and belongs to the union
+           flag alone — the French shelf is a cluster in the field, not a
+           grouping of the list, so it leaves that button where it found it
+           except to let it up when it takes the centre itself. */
+        if (btn === dqFlag) flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
+        else if (!on) flagBtn.setAttribute('aria-pressed', 'false');
+        dq.value = on ? '' : label;
+        dghost.hidden = dq.value !== '';
+        // a nation is not the shelf: the whole archive stands behind it
+        savedOnly = false;
+        document.body.classList.remove('library');
+        syncLibraryMark();
+        // the flag is the choice; there is nothing left to suggest
+        paintHint('');
+        // the rest of the archive stays, in grey, around the cluster
+        clusterSearch(on ? '' : key, true);
+      });
+    }
+    pressFlag(dqFlag,   dqFlagFR, 'british', 'British');
+    pressFlag(dqFlagFR, dqFlag,   'french',  'French');
 
     /* From explore this is the way into the tab list — and the dock comes
        with it. The main bar used to be handed back here, which put a second
@@ -7015,6 +7054,7 @@
     onceAtATime(document.getElementById('dqExplore'), 900);
     onceAtATime(document.getElementById('dockExplore'), 900);
     onceAtATime(document.getElementById('dqFlag'), 1100);
+    onceAtATime(document.getElementById('dqFlagFR'), 1100);
     onceAtATime(document.getElementById('flagBtn'), 1100);
     onceAtATime(document.getElementById('countInfo'), 220);
 
@@ -8309,6 +8349,10 @@
         <li><a href="/archive/finnish/bags/finnish-army-1970s-brotbeutel-bread-bag/">Finnish Army 1970s Brotbeutel Bread Bag</a></li>
         <li><a href="/archive/french/jackets/french-army-1990s-cce-camouflage-f2-jacket/">French Army 1990s CCE Camouflage F2 Jacket</a></li>
         <li><a href="/archive/french/fleeces/french-army-1990s-cce-camouflage-pullover-fleece/">French Army 1990s CCE Camouflage Pullover Fleece</a></li>
+        <li><a href="/archive/french/jackets/french-army-1970s-vietnam-jacket/">French Army 1970s Vietnam Jacket</a></li>
+        <li><a href="/archive/french/jackets/french-air-force-1990s-combat-flight-jacket/">French Air Force 1990s Combat Flight Jacket</a></li>
+        <li><a href="/archive/french/smocks/french-navy-1990s-smock-jacket/">French Navy 1990s Smock Jacket</a></li>
+        <li><a href="/archive/french/vests/french-police-municipale-2000s-codura-bulletproof-vest/">French Police Municipale 2000s Codura Bulletproof Vest</a></li>
         <li><a href="/archive/french/bags/french-army-1990s-aerazur-efa-parachute-deployment-bag/">French Army 1990s Aerazur EFA Parachute Deployment Bag</a></li>
         <li><a href="/archive/greek/jackets/greek-army-1960s-m65-olive-green-jacket/">Greek Army 1960s M65 Olive Green Jacket</a></li>
         <li><a href="/archive/greek/liners/greek-army-1960s-m65-faux-fur-liner-jacket/">Greek Army 1960s M65 Faux Fur Liner Jacket</a></li>

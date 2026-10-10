@@ -552,6 +552,46 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1970s-vietnam-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1970s-vietnam-jacket/FRA1970VJ.png</image:loc>
+      <image:title>French Army 1970s Vietnam Jacket</image:title>
+      <image:caption>French Army 1970s Vietnam Jacket — French military surplus jacket, archive ref FRA1970VJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/jackets/french-air-force-1990s-combat-flight-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/jackets/french-air-force-1990s-combat-flight-jacket/FRAF1990CFJ.png</image:loc>
+      <image:title>French Air Force 1990s Combat Flight Jacket</image:title>
+      <image:caption>French Air Force 1990s Combat Flight Jacket — French military surplus jacket, archive ref FRAF1990CFJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/smocks/french-navy-1990s-smock-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/smocks/french-navy-1990s-smock-jacket/FRN1990SJ.png</image:loc>
+      <image:title>French Navy 1990s Smock Jacket</image:title>
+      <image:caption>French Navy 1990s Smock Jacket — French military surplus smock, archive ref FRN1990SJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/vests/french-police-municipale-2000s-codura-bulletproof-vest/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/vests/french-police-municipale-2000s-codura-bulletproof-vest/FRPM2000CBV.png</image:loc>
+      <image:title>French Police Municipale 2000s Codura Bulletproof Vest</image:title>
+      <image:caption>French Police Municipale 2000s Codura Bulletproof Vest — French military surplus vest, archive ref FRPM2000CBV</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/french/bags/french-army-1990s-aerazur-efa-parachute-deployment-bag/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
