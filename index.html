@@ -338,6 +338,11 @@
       padding:0 16px;
       -webkit-font-smoothing:antialiased;
       overflow-x:hidden;
+      /* The footer is the end of the page and the reader should feel it as
+         one. Without this a flick at the bottom carried on past it, and the
+         head — the mark, the slogan, the plus and the two tools — rode up
+         off the top of the screen with nothing under it. */
+      overscroll-behavior-y:none;
     }
 
     #page{
@@ -1032,6 +1037,59 @@
 
     /* ---------- FOOTER ---------- */
     /* scroll cue — only once the reader is in, gone once they arrive */
+    /* ---------- THE SPEAKER ----------
+       Eastwood Danso's corner speaker, rebuilt on this page's own furniture
+       and pointed at Spotify rather than Apple Music: one glyph in the
+       corner, grey at rest, that hands the reader to the playlist. Theirs
+       carries a 3D model and plays an mp3 behind it; this one does the part
+       that matters, which is being the one thing on a quiet page that makes
+       a sound somewhere else.
+
+       It stands on the scroll cue's line, at the left-hand end of it, and
+       keeps the cue's measurements — 16px of mark, 24px off the floor, the
+       same fade in and the same grey — so the two read as a pair rather
+       than as a control that wandered in.
+
+       Only once the reader is inside, and never at the footer: down there
+       the footer's own head has the tools and a third mark floating over
+       it is one too many. */
+    #bmuSpeaker{
+      position:fixed;
+      left:max(16px, env(safe-area-inset-left));
+      bottom:24px;
+      width:16px; height:16px;
+      z-index:30;
+      display:grid; place-items:center;
+      padding:10px;
+      margin:-10px;             /* a thumb's target, around a 16px mark */
+      border:0;
+      background:none;
+      cursor:pointer;
+      color:#999;
+      opacity:0;
+      pointer-events:none;
+      -webkit-tap-highlight-color:transparent;
+      transition:opacity .6s cubic-bezier(.4,0,.2,1),
+                 color .3s cubic-bezier(.4,0,.2,1),
+                 transform .3s cubic-bezier(.4,0,.2,1);
+    }
+    /* an author display beats the UA's [hidden] rule, and this one has to
+       lose to it — unconfigured, the mark is not on the page at all */
+    #bmuSpeaker[hidden]{ display:none; }
+    #bmuSpeaker svg{ width:16px; height:16px; display:block; overflow:visible; }
+    #bmuSpeaker .ico-fill{ fill:currentColor; }
+    body.entered #bmuSpeaker{ opacity:.45; pointer-events:auto; }
+    body.entered #bmuSpeaker:hover{ opacity:.9; color:var(--ink); transform:scale(1.1); }
+    #bmuSpeaker:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
+    /* every state that takes the cue off the page takes this with it */
+    body.entered.at-footer #bmuSpeaker,
+    body.panel-open #bmuSpeaker,
+    body.arch-leaving #bmuSpeaker{ opacity:0; pointer-events:none; }
+    @media (prefers-reduced-motion:reduce){
+      #bmuSpeaker{ transition:opacity .2s linear; }
+      body.entered #bmuSpeaker:hover{ transform:none; }
+    }
+
     #scrollCue{
       position:fixed;
       left:50%;
@@ -1064,6 +1122,20 @@
        the footer without asking; the footer is reached by the header's own
        tool and no other way while something is open. */
     html.panel-held, body.panel-held{ overflow:hidden; }
+
+    /* ---------- THE DOOR IS SHUT ----------
+       Until the mark is pressed there is no page under it, so there is
+       nothing to scroll to and the document says so. The class is put on by
+       script in the head and taken off the moment the reader is in, which
+       means a browser with script turned off is never locked out of a page
+       it cannot open anyway. overscroll-behavior stops the rubber band on
+       iOS taking the mark off the top of the screen on the way. */
+    html.gate-held, html.gate-held body{
+      overflow:hidden;
+      overscroll-behavior:none;
+      height:100%;
+      max-height:100dvh;
+    }
     /* the mark stays 16px but the target does not — a thumb needs more
        than that, and the pseudo-element grows the hit area without
        moving the arrow or drawing anything */
@@ -1329,11 +1401,37 @@
       .foot-partners{ transition:transform .42s cubic-bezier(.4,0,.2,1); }
       body.foot-now .foot-partners{ transition:none; }
 
+      /* ---------- AT THE FOOTER THE TOOLS ARE THE FOOTER'S ----------
+         Stepping the plus aside was a truce between two rows that were
+         never going to sit well on one line: a fixed header holding the
+         explore mark and the arrow, and the footer's own head rising to
+         meet it. The header won every argument it was in. .foot-inner has
+         to be raised above it or the plus cannot be pressed, and raising it
+         put the header's two tools UNDERNEATH the footer — so a press on
+         the arrow landed on .foot-head, did nothing, and the second press
+         was the one that worked.
+
+         So at the footer there is no header. The two tools are moved into
+         the footer's head row beside the plus (see dockToolsAtFooter), the
+         bar is taken off the screen, and the three marks are one row that
+         belongs to one element. Nothing is stacked, so nothing can swallow
+         anything, and scrolling the footer carries the tools with it
+         instead of leaving them pinned over it. */
+      body.tools-docked #siteHead{ display:none; }
+      /* the row lays itself out now — there is no header to step aside for */
+      body.tools-docked .foot-partners{ transform:none; }
+      .foot-head > .hd-tools{ margin-left:15px; }
+
       /* The footer takes the screen it is anchored on, and its closing rule
          sits at the foot of it with a little space under — rather than
          ending wherever the copy above it stopped, with the scroll room
          showing as a screenful of nothing beneath. */
-      #siteFooter{ display:flex; }
+      /* body.entered, not bare: unscoped, this beat the footer's own
+         display:none and put 886px of footer under the front door on every
+         phone. The door is one screen and the page below it does not exist
+         yet — but the page scrolled, and scrolling off the mark before
+         pressing it was the first thing a thumb did. */
+      body.entered #siteFooter{ display:flex; }
       .foot-inner{
         display:flex;
         flex-direction:column;
@@ -1963,10 +2061,25 @@
         padding:0 4px;
         letter-spacing:0;
       }
-      /* the sheet is nearly the full width of a phone, so the faded
-         buttons behind the bar would show through its edges — take them
-         out entirely instead */
-      #navRow.ops-engaged .bm-button:not(#opsBtn){ opacity:0; }
+      /* ---------- NOTHING STANDS OVER THE SHEET ----------
+         The sheet is nearly the full width of a phone, so the four other
+         boxes converge straight onto it. Fading them over 400ms left Join,
+         Early Access, Repository and Archive printed across the top of the
+         Operations box for most of the time it takes to open — the sheet
+         draws in 480 and the boxes were still visible at 400.
+
+         They go in 180ms, ahead of the sheet rather than alongside it, and
+         visibility takes them off the page outright at the end of it so
+         nothing of them can be seen through the sheet's edges or caught by
+         a thumb that lands where one used to be. */
+      #navRow.ops-engaged .bm-button:not(#opsBtn),
+      #navRow.join-mode .bm-button:not(#opsBtn){
+        opacity:0;
+        visibility:hidden;
+        pointer-events:none;
+        transition:opacity .18s cubic-bezier(.4,0,.2,1),
+                   visibility 0s linear .18s;
+      }
       /* ---------- THE BLURB HOLDS THREE LINES ----------
          At 11pt it ran to four on every phone, and the fourth carried
          "repositories and systems" on its own — a line of tail. A fixed
@@ -2006,6 +2119,9 @@
       .foot-copy{ grid-column:1; grid-row:2; }
     }
   </style>
+  <!-- Before the first frame, so the page is never briefly scrollable. Every
+       way in takes it off again — see enterSite() below. -->
+  <script>document.documentElement.classList.add('gate-held');</script>
 </head>
 <body>
   <!-- SITE HEADER — arrives with the button row, once the typewriter has
@@ -3119,6 +3235,19 @@
 
   <!-- the standing scroll cue, and the way out of Join: the arrow turns
        over into a cross while Join holds the row, and back again after -->
+  <!-- Hidden until BMU_MUSIC below is filled in: a button that says it
+       plays something and then does nothing is worse than no button — the
+       same rule the archive's own play face is held to. -->
+  <button id="bmuSpeaker" type="button" hidden aria-label="Open the BMU playlist on Spotify">
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path class="ico-fill" d="M8.6 2.2 4.9 5.1H2.4a.6.6 0 0 0-.6.6v4.6a.6.6 0 0 0 .6.6h2.5l3.7 2.9a.5.5 0 0 0 .8-.4V2.6a.5.5 0 0 0-.8-.4Z"/>
+      <g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+        <path d="M11.5 5.6a3.4 3.4 0 0 1 0 4.8"/>
+        <path d="M13.4 3.6a6.1 6.1 0 0 1 0 8.8"/>
+      </g>
+    </svg>
+  </button>
+
   <button id="scrollCue" type="button" aria-label="Scroll to the footer">
     <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <g class="fa-arrow">
@@ -3189,7 +3318,9 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <span>Research &amp; Development</span>
+          <!-- The only way in to SOFRAMA. The page is held back from the
+               partners reel, so this line in Capabilities is what leads to it. -->
+          <a href="/soframa">Research &amp; Development</a>
         </div>
 
         <div class="foot-col foot-id">
@@ -3425,6 +3556,7 @@
         // the page only becomes scrollable — and the footer only exists —
         // once the reader is actually inside the site
         document.body.classList.add('entered');
+      document.documentElement.classList.remove('gate-held');
         if (window.bmuFooterCheck) window.bmuFooterCheck();
       });
     });
@@ -3507,6 +3639,7 @@
         const r  = siteFooter.getBoundingClientRect();
         const inView = r.top < vh * 0.88 && r.bottom > 0;
         document.body.classList.toggle('at-footer', inView);
+        if (window.bmuDockTools) window.bmuDockTools.sync();
         if (window.bmuSyncHeadTool) window.bmuSyncHeadTool();
 
         if (!window.matchMedia('(max-width: 640px)').matches){
@@ -3609,10 +3742,54 @@
        that leads to the archive. In both the header is about to be the
        thing on screen, so it arrives already being it. The sandwich on the
        way DOWN never lights it — down here the header is not the subject. */
+    /* ---------- THE TOOLS COME DOWN TO THE FOOTER ----------
+       On a phone the footer's head shares the header's line, and the two
+       cannot both own it: .foot-inner has to sit above the header for the
+       plus to be pressable, which puts the header's own two tools beneath
+       the footer and makes the first press on either of them land on
+       nothing. Rather than arbitrate the stack, the tools change hands —
+       the same nav element, with the same listeners on it, moved out of the
+       header and into the footer's head beside the plus, and the header
+       taken off the screen behind them.
+
+       Moved, not duplicated: a second copy would need its own handlers and
+       the two would drift apart the first time one of them changed. */
+    const dockTools = (function(){
+      const nav  = document.querySelector('#siteHead .hd-tools') ||
+                   document.querySelector('.hd-tools');
+      const home = document.querySelector('#siteHead .hd-inner');
+      const foot = document.querySelector('#siteFooter .foot-head');
+      if (!nav || !home || !foot) return { sync(){}, docked(){ return false; } };
+      let at = false;
+      const phone = () => window.matchMedia('(max-width: 640px)').matches;
+      function sync(){
+        const want = phone() && document.body.classList.contains('at-footer');
+        if (want === at) return;
+        at = want;
+        (want ? foot : home).appendChild(nav);
+        document.body.classList.toggle('tools-docked', want);
+        /* the header is gone while they are down here, so nothing of its
+           lit state should be left behind on the footer */
+        if (want){
+          const h = document.getElementById('siteHead');
+          if (h) h.classList.remove('head-on', 'head-lit');
+          document.body.classList.remove('head-on');
+        }
+      }
+      window.addEventListener('resize', sync);
+      return { sync, docked: () => at };
+    })();
+    window.bmuDockTools = dockTools;
+
     (function litAtFooter(){
       const h = document.getElementById('siteHead');
       if (!h) return;
-      const lift = () => { h.classList.add('head-on'); document.body.classList.add('head-on'); };
+      const lift = () => {
+        /* nothing to light: down here the bar is off the screen and the
+           tools are the footer's own, on the footer's white ground */
+        if (dockTools.docked()) return;
+        h.classList.add('head-on'); document.body.classList.add('head-on');
+      };
       const litExit = (el) => {
         if (!el) return;
         el.addEventListener('click', () => {
@@ -3637,8 +3814,13 @@
 
        Most of it has to be on screen, not a sliver: a button whose top edge
        has just cleared the fold is not something anyone is looking at yet.
-       It plays once and the watcher is dropped — it stays open, and there is
-       nothing to run a second time. */
+
+       It plays EVERY time the button comes into view, not once. Opening
+       once and staying open meant that on the second visit to the footer —
+       and every visit after it — the one thing down here asking to be
+       pressed was already open, which is to say it looked like a label
+       again, which is the whole thing this was written to fix. Leaving the
+       screen shuts it; coming back plays it. The watcher stays. */
     (function talkOnSight(){
       const talk = document.querySelector('#siteFooter .foot-talk');
       if (!talk) return;
@@ -3646,9 +3828,7 @@
       if (!('IntersectionObserver' in window)){ talk.classList.add('talk-seen'); return; }
       const io = new IntersectionObserver(entries => {
         for (const e of entries){
-          if (!e.isIntersecting) continue;
-          talk.classList.add('talk-seen');
-          io.disconnect();
+          talk.classList.toggle('talk-seen', e.isIntersecting);
         }
       }, { threshold:0.75 });
       io.observe(talk);
@@ -3879,6 +4059,7 @@
       opsFooterPass = false;
       document.body.classList.add('ops-open');
       document.body.classList.remove('at-footer');
+      if (window.bmuDockTools) window.bmuDockTools.sync();
       navRow.classList.add('ops-engaged');
       opsBtn.setAttribute('aria-expanded', 'true');
       /* The row collapses into this button, the way it does for every other
@@ -3915,7 +4096,34 @@
          geometry half a frame behind. The row is already at its final width. */
       const bar   = barH();
       const W     = navRow.getBoundingClientRect().width;
-      const fullH = Math.min(Math.round(W * 1.414), Math.round(window.innerHeight * 0.82));
+
+      /* ---------- THE COPY KEEPS ITS GROUND ----------
+         The sheet used to take whatever height the aspect asked for and
+         leave the page to absorb it. #page is a three-row grid at a fixed
+         100dvh, so on a short phone there was nothing left to absorb with:
+         the top track went to nothing, the copy was squeezed out of its own
+         track and up under the fixed header — the mark printed over the
+         first line — and the 22px between "British Material Unit ◎ 2026"
+         and the row closed to 12.
+
+         So the sheet is capped at the room actually left once the header,
+         the copy and that 22px have been paid for. On a 390x844 phone the
+         cap is 641 against an aspect of 529 and nothing changes; it only
+         bites on the short screens where something had to give, and what
+         gives is the sheet rather than the page above it. */
+      const headEl = document.getElementById('siteHead');
+      const pageEl = document.getElementById('page');
+      const pcs    = getComputedStyle(pageEl);
+      const room   = window.innerHeight
+                   - (headEl ? headEl.getBoundingClientRect().height : 0)
+                   - parseFloat(pcs.paddingBottom)
+                   - document.querySelector('.container').getBoundingClientRect().height
+                   - parseFloat(getComputedStyle(navStack).marginTop)
+                   - 12;                       // the row's own tail, below
+      const fullH = Math.max(bar, Math.min(
+                      Math.round(W * 1.414),
+                      Math.round(window.innerHeight * 0.82),
+                      Math.round(room)));
 
       // pin it shut, commit that as the transition's start, then run the height
       opsBtn.style.height = bar + 'px';
@@ -5327,6 +5535,7 @@
       textContent.textContent = mainText;   // the typed copy, already typed
       raiseRow();
       document.body.classList.add('entered');
+      document.documentElement.classList.remove('gate-held');
     }
 
     /* ---------- COMING BACK FROM THE REPOSITORY ----------
@@ -5476,6 +5685,7 @@
         bmuType(mainText, textContent, 20, () => {
           raiseRow();
           document.body.classList.add('entered');
+      document.documentElement.classList.remove('gate-held');
           if (window.bmuFooterCheck) window.bmuFooterCheck();
         });
         return;
@@ -5828,6 +6038,35 @@ applyVB();
        Its own block, deliberately. Appended to whichever script happened to
        be last, it landed inside a runtime that returns early on most pages
        and never ran at all. -->
+  <!-- ---------- THE SPEAKER, AND WHERE THE MUSIC LIVES ----------
+       Eastwood Danso's corner speaker reads its playlist off one attribute
+       on the markup and nothing else has to know about it. This keeps that
+       shape: ONE line to change, here, and the button looks after itself.
+
+       Theirs opens Apple Music. This one opens Spotify — paste the share
+       link for the playlist, album or track:
+
+         https://open.spotify.com/playlist/XXXXXXXXXXXXXXXXXXXXXX
+
+       Left empty the button is not shown at all. The archive's play face is
+       held to the same rule (see BMU_SOUND in archive.html), and for the
+       same reason: a mark that offers to play something and then answers a
+       press with nothing is worse than no mark. -->
+  <script>
+  (function theSpeaker(){
+    var SPOTIFY = '';
+
+    var btn = document.getElementById('bmuSpeaker');
+    if (!btn) return;
+    if (!/^https:\/\/open\.spotify\.com\//.test(SPOTIFY)) return;   // stays hidden
+    btn.hidden = false;
+    /* noopener on a new tab, always: the page being opened is handed a
+       reference to this one otherwise */
+    btn.addEventListener('click', function(){
+      window.open(SPOTIFY, '_blank', 'noopener,noreferrer');
+    });
+  })();
+  </script>
   <script>
   (function pressLightsTheBar(){
     var h = document.getElementById('siteHead');
@@ -5856,7 +6095,17 @@ applyVB();
     h.addEventListener('pointerdown', on, { passive:true });
     h.addEventListener('pointerup',     function(){ letGo(380); }, { passive:true });
     h.addEventListener('pointercancel', function(){ letGo(0);   }, { passive:true });
-    h.addEventListener('pointerleave',  function(){ letGo(0);   }, { passive:true });
+    /* ---------- A TOUCH POINTER ALWAYS LEAVES ----------
+       pointerleave is a pointer going away from the element. A mouse does
+       that when it is moved off, which is the case this is for. A touch
+       pointer does it the instant the finger lifts — the pointer ceases to
+       exist — so every tap fired pointerup and then pointerleave, the 380ms
+       hold was cancelled by the 0ms one a frame later, and the fill was
+       taken off before it had been drawn. Pressing the header did nothing,
+       visibly, which is exactly what it was reported as doing. */
+    h.addEventListener('pointerleave',  function(e){
+      if (!e || e.pointerType === 'mouse') letGo(0);
+    }, { passive:true });
     window.addEventListener('scroll', function(){
       if (document.body.classList.contains('at-footer')) return;
       if (!h.classList.contains('head-on')) return;
