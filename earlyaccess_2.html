@@ -336,8 +336,25 @@
 
          Shut until then — without this the touch rule further down has
          already opened it and there is nothing left to play. */
-      #siteFooter .foot-talk .talk-well{ width:0; }
-      #siteFooter .foot-talk svg{ opacity:0; }
+      /* ---------- AND IT CLOSES THE WAY IT OPENED ----------
+         Opening: the well widens, and the arrow arrives in the room it has
+         made. Closing used to be neither of those — the base rules carried
+         no transition, so the box and the arrow both vanished between one
+         frame and the next, which read as a glitch rather than as the
+         button shutting.
+
+         The reverse, in the reverse order. The arrow goes first, on its
+         own, and only once it is gone does the well close behind it —
+         .28s of fade, then .5s of width. Nothing is ever half an arrow in
+         a half-closed box. */
+      #siteFooter .foot-talk .talk-well{
+        width:0;
+        transition:width .5s cubic-bezier(.4,0,.2,1) .28s;
+      }
+      #siteFooter .foot-talk svg{
+        opacity:0;
+        transition:opacity .28s cubic-bezier(.4,0,.2,1);
+      }
       #siteFooter .foot-talk.talk-seen .talk-well{
         width:20px;
         transition:width .5s cubic-bezier(.4,0,.2,1);
@@ -384,7 +401,54 @@
          plus-aside is set when the two are actually near each other — or
          at once, with foot-now holding the transition, when the reader
          asked for the footer outright and there is no approach to watch. */
-      body.plus-aside .foot-partners{ transform:translateX(-62px); }
+      body.plus-aside .foot-partners{ transform:translateX(var(--plus-aside-x)); }
+
+      /* ---------- AT THE FOOTER THE TOOLS BELONG TO THE FOOTER ----------
+         The plus stepping aside was always the right move; what was wrong
+         was what it stepped aside FOR. A fixed header cannot share a line
+         with the footer's own head: .foot-inner has to be raised above it
+         or the plus cannot be pressed, and raising it put the header's two
+         tools underneath the footer, where a press on the arrow landed on
+         .foot-head and did nothing. Worse, the tools stayed pinned to the
+         top of the screen while the footer scrolled under them, so they
+         drifted off the plus they had just made room beside.
+
+         So the tools come down. The same nav element, with the same
+         listeners on it, is moved out of the header and into the footer's
+         head (see dockTools below) and the bar is taken off the screen.
+
+         Absolutely placed, not laid out in the flex row: dropping them into
+         the flow would reflow the row in one frame and the plus would jump
+         rather than travel. Out of the flow they cost nothing, so the plus
+         keeps its own slide — the animation this always had — and the tools
+         simply arrive at the end of the line it is clearing. */
+      body.tools-docked #siteHead{ display:none; }
+      .foot-head{ position:relative; }
+      body.tools-docked .foot-head > .hd-tools{
+        position:absolute;
+        right:0;
+        top:50%;
+        transform:translateY(-50%);
+        gap:var(--foot-tool-gap);
+      }
+      /* ---------- ONE RHYTHM ACROSS THE THREE ----------
+         Plus, explore, arrow, evenly spaced. They were not: the plus sat
+         40 points from the explore mark and the explore mark 29 from the
+         arrow, because the gap on the left was a margin and the gap on the
+         right was a flex gap, and the two icons carry -8px margins that eat
+         into one and not the other. One number governs both now — the row's
+         gap, and the distance the plus travels to clear it. */
+      :root{
+        /* the header's own gap between these same two marks, so the row
+           keeps its rhythm when it changes hands */
+        --foot-tool-gap:15px;
+        /* how far the plus travels, and therefore where it comes to rest
+           relative to the two marks it is clearing. One number: the rule
+           above uses it too, so the slide cannot land somewhere the docked
+           row then corrects with a jump. */
+        --plus-aside-x:-58px;
+      }
+
 
       /* ---------- THE CLOSING RULE SITS AT THE FOOT ----------
          Anchored, the footer's head is at the top of the screen and its
@@ -1655,11 +1719,14 @@
       if (!talk) return;
       if (!window.matchMedia('(hover: none)').matches) return;   // a pointer has hover
       if (!('IntersectionObserver' in window)){ talk.classList.add('talk-seen'); return; }
+      /* Every time it comes into view, not once. Opening once and staying
+         open meant that from the second visit to the footer onward the one
+         thing down here asking to be pressed was already open — which is to
+         say it looked like a label again, which is what this exists to
+         prevent. Leaving the screen shuts it, on the reverse animation. */
       const io = new IntersectionObserver(entries => {
         for (const e of entries){
-          if (!e.isIntersecting) continue;
-          talk.classList.add('talk-seen');
-          io.disconnect();
+          talk.classList.toggle('talk-seen', e.isIntersecting);
         }
       }, { threshold:0.75 });
       io.observe(talk);
@@ -1670,9 +1737,19 @@
         anchoring = false;
         window.scrollTo({ top:0, behavior:'smooth' });
       } else if (PHONE()){
-        /* The room is made and the plus put where it belongs BEFORE the
-           travel, so the page the reader lands on is already settled. */
-        plusAside(true, true);
+        /* ---------- THE PLUS TRAVELS, IT DOES NOT TELEPORT ----------
+           This used to put the plus where it belongs before the travel and
+           hold the transition while it did it, so the page the reader
+           landed on was already settled. That was right while the room it
+           was making was for a fixed header's tools, which are on screen
+           the whole way down and would have been collided with mid-flight.
+
+           The tools come down with the footer now, so there is nothing to
+           collide with and nothing to settle in advance. The plus slides,
+           the two marks arrive at the end of the line it has cleared, and
+           the reader watches the row make room rather than finding it
+           already made. */
+        plusAside(true, false);
         /* And the bar the press landed on lets go of its fill. A finger
            leaves :hover behind it, so without this the reader arrives at
            the footer with a dark band still across the top. */
@@ -2105,17 +2182,83 @@
         document.body.classList.remove('head-on');
       }, ms);
     }
-    /* lit on the way down and let go a beat after the finger lifts, so a tap
-       is long enough to be seen rather than a frame nobody catches */
+    /* ---------- LIT, AND IT STAYS LIT ----------
+       It used to let go 380ms after the finger lifted, which on a touch
+       screen meant it was never seen at all: a touch pointer fires
+       pointerleave the instant the finger comes off — the pointer ceases to
+       exist — so the 0ms release cancelled the 380ms one a frame later and
+       the fill was taken off before it had been drawn. Pressing the header
+       did nothing, visibly.
+
+       Both of those releases are gone. The bar lights on the press and
+       holds: the reader has asked the header a question and the answer is
+       still on screen. It is let go by the two things that mean they have
+       moved on — scrolling the page, below, or arriving at the footer,
+       where the tools light it on their way out and it is meant to stay
+       lit. pointercancel remains because a cancelled gesture is not a
+       press: that is the browser taking the touch away to scroll with. */
     h.addEventListener('pointerdown', on, { passive:true });
-    h.addEventListener('pointerup',     function(){ letGo(380); }, { passive:true });
-    h.addEventListener('pointercancel', function(){ letGo(0);   }, { passive:true });
-    h.addEventListener('pointerleave',  function(){ letGo(0);   }, { passive:true });
+    h.addEventListener('pointercancel', function(){ letGo(0); }, { passive:true });
+    h.addEventListener('pointerleave',  function(e){
+      /* a mouse leaving is a hover ending, which is this rule's whole
+         purpose; a touch pointer "leaves" on every tap and must not be */
+      if (!e || e.pointerType === 'mouse') letGo(0);
+    }, { passive:true });
     window.addEventListener('scroll', function(){
       if (document.body.classList.contains('at-footer')) return;
       if (!h.classList.contains('head-on')) return;
       letGo(0);
     }, { passive:true });
+  })();
+  </script>
+  <!-- ---------- THE TOOLS COME DOWN TO THE FOOTER ----------
+       On a phone the footer's head shares the header's line and the two
+       cannot both own it. .foot-inner has to sit above the header for the
+       plus to be pressable, which puts the header's explore mark and arrow
+       beneath the footer: the first press on either lands on .foot-head and
+       does nothing, and the second is the one that works. They are also
+       pinned while the footer scrolls, so they drift off the plus they just
+       made room beside, and a flick past the end carries the head up under
+       them.
+
+       So the tools change hands. The same nav element, with the same
+       listeners on it, is moved out of the header and into the footer's
+       head, and the header is taken off the screen behind them. Moved, not
+       copied: a second set of marks would need its own handlers and the two
+       would drift apart the first time either changed.
+
+       Driven off the body class rather than wired into each page's own
+       footer check, because every page writes that check differently and
+       this has to behave the same on all of them. -->
+  <script>
+  (function dockToolsAtFooter(){
+    var nav  = document.querySelector('#siteHead .hd-tools');
+    var home = document.querySelector('#siteHead .hd-inner');
+    var foot = document.querySelector('#siteFooter .foot-head');
+    if (!nav || !home || !foot) return;
+
+    var at = false;
+    function phone(){ return window.matchMedia('(max-width: 640px)').matches; }
+
+    function sync(){
+      var want = phone() && document.body.classList.contains('at-footer');
+      if (want === at) return;
+      at = want;
+      (want ? foot : home).appendChild(nav);
+      document.body.classList.toggle('tools-docked', want);
+      if (want){
+        /* the bar is off the screen now, so nothing of its lit state should
+           be left painted onto the footer */
+        var h = document.getElementById('siteHead');
+        if (h) h.classList.remove('head-on', 'head-lit');
+        document.body.classList.remove('head-on');
+      }
+    }
+
+    new MutationObserver(sync).observe(document.body,
+      { attributes:true, attributeFilter:['class'] });
+    window.addEventListener('resize', sync);
+    sync();
   })();
   </script>
 </body>
