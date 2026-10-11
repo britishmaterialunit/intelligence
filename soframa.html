@@ -445,6 +445,19 @@
         top:50%;
         transform:translateY(-50%);
         gap:var(--foot-tool-gap);
+        /* ---------- THEY ARRIVE WITH THE ROOM, NOT BEFORE IT ----------
+           Docking is structural and happens early, while the footer is
+           still edging into view; the plus does not move until the head is
+           properly on screen. In between, two marks were standing exactly
+           where the plus still was — which is the overlap. They wait for
+           the room to be made and fade into it. */
+        opacity:0;
+        pointer-events:none;
+        transition:opacity .34s cubic-bezier(.4,0,.2,1) .12s;
+      }
+      body.tools-docked.plus-aside .foot-head > .hd-tools{
+        opacity:1;
+        pointer-events:auto;
       }
       /* ---------- ONE RHYTHM ACROSS THE THREE ----------
          Plus, explore, arrow, evenly spaced. They were not: the plus sat
@@ -2024,19 +2037,16 @@
         anchoring = false;
         window.scrollTo({ top:0, behavior:'smooth' });
       } else if (PHONE()){
-        /* ---------- THE PLUS TRAVELS, IT DOES NOT TELEPORT ----------
-           This used to put the plus where it belongs before the travel and
-           hold the transition while it did it, so the page the reader
-           landed on was already settled. That was right while the room it
-           was making was for a fixed header's tools, which are on screen
-           the whole way down and would have been collided with mid-flight.
+        /* ---------- AND THE PLUS IS NOT MOVED FROM HERE ----------
+           Setting it at the moment of the press is what made the slide
+           invisible: the travel takes most of a second, so the plus had
+           finished moving long before the footer it was making room in came
+           under the reader's eyes. They pressed a button, the page scrolled,
+           and the row was simply already different when it stopped.
 
-           The tools come down with the footer now, so there is nothing to
-           collide with and nothing to settle in advance. The plus slides,
-           the two marks arrive at the end of the line it has cleared, and
-           the reader watches the row make room rather than finding it
-           already made. */
-        plusAside(true, false);
+           dockToolsAtFooter plays it instead, when the footer's head is
+           actually on screen — which is on arrival if they pressed, and on the
+           way past if they are scrolling by hand. Either way they see it. */
         /* And the bar the press landed on lets go of its fill. A finger
            leaves :hover behind it, so without this the reader arrives at
            the footer with a dark band still across the top. */
@@ -2156,13 +2166,19 @@
            of scrolling — it starts as they come within reach of each other
            and is done by the time they are level, so the tools never pass
            over the plus and the plus never has to be caught up with. */
-        const plus = document.getElementById('footMore');
-        const tool = document.querySelector('#siteHead .hd-ico');
-        if (plus && tool && !anchoring){
-          const gap = plus.getBoundingClientRect().top
-                    - tool.getBoundingClientRect().bottom;
-          plusAside(arrived && gap < 40, false);
-        }
+        /* ---------- WHICH IS NO LONGER MEASURED HERE ----------
+           It used to be: the gap between the plus rising up the page and the
+           header's tools sitting still at the top of it. That reading cannot
+           be taken any more, because the tools are not up there — they are
+           moved into this footer the moment it is reached, so the query for
+           them came back null, the branch was skipped, and the plus was never
+           told to step aside. It then sat on top of the two marks it was
+           supposed to be making room for, which is what scrolling down by hand
+           did every time.
+
+           dockToolsAtFooter owns plus-aside on a phone now, for the same
+           reason it owns the tools: there is one state here, not two. The plus
+           steps aside exactly when there is something to step aside for. */
 
         /* ---------- AND THE BOTTOM SETTLES ITSELF ----------
            Reaching the end of the page by hand leaves the footer's head
@@ -2610,26 +2626,60 @@
     var foot = document.querySelector('#siteFooter .foot-head');
     if (!nav || !home || !foot) return;
 
-    var at = false;
+    var docked = false, aside = false;
     function phone(){ return window.matchMedia('(max-width: 640px)').matches; }
+
+    /* ---------- TWO STATES, AND THEY ARE NOT THE SAME MOMENT ----------
+       tools-docked is structural: the nav has been moved out of the header
+       and into this footer, and the bar is off the screen. It has to happen
+       early, while the footer is still only edging into view, because the
+       header has to be gone before it can be seen over the footer.
+
+       plus-aside is the motion: the plus slides left and the two marks fade
+       in at the end of the line it clears. That must NOT happen at the same
+       time. Set together, the slide was over before the reader could see
+       it — pressing the sandwich starts a travel of most of a second, and
+       the plus had long since moved by the time the footer arrived under
+       their eyes. The reader pressed a button, the page scrolled, and the
+       row was simply already different when it stopped.
+
+       So the motion waits for the footer's head to be properly on screen —
+       in the top 45% of it, which is where it comes to rest and where it
+       passes on the way if they are scrolling by hand. Pressed or scrolled,
+       the plus moves while they are looking at it. */
+    function near(){
+      var r = foot.getBoundingClientRect();
+      return r.top < window.innerHeight * 0.45 && r.bottom > 0;
+    }
 
     function sync(){
       var want = phone() && document.body.classList.contains('at-footer');
-      if (want === at) return;
-      at = want;
-      (want ? foot : home).appendChild(nav);
-      document.body.classList.toggle('tools-docked', want);
-      if (want){
-        /* the bar is off the screen now, so nothing of its lit state should
-           be left painted onto the footer */
-        var h = document.getElementById('siteHead');
-        if (h) h.classList.remove('head-on', 'head-lit');
-        document.body.classList.remove('head-on');
+      if (want !== docked){
+        docked = want;
+        (want ? foot : home).appendChild(nav);
+        document.body.classList.toggle('tools-docked', want);
+        if (want){
+          /* the bar is off the screen now, so nothing of its lit state
+             should be left painted onto the footer */
+          var h = document.getElementById('siteHead');
+          if (h) h.classList.remove('head-on', 'head-lit');
+          document.body.classList.remove('head-on');
+        }
+      }
+      if (!phone()) return;          // the pointer screen keeps its own rule
+      var a = docked && near();
+      if (a !== aside){
+        aside = a;
+        document.body.classList.toggle('plus-aside', a);
       }
     }
 
+    /* at-footer is set by each page's own footer check, and the pages do
+       not agree on where that lives — watching the class is the one hook
+       that is the same on all of them */
     new MutationObserver(sync).observe(document.body,
       { attributes:true, attributeFilter:['class'] });
+    window.addEventListener('scroll', sync, { passive:true });
     window.addEventListener('resize', sync);
     sync();
   })();
