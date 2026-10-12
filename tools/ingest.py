@@ -236,24 +236,47 @@ def derive_ref(name, key, nats, page):
 # ------------------------------------------------------------ the picture
 
 def to_png(src, dest):
-    """1000 square PNG. sips is on every Mac; Pillow if it happens to be
-    installed; otherwise a straight copy with a word about it."""
+    """1000 square PNG, flattened onto white.
+
+    Pillow first, sips only as a fallback — which is the other way round
+    from how this started, and the reason is alpha. A shop's cut-out comes
+    down as RGBA; sips resamples it and keeps the transparency, so the
+    garment lands in the archive as a 927KB RGBA file where every other
+    photograph is a flattened RGB one. Flattening is not cosmetic here:
+    it costs nothing visible on a white page and saves roughly a fifth of
+    the file, which across a large intake is what keeps the repository
+    under the GitHub Pages cap.
+
+    One LANCZOS resample straight from the original, not a series of
+    steps — resampling once holds more detail than stepping down does.
+    """
+    try:
+        from PIL import Image
+        im = Image.open(src)
+        if im.mode in ('RGBA', 'LA', 'P'):
+            im = im.convert('RGBA')
+            flat = Image.new('RGB', im.size, (255, 255, 255))
+            flat.paste(im, mask=im.split()[-1])
+            im = flat
+        else:
+            im = im.convert('RGB')
+        im = im.resize((PX, PX), Image.LANCZOS)
+        im.save(dest, 'PNG', optimize=True)
+        return True
+    except ImportError:
+        pass
+    except Exception as e:
+        print('      ! Pillow could not read it (%s) — falling back to sips' % e)
     if shutil.which('sips'):
         r = subprocess.run(['sips', '-s', 'format', 'png', '-z', str(PX), str(PX),
                             src, '--out', dest],
                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         if r.returncode == 0:
+            print('      ! resampled with sips — any transparency is kept, '
+                  'which the rest of the archive does not have')
             return True
-    try:
-        from PIL import Image
-        im = Image.open(src).convert('RGB')
-        im = im.resize((PX, PX), Image.LANCZOS)
-        im.save(dest, 'PNG')
-        return True
-    except Exception:
-        pass
     shutil.copy2(src, dest)
-    print('      ! copied as-is — could not resample (no sips, no Pillow)')
+    print('      ! copied as-is — could not resample (no Pillow, no sips)')
     return False
 
 
