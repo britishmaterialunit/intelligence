@@ -648,6 +648,23 @@
          34px off the bottom, and the card was finishing directly behind
          them. */
       body.solo-from-field #catalogue{ padding-bottom:132px; }
+
+      /* ---------- AND THEN IT COMES UP TO THE HEADER ----------
+         The drop above exists so the record lands on the garment rather
+         than moving the garment to the record — the handover is seamless
+         because the card is built around wherever the reader happened to
+         be holding it. That is right for the handover and wrong for the
+         resting place: on a phone the garment is often low on the glass,
+         so the tab settled halfway down the screen with the whole of the
+         header's line empty above it.
+
+         So it travels, once, after everything else has finished. The drop
+         is taken back to a fixed rest under the header and the padding
+         carries the card up with it. Only after the build is done and only
+         on a phone, so none of the measuring above is disturbed. */
+      body.solo-from-field.solo-rise #catalogue{
+        transition:padding-top .62s cubic-bezier(.4,0,.2,1);
+      }
     }
     /* The shelf is named on the tab above and again in the list; saying it a
        third time inside the garment's own card was the card repeating its
@@ -4875,6 +4892,7 @@
       markUrl(null);                    // the record is being left: /archive
       document.body.classList.remove('solo-from-field');
       document.body.style.removeProperty('--solo-drop');
+      document.body.classList.remove('solo-rise');
       document.body.classList.remove('solo-closing', 'solo-shutting');
       document.querySelectorAll('.nation').forEach(n => n.style.removeProperty('--lid-drop'));
       document.body.classList.remove('solo-drawing');
@@ -7059,6 +7077,7 @@
       document.body.classList.remove('solo-from-field', 'solo-build',
                                      'solo-drawing', 'solo-closing', 'solo-shutting');
       document.body.style.removeProperty('--solo-drop');
+      document.body.classList.remove('solo-rise');
       clearHolds();
       q.value = '';
       dq.value = keepDock ? dq.value : '';
@@ -7351,9 +7370,32 @@
        released to settle into the card. The garment holds still, and the
        layout comes to it.
        ------------------------------------------------------------------ */
+    /* ---------- THE TAB'S RESTING PLACE ----------
+       --solo-drop put the record where the garment was. Once the build has
+       finished there is nothing left for it to hold, and leaving it there
+       strands the tab in the middle of the screen with the header's line
+       empty above it. This takes the drop back to a fixed rest and lets
+       the padding transition carry the card up to it.
+
+       The rest is not nought: nought puts the tab hard against the
+       catalogue's own top edge and the header then sits on it. One gap, so
+       the tab reads as hanging below the bar rather than stuck to it. */
+    const SOLO_REST = 14;
+
+    function riseToHeader(){
+      if (!document.body.classList.contains('solo-from-field')) return;
+      const now = parseFloat(getComputedStyle(document.body)
+        .getPropertyValue('--solo-drop')) || 0;
+      if (now <= SOLO_REST + 1) return;         // already where it belongs
+      document.body.classList.add('solo-rise');
+      void document.body.offsetWidth;
+      document.body.style.setProperty('--solo-drop', SOLO_REST + 'px');
+    }
+
     function openRecord(item){
       resetPanels();          // it opens shut, every time
       document.body.style.removeProperty('--solo-drop');
+      document.body.classList.remove('solo-rise');
       document.body.classList.add('solo-from-field');
       const img = item.querySelector('img');
       const from = (img || item).getBoundingClientRect();
@@ -7561,6 +7603,10 @@
                    snap by another route. The sequence lets go of it. */
                 slot.style.transform = '';
                 slot.style.zIndex = '';
+                /* The card is open, the garment has stopped moving and the
+                   drop has nothing left to hold. Let it go and the tab
+                   rises to the header's line. */
+                if (SMALL_SCREEN()) riseToHeader();
               }, 900));
             });
           }));
@@ -7861,6 +7907,7 @@
         document.body.classList.add('field-returning');
         document.body.classList.remove('solo-from-field');
         document.body.style.removeProperty('--solo-drop');
+        document.body.classList.remove('solo-rise');
         soloId = null;
         q.value = '';
         filter();
