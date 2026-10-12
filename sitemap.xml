@@ -812,6 +812,36 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/romanian/coats/romanian-army-2010s-tan-thermal-ripstop-coat/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/romanian/coats/romanian-army-2010s-tan-thermal-ripstop-coat/ROA2010TTRC.png</image:loc>
+      <image:title>Romanian Army 2010s Tan Thermal Ripstop Coat</image:title>
+      <image:caption>Romanian Army 2010s Tan Thermal Ripstop Coat — Romanian military surplus coat, archive ref ROA2010TTRC</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/romanian/jackets/romanian-army-1990s-m1990-leaf-camouflage-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/romanian/jackets/romanian-army-1990s-m1990-leaf-camouflage-jacket/ROA1990M1990LCJ.png</image:loc>
+      <image:title>Romanian Army 1990s M1990 Leaf Camouflage Jacket</image:title>
+      <image:caption>Romanian Army 1990s M1990 Leaf Camouflage Jacket — Romanian military surplus jacket, archive ref ROA1990M1990LCJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/romanian/trousers/romanian-army-1990s-m1994-fleck-camouflage-cold-weather-trousers/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/romanian/trousers/romanian-army-1990s-m1994-fleck-camouflage-cold-weather-trousers/ROA1990M1994FCCWT.png</image:loc>
+      <image:title>Romanian Army 1990s M1994 Fleck Camouflage Cold Weather Trousers</image:title>
+      <image:caption>Romanian Army 1990s M1994 Fleck Camouflage Cold Weather Trousers — Romanian military surplus trouser, archive ref ROA1990M1994FCCWT</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/serbian/parkas/serbian-army-1990s-m93-oak-leaf-camouflage-thermal-liner-parka/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
