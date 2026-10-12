@@ -1014,6 +1014,27 @@
       text-align:center;
     }
 
+    /* ---------- LEAVING FOR THE PARTNER SET ----------
+       The partner pages hand over to each other by fading: the one going
+       drops to nothing, the one arriving comes up from it, and a key in
+       sessionStorage tells the arriving page which way it was travelling.
+       Operations opens onto those pages, so when a swipe carries the
+       reader through to them this page has to leave the same way — fading
+       out rather than being replaced mid-sheet, which is a cut in the
+       middle of a gesture.
+
+       The column fades and the chrome stays, exactly as #partner does over
+       there, so the header and the footer are the two fixed things the
+       whole set is read through. */
+    body.pg-leaving #page{
+      opacity:0;
+      transition:opacity .34s cubic-bezier(.4,0,.2,1);
+      pointer-events:none;
+    }
+    @media (prefers-reduced-motion:reduce){
+      body.pg-leaving #page{ transition:none; }
+    }
+
     /* ---------- MAP SECTION (below the fold) ---------- */
     #mapSection{
     position:relative;
@@ -2259,7 +2280,7 @@
                 <span class="ni-sub">Industrialising operations and expanding sourcing network with archive, repository and open-studio build.</span>
               </a>
 
-              <div class="ops-hint">Swipe up or sideways to close</div>
+              <div class="ops-hint">Swipe left for partnerships, right or up to close</div>
             </div>
           </div>
         </div>
@@ -3324,7 +3345,7 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <!-- The only way in to SOFRAMA. The page is held back from the
+          <!-- The only way in to Soframa. The page is held back from the
                partners reel, so this line in Capabilities is what leads to it. -->
           <a href="/soframa">Research &amp; Development</a>
         </div>
@@ -5283,7 +5304,35 @@
       if (joinState !== 'off') closeJoin(); else closeOps();
     });
 
-    /* ---- swipe to dismiss: sideways anywhere, up when at end of content ---- */
+    /* ---------- THROUGH TO THE PARTNER SET ----------
+       01 of the run, which is where its own numbering starts and where
+       paging on from it goes 01 -> 02 -> 03. The two keys are the same
+       handshake the partner pages use between themselves: `dir` tells the
+       arriving page which way the reader was travelling so it fades in
+       from the right side, and `foot` tells it whether the footer was
+       already up so it does not draw itself all over again.
+
+       The page is let go of first and the travel waited out, so what the
+       reader sees is this page going and that one arriving — not a sheet
+       cut off mid-gesture. */
+    let goingToPartners = false;
+    function toPartners(){
+      if (goingToPartners) return;
+      goingToPartners = true;
+      const href = '/ew';
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      try {
+        sessionStorage.setItem('bmu.pg.dir', 'next');
+        const f = document.getElementById('siteFooter');
+        sessionStorage.setItem('bmu.pg.foot',
+          f && f.classList.contains('in') ? '1' : '0');
+      } catch(_){}
+      if (reduced){ location.href = href; return; }
+      document.body.classList.add('pg-leaving');
+      setTimeout(() => { location.href = href; }, 360);
+    }
+
+    /* ---- swipe: left goes on to the partnerships, right or up closes ---- */
     function attachSwipe(el){
       let sx = null, sy = null;
       el.addEventListener('touchstart', (e) => {
@@ -5295,9 +5344,19 @@
         if (opsState === 'closed' || sx === null) return;
         const dx = e.touches[0].clientX - sx;
         const dy = e.touches[0].clientY - sy;
-        // sideways swipe
+        /* ---------- SIDEWAYS IS TWO DIFFERENT ANSWERS ----------
+           It used to be one: either way closed the box. But Operations is
+           where the partnerships are listed, and the pages they lead to
+           are a set the reader pages through left to right — so left here
+           is the same "on" that left means on every one of them, and the
+           box is the front of that run rather than a dead end.
+
+           Right still closes, which is the same "back" the partner pages
+           give it, so the gesture means one thing across the whole set. */
         if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5){
-          sx = sy = null; closeOps(); return;
+          sx = sy = null;
+          if (dx < 0) toPartners(); else closeOps();
+          return;
         }
         // swipe up — only once the body is scrolled to its end
         // (otherwise the gesture is just scrolling the whitepaper)
@@ -5332,7 +5391,13 @@
         wheelAcc += e.deltaX;
         clearTimeout(wheelTimer);
         wheelTimer = setTimeout(() => { wheelAcc = 0; }, 250);
-        if (Math.abs(wheelAcc) > 140){ wheelAcc = 0; closeOps(); }
+        /* the trackpad's own left and right, read the same way the
+           swipe's are: on to the partnerships, or back out of the box */
+        if (Math.abs(wheelAcc) > 140){
+          const on = wheelAcc > 0;
+          wheelAcc = 0;
+          if (on) toPartners(); else closeOps();
+        }
         return;
       }
 
