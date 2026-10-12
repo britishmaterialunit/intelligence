@@ -2328,17 +2328,19 @@
       gap:0;
       padding:2px 2px 8px;
     }
-    /* grouped: the switch steps out of the flow and the heading takes its
-       line, starting clear of it */
-    .nation:not([data-facet=""]) .facet-bar{
-      position:absolute;
-      top:16px; left:0;
-      z-index:2;
-      padding:0;
-    }
-    .nation:not([data-facet=""]) .group:first-of-type > .section-label{
-      padding-left:112px;
-    }
+    /* ---------- GROUPED: THE HEADING LEFT, THE SWITCH RIGHT ----------
+       The switch used to step out of the flow — absolute at left:0 — and
+       the first heading was padded 112px to get out from under it. Two
+       things wrong with that. The padding is a guess at the switch's width,
+       so a longer heading ran beneath it; and when a tab holds a single
+       garment there IS no heading to pad, because one group gets no label
+       of its own — the chosen value becomes the bar's own title instead.
+       Nothing made room, and the switch sat on top of the garment.
+
+       Nothing is positioned over anything now. The bar stays in the flow
+       and splits: the heading keeps the left, the switch and its choices
+       are pushed to the right by the title's own auto margin. It cannot
+       overlay what it is a heading for, at any number of garments. */
     .facet-title{
       font-size:9.5px;
       letter-spacing:.2em;
@@ -2347,6 +2349,15 @@
       margin-right:var(--facet-gap);
       transition:color .3s cubic-bezier(.4,0,.2,1);
     }
+    /* ---------- ONE RUN, EVENLY SPACED ----------
+       Garments, Type and Date are one run of three and should read as one.
+       They did not: the title carried the sign's tight 5px and the choices
+       were 14px apart, so the eye saw "Garments Type" as a pair with Date
+       trailing. Open, the title takes the run's own gap; shut, it keeps the
+       tight one, because then the only thing after it is the sign and the
+       sign belongs to the word. */
+    .facet-bar.on .facet-title{ margin-right:var(--facet-run); }
+    .nation:not([data-facet=""]) .facet-bar .facet-title{ margin-right:auto; }
     .facet-bar.on .facet-title{ color:var(--ink); }
 
     .facet-toggle{
@@ -2373,7 +2384,7 @@
     .facet-opts{
       display:flex;
       align-items:baseline;
-      gap:14px;
+      gap:var(--facet-run);
       width:0;
       overflow:hidden;
       opacity:0;
@@ -2407,7 +2418,12 @@
     /* One space, not a measured distance: the sign belongs to the word in
        front of it — Garments, Type, Date — and reads as part of it. The same
        number puts it one space past the last choice when the row is open. */
-    .facet-bar{ --facet-gap:5px; }
+    .facet-bar{
+      --facet-gap:5px;
+      /* the run between Garments, Type and Date — one number for all of
+         them, so no two of the three are closer than the others */
+      --facet-run:14px;
+    }
 
     /* ---------- THE COLLECTION'S DOOR ---------- */
     #joinGate{
@@ -6087,7 +6103,14 @@
     /* One bookmark button, two jobs: with a garment framed it keeps that
        garment; with the whole field showing it gathers what is kept. */
     function offerSave(el){
+      /* One place sets focusedItem, so one place can mark it. Until now
+         which garment was framed existed only in this variable — nothing
+         in the document said so, which meant no rule could style it and
+         nothing outside the script could see it. The swipe needs to know
+         what it is pushing away from. */
+      if (focusedItem && focusedItem !== el) focusedItem.classList.remove('sp-framed');
       focusedItem = el || null;
+      if (focusedItem) focusedItem.classList.add('sp-framed');
       syncLibraryMark();
     }
 
@@ -6224,6 +6247,8 @@
          chosen garment, a cluster, a term, a nation grouping — goes, and
          the whole archive comes back. */
       let reset = false;
+      /* before anything is cleared — see snapOpacity */
+      const wasAt = spiralBuilt ? snapOpacity() : null;
       if (holdChosen){
         holdChosen = false;                 // spent on this one arrival
       } else if (spiralBuilt && !wantSaved){
@@ -6281,23 +6306,57 @@
       fitSpiral();
       // a field that had to be put back is put back by fading in, not by
       // appearing — the same return the circle's reset makes
-      if (reset) lightFieldUp(480);
+      if (reset) lightFieldUp(480, wasAt);
     }
 
-    /* The whole field up from nothing, together. fieldBackIn is for a move
-       that lays the garments out somewhere new and needs its own left/top
-       transitions left alone; this is for a field that is already where it
-       belongs and only has to be seen again. */
-    function lightFieldUp(ms){
+    /* ---------- WHAT THE FIELD WAS HOLDING, BEFORE IT IS LET GO ----------
+       Read every garment's opacity while the classes that set it are still
+       on. Coming back from a record, most of the field is at nought and the
+       garment the reader opened is at one; without this snapshot there is
+       no way to tell them apart a moment later, because letting the classes
+       go is what erases the difference. */
+    function snapOpacity(){
+      const m = new Map();
+      [...spiral.children].forEach(el =>
+        m.set(el, parseFloat(getComputedStyle(el).opacity) || 0));
+      return m;
+    }
+
+    /* The field back up, from wherever each garment actually was.
+
+       This used to put the WHOLE field out first — sp-blank, every garment
+       at nought with no transition — and fade all of it in together. On the
+       way back from a record that reads as a fault: the garment the reader
+       was just looking at is on screen, and closing the record blinks it
+       and everything round it out for a beat before handing it all back.
+       Nothing asked for it to go; it was only ever a way of getting a fade
+       out of elements whose classes had already been removed.
+
+       The snapshot is what makes the blanking unnecessary. Each garment is
+       pinned at the value it really had, the transition is set while it is
+       still there, and then they are all let go to one together. What was
+       hidden fades up; what was already on screen stays on screen.
+
+       fieldBackIn is the other case and still blanks, deliberately: that is
+       a move which lays the field out somewhere new, and a garment seen
+       travelling to a new position reads as a shuffle. */
+    function lightFieldUp(ms, snap){
       const els = [...spiral.children];
       if (!els.length) return;
-      spiral.classList.add('sp-blank');
-      void spiral.offsetWidth;                 // committed at nothing
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        els.forEach(el => { el.style.transition = 'opacity ' + ms + 'ms ease'; });
-        spiral.classList.remove('sp-blank');
-        setTimeout(() => els.forEach(el => { el.style.transition = ''; }), ms + 80);
-      }));
+      els.forEach(el => {
+        el.style.transition = 'none';
+        el.style.opacity = snap && snap.has(el) ? String(snap.get(el)) : '0';
+      });
+      void spiral.offsetWidth;                 // pinned where they were
+      requestAnimationFrame(() => {
+        els.forEach(el => {
+          el.style.transition = 'opacity ' + ms + 'ms ease';
+          el.style.opacity = '1';
+        });
+        setTimeout(() => els.forEach(el => {
+          el.style.transition = ''; el.style.opacity = '';
+        }), ms + 80);
+      });
     }
 
     function endExplore(handBack){
@@ -6466,7 +6525,7 @@
        it plays something and then does nothing is worse than no button. */
     const BMU_SOUND = {
       src:     '',
-      spotify: '',
+      spotify: 'https://open.spotify.com/playlist/37i9dQZF1DZ06evO1j3TBW',
     };
 
     let sound = null, soundOn = false, spotifyBox = null;
@@ -7113,10 +7172,66 @@
       explore.classList.remove('grabbing');
     }));
 
+    /* ---------- SWIPING FROM ONE GARMENT TO THE NEXT ----------
+       A press that lands on a garment is deliberately not a pan — see the
+       pointerdown above, which steps aside for .sp-item — so until now a
+       drag that began on a garment did nothing at all. On a touch screen
+       that is the most natural thing to try once a garment has been picked
+       out: push it aside and see the next one.
+
+       So it is the arrow keys, under a thumb. The same stepFrom and the
+       same glide a pointer screen gets from the keyboard, which means the
+       cone, the cluster rule and the framing all behave identically and
+       there is one definition of "the next garment" on this page.
+
+       It runs from the FRAMED garment, and only when one is framed: before
+       that there is no "next" for a direction to mean, exactly as there is
+       none for the arrow keys. Carousel sense — the field follows the
+       finger, so pushing left brings in the garment to the right.
+
+       Anywhere off a garment the field pans as it always did; this adds a
+       gesture, it does not take one away. */
+    const SWIPE_MIN = 38;             // below this it is a tap, not a push
+    let swId = null, swX = 0, swY = 0, swFrom = null, swipeTook = false;
+
+    spiral.addEventListener('pointerdown', e => {
+      swId = null; swipeTook = false;
+      if (gateShut() || soloLock) return;
+      if (e.pointerType === 'mouse') return;      // the keyboard has this
+      const item = e.target.closest('.sp-item');
+      if (!item) return;
+      if (!focusedItem || !focusedItem.isConnected) return;   // nothing framed
+      if (item !== focusedItem) return;           // the framed garment is the handle
+      swId = e.pointerId; swX = e.clientX; swY = e.clientY; swFrom = item;
+    });
+
+    spiral.addEventListener('pointerup', e => {
+      if (e.pointerId !== swId) return;
+      swId = null;
+      if (soloLock || !swFrom || !swFrom.isConnected) return;
+      const dx = e.clientX - swX, dy = e.clientY - swY;
+      if (Math.hypot(dx, dy) < SWIPE_MIN) return;        // a tap; let it open
+      const dir = Math.abs(dx) > Math.abs(dy)
+        ? [-Math.sign(dx), 0]
+        : [0, -Math.sign(dy)];
+      const next = stepFrom(swFrom, dir[0], dir[1]);
+      /* Nothing that way — the edge of the field, or the edge of a
+         gathered cluster. The swipe is still spent: letting it fall
+         through would open the record the reader was swiping away from. */
+      swipeTook = true;
+      if (next) glide(() => focusItem(next, maxScale() * 0.68));
+    });
+
+    spiral.addEventListener('pointercancel', e => {
+      if (e.pointerId === swId) swId = null;
+    });
+
     // a garment opens on its own, centred; the tab's − brings you back
     spiral.addEventListener('click', e => {
       if (gateShut()) return;        // nothing in the field is pressable yet
       if (soloLock) return;          // one is already on its way
+      /* that press was a swipe; it has already been answered */
+      if (swipeTook){ swipeTook = false; return; }
       const item = e.target.closest('.sp-item');
       if (!item) return;
 
