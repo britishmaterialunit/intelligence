@@ -434,6 +434,22 @@
          rather than travel. Out of the flow they cost nothing, so the plus
          keeps its own slide — the animation this always had — and the tools
          simply arrive at the end of the line it is clearing. */
+      /* ---------- THEY TRAVEL DOWN, THEY DO NOT VANISH ----------
+         The bar used to be taken off the screen the instant the footer was
+         reached, so the explore mark and the arrow were simply gone from
+         the top and present at the bottom — two marks teleporting past
+         each other. They go the way the reader is going instead: down and
+         out of the bar first, then the hand-over, then they fade in at the
+         end of the line the plus has cleared. Coming back up they arrive
+         low and faded in the bar and rise into place. */
+      #siteHead .hd-tools{
+        transition:opacity .3s cubic-bezier(.4,0,.2,1),
+                   transform .3s cubic-bezier(.4,0,.2,1);
+      }
+      body.tools-leaving #siteHead .hd-tools{
+        opacity:0;
+        transform:translateY(16px);
+      }
       body.tools-docked #siteHead{ display:none; }
       .foot-head{ position:relative; }
       body.tools-docked .foot-head > .hd-tools{
@@ -2614,7 +2630,7 @@
     var foot = document.querySelector('#siteFooter .foot-head');
     if (!nav || !home || !foot) return;
 
-    var docked = false, aside = false;
+    var docked = false, aside = false, want = false, gen = 0;
     function phone(){ return window.matchMedia('(max-width: 640px)').matches; }
 
     /* ---------- TWO STATES, AND THEY ARE NOT THE SAME MOMENT ----------
@@ -2640,20 +2656,48 @@
       return r.top < window.innerHeight * 0.45 && r.bottom > 0;
     }
 
-    function sync(){
-      var want = phone() && document.body.classList.contains('at-footer');
-      if (want !== docked){
-        docked = want;
-        (want ? foot : home).appendChild(nav);
-        document.body.classList.toggle('tools-docked', want);
-        if (want){
+    /* ---------- THE HAND-OVER IS A MOVE, NOT A CUT ----------
+       The marks travel down out of the bar before they change hands, and
+       rise back into it on the way home, so the eye follows them to where
+       they have gone. `want` records the request and `gen` cancels a
+       half-played hand-over if the reader turns round mid-way — without
+       those, a scroll that crosses the line twice leaves the nav in one
+       place and the classes describing the other. */
+    var LEAVE_MS = 300;
+    function setDocked(w){
+      if (w === want) return;
+      want = w;
+      var g = ++gen;
+      if (w){
+        document.body.classList.add('tools-leaving');
+        setTimeout(function(){
+          if (g !== gen) return;
+          docked = true;
+          foot.appendChild(nav);
+          document.body.classList.add('tools-docked');
+          document.body.classList.remove('tools-leaving');
           /* the bar is off the screen now, so nothing of its lit state
              should be left painted onto the footer */
           var h = document.getElementById('siteHead');
           if (h) h.classList.remove('head-on', 'head-lit');
           document.body.classList.remove('head-on');
-        }
+        }, LEAVE_MS);
+      } else {
+        docked = false;
+        home.appendChild(nav);
+        document.body.classList.remove('tools-docked');
+        /* put back low and faded, then let go of it so it rises */
+        document.body.classList.add('tools-leaving');
+        void nav.offsetWidth;
+        requestAnimationFrame(function(){
+          if (g !== gen) return;
+          document.body.classList.remove('tools-leaving');
+        });
       }
+    }
+
+    function sync(){
+      setDocked(phone() && document.body.classList.contains('at-footer'));
       if (!phone()) return;          // the pointer screen keeps its own rule
       var a = docked && near();
       if (a !== aside){

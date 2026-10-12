@@ -1037,59 +1037,6 @@
 
     /* ---------- FOOTER ---------- */
     /* scroll cue — only once the reader is in, gone once they arrive */
-    /* ---------- THE SPEAKER ----------
-       Eastwood Danso's corner speaker, rebuilt on this page's own furniture
-       and pointed at Spotify rather than Apple Music: one glyph in the
-       corner, grey at rest, that hands the reader to the playlist. Theirs
-       carries a 3D model and plays an mp3 behind it; this one does the part
-       that matters, which is being the one thing on a quiet page that makes
-       a sound somewhere else.
-
-       It stands on the scroll cue's line, at the left-hand end of it, and
-       keeps the cue's measurements — 16px of mark, 24px off the floor, the
-       same fade in and the same grey — so the two read as a pair rather
-       than as a control that wandered in.
-
-       Only once the reader is inside, and never at the footer: down there
-       the footer's own head has the tools and a third mark floating over
-       it is one too many. */
-    #bmuSpeaker{
-      position:fixed;
-      left:max(16px, env(safe-area-inset-left));
-      bottom:24px;
-      width:16px; height:16px;
-      z-index:30;
-      display:grid; place-items:center;
-      padding:10px;
-      margin:-10px;             /* a thumb's target, around a 16px mark */
-      border:0;
-      background:none;
-      cursor:pointer;
-      color:#999;
-      opacity:0;
-      pointer-events:none;
-      -webkit-tap-highlight-color:transparent;
-      transition:opacity .6s cubic-bezier(.4,0,.2,1),
-                 color .3s cubic-bezier(.4,0,.2,1),
-                 transform .3s cubic-bezier(.4,0,.2,1);
-    }
-    /* an author display beats the UA's [hidden] rule, and this one has to
-       lose to it — unconfigured, the mark is not on the page at all */
-    #bmuSpeaker[hidden]{ display:none; }
-    #bmuSpeaker svg{ width:16px; height:16px; display:block; overflow:visible; }
-    #bmuSpeaker .ico-fill{ fill:currentColor; }
-    body.entered #bmuSpeaker{ opacity:.45; pointer-events:auto; }
-    body.entered #bmuSpeaker:hover{ opacity:.9; color:var(--ink); transform:scale(1.1); }
-    #bmuSpeaker:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
-    /* every state that takes the cue off the page takes this with it */
-    body.entered.at-footer #bmuSpeaker,
-    body.panel-open #bmuSpeaker,
-    body.arch-leaving #bmuSpeaker{ opacity:0; pointer-events:none; }
-    @media (prefers-reduced-motion:reduce){
-      #bmuSpeaker{ transition:opacity .2s linear; }
-      body.entered #bmuSpeaker:hover{ transform:none; }
-    }
-
     #scrollCue{
       position:fixed;
       left:50%;
@@ -1435,6 +1382,22 @@
          rather than travel. Out of the flow they cost nothing, so the plus
          keeps its own slide — the animation this always had — and the tools
          simply arrive at the end of the line it is clearing. */
+      /* ---------- THEY TRAVEL DOWN, THEY DO NOT VANISH ----------
+         The bar used to be taken off the screen the instant the footer was
+         reached, so the explore mark and the arrow were simply gone from
+         the top and present at the bottom — two marks teleporting past
+         each other. They go the way the reader is going instead: down and
+         out of the bar first, then the hand-over, then they fade in at the
+         end of the line the plus has cleared. Coming back up they arrive
+         low and faded in the bar and rise into place. */
+      #siteHead .hd-tools{
+        transition:opacity .3s cubic-bezier(.4,0,.2,1),
+                   transform .3s cubic-bezier(.4,0,.2,1);
+      }
+      body.tools-leaving #siteHead .hd-tools{
+        opacity:0;
+        transform:translateY(16px);
+      }
       body.tools-docked #siteHead{ display:none; }
       .foot-head{ position:relative; }
       body.tools-docked .foot-head > .hd-tools{
@@ -3291,19 +3254,6 @@
 
   <!-- the standing scroll cue, and the way out of Join: the arrow turns
        over into a cross while Join holds the row, and back again after -->
-  <!-- Hidden until BMU_MUSIC below is filled in: a button that says it
-       plays something and then does nothing is worse than no button — the
-       same rule the archive's own play face is held to. -->
-  <button id="bmuSpeaker" type="button" hidden aria-label="Open the BMU playlist on Spotify">
-    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-      <path class="ico-fill" d="M8.6 2.2 4.9 5.1H2.4a.6.6 0 0 0-.6.6v4.6a.6.6 0 0 0 .6.6h2.5l3.7 2.9a.5.5 0 0 0 .8-.4V2.6a.5.5 0 0 0-.8-.4Z"/>
-      <g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
-        <path d="M11.5 5.6a3.4 3.4 0 0 1 0 4.8"/>
-        <path d="M13.4 3.6a6.1 6.1 0 0 1 0 8.8"/>
-      </g>
-    </svg>
-  </button>
-
   <button id="scrollCue" type="button" aria-label="Scroll to the footer">
     <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <g class="fa-arrow">
@@ -6065,35 +6015,6 @@ applyVB();
        Its own block, deliberately. Appended to whichever script happened to
        be last, it landed inside a runtime that returns early on most pages
        and never ran at all. -->
-  <!-- ---------- THE SPEAKER, AND WHERE THE MUSIC LIVES ----------
-       Eastwood Danso's corner speaker reads its playlist off one attribute
-       on the markup and nothing else has to know about it. This keeps that
-       shape: ONE line to change, here, and the button looks after itself.
-
-       Theirs opens Apple Music. This one opens Spotify — paste the share
-       link for the playlist, album or track:
-
-         https://open.spotify.com/playlist/XXXXXXXXXXXXXXXXXXXXXX
-
-       Left empty the button is not shown at all. The archive's play face is
-       held to the same rule (see BMU_SOUND in archive.html), and for the
-       same reason: a mark that offers to play something and then answers a
-       press with nothing is worse than no mark. -->
-  <script>
-  (function theSpeaker(){
-    var SPOTIFY = 'https://open.spotify.com/playlist/37i9dQZF1DZ06evO1j3TBW';
-
-    var btn = document.getElementById('bmuSpeaker');
-    if (!btn) return;
-    if (!/^https:\/\/open\.spotify\.com\//.test(SPOTIFY)) return;   // stays hidden
-    btn.hidden = false;
-    /* noopener on a new tab, always: the page being opened is handed a
-       reference to this one otherwise */
-    btn.addEventListener('click', function(){
-      window.open(SPOTIFY, '_blank', 'noopener,noreferrer');
-    });
-  })();
-  </script>
   <script>
   (function pressLightsTheBar(){
     var h = document.getElementById('siteHead');
@@ -6172,7 +6093,7 @@ applyVB();
     var foot = document.querySelector('#siteFooter .foot-head');
     if (!nav || !home || !foot) return;
 
-    var docked = false, aside = false;
+    var docked = false, aside = false, want = false, gen = 0;
     function phone(){ return window.matchMedia('(max-width: 640px)').matches; }
 
     /* ---------- TWO STATES, AND THEY ARE NOT THE SAME MOMENT ----------
@@ -6198,20 +6119,48 @@ applyVB();
       return r.top < window.innerHeight * 0.45 && r.bottom > 0;
     }
 
-    function sync(){
-      var want = phone() && document.body.classList.contains('at-footer');
-      if (want !== docked){
-        docked = want;
-        (want ? foot : home).appendChild(nav);
-        document.body.classList.toggle('tools-docked', want);
-        if (want){
+    /* ---------- THE HAND-OVER IS A MOVE, NOT A CUT ----------
+       The marks travel down out of the bar before they change hands, and
+       rise back into it on the way home, so the eye follows them to where
+       they have gone. `want` records the request and `gen` cancels a
+       half-played hand-over if the reader turns round mid-way — without
+       those, a scroll that crosses the line twice leaves the nav in one
+       place and the classes describing the other. */
+    var LEAVE_MS = 300;
+    function setDocked(w){
+      if (w === want) return;
+      want = w;
+      var g = ++gen;
+      if (w){
+        document.body.classList.add('tools-leaving');
+        setTimeout(function(){
+          if (g !== gen) return;
+          docked = true;
+          foot.appendChild(nav);
+          document.body.classList.add('tools-docked');
+          document.body.classList.remove('tools-leaving');
           /* the bar is off the screen now, so nothing of its lit state
              should be left painted onto the footer */
           var h = document.getElementById('siteHead');
           if (h) h.classList.remove('head-on', 'head-lit');
           document.body.classList.remove('head-on');
-        }
+        }, LEAVE_MS);
+      } else {
+        docked = false;
+        home.appendChild(nav);
+        document.body.classList.remove('tools-docked');
+        /* put back low and faded, then let go of it so it rises */
+        document.body.classList.add('tools-leaving');
+        void nav.offsetWidth;
+        requestAnimationFrame(function(){
+          if (g !== gen) return;
+          document.body.classList.remove('tools-leaving');
+        });
       }
+    }
+
+    function sync(){
+      setDocked(phone() && document.body.classList.contains('at-footer'));
       if (!phone()) return;          // the pointer screen keeps its own rule
       var a = docked && near();
       if (a !== aside){
