@@ -5702,6 +5702,8 @@
       revEl.style.pointerEvents = 'none';
       revEl.classList.add('going');
       setTimeout(() => { revEl.hidden = true; }, 520);
+      /* a link that asked for a shelf has been waiting on this */
+      takePendingNation();
     }
     function gateShut(){ return !revealed && revEl && !revEl.hidden; }
 
@@ -6940,33 +6942,83 @@
        They are one control in two halves. Both down at once would be two
        clusters fighting for the centre of the field, so taking one lets the
        other up before it gathers. */
+    /* Pressing a flag and arriving on a link that asks for the same shelf
+       are the same act, so they are the same code. Split out of the
+       handler for that reason — a second path that only mostly matched
+       would be a second definition of what a nation cluster is. */
+    function gatherNation(key, label, btn, other, off){
+      if (explore.hidden) openExplore();
+      if (btn)   btn.setAttribute('aria-pressed', off ? 'false' : 'true');
+      if (other) other.setAttribute('aria-pressed', 'false');
+      /* flagBtn is the list's own nation toggle and belongs to the union
+         flag alone — the French shelf is a cluster in the field, not a
+         grouping of the list, so it leaves that button where it found it
+         except to let it up when it takes the centre itself. */
+      if (btn === dqFlag) flagBtn.setAttribute('aria-pressed', off ? 'false' : 'true');
+      else if (!off) flagBtn.setAttribute('aria-pressed', 'false');
+      dq.value = off ? '' : label;
+      dghost.hidden = dq.value !== '';
+      // a nation is not the shelf: the whole archive stands behind it
+      savedOnly = false;
+      document.body.classList.remove('library');
+      syncLibraryMark();
+      // the flag is the choice; there is nothing left to suggest
+      paintHint('');
+      // the rest of the archive stays, in grey, around the cluster
+      clusterSearch(off ? '' : key, true);
+    }
+
     function pressFlag(btn, other, key, label){
       btn.addEventListener('click', e => {
         e.stopPropagation();
-        if (explore.hidden) openExplore();
         const on = btn.getAttribute('aria-pressed') === 'true';
-        btn.setAttribute('aria-pressed', on ? 'false' : 'true');
-        if (other) other.setAttribute('aria-pressed', 'false');
-        /* flagBtn is the list's own nation toggle and belongs to the union
-           flag alone — the French shelf is a cluster in the field, not a
-           grouping of the list, so it leaves that button where it found it
-           except to let it up when it takes the centre itself. */
-        if (btn === dqFlag) flagBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
-        else if (!on) flagBtn.setAttribute('aria-pressed', 'false');
-        dq.value = on ? '' : label;
-        dghost.hidden = dq.value !== '';
-        // a nation is not the shelf: the whole archive stands behind it
-        savedOnly = false;
-        document.body.classList.remove('library');
-        syncLibraryMark();
-        // the flag is the choice; there is nothing left to suggest
-        paintHint('');
-        // the rest of the archive stays, in grey, around the cluster
-        clusterSearch(on ? '' : key, true);
+        gatherNation(key, label, btn, other, on);
       });
     }
     pressFlag(dqFlag,   dqFlagFR, 'british', 'British');
     pressFlag(dqFlagFR, dqFlag,   'french',  'French');
+
+    /* ---------- ARRIVING ON A SHELF ----------
+       /archive#nation=french opens the field with the French garments
+       already gathered, which is what the Soframa page links to: the
+       sentence says we are preserving this holding and the link is the
+       holding itself, not the front of the archive with instructions.
+
+       Any nation in NATIONS works, so this is a shelf's address rather
+       than a special case for one of them. The two flags in the bar are
+       the only ones with a button to press, and a shelf without one
+       gathers just the same — the bar simply shows the nation's name.
+
+       It waits for the door. On a phone the field is behind the reveal and
+       gathering into one that has not been built yet is gathering nothing,
+       so the request is held and spent the moment the gate opens. */
+    let pendingNation = null;
+
+    function wantedNation(){
+      const m = location.hash.match(/^#nation=([a-z-]+)$/i);
+      if (!m) return null;
+      const key = m[1].toLowerCase();
+      return NATIONS.some(n => n.key === key) ? key : null;
+    }
+
+    function openNationFromUrl(key){
+      const nat = NATIONS.find(n => n.key === key);
+      if (!nat) return;
+      const btn = key === 'british' ? dqFlag
+                : key === 'french'  ? dqFlagFR
+                : null;
+      const other = btn === dqFlag ? dqFlagFR : btn === dqFlagFR ? dqFlag : null;
+      gatherNation(key, nat.label, btn, other, false);
+    }
+
+    function takePendingNation(){
+      if (!pendingNation) return;
+      const key = pendingNation;
+      pendingNation = null;
+      /* after the field has been laid out, not in the same breath as the
+         door opening — clusterSearch measures positions */
+      setTimeout(() => openNationFromUrl(key), 60);
+    }
 
     /* From explore this is the way into the tab list — and the dock comes
        with it. The main bar used to be handed back here, which put a second
@@ -8399,12 +8451,24 @@
 
     (function arriveAtGarment(){
       const n = wantedNumber();
-      if (n) setTimeout(() => openNumber(n), 60);
+      if (n){ setTimeout(() => openNumber(n), 60); return; }
+      /* ...or on a shelf. A nation in the hash opens the field with that
+         nation already gathered — see openNationFromUrl. Held until the
+         reveal is through, because a cluster gathered behind a door that
+         has not opened yet is gathered out of sight and finishes before
+         the reader has seen any of it. */
+      const nat = wantedNation();
+      if (!nat) return;
+      pendingNation = nat;
+      openExplore();
+      if (!gateShut()) takePendingNation();
     })();
 
     window.addEventListener('popstate', () => {
       const n = wantedNumber();
       if (n){ openNumber(n); return; }
+      const nat = wantedNation();
+      if (nat){ openNationFromUrl(nat); return; }
       // back to the archive itself
       if (soloId || document.body.classList.contains('single-result')){
         dockForced = true;

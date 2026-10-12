@@ -1246,6 +1246,52 @@
       line-height:1.7;
       color:#6a6a6a;
     }
+    /* ---------- THE HOLDING ITSELF ----------
+       The paragraph says we are preserving a holding; this is the holding.
+       It goes to the French shelf already gathered rather than to the
+       front of the archive, because sending somebody to the door and
+       telling them which flag to press is not a link to the thing.
+
+       The four-point mark is the archive's own: it is what the header
+       wears for Explore and what the dock's bar wears beside the flags,
+       so the line reads as that button said in words. It turns with the
+       words rather than only beside them — a mark that lights on its own
+       is a second thing on the line. */
+    .p-archive{
+      margin:22px 0 0;
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+      font-size:13px;
+      line-height:1.7;
+      color:#6a6a6a;
+      text-decoration:none;
+      width:fit-content;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .p-archive svg{
+      width:13px; height:13px;
+      flex:none;
+      display:block;
+      transition:transform .4s cubic-bezier(.4,0,.2,1);
+    }
+    .p-archive .ico-fill{ fill:currentColor; }
+    .p-archive:hover{ color:var(--ink); }
+    .p-archive:hover svg{ transform:rotate(90deg); }
+    .p-archive:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
+    .p-archive .pa-flag{
+      height:11px; width:auto;
+      display:block;
+      flex:none;
+      filter:grayscale(1) contrast(1000%) opacity(.45);
+      transition:filter .3s cubic-bezier(.4,0,.2,1);
+    }
+    .p-archive:hover .pa-flag{ filter:grayscale(1) contrast(1000%); }
+    @media (prefers-reduced-motion:reduce){
+      .p-archive, .p-archive svg, .p-archive .pa-flag{ transition:none; }
+      .p-archive:hover svg{ transform:none; }
+    }
+
     /* each section is introduced by a rule, the way the footer is */
     .p-rule{
       height:1.5px;
@@ -1704,6 +1750,7 @@
     <h1 class="p-name" id="pName" data-text="Soframa"></h1>
     <p class="p-line">Circular Exit Strategy</p>
     <p class="p-body">A Franco-British partnership in which BMU preserves the remaining stock of France’s longest-standing military surplus recycler, archiving each garment’s intelligence (material + pattern) and deploying a research and development arm of forward-deployed designers focused on fibre-to-fibre recycling and garment-to-garment remanufacturing, utilising MarshalOS, which will house the metadata of all garments collected alongside the software’s irregular lay-planning design tool. Our philosophy and approach sit behind our term Proof of Design (POD), derived from Dwork and Naor’s Proof of Work, in which designers compete to solve for a garment’s waste before it is reprocessed.</p>
+    <a class="p-archive" href="/archive#nation=french"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/></svg><span>Explore our archive — what we are currently preserving</span><img class="pa-flag" src="/flags/franceukflag.png" alt="" aria-hidden="true"></a>
   </main>
 
   <footer id="siteFooter">
