@@ -1692,31 +1692,41 @@
       <span class="pg-num">04</span>
     </nav>
     <div class="p-role" id="pRole" data-text="Book"></div>
-    <h1 class="p-name" id="pName" data-text="MarshalOS"></h1>
-    <p class="p-line">A demo of MarshalOS, visiting Unit U, or half an hour to talk surplus.</p>
+    <!-- The fallback only: on this page the tabs own both lines and type
+         them, so this is what the heading would be if they could not. It is
+         the first plate's, which is the one the page opens on. -->
+    <h1 class="p-name" id="pName" data-text="Meeting"></h1>
+    <p class="p-line">Half an hour to talk surplus, a demo of MarshalOS, or visiting Unit U.</p>
     <p class="p-body">Sounds up your street? Then let's talk. MarshalOS is our software for garment to garment remanufacturing. Unit U is our open-studio — book the machines, browse the archive or simply have a cup of tea. And a meeting for everything else, from sourcing to starting a production run to investor or research opportunities. Join our team of designers in solving textile circularity within defence.</p>
 
       <section class="p-sec">
         <h2>Choose</h2>
 
+        <!-- Each plate now books a different thing, so each carries its own
+             calendar in data-cal. Meeting leads: it is the one most readers
+             want and the only one that fits somebody who does not yet know
+             what MarshalOS or Unit U are. -->
         <div class="book-tabs" role="tablist" aria-label="What to book">
+          <button type="button" class="book-tab" role="tab" id="tabMeet"
+                  aria-selected="true"  data-note="General meeting" data-head="Meeting" data-role="Book"
+                  data-cal="https://cal.com/british-material-unit-4jsp90/meeting-w-tom-m.w.d?hideHelpButton=true"
+                  data-blurb="Everything else — from sourcing, to starting a production run, to investor and research opportunities.">Meeting</button>
           <button type="button" class="book-tab" role="tab" id="tabMarshal"
-                  aria-selected="true"  data-note="MarshalOS demo" data-head="MarshalOS" data-role="Demo"
+                  aria-selected="false" data-note="MarshalOS demo" data-head="MarshalOS" data-role="Demo"
+                  data-cal="https://cal.com/british-material-unit-4jsp90/demo-of-marshalos?hideHelpButton=true"
                   data-blurb="A walk through how MarshalOS reads a garment, what it returns, and how it fits a production run you already have in mind.">MarshalOS</button>
           <button type="button" class="book-tab" role="tab" id="tabUnit"
                   aria-selected="false" data-note="Unit U studio booking" data-head="Unit U" data-role="Visit"
+                  data-cal="https://cal.com/british-material-unit-4jsp90/30min?hideHelpButton=true"
                   data-blurb="The open-studio: the floor, the machines and the surplus on it. Tell us what you are making and we will have the material out.">Unit U</button>
-          <button type="button" class="book-tab" role="tab" id="tabMeet"
-                  aria-selected="false" data-note="General meeting" data-head="Meeting" data-role="Book"
-                  data-blurb="Everything else — from sourcing, to starting a production run, to investor and research opportunities.">Meeting</button>
         </div>
 
 
         <div class="book-wrap">
           <div class="book-frame">
             <iframe id="bookFrame"
-                    src="https://cal.com/british-material-unit-4jsp90/30min?hideHelpButton=true"
-                    title="Book thirty minutes with British Material Unit"
+                    src="https://cal.com/british-material-unit-4jsp90/meeting-w-tom-m.w.d?hideHelpButton=true"
+                    title="Book a meeting with British Material Unit"
                     loading="lazy"
                     referrerpolicy="strict-origin-when-cross-origin"></iframe>
             <div class="book-mask" aria-hidden="true"></div>
@@ -2426,7 +2436,14 @@
          Asked for by name rather than covered over. The two covers below it
          stay: the Cal.com badge has no such switch outside their paid plan,
          and a cover that is not needed costs nothing. */
-      const BOOK_URL = 'https://cal.com/british-material-unit-4jsp90/30min?hideHelpButton=true';
+      /* Each plate carries its own calendar on data-cal. It used to be one
+         URL for all three, and the note here said the src was deliberately
+         never swapped — because swapping it threw away a date the reader
+         had picked for a change that was only ever about the words above
+         it. That reasoning held while the three led to one booking. They
+         now lead to three different ones, so the calendar has to follow the
+         plate; the guard below means it is still only ever reloaded when
+         the booking genuinely changes. */
 
       /* The page's own heading is what changes. A row of tabs under a
          heading that never moves reads as three ways to book one thing;
@@ -2467,10 +2484,15 @@
         // `quiet` on the first paint: the page's arrival is already typing
         // this heading, and two typewriters in one element interleave
         if (!quiet){ setRole(tab.dataset.role); setHead(tab.dataset.head); }
-        /* The calendar is not reloaded. All three lead to the same booking,
-           so swapping the src threw away whatever date the reader had
-           already picked and made them watch it load again — for a change
-           that was only ever about the words above it. */
+        /* Only when it is actually a different booking. Re-selecting the
+           plate that is already live — which a tap, an arrow key and the
+           first paint can all do — would otherwise reload the calendar
+           under a reader who has not asked for anything to change. */
+        const want = tab.dataset.cal;
+        if (want && frame.getAttribute('src') !== want){
+          frame.setAttribute('src', want);
+          frame.setAttribute('title', tab.dataset.note + ' with British Material Unit');
+        }
       }
 
       tabs.forEach(t => t.addEventListener('click', () => select(t)));
@@ -2486,10 +2508,14 @@
 
       // this page's heading belongs to the tabs; give the role a beat to
       // land first so the two arrive in the order they are read
-      /* /contact#unit arrives asking for the studio rather than the
-         software — the Repository's Access button sends people here. */
+      /* /contact#unit arrives asking for the studio rather than a meeting —
+         the Repository's Access button sends people here. Looked up by id
+         rather than by position: the plates have been reordered once
+         already, and a hash that silently opens the wrong calendar is worse
+         than one that does nothing. */
       const asked = (location.hash || '').replace('#','').toLowerCase();
-      const first = asked === 'unit' ? tabs[1] : asked === 'meeting' ? tabs[2] : tabs[0];
+      const BY_HASH = { unit:'tabUnit', meeting:'tabMeet', marshalos:'tabMarshal', marshal:'tabMarshal' };
+      const first = document.getElementById(BY_HASH[asked] || '') || tabs[0];
       setTimeout(() => select(first), 260);
     })();
   </script>
