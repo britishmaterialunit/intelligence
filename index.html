@@ -4532,6 +4532,14 @@
     function resetArchRow(){
       leaving = false;
       document.body.classList.remove('arch-leaving');
+      /* ---------- AND THE WAY OUT TO THE PARTNER SET ----------
+         Operations' swipe fades this page out and then leaves. A cached
+         restore hands it back exactly as it went — pg-leaving still on,
+         #page still at nothing and still refusing the pointer — so the
+         reader presses Back and finds a blank, dead home page. The same
+         reasoning as arch-leaving above, for the same reason. */
+      goingToPartners = false;
+      document.body.classList.remove('pg-leaving');
       navRow.classList.remove('arch-mode');
       /* Early Access leaves through the Join choreography, so a cached
          restore hands this page back mid-Join: the row collapsed, the
@@ -5305,8 +5313,13 @@
     });
 
     /* ---------- THROUGH TO THE PARTNER SET ----------
-       01 of the run, which is where its own numbering starts and where
-       paging on from it goes 01 -> 02 -> 03. The two keys are the same
+       The first partner the sheet names, which is the one the reader is
+       looking at when they swipe. Not 01 of the run: the numbering in the
+       corner of those pages and the order Operations lists them in are
+       two different orders, and the one that matters here is the one on
+       screen. Paging on from it carries along the run as usual.
+
+       The two keys are the same
        handshake the partner pages use between themselves: `dir` tells the
        arriving page which way the reader was travelling so it fades in
        from the right side, and `foot` tells it whether the footer was
@@ -5319,7 +5332,10 @@
     function toPartners(){
       if (goingToPartners) return;
       goingToPartners = true;
-      const href = '/ew';
+      /* read off the sheet rather than written down twice — if the order
+         of the partnerships changes, the swipe follows it */
+      const first = document.querySelector('#opsNews .news-item');
+      const href = (first && first.getAttribute('href')) || '/ou';
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       try {
         sessionStorage.setItem('bmu.pg.dir', 'next');

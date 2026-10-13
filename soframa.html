@@ -2541,6 +2541,27 @@
       })();
 
       /* ---------- leaving ---------- */
+      /* ---------- BACK HANDS THE PAGE BACK AS IT LEFT ----------
+         A page that is leaving fades itself out: pg-out-left or
+         pg-out-right, which hold #partner at nothing. On a cached restore
+         the browser hands the document back exactly as it went — class
+         still on, column still invisible, and `going` still true so the
+         arrows refuse to fire. The page answers 200, renders nothing, and
+         reads as a site that has stopped working.
+
+         Nothing had cleared it because nothing runs on a restore: `load`
+         does not fire again, and the arrival block at the top of this
+         script is parse-time. pageshow is the one event that does, and
+         `persisted` is what tells it this is a restore rather than a
+         fresh visit whose own fade-in must not be interfered with. */
+      window.addEventListener('pageshow', (e) => {
+        if (!e.persisted) return;
+        going = false;
+        document.body.classList.remove(
+          'pg-out-left', 'pg-out-right', 'pg-from-left', 'pg-from-right',
+          'pg-moving', 'pg-still');
+      });
+
       let going = false;
       function go(href, dir){
         if (going || !href) return;
