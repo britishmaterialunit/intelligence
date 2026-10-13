@@ -1272,6 +1272,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/german/liners/german-army-1970s-cold-war-parka-liner/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/german/liners/german-army-1970s-cold-war-parka-liner/GA1970CWPL.png</image:loc>
+      <image:title>German Army 1970s Cold War Parka Liner</image:title>
+      <image:caption>German Army 1970s Cold War Parka Liner — German military surplus liner, archive ref GA1970CWPL</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/west-german/shirts/west-german-army-1970s-field-grey-long-sleeve-field-shirt/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
