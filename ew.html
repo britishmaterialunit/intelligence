@@ -1284,13 +1284,23 @@
       top:1.5px;
     }
     .go-mark svg{ width:13px; height:13px; display:block; overflow:visible; }
+
+    /* ---------- THE MARK IS NEVER NOTHING ----------
+       The arrow used to draw itself out of an empty square, which meant the
+       line began on a blank the width of its own mark until a pointer found
+       it — a gap, not a mark. It is laid down in grey instead and the ink
+       one is drawn over the top of it, so the stroke still runs out of its
+       corner and the head is still pulled out of the far end, but there is
+       something standing there the whole time and what the hover does is
+       turn it black rather than bring it into being. */
     .go-arrow{
       fill:none;
-      stroke:currentColor;
       stroke-width:1.6;
       stroke-linecap:round;
       stroke-linejoin:round;
     }
+    .go-ghost{ stroke:#bdbdbd; }
+    .go-ink{ stroke:var(--ink); }
     /* 9.9 and 11.4 are the two path lengths, rounded up so neither is ever
        left a hair short of drawn */
     .go-stem{
@@ -1306,10 +1316,23 @@
     .p-go:hover .go-head,
     .p-go-line:focus-visible .go-head{ stroke-dashoffset:0; transition-delay:.3s; }
 
-    /* The floor is not the archive. The line goes to the British shelf and
-       these three words go to the booking for the studio, so the one that
-       is about to be taken says so under itself first. */
-    .go-unit{ position:relative; }
+    /* The archive's own four-point mark, as the Soframa page wears it, and
+       turning the way it turns there — this line opens the same archive, so
+       it is the same button said in words. It takes the line's colour, so
+       it is grey with the words and black with them. */
+    .go-star{ fill:currentColor; }
+    .go-mark.is-star svg{ transition:transform .4s cubic-bezier(.4,0,.2,1); }
+    .p-go:hover .go-mark.is-star svg{ transform:rotate(90deg); }
+
+    /* ---------- WHICH WORDS ARE THE DOOR ----------
+       A line this long does not say where in it the press lands. The words
+       that are the destination carry a rule drawn under them: on the first
+       line that is `here`, which goes where the whole line goes, so the
+       line's own hover draws it. On the second the floor is not the archive
+       — those words go somewhere else — so they answer to their own hover
+       and nothing else. */
+    .go-here, .go-unit{ position:relative; }
+    .go-here::after,
     .go-unit::after{
       content:'';
       position:absolute;
@@ -1320,6 +1343,8 @@
       transform-origin:left center;
       transition:transform .34s cubic-bezier(.4,0,.2,1);
     }
+    .p-go:hover .go-here::after,
+    .p-go-line:focus-visible .go-here::after,
     .go-unit:hover::after,
     .go-unit:focus-visible::after{ transform:scaleX(1); }
 
@@ -1335,16 +1360,21 @@
     }
     .p-go:hover .go-flag{ filter:none; }
 
-    /* No pointer to hover with: the arrow never arrives and the flag never
-       lights, so both are given on arrival — the same answer the footer's
-       Let's Talk gives a phone. */
+    /* ---------- NO POINTER TO HOVER WITH ----------
+       Two destinations in the second line and a word to press in the first,
+       and on a phone nothing to reveal them with. Both rules are drawn from
+       the start instead, so the two doors are visible as doors and can be
+       told apart before either is pressed. The flag lights for the same
+       reason. The marks stay grey: grey is their resting state, and there
+       is no hover here to be the other one. */
     @media (hover: none){
-      .go-stem, .go-head{ stroke-dashoffset:0; transition:none; }
+      .go-here::after, .go-unit::after{ transform:scaleX(1); transition:none; }
       .go-flag{ filter:none; }
     }
     @media (prefers-reduced-motion:reduce){
-      .p-go, .go-flag, .go-unit::after{ transition:none; }
+      .p-go, .go-flag, .go-here::after, .go-unit::after{ transition:none; }
       .go-stem, .go-head{ stroke-dashoffset:0; transition:none; }
+      .go-mark.is-star svg{ transition:none; }
     }
 
     /* each section is introduced by a rule, the way the footer is */
@@ -1798,10 +1828,11 @@
     <p class="p-body">East West is set to industrialise our operations with authorising a build of an open studio for our team and designers to repair and remanufacture military surplus in a value-add, circularity focused partnership. Joining forces enables us to expand our sourcing capabilities to EU and US surplus disposable markets and introduces a new methodology and approach to surplus for East West, focusing on development of products before sale and creating closed-loop distribution networks for continuous circulation of surplus, avoiding trade blocks and maintaining material flow.</p>
     <p class="p-go">
       <a class="p-go-line" href="/repository">
+        <!-- The grey one is always there; the ink one is drawn over it. -->
         <span class="go-mark" aria-hidden="true">
-          <svg viewBox="0 0 16 16" focusable="false"><g class="go-arrow"><path class="go-stem" d="M4.5 11.5 L11.5 4.5"/><path class="go-head" d="M5.8 4.5 H11.5 V10.2"/></g></svg>
+          <svg viewBox="0 0 16 16" focusable="false"><g class="go-arrow go-ghost"><path d="M4.5 11.5 L11.5 4.5"/><path d="M5.8 4.5 H11.5 V10.2"/></g><g class="go-arrow go-ink"><path class="go-stem" d="M4.5 11.5 L11.5 4.5"/><path class="go-head" d="M5.8 4.5 H11.5 V10.2"/></g></svg>
         </span>
-        <span>Open a non-trader BMU EWAS wholesale account, here.</span>
+        <span>Open a non-trader BMU EWAS wholesale account, <span class="go-here">here</span>.</span>
       </a>
     </p>
     <!-- Two destinations in one line. The line goes to the British shelf of
@@ -1811,8 +1842,9 @@
          so it still reads as one sentence. -->
     <p class="p-go">
       <a class="p-go-line" href="/archive#nation=british">
-        <span class="go-mark" aria-hidden="true">
-          <svg viewBox="0 0 16 16" focusable="false"><g class="go-arrow"><path class="go-stem" d="M4.5 11.5 L11.5 4.5"/><path class="go-head" d="M5.8 4.5 H11.5 V10.2"/></g></svg>
+        <!-- the archive's own mark, as the Soframa page wears it -->
+        <span class="go-mark is-star" aria-hidden="true">
+          <svg viewBox="0 0 100 100" focusable="false"><path class="go-star" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/></svg>
         </span>
         <span>Explore our archive or</span>
       </a> <a class="go-unit" href="/contact#unit">visit on-site at Unit U</a><img class="go-flag" src="/flags/ukflag.png" alt="" aria-hidden="true"></p>
