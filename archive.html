@@ -2133,17 +2133,39 @@
     @media (max-width:640px){ .bmu-nodata{ bottom:96px; } }
     @media (prefers-reduced-motion:reduce){ .bmu-nodata{ transition:none; } }
 
+    /* ---------- IT COMES OUT FROM UNDER THE BAR ----------
+       79 against the dock's 80, which is what makes this work: the player
+       rises from behind the three squares rather than appearing in front
+       of them, so it reads as having been down there all along.
+
+       And it puts itself away. Once the reader has started something there
+       is nothing left to press — the player is a transport, not a thing to
+       look at — so it goes back down the way it came and keeps playing out
+       of sight. Pressing the face again brings it up to reach the
+       controls; pressing it while it is up is what stops the music. */
     .bmu-spotify{
       position:fixed;
       left:50%;
-      transform:translateX(-50%);
       bottom:92px;
       width:min(94vw, 880px);
       z-index:79;
       border:1px solid var(--line);
       background:var(--bg);
+      transform:translateX(-50%) translateY(40px);
+      opacity:0;
+      pointer-events:none;
+      transition:transform .52s cubic-bezier(.4,0,.2,1),
+                 opacity .34s cubic-bezier(.4,0,.2,1);
+    }
+    .bmu-spotify.in{
+      transform:translateX(-50%) translateY(0);
+      opacity:1;
+      pointer-events:auto;
     }
     .bmu-spotify iframe{ display:block; }
+    @media (prefers-reduced-motion:reduce){
+      .bmu-spotify{ transition:opacity .2s linear; transform:translateX(-50%); }
+    }
 
     .dock-sq{
       flex:none;
@@ -6586,6 +6608,34 @@
 
     let sound = null, soundOn = false, spotifyBox = null;
 
+    /* ---------- KNOWING THEY HAVE PRESSED PLAY ----------
+       Spotify's player is a cross-origin frame: nothing inside it can be
+       read, no event it fires reaches this page, and asking their SDK for
+       one would mean a second piece of somebody else's script on a site
+       that carries none.
+
+       There is exactly one thing a page can know about a frame it cannot
+       see into — that the frame has taken the focus. A press inside it
+       blurs the window and leaves the iframe as the active element, and
+       nothing else on this page does that. It is not "playing", strictly;
+       it is "they have reached into the player", which for something that
+       is one button wide is the same moment.
+
+       A beat afterwards, so the press is seen to land rather than the
+       player vanishing out from under the finger. */
+    function tuckAwayOnceStarted(box){
+      const frame = box.querySelector('iframe');
+      if (!frame) return;
+      function reached(){
+        if (document.activeElement !== frame) return;
+        window.removeEventListener('blur', reached);
+        setTimeout(() => {
+          if (box.isConnected) box.classList.remove('in');
+        }, 900);
+      }
+      window.addEventListener('blur', reached);
+    }
+
     function soundReady(){ return !!(BMU_SOUND.src || BMU_SOUND.spotify); }
 
     function toggleSound(){
@@ -6595,11 +6645,33 @@
          filled in this branch stops being reached. */
       if (!soundReady()){ sayNoData(); return; }
 
-      /* Spotify: their embed, opened once and left. It carries its own
-         transport, so this button hands over to it rather than pretending
-         to drive it. */
+      /* Spotify: their embed. It carries its own transport, so this button
+         hands over to it rather than pretending to drive it — and then
+         gets out of the way.
+
+         Three presses, three different answers, because the player has
+         three states rather than two: not there, up where it can be
+         reached, and down behind the bar still playing.
+
+            nothing yet   build it and raise it
+            up            take it away, which is how the music is stopped
+            tucked away   raise it again, to reach the controls */
       if (!BMU_SOUND.src && BMU_SOUND.spotify){
-        if (spotifyBox){ spotifyBox.remove(); spotifyBox = null; setPlayFace(false); return; }
+        if (spotifyBox){
+          if (spotifyBox.classList.contains('in')){
+            const box = spotifyBox;
+            spotifyBox = null;
+            box.classList.remove('in');
+            setPlayFace(false);
+            /* let it go back down before it is taken off the page, or the
+               last thing the reader sees is it disappearing mid-slide */
+            setTimeout(() => box.remove(), 560);
+          } else {
+            spotifyBox.classList.add('in');
+            setPlayFace(true);
+          }
+          return;
+        }
         const id = (BMU_SOUND.spotify.match(/(track|album|playlist|episode)\/([A-Za-z0-9]+)/) || []);
         if (!id[1]) return;
         spotifyBox = Object.assign(document.createElement('div'), { className:'bmu-spotify' });
@@ -6608,6 +6680,10 @@
           `width="100%" height="80" frameborder="0" loading="lazy" ` +
           `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`;
         document.body.appendChild(spotifyBox);
+        void spotifyBox.offsetWidth;            // committed down behind the bar
+        const raised = spotifyBox;
+        requestAnimationFrame(() => raised.classList.add('in'));
+        tuckAwayOnceStarted(raised);
         setPlayFace(true);
         return;
       }
