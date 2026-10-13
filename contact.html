@@ -1533,7 +1533,7 @@
     #partner{
       position:relative;
       /* ---------- THE FOOTER SITS IN ONE PLACE ----------
-         The three pages in this set are read as one thing you page through,
+         The four pages in this set are read as one thing you page through,
          and the footer has to be where it was on the last one. Their heads
          are different lengths — Ramco's opening paragraph is nearly twice
          East West's — so measuring any of them to match the others is a
@@ -1541,7 +1541,7 @@
 
          The first screen is a screen instead. Every page in the set opens
          at exactly the viewport's height less the header, so the footer
-         begins on the same line on all three whatever is written above it,
+         begins on the same line on all four whatever is written above it,
          and whatever is below pushes it down from there. */
       min-height:calc(100dvh - 54px);
       /* and it fills that height from the top. The column was centred in
@@ -1688,8 +1688,8 @@
   <main id="partner">
     <!-- which of the three this is, and the way through them -->
     <nav class="pg-index" aria-label="Partner pages">
-      <button type="button" class="pg-arrow pg-back" data-href="/ou" aria-label="Back to Ramco"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.2 2.6 L4.6 8 L10.2 13.4"/></svg></button>
-      <span class="pg-num">03</span>
+      <button type="button" class="pg-arrow pg-back" data-href="/soframa" aria-label="Back to Soframa"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.2 2.6 L4.6 8 L10.2 13.4"/></svg></button>
+      <span class="pg-num">04</span>
     </nav>
     <div class="p-role" id="pRole" data-text="Book"></div>
     <h1 class="p-name" id="pName" data-text="MarshalOS"></h1>
@@ -1783,8 +1783,9 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <!-- The only way in to SOFRAMA. The page is held back from the
-               partners reel, so this line in Capabilities is what leads to it. -->
+          <!-- Soframa is listed in Operations and sits third in the partner
+               run, so this is no longer the only way in — but it is still
+               the capability the partnership IS, so the line stays. -->
           <a href="/soframa">Research &amp; Development</a>
         </div>
 
@@ -2541,7 +2542,7 @@
   
     /* ============================================================
        THE PARTNER SET
-       See the note by .pg-index in the stylesheet. Three documents, one
+       See the note by .pg-index in the stylesheet. Four documents, one
        gesture: the page leaving says which way it went and the page
        arriving comes in from the other side.
        ============================================================ */
@@ -2570,7 +2571,13 @@
       }
 
       function showMore(){
-        if (!more || REDUCED) return;
+        /* NOT `|| REDUCED`. The rest of the page is held at max-height:0
+           until this runs, so returning here left every reduced-motion
+           reader on the opening paragraph with the archive line, and
+           everything under it, permanently shut. The reduced-motion block
+           in the stylesheet already takes the transition off .p-more, so
+           running it is the instant open those readers should get. */
+        if (!more) return;
         /* The footer sits under this. With the rest of the page held shut
            the document is short, so the footer was resting most of a screen
            higher than it belongs and then sliding down as the rest opened —
@@ -2587,7 +2594,7 @@
         }, 820);
       }
       function hideMore(){
-        if (!more || REDUCED) return;
+        if (!more) return;
         more.classList.remove('pg-settled');
         more.style.setProperty('--more-h', more.scrollHeight + 'px');
         void more.offsetWidth;

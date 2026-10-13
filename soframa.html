@@ -1279,14 +1279,20 @@
     .p-archive:hover{ color:var(--ink); }
     .p-archive:hover svg{ transform:rotate(90deg); }
     .p-archive:focus-visible{ outline:1.5px solid var(--ink); outline-offset:4px; }
+    /* The two nations this partnership is between, in their own colours.
+       It was greyed to the same ink as the rest of the line, which made it
+       a mark rather than a flag — and the one thing on the page that has to
+       read as French AND British is the one thing that cannot afford to be
+       black. Held back at rest the way the words are, full strength when
+       the line is. */
     .p-archive .pa-flag{
       height:11px; width:auto;
       display:block;
       flex:none;
-      filter:grayscale(1) contrast(1000%) opacity(.45);
+      filter:opacity(.55);
       transition:filter .3s cubic-bezier(.4,0,.2,1);
     }
-    .p-archive:hover .pa-flag{ filter:grayscale(1) contrast(1000%); }
+    .p-archive:hover .pa-flag{ filter:none; }
     @media (prefers-reduced-motion:reduce){
       .p-archive, .p-archive svg, .p-archive .pa-flag{ transition:none; }
       .p-archive:hover svg{ transform:none; }
@@ -1584,7 +1590,7 @@
     #partner{
       position:relative;
       /* ---------- THE FOOTER SITS IN ONE PLACE ----------
-         The three pages in this set are read as one thing you page through,
+         The four pages in this set are read as one thing you page through,
          and the footer has to be where it was on the last one. Their heads
          are different lengths — Ramco's opening paragraph is nearly twice
          East West's — so measuring any of them to match the others is a
@@ -1592,7 +1598,7 @@
 
          The first screen is a screen instead. Every page in the set opens
          at exactly the viewport's height less the header, so the footer
-         begins on the same line on all three whatever is written above it,
+         begins on the same line on all four whatever is written above it,
          and whatever is below pushes it down from there. */
       min-height:calc(100dvh - 54px);
       /* and it fills that height from the top. The column was centred in
@@ -1737,20 +1743,23 @@
    </div>
   </header>
   <main id="partner">
-    <!-- which of the three this is, and the way through them -->
-    <!-- 00, and no arrow on: this page sits outside the numbered run of
-         partner pages and nothing leads on from it. The only way in is the
-         Research & Development line in the footer, and the only way out is
-         back to Operations. -->
+    <!-- which of the four this is, and the way through them -->
+    <!-- 03. This page used to sit outside the numbered run with nothing
+         leading on from it, reachable only by the Research & Development
+         line in the footer. It is now the third partnership: Ramco comes
+         before it, MarshalOS after, and Operations lists it like the rest.
+         It is still noindex and out of the sitemap — listed on the site is
+         not the same as asking to be found from outside it. -->
     <nav class="pg-index" aria-label="Partner pages">
-      <button type="button" class="pg-arrow pg-back" data-href="/#operations" aria-label="Back to Operations"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.2 2.6 L4.6 8 L10.2 13.4"/></svg></button>
-      <span class="pg-num">00</span>
+      <button type="button" class="pg-arrow pg-back" data-href="/ou" aria-label="Back to Ramco"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.2 2.6 L4.6 8 L10.2 13.4"/></svg></button>
+      <span class="pg-num">03</span>
+      <button type="button" class="pg-arrow pg-next" data-href="/contact" aria-label="On to MarshalOS"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5.8 2.6 L11.4 8 L5.8 13.4"/></svg></button>
     </nav>
     <div class="p-role" id="pRole" data-text="Research &amp; Development Partner"></div>
     <h1 class="p-name" id="pName" data-text="Soframa"></h1>
     <p class="p-line">Circular Exit Strategy</p>
-    <p class="p-body">A Franco-British partnership in which BMU preserves the remaining stock of France’s longest-standing military surplus recycler, archiving each garment’s intelligence (material + pattern) and deploying a research and development arm of forward-deployed designers focused on fibre-to-fibre recycling and garment-to-garment remanufacturing, utilising MarshalOS, which will house the metadata of all garments collected alongside the software’s irregular lay-planning design tool. Our philosophy and approach sit behind our term Proof of Design (POD), derived from Dwork and Naor’s Proof of Work, in which designers compete to solve for a garment’s waste before it is reprocessed.</p>
-    <a class="p-archive" href="/archive#nation=french"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/></svg><span>Explore our archive — what we are currently preserving</span><img class="pa-flag" src="/flags/franceukflag.png" alt="" aria-hidden="true"></a>
+    <p class="p-body">A Franco-British partnership which sees BMU preserve France’s longest standing military textile recycler’s entire repository, archiving all their garments’ intelligence (material + pattern) and deploy a research and development study led by forward deployed designers with a focus on fibre-to-fibre recycling and garment-to-garment remanufacturing. Our philosophy and approach to this partnership is rooted in our coined term Proof of Design (POD), derived from Dwork and Naor’s Proof of Work, which sees designers compete and solve for a garment’s waste before being reprocessed.</p>
+    <a class="p-archive" href="/archive#nation=french"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path class="ico-fill" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/></svg><span>Explore our archive — garments preserved to date</span><img class="pa-flag" src="/flags/franceukflag.png" alt="" aria-hidden="true"></a>
   </main>
 
   <footer id="siteFooter">
@@ -1810,8 +1819,9 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <!-- The only way in to Soframa. The page is held back from the
-               partners reel, so this line in Capabilities is what leads to it. -->
+          <!-- Soframa is listed in Operations and sits third in the partner
+               run, so this is no longer the only way in — but it is still
+               the capability the partnership IS, so the line stays. -->
           <a href="/soframa">Research &amp; Development</a>
         </div>
 
@@ -2455,7 +2465,7 @@
   
     /* ============================================================
        THE PARTNER SET
-       See the note by .pg-index in the stylesheet. Three documents, one
+       See the note by .pg-index in the stylesheet. Four documents, one
        gesture: the page leaving says which way it went and the page
        arriving comes in from the other side.
        ============================================================ */
@@ -2484,7 +2494,13 @@
       }
 
       function showMore(){
-        if (!more || REDUCED) return;
+        /* NOT `|| REDUCED`. The rest of the page is held at max-height:0
+           until this runs, so returning here left every reduced-motion
+           reader on the opening paragraph with the archive line, and
+           everything under it, permanently shut. The reduced-motion block
+           in the stylesheet already takes the transition off .p-more, so
+           running it is the instant open those readers should get. */
+        if (!more) return;
         /* The footer sits under this. With the rest of the page held shut
            the document is short, so the footer was resting most of a screen
            higher than it belongs and then sliding down as the rest opened —
@@ -2501,7 +2517,7 @@
         }, 820);
       }
       function hideMore(){
-        if (!more || REDUCED) return;
+        if (!more) return;
         more.classList.remove('pg-settled');
         more.style.setProperty('--more-h', more.scrollHeight + 'px');
         void more.offsetWidth;
