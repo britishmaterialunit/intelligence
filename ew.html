@@ -1243,6 +1243,110 @@
       line-height:1.7;
       color:#6a6a6a;
     }
+
+    /* ---------- TWO WAYS OUT OF THE PARTNERSHIP ----------
+       The Soframa page ends by sending a reader to the holding it has just
+       described. These do the same for this one, to the two things the
+       partnership actually opens: an account, and the archive or the floor
+       it is kept on. Set the way that line is — a shade back from the
+       paragraph above, full ink when the line is taken.
+
+       The mark is the footer's Let's Talk arrow rather than the archive's
+       star, because these lead out of the page rather than further into
+       it. It is drawn rather than faded: the diagonal runs out of its
+       corner first and the head is pulled out of the far end once the
+       diagonal has arrived. Reversed on the way out, head first, so there
+       is never half an arrow left behind. The room it needs is held from
+       the start, so nothing moves when it arrives. */
+    .p-go{
+      margin:22px 0 0;
+      max-width:60ch;
+      font-size:13px;
+      line-height:1.7;
+      color:#6a6a6a;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .p-go + .p-go{ margin-top:10px; }
+    .p-go:hover{ color:var(--ink); }
+    .p-go a{
+      color:inherit;
+      text-decoration:none;
+    }
+    .p-go-line{
+      display:inline-flex;
+      align-items:baseline;
+      gap:9px;
+    }
+    .go-mark{
+      flex:none;
+      width:13px; height:13px;
+      position:relative;
+      top:1.5px;
+    }
+    .go-mark svg{ width:13px; height:13px; display:block; overflow:visible; }
+    .go-arrow{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    /* 9.9 and 11.4 are the two path lengths, rounded up so neither is ever
+       left a hair short of drawn */
+    .go-stem{
+      stroke-dasharray:10; stroke-dashoffset:10;
+      transition:stroke-dashoffset .34s cubic-bezier(.4,0,.2,1) .12s;
+    }
+    .go-head{
+      stroke-dasharray:11.5; stroke-dashoffset:11.5;
+      transition:stroke-dashoffset .26s cubic-bezier(.4,0,.2,1);
+    }
+    .p-go:hover .go-stem,
+    .p-go-line:focus-visible .go-stem{ stroke-dashoffset:0; transition-delay:0s; }
+    .p-go:hover .go-head,
+    .p-go-line:focus-visible .go-head{ stroke-dashoffset:0; transition-delay:.3s; }
+
+    /* The floor is not the archive. The line goes to the British shelf and
+       these three words go to the booking for the studio, so the one that
+       is about to be taken says so under itself first. */
+    .go-unit{ position:relative; }
+    .go-unit::after{
+      content:'';
+      position:absolute;
+      left:0; right:0; bottom:-2px;
+      height:1px;
+      background:currentColor;
+      transform:scaleX(0);
+      transform-origin:left center;
+      transition:transform .34s cubic-bezier(.4,0,.2,1);
+    }
+    .go-unit:hover::after,
+    .go-unit:focus-visible::after{ transform:scaleX(1); }
+
+    /* The nation whose shelf the line opens, in its own colours — held back
+       at rest the way the words are, full strength when the line is. */
+    .go-flag{
+      height:11px; width:auto;
+      margin-left:7px;
+      position:relative;
+      top:1px;
+      filter:opacity(.55);
+      transition:filter .3s cubic-bezier(.4,0,.2,1);
+    }
+    .p-go:hover .go-flag{ filter:none; }
+
+    /* No pointer to hover with: the arrow never arrives and the flag never
+       lights, so both are given on arrival — the same answer the footer's
+       Let's Talk gives a phone. */
+    @media (hover: none){
+      .go-stem, .go-head{ stroke-dashoffset:0; transition:none; }
+      .go-flag{ filter:none; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .p-go, .go-flag, .go-unit::after{ transition:none; }
+      .go-stem, .go-head{ stroke-dashoffset:0; transition:none; }
+    }
+
     /* each section is introduced by a rule, the way the footer is */
     .p-rule{
       height:1.5px;
@@ -1692,6 +1796,26 @@
     <h1 class="p-name" id="pName" data-text="East West"></h1>
     <p class="p-line">Archive, repository and open-studio.</p>
     <p class="p-body">East West is set to industrialise our operations with authorising a build of an open studio for our team and designers to repair and remanufacture military surplus in a value-add, circularity focused partnership. Joining forces enables us to expand our sourcing capabilities to EU and US surplus disposable markets and introduces a new methodology and approach to surplus for East West, focusing on development of products before sale and creating closed-loop distribution networks for continuous circulation of surplus, avoiding trade blocks and maintaining material flow.</p>
+    <p class="p-go">
+      <a class="p-go-line" href="/repository">
+        <span class="go-mark" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false"><g class="go-arrow"><path class="go-stem" d="M4.5 11.5 L11.5 4.5"/><path class="go-head" d="M5.8 4.5 H11.5 V10.2"/></g></svg>
+        </span>
+        <span>Open a non-trader BMU EWAS wholesale account, here.</span>
+      </a>
+    </p>
+    <!-- Two destinations in one line. The line goes to the British shelf of
+         the archive; the words naming the floor go to the booking for it.
+         Two anchors side by side rather than one inside the other, which
+         HTML does not allow — the space between them is the sentence's own,
+         so it still reads as one sentence. -->
+    <p class="p-go">
+      <a class="p-go-line" href="/archive#nation=british">
+        <span class="go-mark" aria-hidden="true">
+          <svg viewBox="0 0 16 16" focusable="false"><g class="go-arrow"><path class="go-stem" d="M4.5 11.5 L11.5 4.5"/><path class="go-head" d="M5.8 4.5 H11.5 V10.2"/></g></svg>
+        </span>
+        <span>Explore our archive or</span>
+      </a> <a class="go-unit" href="/contact#unit">visit on-site at Unit U</a><img class="go-flag" src="/flags/ukflag.png" alt="" aria-hidden="true"></p>
   </main>
 
   <footer id="siteFooter">
