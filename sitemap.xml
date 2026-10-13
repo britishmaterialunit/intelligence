@@ -592,6 +592,186 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/french/trousers/french-air-force-1990s-combat-flight-trousers/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/trousers/french-air-force-1990s-combat-flight-trousers/FRAF1990CFT.png</image:loc>
+      <image:title>French Air Force 1990s Combat Flight Trousers</image:title>
+      <image:caption>French Air Force 1990s Combat Flight Trousers — French military surplus trouser, archive ref FRAF1990CFT</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/liners/french-army-1940s-m47-trouser-liner/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/liners/french-army-1940s-m47-trouser-liner/FRA1940M47TL.png</image:loc>
+      <image:title>French Army 1940s M47 Trouser Liner</image:title>
+      <image:caption>French Army 1940s M47 Trouser Liner — French military surplus liner, archive ref FRA1940M47TL</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/bags/french-army-1990s-arz-era-paratrooper-bag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/bags/french-army-1990s-arz-era-paratrooper-bag/FRA1990AEPB.png</image:loc>
+      <image:title>French Army 1990s ARZ ERA Paratrooper Bag</image:title>
+      <image:caption>French Army 1990s ARZ ERA Paratrooper Bag — French military surplus bag, archive ref FRA1990AEPB</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-alpine-snow-camouflage-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-alpine-snow-camouflage-jacket/FRA1990ASCJ.png</image:loc>
+      <image:title>French Army 1990s Alpine Snow Camouflage Jacket</image:title>
+      <image:caption>French Army 1990s Alpine Snow Camouflage Jacket — French military surplus jacket, archive ref FRA1990ASCJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/trousers/french-army-1990s-aramid-thermal-trouser/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/trousers/french-army-1990s-aramid-thermal-trouser/FRA1990ATT.png</image:loc>
+      <image:title>French Army 1990s Aramid Thermal Trouser</image:title>
+      <image:caption>French Army 1990s Aramid Thermal Trouser — French military surplus trouser, archive ref FRA1990ATT</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/trousers/french-army-1990s-cce-f2-trousers/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/trousers/french-army-1990s-cce-f2-trousers/FRA1990CF2T.png</image:loc>
+      <image:title>French Army 1990s CCE F2 Trousers</image:title>
+      <image:caption>French Army 1990s CCE F2 Trousers — French military surplus trouser, archive ref FRA1990CF2T</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/coveralls/french-army-1990s-nbc-coverall/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/coveralls/french-army-1990s-nbc-coverall/FRA1990NC.png</image:loc>
+      <image:title>French Army 1990s NBC Coverall</image:title>
+      <image:caption>French Army 1990s NBC Coverall — French military surplus coverall, archive ref FRA1990NC</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-nbc-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-nbc-jacket/FRA1990NJ.png</image:loc>
+      <image:title>French Army 1990s NBC Jacket</image:title>
+      <image:caption>French Army 1990s NBC Jacket — French military surplus jacket, archive ref FRA1990NJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/trousers/french-army-1990s-nbc-trouser/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/trousers/french-army-1990s-nbc-trouser/FRA1990NT.png</image:loc>
+      <image:title>French Army 1990s NBC Trouser</image:title>
+      <image:caption>French Army 1990s NBC Trouser — French military surplus trouser, archive ref FRA1990NT</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-navy-ike-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-navy-ike-jacket/FRA1990NIJ.png</image:loc>
+      <image:title>French Army 1990s Navy Ike Jacket</image:title>
+      <image:caption>French Army 1990s Navy Ike Jacket — French military surplus jacket, archive ref FRA1990NIJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/coveralls/french-army-1990s-paratrooper-flight-suit/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/coveralls/french-army-1990s-paratrooper-flight-suit/FRA1990PFS.png</image:loc>
+      <image:title>French Army 1990s Paratrooper Flight Suit</image:title>
+      <image:caption>French Army 1990s Paratrooper Flight Suit — French military surplus coverall, archive ref FRA1990PFS</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-veyrier-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/jackets/french-army-1990s-veyrier-jacket/FRA1990VJ.png</image:loc>
+      <image:title>French Army 1990s Veyrier Jacket</image:title>
+      <image:caption>French Army 1990s Veyrier Jacket — French military surplus jacket, archive ref FRA1990VJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/trousers/french-army-2000s-nbc-trouser/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/trousers/french-army-2000s-nbc-trouser/FRA2000NT.png</image:loc>
+      <image:title>French Army 2000s NBC Trouser</image:title>
+      <image:caption>French Army 2000s NBC Trouser — French military surplus trouser, archive ref FRA2000NT</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/jackets/french-army-2000s-woodland-felin-field-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/jackets/french-army-2000s-woodland-felin-field-jacket/FRA2000WFFJ.png</image:loc>
+      <image:title>French Army 2000s Woodland Felin Field Jacket</image:title>
+      <image:caption>French Army 2000s Woodland Felin Field Jacket — French military surplus jacket, archive ref FRA2000WFFJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/coveralls/french-gendarmerie-2010s-anti-static-coverall/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/coveralls/french-gendarmerie-2010s-anti-static-coverall/FRG2010ASC.png</image:loc>
+      <image:title>French Gendarmerie 2010s Anti-Static Coverall</image:title>
+      <image:caption>French Gendarmerie 2010s Anti-Static Coverall — French military surplus coverall, archive ref FRG2010ASC</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/trousers/french-gendarmerie-nationale-2000s-raid-trouser/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/trousers/french-gendarmerie-nationale-2000s-raid-trouser/FRG2000NRT.png</image:loc>
+      <image:title>French Gendarmerie Nationale 2000s Raid Trouser</image:title>
+      <image:caption>French Gendarmerie Nationale 2000s Raid Trouser — French military surplus trouser, archive ref FRG2000NRT</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/trousers/french-navy-1990s-smock-trouser/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/trousers/french-navy-1990s-smock-trouser/FRN1990ST.png</image:loc>
+      <image:title>French Navy 1990s Smock Trouser</image:title>
+      <image:caption>French Navy 1990s Smock Trouser — French military surplus trouser, archive ref FRN1990ST</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/shirts/french-navy-2000s-middy/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/shirts/french-navy-2000s-middy/FRN2000M.png</image:loc>
+      <image:title>French Navy 2000s Middy</image:title>
+      <image:caption>French Navy 2000s Middy — French military surplus shirt, archive ref FRN2000M</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/greek/jackets/greek-army-1960s-m65-olive-green-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
