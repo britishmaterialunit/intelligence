@@ -536,6 +536,64 @@
       text-align:center;
       word-break:break-all;
     }
+
+    /* ---------- A GARMENT HAS MORE THAN ONE SIDE ----------
+       A card opens on the photograph the archive leads with. Where the
+       garment has others they are stacked in the same box, and pressing the
+       garment turns it over: the one going out grows a little and clears,
+       the one coming in settles back to its own size. One photograph is
+       still the ordinary case and gets none of this — no stack, no dots,
+       nothing to press.
+
+       The dots sit on the photograph rather than under it. The card's box is
+       the garment's box; a row of dots given its own band below would push
+       the name down on every card in the grid, including the ones with
+       nothing to say. Greyed back far enough to stay out of the way of what
+       they are counting. */
+    .item .slot{ position:relative; }
+    .item .slot.many{ cursor:pointer; }
+    .item .slot.many .shot{
+      position:absolute;
+      inset:0;
+      opacity:0;
+      transform:scale(1.06);
+      transition:opacity .46s cubic-bezier(.4,0,.2,1),
+                 transform .62s cubic-bezier(.4,0,.2,1);
+    }
+    .item .slot.many .shot.on{ opacity:1; transform:scale(1); }
+    .shot-dots{
+      position:absolute;
+      left:0; right:0; bottom:9px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:6px;
+      z-index:2;
+    }
+    .shot-dot{
+      width:6px; height:6px;
+      flex:none;
+      padding:0;
+      border:1.5px solid #cfcfcf;
+      border-radius:50%;
+      background:transparent;
+      cursor:pointer;
+      transition:background-color .28s cubic-bezier(.4,0,.2,1),
+                 border-color .28s cubic-bezier(.4,0,.2,1),
+                 transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .shot-dot:hover{ border-color:#8f8f8f; }
+    .shot-dot.on{
+      background:#9a9a9a;
+      border-color:#9a9a9a;
+      transform:scale(1.2);
+    }
+    @media (prefers-reduced-motion:reduce){
+      .item .slot.many .shot{ transform:none; transition:opacity .2s linear; }
+      .item .slot.many .shot.on{ transform:none; }
+      .shot-dot{ transition:none; }
+      .shot-dot.on{ transform:none; }
+    }
     /* meta grows to fill the card so the action row can be pinned to the
        bottom — titles vary in length, the buttons must not */
     .item .meta{
@@ -3375,7 +3433,28 @@
 
       { n:"united-states", name:"United States Army 1990s M81 Woodland Camouflage Shorts", cat:"Trousers",
         img:"USA1990M81WCS.png", ref:"USA1990M81WCS", mat:"Cotton" },      { n:"soviet", name:"Soviet Army 1970s Cold War Tank Liner", cat:"Liners",
-        img:"SA1970CWTL.png", ref:"SA1970CWTL", mat:"Cotton" }
+        img:"SA1970CWTL.png", ref:"SA1970CWTL", mat:"Cotton" },
+      /* ---------------- AUSTRIAN ----------------
+         Appended for the same reason Botswana is: the numbers are positions
+         in this list. The page groups by nation when it renders.
+
+         `shots` is the rest of the garment — the detail photographs that sit
+         behind the one the card opens on, named as files in the same folder.
+         Left off, a garment has one photograph and its card has no dots. */
+      { n:"austrian", name:"Austrian Army 2000s Olive Green Fatigue Trousers", cat:"Trousers",
+        img:"AA2000OGFT.png", ref:"AA2000OGFT", mat:"Polyester",
+        shots:["AA2000OGFT_2.png"] },
+      { n:"austrian", name:"Austrian Army 2010s Olive Drab Fleece Cardigan", cat:"Fleeces",
+        img:"AA2010ODFC.png", ref:"AA2010ODFC", mat:"Polyester" },
+      { n:"serbian", name:"Serbian Army 1990s M93 Oak Leaf Camouflage Shirt", cat:"Shirts",
+        img:"SBA1990M93OLCS.png", ref:"SBA1990M93OLCS", mat:"Cotton",
+        shots:["SBA1990M93OLCS_2.png"] },
+      /* The only thing in the archive that was never worn. Hardware is the
+         shelf for issued equipment that is not a garment — the deployment
+         bag and the paratrooper bag are Bags because that is what they are;
+         the canopy they were packed against is not. */
+      { n:"french", name:"French Army 1990s ARZ Drogue Parachute", cat:"Hardware",
+        img:"FRA1990ARZDP.png", ref:"FRA1990ARZDP", mat:"Unlisted" }
     ];
 
     /* ---------- category order within each nation ----------
@@ -3578,10 +3657,33 @@
           el.dataset.search = blob;
           el.dataset.words  = blob.split(/[^a-z0-9]+/).filter(Boolean).join('|');
           el.dataset.alias  = (nation.alias || []).join('|');
+          /* Every photograph the garment has, the one the card opens on
+             first. One is the ordinary case and renders exactly as it always
+             did — a single image, no dots, nothing to press. The rest are
+             stacked behind it and only the top one is ever shown, so the
+             card is the same size whether a garment has one view or six. */
+          const shots = [fileName].concat(Array.isArray(p.shots) ? p.shots : []);
+          const alt   = `${p.name} — ${nation.label} military surplus `
+                      + `${String(p.cat).toLowerCase().replace(/s$/, "")}, archive ref ${p.ref}`;
+          /* Only the first is eager-named to a screen reader: the others are
+             the same garment from another angle, and reading all six out is
+             six times the same sentence. */
+          const frames = shots.map((f, i) =>
+            `<img class="shot${i ? '' : ' on'}" src="${esc(`${dir}/${f}`)}"`
+            + ` alt="${esc(i ? `${alt}, view ${i + 1}` : alt)}" loading="lazy"`
+            + `${i ? ' aria-hidden="true"' : ''}>`).join('');
+          const shotDots = shots.length < 2 ? '' :
+            `<div class="shot-dots" aria-label="Views of this garment">`
+            + shots.map((f, i) =>
+                `<button type="button" class="shot-dot${i ? '' : ' on'}"`
+                + ` aria-label="View ${i + 1} of ${shots.length}"`
+                + ` aria-pressed="${i ? 'false' : 'true'}"></button>`).join('')
+            + `</div>`;
           el.innerHTML = `
-            <div class="slot">
-              <img src="${esc(file)}" alt="${esc(p.name)} — ${esc(nation.label)} military surplus ${esc(String(p.cat).toLowerCase().replace(/s$/, ""))}, archive ref ${esc(p.ref)}" loading="lazy">
+            <div class="slot${shots.length > 1 ? ' many' : ''}">
+              ${frames}
               <span class="pending" hidden>${esc(fileName)}</span>
+              ${shotDots}
             </div>
             <div class="meta">
               <div class="name-row">
@@ -4651,6 +4753,55 @@
           }
         });
       });
+      /* ---------- TURNING A GARMENT OVER ----------
+         Pressing the garment takes the next photograph and wraps at the end;
+         pressing a dot takes that one. Wired here rather than where the card
+         is built, so a card cloned into the library turns over the same way
+         the original does — and put back to the first view on the way in,
+         because a clone arrives holding whichever view the original was
+         left on, which is not the view the library was asked for. */
+      const slot = el.querySelector('.slot.many');
+      if (slot){
+        const frames = [...slot.querySelectorAll('.shot')];
+        const marks  = [...slot.querySelectorAll('.shot-dot')];
+        let shot = 0;
+        const showShot = i => {
+          shot = (i + frames.length) % frames.length;
+          frames.forEach((f, k) => {
+            f.classList.toggle('on', k === shot);
+            if (k) f.setAttribute('aria-hidden', k === shot ? 'false' : 'true');
+          });
+          marks.forEach((m, k) => {
+            m.classList.toggle('on', k === shot);
+            m.setAttribute('aria-pressed', k === shot ? 'true' : 'false');
+          });
+        };
+        showShot(0);
+        slot.addEventListener('click', e => {
+          // a dot asks for its own view; the garment asks for the next one
+          const mark = e.target.closest('.shot-dot');
+          showShot(mark ? marks.indexOf(mark) : shot + 1);
+        });
+        /* A photograph that is not on disk takes its dot with it. A dot that
+           turns to nothing is worse than no dot at all, and the garment is
+           still the garment with one view fewer. */
+        frames.slice(1).forEach(f => f.addEventListener('error', () => {
+          const k = frames.indexOf(f);
+          if (k < 1) return;        // the lead photograph has .pending for this
+          frames.splice(k, 1);
+          f.remove();
+          const gone = marks.splice(k, 1)[0];
+          if (gone) gone.remove();
+          if (frames.length < 2){
+            slot.classList.remove('many');
+            const row = slot.querySelector('.shot-dots');
+            if (row) row.remove();
+            marks.length = 0;
+          }
+          showShot(0);
+        }));
+      }
+
       const reqBtn   = el.querySelector('.req-toggle');
       const infoBtn  = el.querySelector('.info-toggle');
       const reqPanel = el.querySelector('.req-panel');
@@ -8774,6 +8925,10 @@
         <li><a href="/archive/united-states/shirts/united-states-navy-1980s-light-blue-long-sleeve-service-shirt/">United States Navy 1980s Light Blue Long Sleeve Service Shirt</a></li>
         <li><a href="/archive/united-states/trousers/united-states-army-1990s-m81-woodland-camouflage-shorts/">United States Army 1990s M81 Woodland Camouflage Shorts</a></li>
         <li><a href="/archive/soviet/liners/soviet-army-1970s-cold-war-tank-liner/">Soviet Army 1970s Cold War Tank Liner</a></li>
+        <li><a href="/archive/austrian/trousers/austrian-army-2000s-olive-green-fatigue-trousers/">Austrian Army 2000s Olive Green Fatigue Trousers</a></li>
+        <li><a href="/archive/austrian/fleeces/austrian-army-2010s-olive-drab-fleece-cardigan/">Austrian Army 2010s Olive Drab Fleece Cardigan</a></li>
+        <li><a href="/archive/serbian/shirts/serbian-army-1990s-m93-oak-leaf-camouflage-shirt/">Serbian Army 1990s M93 Oak Leaf Camouflage Shirt</a></li>
+        <li><a href="/archive/french/hardware/french-army-1990s-arz-drogue-parachute/">French Army 1990s ARZ Drogue Parachute</a></li>
       </ul>
     </nav>
   </noscript>
