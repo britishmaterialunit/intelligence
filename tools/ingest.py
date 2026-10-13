@@ -14,6 +14,7 @@ is the one thing deriving a name back out of a folder slug cannot do.
 
     Name [REF].png            the ref, and the filename it is saved as
     Name {Wool}.png           the material facet; Unlisted when left off
+    Name <Trousers>.png       the shelf, when the name does not give it away
     Name.png                  ref derived from the name, material Unlisted
     _incoming/dutch/Name.png  a subfolder overrides the nation
 
@@ -296,8 +297,15 @@ def insert_item(page, entry, key):
 
 
 def parse_name(stem):
-    """'Name [REF] {Material}' in any order after the name."""
-    ref = mat = None
+    """'Name [REF] {Material} <Type>' in any order after the name.
+
+    <Type> is the override for the cases the keywords get wrong, and there
+    are two kinds. A name carrying two garment nouns, where the first match
+    wins and the first match is not the garment — a Smock Trouser is a
+    trouser. And a name carrying none at all, where there is nothing to
+    match on: a Middy is a shirt, and no list of nouns will know that
+    without being told."""
+    ref = mat = cat = None
     m = re.search(r'\[([A-Za-z0-9]+)\]', stem)
     if m:
         ref = m.group(1).upper()
@@ -306,7 +314,11 @@ def parse_name(stem):
     if m:
         mat = m.group(1).strip().title()
         stem = stem.replace(m.group(0), ' ')
-    return re.sub(r'\s+', ' ', stem).strip(), ref, mat
+    m = re.search(r'<([^>]+)>', stem)
+    if m:
+        cat = m.group(1).strip().title()
+        stem = stem.replace(m.group(0), ' ')
+    return re.sub(r'\s+', ' ', stem).strip(), ref, mat, cat
 
 
 def main():
@@ -340,7 +352,7 @@ def main():
     for sub, f in [(None, f) for f in files] + subs:
         src = os.path.join(INCOMING, sub, f) if sub else os.path.join(INCOMING, f)
         stem = os.path.splitext(f)[0]
-        name, ref, mat = parse_name(stem)
+        name, ref, mat, catOverride = parse_name(stem)
 
         if sub:
             key = sub.lower()
@@ -356,7 +368,7 @@ def main():
                                     '_incoming/<nation>/'))
                 continue
 
-        cat = guess_cat(name)
+        cat = catOverride or guess_cat(name)
         if not cat:
             problems.append((f, 'cannot tell the garment type from the name — add a '
                                 'word like jacket, trousers, bag, cap'))
