@@ -552,9 +552,26 @@
        they are counting. */
     .item .slot{ position:relative; }
     .item .slot.many{ cursor:pointer; }
-    .item .slot.many .shot{
+    /* ---------- THE LEAD PHOTOGRAPH IS THE BOX ----------
+       Every view but the first is lifted out of the flow and laid over the
+       first. The first stays in it, because it is what the box is measured
+       from: in the grid the slot has an aspect-ratio and holds its own
+       square, but a garment opened on its own has aspect-ratio:auto and
+       takes its height from what is inside it. Taking all of them out left
+       nothing in there, and the slot fell in to whatever the record beside
+       it needed — 348x114 where every other garment was 348x348, so the
+       one garment with a second view was the one you could not see.
+
+       It stays at full size and full opacity in layout terms the whole
+       time; it is only ever invisible. So the box is the same box on every
+       view, every garment is the same height whether it has one
+       photograph or six, and a later view simply fills what the first
+       one opened. */
+    .item .slot.many .shot:not(:first-of-type){
       position:absolute;
       inset:0;
+    }
+    .item .slot.many .shot{
       opacity:0;
       transform:scale(1.06);
       transition:opacity .46s cubic-bezier(.4,0,.2,1),
