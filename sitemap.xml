@@ -1391,4 +1391,14 @@
       <image:caption>Dutch Army 1990s DPM Tank Coverall — Dutch military surplus coverall, archive ref NLA1990DTC</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/united-states/headwear/united-states-army-1970s-vietnam-og-507-fatigue-cap/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/united-states/headwear/united-states-army-1970s-vietnam-og-507-fatigue-cap/USA1970VOG507FC.png</image:loc>
+      <image:title>United States Army 1970s Vietnam OG 507 Fatigue Cap</image:title>
+      <image:caption>United States Army 1970s Vietnam OG 507 Fatigue Cap — United States military surplus headwear, archive ref USA1970VOG507FC</image:caption>
+    </image:image>
+  </url>
 </urlset>
