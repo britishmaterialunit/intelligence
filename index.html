@@ -294,19 +294,16 @@
     }
 
     /* ---------- THE PATTERN THAT IS ALREADY THERE ----------
-       One screen's worth of 1994 four-colour DPM laid over the whole
-       viewport and painted in nothing at all. Every one of its 403 pieces
-       is there and can be pointed at; none of it is ever on screen. Move a
-       pointer anywhere on the screen and the single piece under it draws
-       its own outline in grey, and puts it away again when the pointer
-       moves on. Only ever one piece, only ever where it was asked for.
+       Twelve pieces of 1994 DPM, laid over the whole viewport and drawn in
+       nothing at all. The screen starts blank and stays blank: every piece
+       is held at opacity 0 as well as at its full dash offset, so there is
+       no arrangement of lengths that can leave a stray segment showing.
+       Move a pointer onto one and it draws its own outline in grey and then
+       fades off on its own — one piece, once, where it was asked for.
 
-       Fixed, behind everything, and cropped to cover rather than fitted:
-       z-index:-1 works because html carries no background of its own, so
-       body's white belongs to the canvas and this paints above it and
-       under the page. It can only be reached where nothing of the page is
-       painted over it, which is the whole point — it is found in the empty
-       parts of the screen. */
+       Fixed, behind everything, cropped to cover: z-index:-1 works because
+       html carries no background of its own, so body's white belongs to the
+       canvas and this paints above it and under the page. */
     #camoField{
       position:fixed;
       inset:0;
@@ -321,25 +318,31 @@
     }
     /* fill:none paints nothing, and on its own it would take the piece out
        of hit testing with it — an unpainted interior is not a target.
-       pointer-events:all puts the interior back: nothing is drawn there,
-       and it is still the thing the pointer is over. */
+       pointer-events:all puts the interior back without painting it, and
+       opacity does not affect hit testing, so a piece at 0 is still there
+       to be pointed at. */
     #camoField path{
       fill:none;
       pointer-events:all;
       stroke:#c9c9c9;
       stroke-width:1.1;
       vector-effect:non-scaling-stroke;
-      stroke-dasharray:4000;
-      stroke-dashoffset:4000;
-      transition:stroke-dashoffset .85s cubic-bezier(.4,0,.2,1);
+      stroke-dasharray:var(--len, 2000);
+      stroke-dashoffset:var(--len, 2000);
+      opacity:0;
     }
-    /* Drawn rather than measured: one dasharray longer than the longest
-       path in the file turns the offset into a wipe for every piece, so
-       the whole reveal is one property and nothing is measured at runtime. */
-    #camoField path:hover,
-    #camoField path.lit{ stroke-dashoffset:0; }
+    /* Drawn, held, then let go. --len is the piece's own measured length, so
+       the dash is exactly as long as the line it is drawing and cannot leave
+       a tail. It runs once per arrival rather than holding while the pointer
+       rests on it. */
+    #camoField path.lit{ animation:camoDraw 2.1s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes camoDraw{
+      0%   { stroke-dashoffset:var(--len, 2000); opacity:1; }
+      55%  { stroke-dashoffset:0;                opacity:1; }
+      100% { stroke-dashoffset:0;                opacity:0; }
+    }
     @media (prefers-reduced-motion:reduce){
-      #camoField path{ transition:none; }
+      #camoField path.lit{ animation:none; }
     }
 </style>
 
@@ -6331,43 +6334,60 @@ applyVB();
 
 <script>
   /* ---------- THE PATTERN THAT IS ALREADY THERE ----------
-     One fetch, one copy, 403 pieces that each answer for themselves. The
-     file carries its own <style>, and a <style> inlined into a document is
-     NOT scoped to the svg that brought it — it would repaint every .cls-2
-     on the page — so the defs and the ids go before it is put in, and the
-     painting is the page's own. */
+     The file is kept whole in /patterns and the page takes twelve pieces out
+     of it by number, so changing which pieces feature is this one line and
+     nothing is ever lost from the artwork.
+
+     The file carries its own <style>, and a <style> inlined into a document
+     is NOT scoped to the svg that brought it — it would repaint every .cls-2
+     on the page — so the defs and the ids go before it is put in. */
   (function camo(){
     var field = document.getElementById('camoField');
     if (!field || !window.fetch || !window.DOMParser) return;
 
-    /* A screen with no pointer cannot ask, so the pattern answers on its
-       own: one piece, somewhere, every so often. */
+    var KEEP = [9, 10, 116, 125, 127, 139, 297, 314, 316, 324, 361, 362];
+
+    /* One shape, closed, with nothing trailing off it. A few of these pieces
+       are drawn as several subpaths in one path — an island and the specks
+       around it — and an outline that jumps between them draws the jumps as
+       well. Only the longest subpath is kept, and it is closed, so the line
+       starts and ends in the same place. */
+    function oneShape(p){
+      var d = p.getAttribute('d') || '';
+      var parts = d.split(/(?=[Mm])/).filter(function(s){ return s.trim(); });
+      if (parts.length > 1){
+        var best = '', bestLen = -1;
+        parts.forEach(function(seg){
+          p.setAttribute('d', seg);
+          var L = 0;
+          try { L = p.getTotalLength(); } catch(e){}
+          if (L > bestLen){ bestLen = L; best = seg; }
+        });
+        d = best;
+      }
+      if (!/[Zz]\s*$/.test(d.trim())) d = d.trim() + 'Z';
+      p.setAttribute('d', d);
+    }
+
     function wander(paths){
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       (function one(){
         var p = paths[(Math.random() * paths.length) | 0];
+        p.classList.remove('lit');
+        void p.getBoundingClientRect();
         p.classList.add('lit');
-        setTimeout(function(){ p.classList.remove('lit'); }, 2400);
         setTimeout(one, 5000 + Math.random() * 9000);
       })();
     }
 
     /* ---------- WHICH PIECE IS BEING POINTED AT ----------
-       :hover cannot answer this. The field is behind the page, and the
-       page's own main and footer are full-width boxes — so whatever the
-       pointer is over, one of those is on top of it and the piece below
-       never sees the pointer at all. Checked: six points around an empty-
-       looking screen, and not one of them reached a piece.
-
-       So the question is asked of the document instead. The pointer is
-       never taken off the page — the pieces stay behind everything and
-       intercept nothing, so every link and button underneath keeps working
-       exactly as it did — and elementsFromPoint hands back the whole stack
-       under the cursor, the camo among it. The first piece in that stack is
-       the one being pointed at.
-
-       Once per frame at most, and only when the piece changes, so nothing
-       is written while the pointer is crossing one. */
+       :hover cannot answer this. The field is behind the page, and the page's
+       own main and footer are full-width boxes — so whatever the pointer is
+       over, one of those is on top of it and the piece below never sees the
+       pointer at all. The question is asked of the document instead:
+       elementsFromPoint hands back the whole stack under the cursor and the
+       piece in it is the one being pointed at. Nothing is intercepted, so
+       every link and button over it keeps working. */
     function track(){
       var current = null, px = 0, py = 0, queued = false;
       function look(){
@@ -6378,18 +6398,13 @@ applyVB();
             hit = stack[i]; break;
           }
         }
-        if (hit === current) return;
-        if (current) current.classList.remove('lit');
+        if (hit === current) return;      // still on the same piece
         current = hit;
-        if (current) current.classList.add('lit');
+        if (hit && !hit.classList.contains('lit')) hit.classList.add('lit');
       }
       document.addEventListener('pointermove', function(e){
         px = e.clientX; py = e.clientY;
         if (!queued){ queued = true; requestAnimationFrame(look); }
-      }, { passive: true });
-      /* the pointer leaving the window is not a piece being pointed at */
-      document.addEventListener('pointerleave', function(){
-        if (current){ current.classList.remove('lit'); current = null; }
       }, { passive: true });
     }
 
@@ -6402,10 +6417,8 @@ applyVB();
           if (!svg || doc.querySelector('parsererror')) return;
           [].slice.call(svg.querySelectorAll('style, defs, title, desc'))
             .forEach(function(n){ n.remove(); });
-          /* The file opens on a transparent rect the width of the artboard.
-             Its transparency lived in the stylesheet that just went, and a
-             shape with no fill of its own is painted black — which would be
-             the whole screen. It is a bounding box, not a piece; it goes. */
+          /* the artboard rect's transparency lived in the stylesheet that just
+             went, and a shape with no fill of its own paints black */
           [].slice.call(svg.querySelectorAll('rect, circle, ellipse, polygon, polyline, line'))
             .forEach(function(n){ n.remove(); });
           [].slice.call(svg.querySelectorAll('[id]'))
@@ -6418,9 +6431,24 @@ applyVB();
              the screen the way it runs off the edge of a garment */
           svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
           field.appendChild(svg);
-          var paths = [].slice.call(svg.querySelectorAll('path'));
-          if (!paths.length) return;
-          if (window.matchMedia('(hover: hover)').matches) track(); else wander(paths);
+
+          var all = [].slice.call(svg.querySelectorAll('path'));
+          var keep = [];
+          all.forEach(function(p, i){
+            if (KEEP.indexOf(i) === -1){ p.remove(); return; }
+            oneShape(p);
+            /* measured, not guessed: the dash is this piece's own length, so
+               it covers the line exactly and leaves nothing showing */
+            var L = 0;
+            try { L = p.getTotalLength(); } catch(e){}
+            p.style.setProperty('--len', (Math.ceil(L) + 2) + 'px');
+            p.addEventListener('animationend', function(){
+              p.classList.remove('lit');
+            });
+            keep.push(p);
+          });
+          if (!keep.length) return;
+          if (window.matchMedia('(hover: hover)').matches) track(); else wander(keep);
         })
         .catch(function(){});
     }
