@@ -2897,8 +2897,19 @@
       fill:none;
       pointer-events:all;
       stroke:#c9c9c9;
-      stroke-width:1.1;
-      vector-effect:non-scaling-stroke;
+      /* ---------- THE DASH AND THE LINE IN ONE SPACE ----------
+         non-scaling-stroke was here, and it moves the whole stroke — dashes
+         included — into screen space, while getTotalLength answers in user
+         units. The pattern is scaled to cover (2.36x at a 1512 screen), so
+         the dash was measuring 42% of the line it was drawing and the rest
+         came out as gaps: the shape never closed, it just went dotty.
+
+         The dash is in user units now, which is what the length is measured
+         in, so it is exactly as long as the line and the shape always
+         completes. The stroke width goes with it: .42 of a user unit lands
+         between .8px and 1.7px across the screens this is drawn on, which is
+         the hairline it was before. */
+      stroke-width:.42;
       stroke-dasharray:var(--len, 2000);
       stroke-dashoffset:var(--len, 2000);
       opacity:0;
