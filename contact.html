@@ -1636,8 +1636,8 @@
     }
 
     /* ---------- THE PATTERN THAT IS ALREADY THERE ----------
-       Twelve pieces of 1994 DPM, laid over the whole viewport and drawn in
-       nothing at all. The screen starts blank and stays blank: every piece
+       Thirteen separate pieces of 1994 DPM, no two of them touching, laid
+       over the whole viewport and drawn in nothing at all. The screen starts blank and stays blank: every piece
        is held at opacity 0 as well as at its full dash offset, so there is
        no arrangement of lengths that can leave a stray segment showing.
        Move a pointer onto one and it draws its own outline in grey and then
@@ -3035,8 +3035,8 @@
 
 <script>
   /* ---------- THE PATTERN THAT IS ALREADY THERE ----------
-     The file is kept whole in /patterns and the page takes twelve pieces out
-     of it by number, so changing which pieces feature is this one line and
+     The file is kept whole in /patterns and the page takes its pieces out of
+     it by number, so changing which pieces feature is this one list and
      nothing is ever lost from the artwork.
 
      The file carries its own <style>, and a <style> inlined into a document
@@ -3046,7 +3046,20 @@
     var field = document.getElementById('camoField');
     if (!field || !window.fetch || !window.DOMParser) return;
 
-    var KEEP = [9, 10, 116, 125, 127, 139, 297, 314, 316, 324, 361, 362];
+    /* ---------- NO TWO OF THEM TOUCH ----------
+       Chosen so that nothing reads as joined: in this pattern the pieces
+       tessellate, so neighbours share a border and five of the twelve picked
+       before were sitting 0.0 to 1.0 units from another one — which is why
+       they looked connected. Where several are adjacent only one of them is
+       taken. Measured, not eyeballed: 90 points sampled around each shape
+       and no pair of these is closer than 36 units, about 87px on screen.
+
+       They also clear the crop. preserveAspectRatio=slice shows user-y
+       192..522 and the full width at a 1512x810 window, so a shape outside
+       that band, or against the left or right edge, would be drawn running
+       off the screen instead of closing. Every one of these sits wholly
+       inside it. */
+    var KEEP = [116, 127, 137, 144, 183, 184, 190, 194, 287, 314, 350, 362, 363];
 
     /* One shape, closed, with nothing trailing off it. A few of these pieces
        are drawn as several subpaths in one path — an island and the specks
