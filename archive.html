@@ -1535,6 +1535,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
+      transform:scale(var(--sp-fit, 1));
       transition:transform .2s cubic-bezier(.4,0,.2,1);
     }
     .sp-item img{
@@ -1543,7 +1544,28 @@
       object-fit:contain;               /* never crop a garment */
       display:block;
     }
-    .sp-item:hover .sp-slot{ transform:scale(1.06); }
+    .sp-item:hover .sp-slot{ transform:scale(calc(var(--sp-fit, 1) * 1.06)); }
+    /* ---------- A GARMENT IS NOT ITS PHOTOGRAPH'S SQUARE ----------
+       Every photograph is the same 1000px square, so every garment is laid
+       into the same box here and the box is what gets fitted — not the
+       garment in it. A shirt fills its square corner to corner and a
+       coverall, which is long and narrow, fills 48% of the width and 44%
+       of the area. Fitted by the square they are the same size; looked at,
+       the coverall is less than half the shirt, which is not what the two
+       things are.
+
+       So the long ones are let out by the reciprocal of what they are
+       short by: 0.44 x 1.5² is 0.99, which is a shirt. It is a square of
+       white that grows with them, and at 172px apart that white reaches
+       about 15px into a neighbour's — far enough to bite the edge off one,
+       so it is kept off the field's own stacking order and sent behind
+       everything that is not doing it.
+
+       Explore only. The slot the opened record builds is a square the
+       garment has to fit inside, and 1.5 there would hang it out of the
+       tab. The handover between the two measures what is actually on the
+       glass, so it carries the difference on its own. */
+    .sp-item[data-cat="Coveralls"]{ --sp-fit:1.5; z-index:0; }
     /* no lettering anywhere in explore — garments only. A garment with no
        photograph yet leaves a faint empty plot rather than a caption. */
     .sp-item.sp-dim{
@@ -5959,6 +5981,9 @@
           });
           el.dataset.nation = nation.key;
           el.dataset.name   = p.name;
+          // the shelf, so the stylesheet can let the long ones out — see
+          // the note by .sp-item[data-cat]
+          el.dataset.cat    = p.cat;
           el.dataset.id     = `${nation.key}/${slugBase(p.name)}`;
           el.dataset.words  = [p.name, nation.label, p.cat, p.ref]
             .filter(Boolean).join(' ').toLowerCase()
