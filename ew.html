@@ -1771,12 +1771,74 @@
       /* level with the role line, which sits at 92 on every phone width */
       .pg-index{ top:90px; gap:9px; }
     }
+
+    /* ---------- THE PATTERN THAT IS ALREADY THERE ----------
+       Four-colour 1994 DPM laid over every screen in white and the palest
+       greys the page has: present the whole time and all but invisible.
+       Rested on, a patch draws its own outline a piece at a time; a screen
+       with no pointer lights one piece by itself, now and then.
+
+       The field is fixed, inert and behind everything. z-index:-1 works
+       here because html carries no background of its own, so body's white
+       belongs to the canvas and the field paints above it and under the
+       page. Only the patches take a pointer, and only where nothing of the
+       page is painted over them — which is the whole point: it is found
+       where the page is empty. */
+    #camoField{
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      overflow:hidden;
+      pointer-events:none;
+    }
+    .camo{
+      position:absolute;
+      display:block;
+      line-height:0;
+      pointer-events:auto;
+    }
+    .camo svg{ display:block; width:100%; height:auto; overflow:visible; }
+    /* the file's own four colours, taken down to white and the palest greys */
+    .camo .cls-1{ fill:none; }
+    .camo .cls-2{ fill:#fcfcfc; }
+    .camo .cls-3{ fill:#fafafa; }
+    .camo .cls-4{ fill:#f7f7f7; }
+    .camo .cls-5{ fill:#f4f4f4; }
+    /* Drawn rather than measured. One dasharray longer than the longest path
+       in the file turns the offset into a wipe for all 403 of them at once,
+       so nothing has to be measured at runtime — the stroke simply runs out
+       of nothing and round the piece. */
+    .camo path{
+      stroke:#d4d4d4;
+      stroke-width:.8;
+      vector-effect:non-scaling-stroke;
+      stroke-dasharray:4000;
+      stroke-dashoffset:4000;
+      transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);
+    }
+    .camo:hover path,
+    .camo path.lit{ stroke-dashoffset:0; }
+    /* Three, off the edges and turned off true, so no two screens show the
+       same corner of the pattern. */
+    .camo-a{ top:-6%;  left:57%;  width:46vmin; transform:rotate(8deg); }
+    .camo-b{ top:38%;  left:-15%; width:54vmin; transform:rotate(-13deg); }
+    .camo-c{ top:74%;  left:68%;  width:40vmin; transform:rotate(17deg); }
+    @media (prefers-reduced-motion:reduce){
+      .camo path{ transition:none; }
+    }
 </style>
 </head>
 <!-- `entered` from the markup: this page has no front door to open, so the
      state the home page earns with a click is simply where this one starts.
      Every body.entered rule in the shared chrome depends on it. -->
 <body class="entered">
+  <!-- The pattern that is already there — see #camoField in the stylesheet. -->
+  <div id="camoField" aria-hidden="true">
+    <span class="camo camo-a"></span>
+    <span class="camo camo-b"></span>
+    <span class="camo camo-c"></span>
+  </div>
+
   <!-- SITE HEADER — arrives with the button row, once the typewriter has
        finished. See-through over the white page, near-black on hover, so
        the mark and the two tools each have to read on both grounds. -->
@@ -1868,7 +1930,7 @@
              rather than off the page. -->
         <div class="foot-partners" aria-label="Who we work with">
           <span class="fp is-extra" data-who="Seeing Red (Sourcing)"><img src="/partners/seal.png" alt="Seeing Red" loading="lazy"></span>
-          <span class="fp is-extra" data-who="Elstar Hamburg (Product Development)"><img src="/partners/elstar.png" alt="Elstar Hamburg" loading="lazy"></span>
+          <span class="fp is-extra" data-who="Elstar Hamburg (Sourcing)"><img src="/partners/elstar.png" alt="Elstar Hamburg" loading="lazy"></span>
           <span class="fp is-extra" data-who="Raeburn (Sourcing)"><img src="/partners/rose.png" alt="Raeburn" loading="lazy"></span>
           <span class="fp is-extra" data-who="Yaku (Sourcing)"><img src="/partners/yaku.png" alt="Yaku" loading="lazy"></span>
           <span class="fp is-extra" data-who="Maxime Black (Sourcing)"><img src="/partners/spheres.png" alt="Maxime Black" loading="lazy"></span>
@@ -2900,5 +2962,68 @@
     sync();
   })();
   </script>
+
+<script>
+  /* ---------- THE PATTERN THAT IS ALREADY THERE ----------
+     One fetch, three copies. The file carries its own <style>, and a <style>
+     inlined into the document is NOT scoped to the svg that brought it — it
+     would repaint every .cls-2 on the page — so the defs go before anything
+     is cloned and the colours are the page's own. The ids go for the same
+     reason: three copies of one file is three of every id in it. */
+  (function camo(){
+    var field = document.getElementById('camoField');
+    if (!field || !window.fetch || !window.DOMParser) return;
+    var spots = [].slice.call(field.querySelectorAll('.camo'));
+    if (!spots.length) return;
+
+    function wander(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var all = [];
+      spots.forEach(function(s){
+        all = all.concat([].slice.call(s.querySelectorAll('path')));
+      });
+      if (!all.length) return;
+      (function one(){
+        var p = all[(Math.random() * all.length) | 0];
+        p.classList.add('lit');
+        setTimeout(function(){ p.classList.remove('lit'); }, 2400);
+        setTimeout(one, 5000 + Math.random() * 9000);
+      })();
+    }
+
+    function fill(){
+      fetch('/patterns/brit-94-dpm.svg')
+        .then(function(r){ return r.ok ? r.text() : Promise.reject(r.status); })
+        .then(function(txt){
+          var doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
+          var svg = doc.querySelector('svg');
+          if (!svg || doc.querySelector('parsererror')) return;
+          [].slice.call(svg.querySelectorAll('style, defs, title, desc'))
+            .forEach(function(n){ n.remove(); });
+          [].slice.call(svg.querySelectorAll('[id]'))
+            .forEach(function(n){ n.removeAttribute('id'); });
+          svg.removeAttribute('id');
+          svg.removeAttribute('width');
+          svg.removeAttribute('height');
+          svg.setAttribute('focusable', 'false');
+          spots.forEach(function(spot, s){
+            var copy = svg.cloneNode(true);
+            /* Scattered, not swept. A sweep reads as a wipe across the patch,
+               and camouflage does not come apart in a line. */
+            [].slice.call(copy.querySelectorAll('path')).forEach(function(p, i){
+              p.style.transitionDelay = (((i * 37 + s * 11) % 53) * 24) + 'ms';
+            });
+            spot.appendChild(copy);
+          });
+          if (!window.matchMedia('(hover: hover)').matches) wander();
+        })
+        .catch(function(){});
+    }
+
+    /* never in the way of the page arriving */
+    if ('requestIdleCallback' in window) requestIdleCallback(fill, { timeout: 4000 });
+    else window.addEventListener('load', function(){ setTimeout(fill, 1200); });
+  })();
+</script>
 </body>
 </html>
