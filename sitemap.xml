@@ -1381,4 +1381,14 @@
       <image:caption>French Army 1990s ARZ Drogue Parachute — French military surplus hardware, archive ref FRA1990ARZDP</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/dutch/coveralls/dutch-army-1990s-dpm-tank-coverall/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/dutch/coveralls/dutch-army-1990s-dpm-tank-coverall/NLA1990DTC.png</image:loc>
+      <image:title>Dutch Army 1990s DPM Tank Coverall</image:title>
+      <image:caption>Dutch Army 1990s DPM Tank Coverall — Dutch military surplus coverall, archive ref NLA1990DTC</image:caption>
+    </image:image>
+  </url>
 </urlset>
