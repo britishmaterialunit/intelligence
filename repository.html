@@ -2029,8 +2029,8 @@
     }
 
     /* ---------- THE PATTERN THAT IS ALREADY THERE ----------
-       Thirteen separate pieces of 1994 DPM, no two of them touching, laid
-       over the whole viewport and drawn in nothing at all. The screen starts blank and stays blank: every piece
+       Sixteen pieces of 1994 DPM laid over the whole viewport and drawn in
+       nothing at all, only ever one of them on screen at a time. The screen starts blank and stays blank: every piece
        is held at opacity 0 as well as at its full dash offset, so there is
        no arrangement of lengths that can leave a stray segment showing.
        Move a pointer onto one and it draws its own outline in grey and then
@@ -3860,20 +3860,33 @@
     var field = document.getElementById('camoField');
     if (!field || !window.fetch || !window.DOMParser) return;
 
-    /* ---------- NO TWO OF THEM TOUCH ----------
-       Chosen so that nothing reads as joined: in this pattern the pieces
-       tessellate, so neighbours share a border and five of the twelve picked
-       before were sitting 0.0 to 1.0 units from another one — which is why
-       they looked connected. Where several are adjacent only one of them is
-       taken. Measured, not eyeballed: 90 points sampled around each shape
-       and no pair of these is closer than 36 units, about 87px on screen.
+    /* ---------- TOUCHING IS FINE, TOGETHER IS NOT ----------
+       These pieces tessellate, so some of them share a border — 361 sits
+       0.2 units from 314, 125 is 1.0 from 116. That is allowed: what is not
+       is two of them drawing at once, which is what adjacency causes if
+       nothing stops it, because crossing from a piece to its neighbour
+       starts the second while the first is still running. The lock below is
+       what stops it, so the selection does not have to.
 
-       They also clear the crop. preserveAspectRatio=slice shows user-y
-       192..522 and the full width at a 1512x810 window, so a shape outside
-       that band, or against the left or right edge, would be drawn running
-       off the screen instead of closing. Every one of these sits wholly
-       inside it. */
-    var KEEP = [116, 127, 137, 144, 183, 184, 190, 194, 287, 314, 350, 362, 363];
+       They do still have to clear the crop. preserveAspectRatio=slice shows
+       user-y 192..522 and the full width at a 1512x810 window, so a piece
+       outside that band, or against the left or right edge, would be drawn
+       running off the screen instead of closing. Every one of these sits
+       wholly inside it. */
+    var KEEP = [116, 125, 127, 137, 139, 144, 183, 184, 190, 194,
+                287, 314, 350, 361, 362, 363];
+
+    /* ---------- ONE AT A TIME ----------
+       Only ever one outline on screen. While a piece is drawing nothing else
+       is started, and the one that is drawing always runs to its end — it is
+       let go of on animationend, not when the pointer leaves — so a shape
+       that has begun always closes and fades before another can begin. */
+    var active = null;
+    function light(p){
+      if (active) return;
+      active = p;
+      p.classList.add('lit');
+    }
 
     /* One shape, closed, with nothing trailing off it. A few of these pieces
        are drawn as several subpaths in one path — an island and the specks
@@ -3900,10 +3913,7 @@
     function wander(paths){
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       (function one(){
-        var p = paths[(Math.random() * paths.length) | 0];
-        p.classList.remove('lit');
-        void p.getBoundingClientRect();
-        p.classList.add('lit');
+        light(paths[(Math.random() * paths.length) | 0]);
         setTimeout(one, 5000 + Math.random() * 9000);
       })();
     }
@@ -3917,18 +3927,24 @@
        piece in it is the one being pointed at. Nothing is intercepted, so
        every link and button over it keeps working. */
     function track(){
-      var current = null, px = 0, py = 0, queued = false;
+      var last = null, px = 0, py = 0, queued = false;
       function look(){
         queued = false;
+        /* Nothing is picked up while one is drawing, and `last` is only moved
+           on when a piece is actually lit — so a neighbour crossed into mid
+           draw is not swallowed, it is simply picked up on the next move
+           after the first has finished. */
+        if (active) return;
         var stack = document.elementsFromPoint(px, py), hit = null;
         for (var i = 0; i < stack.length; i++){
           if (stack[i].tagName === 'path' && field.contains(stack[i])){
             hit = stack[i]; break;
           }
         }
-        if (hit === current) return;      // still on the same piece
-        current = hit;
-        if (hit && !hit.classList.contains('lit')) hit.classList.add('lit');
+        if (!hit){ last = null; return; }  // off the pattern; coming back may be the same piece
+        if (hit === last) return;          // resting on the one just drawn
+        last = hit;
+        light(hit);
       }
       document.addEventListener('pointermove', function(e){
         px = e.clientX; py = e.clientY;
@@ -3970,9 +3986,16 @@
             var L = 0;
             try { L = p.getTotalLength(); } catch(e){}
             p.style.setProperty('--len', (Math.ceil(L) + 2) + 'px');
-            p.addEventListener('animationend', function(){
+            /* animationcancel as well as animationend: if the draw is ever
+               cut short — reduced motion turned on mid-draw takes the
+               animation away — only one of the two fires, and a lock that is
+               never let go of would end the effect for the rest of the visit */
+            var done = function(){
               p.classList.remove('lit');
-            });
+              if (active === p) active = null;   // the next one may begin
+            };
+            p.addEventListener('animationend', done);
+            p.addEventListener('animationcancel', done);
             keep.push(p);
           });
           if (!keep.length) return;
