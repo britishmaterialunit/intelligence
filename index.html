@@ -5217,9 +5217,24 @@
       };
     }
     const footOps = document.getElementById('footOps');
-    if (footOps) footOps.addEventListener('click', fromFooter(() => {
-      if (opsState === 'closed' && joinState === 'off') openOps();
-    }));
+    /* Operations is the one footer link that can point at something already
+       open, and fromFooter shuts whatever is open before it travels. For
+       this link that meant closing Operations, riding to the top, and then
+       opening it again 720ms later — the box put itself away and drew itself
+       back out for a reader who had asked for the thing it was already
+       showing, which is the glitch.
+
+       If it is already open there is nothing to do but go back to it. */
+    if (footOps) footOps.addEventListener('click', e => {
+      if (typeof opsState !== 'undefined' && opsState !== 'closed'){
+        e.preventDefault();
+        window.scrollTo({ top:0, behavior:'smooth' });
+        return;
+      }
+      fromFooter(() => {
+        if (opsState === 'closed' && joinState === 'off') openOps();
+      })(e);
+    });
     /* Operations may already be open when one of these is pressed — the
        reader opened it, scrolled on, and chose something else from the
        footer. These used to check that nothing was open and, finding
