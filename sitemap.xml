@@ -272,6 +272,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/british/bags/british-army-1980s-olive-green-kit-bag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/british/bags/british-army-1980s-olive-green-kit-bag/BA1980OGKB.png</image:loc>
+      <image:title>British Army 1980s Olive Green Kit Bag</image:title>
+      <image:caption>British Army 1980s Olive Green Kit Bag — British military surplus bag, archive ref BA1980OGKB</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/austrian/jackets/austrian-army-1990s-olive-drab-lightweight-ripstop-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
