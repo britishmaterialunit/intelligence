@@ -1645,7 +1645,12 @@
     .ws-screen{
       max-width:none;
       width:min(96vw, 720px);
-      margin:26px auto 0;
+      /* Wider than the form it sits in, so auto margins cannot centre it —
+         they left it hanging off the right edge, the copy 60px off the
+         page's middle. A percentage margin is a share of the form's width,
+         so this overhangs both sides by the same amount. Not a transform:
+         the line topples in with the rest of the sheet, and that owns it. */
+      margin:26px 0 0 calc(50% - min(96vw, 720px) / 2);
       font-size:11px;
       line-height:1.75;
       letter-spacing:.02em;
@@ -2097,6 +2102,25 @@
       opacity:1 !important; transform:none !important;
     }
   </style></noscript>
+  <!-- The box arriving from the home page is still part way down the
+       screen. It is put up there before the first paint, not by the script
+       at the foot of the page — the browser can paint before that runs, and
+       did: the box showed landed, jumped up, and fell again. The cross is
+       held at the foot, where the home page left it. finishTheFall takes
+       over from here. -->
+  <script>
+    try {
+      var d = parseFloat(sessionStorage.getItem('bmu.repo.drop')) || 0;
+      if (d > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+        document.documentElement.style.setProperty('--drop', d + 'px');
+        document.documentElement.classList.add('ws-dropping');
+      }
+    } catch(_){}
+  </script>
+  <style>
+    html.ws-dropping .ws-dock{ transform:translateX(-50%) translateY(calc(var(--drop) * -1)); }
+    html.ws-dropping .ws-exit{ transform:translateY(var(--drop)); }
+  </style>
 </head>
 <!-- `entered` from the markup: this page has no front door to open, so the
      state the home page earns with a click is simply where this one starts.
@@ -2151,9 +2175,9 @@
     <!-- The box at the top answers the question the page's own title
          raises. Somebody who has to ask what a repository is cannot be
          expected to want an account in one. -->
-    <p class="ws-notice" id="wsNotice"><strong>What&rsquo;s a repository?</strong> It&rsquo;s our standing holding of military surplus textile &mdash; available for donation and for acquisition, listed with the pattern metrics that say what can be cut from it. A trade account is how you reach it.</p>
+    <p class="ws-notice" id="wsNotice"><strong>What&rsquo;s a repository?</strong> It&rsquo;s our standing holding of military surplus, available for acquisition and/or donation on special projects. Pattern metrics are extracted from project to project, garment by garment. A trade account is how you access it all.</p>
 
-    <p class="p-body">Not ready to open an account? Search for military garments via our <a href="/archive">archive</a> and request for sourcing for small production runs, or visit <a href="/contact#unit">Unit U</a> our open-studio. Alternatively, request for a <a href="/contact">demo</a> of MarshalOS, our garment to garment remanufacturing software.</p>
+    <p class="p-body">Not ready to open an account? Search for military garments via our <a href="/archive">archive</a> and request for samples before starting a production run, or visit <a href="/contact#unit">Unit U</a> our open-studio. Alternatively, request for a <a href="/contact">demo</a> of MarshalOS, our garment to garment remanufacturing software.</p>
 
     <section class="p-sec">
       <form class="ws-form" id="wsForm" novalidate>
@@ -3496,16 +3520,35 @@
           drop = parseFloat(sessionStorage.getItem('bmu.repo.drop')) || 0;
           sessionStorage.removeItem('bmu.repo.drop');
         } catch(_){}
-        if (!(drop > 1)) return;
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!(drop > 1) || window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          document.documentElement.classList.remove('ws-dropping');
+          return;
+        }
+        /* The cross does not fall with the box. It is already standing at
+           the foot of the screen — the home page's arrow turned into it
+           there — so it is held down by exactly what the dock is lifted by,
+           and the two moves cancel. Without this it was painted 60-odd px
+           up and rode down with the box: a second mark arriving on top of
+           the one the reader had just watched turn. */
+        const mark = document.getElementById('wsExit');
         dock.style.transition = 'none';
         dock.style.transform  = 'translateX(-50%) translateY(' + (-drop) + 'px)';
+        if (mark){
+          mark.style.transition = 'none';
+          mark.style.transform  = 'translateY(' + drop + 'px)';
+        }
+        document.documentElement.classList.remove('ws-dropping');
         void dock.offsetWidth;                       // committed up there
         dock.style.transition = 'transform .34s cubic-bezier(.25,0,.2,1)';
-        requestAnimationFrame(() => { dock.style.transform = ''; });
+        if (mark) mark.style.transition = 'transform .34s cubic-bezier(.25,0,.2,1)';
+        requestAnimationFrame(() => {
+          dock.style.transform = '';
+          if (mark) mark.style.transform = '';
+        });
         setTimeout(() => {
           dock.style.transition = '';
           dock.style.transform  = '';
+          if (mark){ mark.style.transition = ''; mark.style.transform = ''; }
         }, 420);
       })();
 
