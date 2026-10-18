@@ -18,6 +18,14 @@ for the picture:
 
     archive/<nation>/<type>/<garment>/index.html   ->  /archive/<nation>/<type>/<garment>/
 
+It also keeps the short addresses. Every garment has a number, /archive/<n>,
+which is what the archive puts in the address bar and what gets pasted into
+messages. The number belongs to the archive ref (NUMBERS in archive.html,
+append-only, written here) and archive/<n>.html carries that garment's own
+title and photograph so the pasted link previews as the right garment. Both
+are rebuilt on every run, so a garment added anywhere in ITEMS gets the next
+number and a page, and nothing already sent changes meaning.
+
 The folders ARE the archive; this only adds a front door to each one. Re-run
 it after adding garments. It overwrites its own output and touches nothing
 else.
@@ -67,6 +75,127 @@ def read_items(path):
             block):
         rows.append(m.groupdict())
     return rows
+
+
+NUM_RE = re.compile(r'(/\* BMU-NUMBERS start[^\n]*\n    const NUMBERS = \{\n)(.*?)(    \};\n)', re.S)
+
+
+def read_numbers(src):
+    """ref -> number, as already published. Retired refs stay in it so their
+    numbers are never handed to another garment."""
+    m = NUM_RE.search(src)
+    if not m:
+        sys.exit('archive.html: no BMU-NUMBERS block')
+    return {r: int(n) for r, n in re.findall(r'"([^"]+)"\s*:\s*(\d+)', m.group(2))}
+
+
+def assign_numbers(items, numbers):
+    """Every garment without a number takes the next one, in register order.
+    On an empty map that is exactly the old positional numbering, so every
+    link sent before the numbers were fixed still opens the same garment."""
+    numbers = dict(numbers)
+    nxt = max(numbers.values(), default=0) + 1
+    for it in items:
+        if it['ref'] not in numbers:
+            numbers[it['ref']] = nxt
+            nxt += 1
+    return numbers
+
+
+def write_numbers(src, numbers):
+    m = NUM_RE.search(src)
+    body = ''.join('      "%s":%d,\n' % (r, n)
+                   for r, n in sorted(numbers.items(), key=lambda kv: kv[1]))
+    return src[:m.start(2)] + body + src[m.end(2):]
+
+
+SHORT = '''<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title} | BMU Archive</title>
+  <meta name="description" content="{desc}" />
+  <link rel="canonical" href="{url}" />
+  <link rel="icon" href="/bmufavicon.svg" type="image/svg+xml" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="{url}" />
+  <meta property="og:site_name" content="British Material Unit (BMU)" />
+  <meta property="og:title" content="{title}" />
+  <meta property="og:description" content="{desc}" />
+  <meta property="og:image" content="{img}" />
+  <meta property="og:image:width" content="1000" />
+  <meta property="og:image:height" content="1000" />
+  <meta property="og:image:alt" content="{title}" />
+  <meta property="og:locale" content="en_GB" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{title}" />
+  <meta name="twitter:description" content="{desc}" />
+  <meta name="twitter:image" content="{img}" />
+
+  <script type="application/ld+json">
+{jsonld}
+  </script>
+
+  <!-- The archive itself opens this garment. This page is held only long
+       enough for a crawler to read the tags above; a reader never sees it. -->
+  <meta http-equiv="refresh" content="0; url=/archive#g={no}" />
+  <script>location.replace('/archive#g={no}');</script>
+  <style>
+    body{{ margin:0; min-height:100dvh; display:flex; align-items:center;
+          justify-content:center; font:13px Helvetica, Arial, sans-serif;
+          color:#9a9a9a; background:#fff; }}
+    a{{ color:#222; }}
+  </style>
+</head>
+<body>
+  <p>Opening <a href="/archive#g={no}">{title}</a> in the archive.</p>
+</body>
+</html>
+'''
+
+# A number whose garment has left the archive still answers, but as the
+# archive: it must never preview as, or open, some other garment.
+RETIRED = '''<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Archive | BMU</title>
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://britishmaterialunit.com/archive" />
+  <meta property="og:title" content="BMU Archive" />
+  <meta property="og:url" content="https://britishmaterialunit.com/archive" />
+  <meta property="og:image" content="https://britishmaterialunit.com/og-archive.png" />
+  <meta http-equiv="refresh" content="0; url=/archive" />
+  <script>location.replace('/archive');</script>
+</head>
+<body><p><a href="/archive">The archive</a></p></body>
+</html>
+'''
+
+
+def short_page(no, it, desc, img_url):
+    url = '%s/archive/%d' % (SITE, no)
+    ld = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        'name': it['name'],
+        'image': img_url,
+        'description': desc,
+        'sku': it['ref'],
+        'brand': {'@type': 'Organization', 'name': 'British Material Unit'},
+        'url': url,
+    }
+    if it.get('mat'):
+        ld['material'] = it['mat']
+    jsonld = '\n'.join('  ' + l for l in json.dumps(ld, indent=2, ensure_ascii=False).split('\n'))
+    e = lambda t: html.escape(t, quote=True)
+    return SHORT.format(title=e(it['name']), desc=e(desc), url=url, img=img_url,
+                        no=no, jsonld=jsonld)
 
 
 def read_nations(path):
@@ -313,7 +442,7 @@ def build_page(it, nations, siblings):
         prose_html=prose_html, facts_html=facts_html, specs_html=specs_html,
         near_html=near_html,
         jsonld=json.dumps([product, crumbs], indent=2, ensure_ascii=False),
-    ), rel, img_url, alt
+    ), rel, img_url, alt, desc
 
 
 def main():
@@ -331,14 +460,18 @@ def main():
     for it in items:
         by_nation.setdefault(it['n'], []).append(it)
 
+    numbers = assign_numbers(items, read_numbers(io.open(arch, encoding='utf-8').read()))
+    shorts = {}
+
     written, entries = 0, []
     for it in items:
         sibs = [('/archive/%s/%s/%s/' % (o['n'], slug(o['cat']), slug(o['name'])), o['name'])
                 for o in by_nation[it['n']] if o['ref'] != it['ref']][:12]
-        d, page, rel, img_url, alt = build_page(it, nations, sibs)
+        d, page, rel, img_url, alt, desc = build_page(it, nations, sibs)
         if not os.path.isdir(d):
             print('  ! no folder for %s (%s)' % (it['ref'], d))
             continue
+        shorts[numbers[it['ref']]] = short_page(numbers[it['ref']], it, desc, img_url)
         entries.append((rel, img_url, alt, it['name']))
         if a.dry_run:
             print('  would write %s/index.html' % d)
@@ -356,17 +489,29 @@ def main():
         '        <li><a href="%s">%s</a></li>' % (rel, html.escape(name))
         for rel, _img, _alt, name in entries)
     block = ('      <ul>\n' + links + '\n      </ul>')
-    arch_src = io.open(arch, encoding='utf-8').read()
+    arch_src = write_numbers(io.open(arch, encoding='utf-8').read(), numbers)
     m = re.search(r'(<!-- BMU-SEO-INDEX start.*?<ul>\n)(.*?)(\n?      </ul>)',
                   arch_src, re.S)
     if not m:
         print('  ! no BMU-SEO-INDEX block in archive.html — index not updated')
     else:
         new_src = arch_src[:m.start(1)] + m.group(1) + links + '\n      </ul>' + arch_src[m.end(3):]
-        if a.dry_run:
-            print('  would write %d links into archive.html' % len(entries))
-        else:
-            io.open(arch, 'w', encoding='utf-8').write(new_src)
+        arch_src = new_src
+    if a.dry_run:
+        print('  would write %d links and %d numbers into archive.html'
+              % (len(entries), len(numbers)))
+    else:
+        io.open(arch, 'w', encoding='utf-8').write(arch_src)
+
+    # ---- the short addresses, /archive/<n> ----
+    retired = sorted(set(numbers.values()) - set(shorts))
+    if a.dry_run:
+        print('  would write %d numbered pages (%d retired)'
+              % (len(shorts) + len(retired), len(retired)))
+    else:
+        for no in set(numbers.values()):
+            io.open(os.path.join(ROOT, 'archive', '%d.html' % no), 'w',
+                    encoding='utf-8').write(shorts.get(no, RETIRED))
 
     # ---- sitemap, with the pictures named in it ----
     out = ['<?xml version="1.0" encoding="UTF-8"?>',

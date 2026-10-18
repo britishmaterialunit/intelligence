@@ -21,6 +21,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
 - Garment photos + records: `archive/<nation>/<type>/<garment>/<REF>.png` + `.txt`,
   plus a generated `index.html` — each garment's own crawlable page at
   `/archive/<nation>/<type>/<garment>/`
+- Short links: every garment also has `/archive/<n>` (`archive/<n>.html`, the
+  preview a pasted link shows). The number belongs to the **ref**, via the
+  append-only `NUMBERS` map in `archive.html` — never by position in `ITEMS`,
+  never reused, never edited by hand. `seo_build.py` assigns new ones and
+  rewrites every `<n>.html`.
 - Icons are loose `.svg` at root; `flags/`, `partners/`, `patterns/` are images only.
 
 ## Form submissions
