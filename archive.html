@@ -5971,6 +5971,7 @@
       if (!left){                          // nothing left to draw
         revEl.classList.remove('drawing');
         revEl.classList.add('ready');
+        openForShelf();
         return;
       }
 
@@ -5994,7 +5995,19 @@
            the outline would snap out. */
         revTrace.style.transition = 'opacity .4s cubic-bezier(.4,0,.2,1)';
         revEl.classList.add('ready');      // the mark fills: that is the invitation
+        openForShelf();
       }, ms + 60);
+    }
+
+    /* A link that asked for a shelf has already said where it is going —
+       /archive#nation=french from the Soframa page is the French holding,
+       not the front door. So the door still waits for the photographs, as
+       it always does, and then opens itself instead of asking for a press,
+       and the cluster gathers in front of the reader. A beat on the filled
+       mark first, so it reads as the door opening rather than a cut. */
+    function openForShelf(){
+      if (!pendingNation || revealed) return;
+      setTimeout(openGate, 360);
     }
 
     /* Two keys, one gate. The mark is the one the reader is looking at; the
@@ -6563,6 +6576,7 @@
            door is only waiting to be pushed. Putting it back into `drawing`
            here would restart an outline that has nothing left to draw. */
         revEl.classList.add(revArmed ? 'ready' : 'drawing');
+        if (revArmed) openForShelf();
         const len = revTrace.getTotalLength();
         revTrace.style.strokeDasharray = len;
         revEl.style.setProperty('--rev-len', len);
