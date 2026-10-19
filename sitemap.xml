@@ -1092,6 +1092,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/turkish/jackets/turkish-air-force-2000s-m08-flight-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/turkish/jackets/turkish-air-force-2000s-m08-flight-jacket/TAF2000M08FJ.png</image:loc>
+      <image:title>Turkish Air Force 2000s M08 Flight Jacket</image:title>
+      <image:caption>Turkish Air Force 2000s M08 Flight Jacket — Turkish military surplus jacket, archive ref TAF2000M08FJ</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/united-states/jackets/united-states-air-force-1990s-tri-colour-desert-coffee-stain-camouflage-ripstop-combat-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
