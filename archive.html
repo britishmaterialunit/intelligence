@@ -2323,7 +2323,7 @@
 
     /* opened: fills the bar width less the arrow square and its gap */
     #dock.open #dockSearch{
-      width:calc(var(--dock-w) - 280px);   /* five 46px squares + five 10px gaps */
+      width:calc(var(--dock-w) - 112px);   /* at rest: explore and the plus, 46px + 10px each */
       background:var(--bg);
       cursor:text;
     }
@@ -2389,8 +2389,20 @@
     body.has-file.dock-list #dockFile{ display:flex; }
     /* one more square in the row, so the field gives up one more square's
        worth of width when the bar is open */
-    body.has-file.dock-list #dock.open #dockSearch{
-      width:calc(var(--dock-w) - 336px);
+    /* ---------- AT REST, AND LAID OUT ----------
+       Six squares beside the bar was too much to take in, and nothing on
+       the stacked button before it said it could be scrolled. At rest the
+       dock is the bar, explore and a plus. The plus lays out the rest — the
+       list, the music, the board, saved — and turns to a minus that puts
+       them away again. The bar gives up exactly the room they take. */
+    #dock:not(.more) #dockList,
+    #dock:not(.more) #dockPlay,
+    #dock:not(.more) #dockRefs,
+    #dock:not(.more) #dockLibrary,
+    #dock:not(.more) #dockFile{ display:none; }
+    #dock.open.more #dockSearch{ width:calc(var(--dock-w) - 336px); }   /* six squares */
+    body.has-file.dock-list #dock.open.more #dockSearch{
+      width:calc(var(--dock-w) - 392px);
     }
     /* Six squares and a bar do not fit a phone in one row — the bar was
        left a sliver with its own tools piled on the glass. So on a phone the
@@ -2401,9 +2413,10 @@
     @media (max-width:640px){
       #dock{ gap:6px; }
       #dock .dock-sq{ width:40px; height:40px; }
-      #dock.open{ flex-wrap:wrap; justify-content:flex-end; width:var(--dock-w); }
-      #dock.open #dockSearch,
-      body.has-file.dock-list #dock.open #dockSearch{ order:2; flex-basis:100%; width:100%; }
+      #dock.open #dockSearch{ width:calc(var(--dock-w) - 92px); }      /* at rest: one row */
+      #dock.open.more{ flex-wrap:wrap; justify-content:flex-end; width:var(--dock-w); }
+      #dock.open.more #dockSearch,
+      body.has-file.dock-list #dock.open.more #dockSearch{ order:2; flex-basis:100%; width:100%; }
       body.dock-list{ padding-bottom:150px; }
       /* the fade has to reach above the second row as well */
       body.dock-list::after{
@@ -3206,7 +3219,10 @@
     body.refs-on #dockLibrary,
     body.refs-on #dockFile,
     body.refs-on #dockCircle,
-    body.refs-on #dockList{ display:none !important; }
+    body.refs-on #dockList,
+    body.refs-on #dockMore{ display:none !important; }
+    body.refs-on #dockPlay,
+    body.refs-on #dockRefs{ display:flex !important; }
     body.refs-on #refsTools{
       display:flex;
       align-items:center;
@@ -3409,7 +3425,7 @@
     }
 
     /* the square on the middle button's corner: garments are waiting */
-    #dockExplore, #dockRefs{ position:relative; overflow:visible; }
+    #dockExplore, #dockRefs, #dockMore{ position:relative; overflow:visible; }
     /* It carries the count: how many garments are waiting in the tray. */
     .rf-badge{
       position:absolute;
@@ -3705,7 +3721,7 @@
          reads. The stack is kept, hidden, because the rest of the script
          still speaks to it; every square here runs the same press. -->
     <button type="button" id="dockCircle" class="dock-sq dock-tool" data-face="explore" aria-label="Explore the archive">
-      <img src="/circle-white.svg" alt="" aria-hidden="true" width="16" height="16">
+      <img src="/compass-white.svg" alt="" aria-hidden="true" width="16" height="16">
     </button>
     <button type="button" id="dockList" class="dock-sq dock-tool" data-face="list" aria-label="Nation list">
       <img src="/menu-white.svg" alt="" aria-hidden="true" width="16" height="16">
@@ -3714,7 +3730,7 @@
       <img src="/play-white.svg" alt="" aria-hidden="true" width="16" height="16">
     </button>
     <button type="button" id="dockRefs" class="dock-sq dock-tool" data-face="refs" aria-label="References" aria-pressed="false">
-      <img src="/plus-white.svg" alt="" aria-hidden="true" width="16" height="16">
+      <img src="/asterisk-white.svg" alt="" aria-hidden="true" width="16" height="16">
     </button>
     <!-- Only for a reader who is signed in, and only on the list: the way
          back to their own file from inside the archive. -->
@@ -3728,6 +3744,12 @@
       <svg class="bm" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
         <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
       </svg>
+    </button>
+    <!-- At rest the dock is the bar, explore and this. The plus lays out the
+         rest — list, music, the board, saved — and becomes a minus that puts
+         them away again. -->
+    <button type="button" id="dockMore" class="dock-sq" aria-expanded="false" aria-label="More tools">
+      <img src="/plus-white.svg" alt="" aria-hidden="true" width="16" height="16">
     </button>
   </div>
 
@@ -8030,17 +8052,29 @@
 
       const PLAY  = '<path class="ico-fill" d="M5.2 3.4 L12.4 8 L5.2 12.6 Z"/>';
       const PAUSE = '<path class="ico-fill" d="M4.4 3.4 H6.9 V12.6 H4.4 Z M9.1 3.4 H11.6 V12.6 H9.1 Z"/>';
+      /* In the header, beside the row of marks but not in it. The pages with
+         a partner footer carry that whole row down into the footer as the
+         reader reaches it, and the footer's own plus — the partners — needs
+         the room. So the square stays in the header, and goes when the
+         header goes. */
       function dress(d){
         if (d.getElementById('hdMusic')) return paint();
-        const tools = d.querySelector('.hd-tools');
-        if (!tools) return;
+        const tools = d.querySelector('#siteHead .hd-tools') || d.querySelector('.hd-tools');
+        const inner = tools && tools.parentElement;
+        if (!tools || !inner) return;
         const b = d.createElement('button');
         b.type = 'button';
         b.className = 'hd-ico';
         b.id = 'hdMusic';
         b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"></svg>';
         b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleSound(); });
-        tools.insertBefore(b, d.getElementById('hdExplore') || tools.firstChild);
+        // the header lays out space-between, so it is pushed right and
+        // spaced from the row by the row's own gap
+        b.style.marginLeft = 'auto';
+        const gapNow = () => { b.style.marginRight = d.defaultView.getComputedStyle(tools).columnGap || '18px'; };
+        gapNow();
+        d.defaultView.addEventListener('resize', gapNow);
+        inner.insertBefore(b, tools);
         paint();
       }
 
@@ -8076,6 +8110,21 @@
     ['pointerenter', 'focus', 'touchstart'].forEach(ev =>
       document.getElementById('dockPlay').addEventListener(ev, () => { try { scEnsure(); } catch {} },
                                                            { passive:true }));
+
+    /* The plus lays the rest of the tools out; the minus puts them away.
+       Whatever square carries the count of garments waiting for the board
+       goes with it: on the board's own square when that is showing, on the
+       plus when it is not, so the count is never hidden. */
+    const dockMore = document.getElementById('dockMore');
+    function setMore(on){
+      dock.classList.toggle('more', on);
+      dockMore.querySelector('img').src = on ? '/minus-white.svg' : '/plus-white.svg';
+      dockMore.setAttribute('aria-expanded', on ? 'true' : 'false');
+      dockMore.setAttribute('aria-label', on ? 'Fewer tools' : 'More tools');
+      const badge = document.querySelector('.rf-badge');
+      if (badge) (on ? document.getElementById('dockRefs') : dockMore).appendChild(badge);
+    }
+    dockMore.addEventListener('click', e => { e.stopPropagation(); setMore(!dock.classList.contains('more')); });
 
     function pressFace(pressed){
 
@@ -10832,7 +10881,7 @@
       const badge = Object.assign(document.createElement('span'), { className:'rf-badge' });
       badge.setAttribute('aria-hidden', 'true');
       const refsSq = document.getElementById('dockRefs');
-      refsSq.appendChild(badge);
+      (document.getElementById('dock').classList.contains('more') ? refsSq : document.getElementById('dockMore')).appendChild(badge);
 
       function paintGarments(){
         const queued = new Set(waiting.map(g => g.id));
@@ -11399,7 +11448,7 @@
         FACE.refs.src = on ? '/close-white.svg' : '/plus-white.svg';
         FACE_LABEL.refs = on ? 'Back to the archive' : 'References';
         if (currentFace() === 'refs') dockExplore.setAttribute('aria-label', FACE_LABEL.refs);
-        refsSq.querySelector('img').src = on ? '/close-white.svg' : '/plus-white.svg';
+        refsSq.querySelector('img').src = on ? '/close-white.svg' : '/asterisk-white.svg';
         refsSq.setAttribute('aria-label', FACE_LABEL.refs);
         refsSq.setAttribute('aria-pressed', on ? 'true' : 'false');
       }

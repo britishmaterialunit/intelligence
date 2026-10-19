@@ -27,9 +27,10 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   append-only `NUMBERS` map in `archive.html` — never by position in `ITEMS`,
   never reused, never edited by hand. `seo_build.py` assigns new ones and
   rewrites every `<n>.html`.
-- The dock's four tools are now separate squares beside the search bar
-  (`.dock-tool`: `#dockCircle` `#dockList` `#dockPlay` `#dockRefs`, then the
-  save square), all calling `pressFace(face)`. The old stacked button
+- The dock at rest is the search bar, explore (`#dockCircle`, compass
+  icon) and a plus (`#dockMore`). The plus adds `.more` to `#dock`, laying
+  out list, play, the board (`#dockRefs`, asterisk icon) and save, and
+  becomes a minus. Every tool square calls `pressFace(face)`. The old stacked button
   `#dockExplore` is hidden but kept, because the script still speaks to it.
   On a phone the open search bar takes its own row under the squares.
   Board garments have three views (squares 1/2/3 down the left edge: photo,
@@ -56,8 +57,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   been started, the archive is never unloaded. Links to other pages open
   them in a full-window iframe (`#bmuCarry`) over the archive, with the
   address bar, tab title and back button kept in step, and a play/pause
-  square (`#hdMusic`) injected into that page's header left of
-  `#hdExplore`. Any way back to `/archive` lifts the frame. No other page
+  square (`#hdMusic`) injected into that page's `#siteHead .hd-inner`, just
+  before `.hd-tools` — not inside it, because pages carry `.hd-tools` down
+  into the footer at the bottom and the footer's plus needs the room. Any way back to `/archive` lifts the frame. No other page
   carries code for this — it is all done from the archive, so pages must
   keep `.hd-tools` / `#hdExplore` in their header for the square to land.
 - Icons are loose `.svg` at root; `flags/`, `partners/`, `patterns/` are images only.
