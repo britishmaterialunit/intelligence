@@ -5224,16 +5224,22 @@
       }
     }
 
-    async function submitJoinGate(){
-      const addr = jgInput.value.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)){
-        jgMsg.textContent = 'Enter a valid email address.';
-        try { jgInput.focus({ preventScroll:true }); } catch(_){}
-        return;
-      }
-      jgSend.disabled = true;
-      jgMsg.textContent = 'Sending…';
+    /* ---------- JOINING DOES NOT WAIT ON THE POST ----------
+       It used to. The address was posted to FormSubmit and the gate held on
+       "Sending…" until FormSubmit answered — and FormSubmit's ajax route
+       often delivers the email and then takes a very long time to say so,
+       or never does. So the email arrived, while the reader who had sent
+       it sat in front of a frozen gate and never got to their own shelf.
 
+       The address is what the gate is for, and the reader has given it. So
+       they are joined the moment it is valid: the post is sent on its way,
+       exactly as it was before, but nothing waits for its answer — the gate
+       says Done and opens the shelf they were reaching for, on this same
+       page, while the post finishes behind it. (Not keepalive: a JSON post
+       needs a preflight, and keepalive with a preflight is refused outright
+       by some browsers — the email would simply not go.) A post that fails is the one thing the reader is never shown —
+       their shelf must not depend on our inbox. */
+    function postJoin(addr){
       const shelf = savedNames();
       const payload = {
         _subject: `Archive collection — ${shelf.length} garment${shelf.length === 1 ? '' : 's'}`,
@@ -5243,24 +5249,41 @@
         Reason: 'Opened a saved collection',
         Collection: shelf.length ? shelf.join('\n') : '(empty)'
       };
-
       try {
-        const res = await fetch(REQUEST_URL, {
+        fetch(REQUEST_URL, {
           method: 'POST',
           headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
           body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error(res.status);
-      } catch(_){
-        /* The address is what the gate is for, and we have it. Failing to
-           post it must not stand between the reader and their own shelf. */
+        }).catch(() => {});
+      } catch(_){}
+    }
+
+    let joining = false;
+    function submitJoinGate(){
+      if (joining) return;
+      const addr = jgInput.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)){
+        jgMsg.textContent = 'Enter a valid email address.';
+        try { jgInput.focus({ preventScroll:true }); } catch(_){}
+        return;
       }
+      joining = true;
+      jgSend.disabled = true;
+
+      postJoin(addr);
       try { localStorage.setItem(JOIN_KEY, addr); } catch(_){}
       // this is the shelf we have just reported — see reportShelf
       try { localStorage.setItem(SHELF_KEY, shelfSignature()); } catch(_){}
-      jgMsg.textContent = 'Joined.';
+
+      jgMsg.textContent = 'Done.';
+      try { jgInput.blur(); } catch(_){}
       const then = gateAfter;
-      setTimeout(() => { closeJoinGate(); if (then) then(); }, 520);
+      setTimeout(() => {
+        closeJoinGate();
+        joining = false;
+        // straight on to the shelf they were opening, once the gate is away
+        if (then) setTimeout(then, 120);
+      }, 650);
     }
 
     jgSend.addEventListener('click', submitJoinGate);
