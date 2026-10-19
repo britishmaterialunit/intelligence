@@ -1768,15 +1768,15 @@
         <div class="book-tabs" role="tablist" aria-label="What to book">
           <button type="button" class="book-tab" role="tab" id="tabMeet"
                   aria-selected="true"  data-note="General meeting" data-head="Meeting" data-role="Book"
-                  data-cal="https://cal.com/british-material-unit-4jsp90/meeting-w-tom-m.w.d/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
+                  data-cal="https://app.cal.com/british-material-unit-4jsp90/meeting-w-tom-m.w.d/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
                   data-blurb="Everything else — from sourcing, to starting a production run, to investor and research opportunities.">Meeting</button>
           <button type="button" class="book-tab" role="tab" id="tabMarshal"
                   aria-selected="false" data-note="MarshalOS demo" data-head="MarshalOS" data-role="Demo"
-                  data-cal="https://cal.com/british-material-unit-4jsp90/demo-of-marshalos/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
+                  data-cal="https://app.cal.com/british-material-unit-4jsp90/demo-of-marshalos/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
                   data-blurb="A walk through how MarshalOS reads a garment, what it returns, and how it fits a production run you already have in mind.">MarshalOS</button>
           <button type="button" class="book-tab" role="tab" id="tabUnit"
                   aria-selected="false" data-note="Unit U studio booking" data-head="Unit U" data-role="Visit"
-                  data-cal="https://cal.com/british-material-unit-4jsp90/30min/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
+                  data-cal="https://app.cal.com/british-material-unit-4jsp90/30min/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
                   data-blurb="The open-studio: the floor, the machines and the surplus on it. Tell us what you are making and we will have the material out.">Unit U</button>
         </div>
 
@@ -1784,7 +1784,7 @@
         <div class="book-wrap">
           <div class="book-frame">
             <iframe id="bookFrame"
-                    src="https://cal.com/british-material-unit-4jsp90/meeting-w-tom-m.w.d/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
+                    src="https://app.cal.com/british-material-unit-4jsp90/meeting-w-tom-m.w.d/embed?layout=month_view&amp;theme=light&amp;hideHelpButton=true"
                     title="Book a meeting with British Material Unit"
                     loading="lazy"
                     referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -2587,22 +2587,54 @@
          which against this page's white is nothing. */
       const BADGE = 80;
       let reported = 0;
+      /* The booking is given all the height it asks for, on every screen.
+         It used to be held to a cap and scroll inside it past that — which on
+         a phone, where the booking is always taller than the cap, left their
+         wordmark sitting at the foot of the inner scroll with no cover over
+         it. Grown to its own height the page does the scrolling, there is no
+         scroller inside a scroller, and the cover is always over the band. */
+      /* And the wordmark only exists in Cal's wide layout — from 768px of
+         frame, their md breakpoint. Narrower, the booking stacks into one
+         column, there is no mark, and the times run to the very bottom, so
+         a cover there would take the last of them. Measured: 736 wide has
+         no mark, 791 has it at 486 of 534. */
+      const WIDE = 768;
       function fitFrame(){
         if (!box) return;
-        box.style.height = '';                          // back to the stylesheet's cap
-        const cap = box.getBoundingClientRect().height;
-        if (reported && reported <= cap){
+        if (reported){
           box.style.height = reported + 'px';
-          if (cover) cover.style.height = BADGE + 'px';
-        } else if (cover){
-          cover.style.height = '0px';
+          if (cover) cover.style.height = (box.clientWidth >= WIDE ? BADGE : 0) + 'px';
+        } else {
+          box.style.height = '';                        // the stylesheet's height until it reports
+          if (cover) cover.style.height = '0px';
         }
       }
+      /* ---------- THE HANDSHAKE ----------
+         Cal's booking now draws nothing until the page it sits in answers
+         it: it posts __iframeReady and stays blank until it is told
+         parentKnowsIframeReady. Their embed.js sends that reply; it is one
+         message, so it is sent from here and the page still loads none of
+         their script. This is what had left all three calendars empty.
+
+         Their messages also moved the event name from `method` to `type`
+         (with `fullType` as CAL::<name>), which is why the height — and so
+         the cover over their wordmark — had stopped being read. Both are
+         read now, so the next rename of one of them does not blank it. */
+      const CAL_ORIGINS = ['https://app.cal.com', 'https://cal.com'];
       window.addEventListener('message', e => {
-        if (e.origin !== 'https://cal.com') return;
+        if (!CAL_ORIGINS.includes(e.origin) || e.source !== frame.contentWindow) return;
         let d = e.data;
         if (typeof d === 'string'){ try { d = JSON.parse(d); } catch(_){ return; } }
-        if (!d || d.method !== '__dimensionChanged' || !d.data) return;
+        if (!d) return;
+        const kind = d.type || d.method || String(d.fullType || '').replace(/^CAL::/, '');
+        if (kind === '__iframeReady'){
+          frame.style.visibility = '';
+          e.source.postMessage({ originator:'CAL', method:'parentKnowsIframeReady' }, e.origin);
+          e.source.postMessage({ originator:'CAL', method:'ui',
+                                 arg:{ hideEventTypeDetails:false, layout:'month_view' } }, e.origin);
+          return;
+        }
+        if (kind !== '__dimensionChanged' || !d.data) return;
         const h = parseInt(d.data.iframeHeight, 10);
         if (!h) return;
         reported = h;
