@@ -31,7 +31,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   postMessage, no SoundCloud script). Plus opens **References** (and wears
   a cross while open): the reader's own image board, a separate layer
   (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
-  nothing else. Images lock in pairs/groups (5px gap, `locks` tree). Each
+  nothing else. Images lock in pairs/groups (5px gap, `locks` tree).
+  Cluster deals everything randomly except the last few pieces moved by
+  hand (`touched`, `KEEP`), which stay put and are clustered around. Each
   garment card has a `+` (`.btn-ref-inline`) that queues it in the tray
   (localStorage `bmu-refs-tray`); a square on the button's corner says
   garments are waiting. The board is kept in IndexedDB and exported as

@@ -2983,7 +2983,13 @@
       transform:translate(-50%, -50%);
       cursor:grab;
     }
+    /* Every image keeps its whole canvas — a garment shot on a transparent
+       ground is still its 1000px square, with the air round it — and the
+       square is drawn as a hairline, so two locked images read as two boxes
+       with the white between them. Nothing is filled: what is transparent
+       stays transparent, on the board and in the export. */
     .rf-item img{
+      box-shadow:0 0 0 calc(1px * var(--inv)) #e4e4e4;
       display:block;
       width:100%;
       height:auto;
@@ -3105,7 +3111,16 @@
       z-index:1000000;
       cursor:pointer;
     }
-    .rf-joint.rf-lock{ animation:rfJoint .28s cubic-bezier(.4,0,.2,1); }
+    .rf-joint.rf-lock{
+      width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
+      background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 3.4 V12.6 M3.4 8 H12.6' stroke='%239a9a9a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 80% no-repeat;
+      border-radius:50%;
+      animation:rfJoint .32s cubic-bezier(.4,0,.2,1);
+      transition:background-image .2s;
+    }
+    .rf-joint.rf-lock:hover{
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 3.4 V12.6 M3.4 8 H12.6' stroke='%23222' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    }
     .rf-joint.rf-unlock{
       background-color:var(--bg);
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.4 8 H12.6' stroke='%23000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -3113,7 +3128,7 @@
     }
     @keyframes rfJoint{ from{ transform:translate(-50%, -50%) scale(.3); opacity:0; } }
     @media (pointer:coarse){
-      .rf-joint{ width:calc(24px * var(--inv)); height:calc(24px * var(--inv)); }
+      .rf-joint, .rf-joint.rf-lock{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv)); }
     }
 
     /* garments waiting to be dragged on, just above the bar */
@@ -9436,6 +9451,7 @@
       let cand = null;           // { m, o, side } — a lock on offer: o sits on m's side
       let vs = 1, vx = 0, vy = 0;              // the view: scale and pan
       let before = null;         // the layout the last cluster replaced
+      let touched = [];          // ids moved or sized by hand since the last cluster, newest last
       let clustered = false;
       let zTop = 1;
       let isOpen = false, loaded = false;
@@ -9615,31 +9631,36 @@
 
       /* What is close enough to lock: two images facing each other across a
          small gap — or slightly overlapping — and sharing a good part of the
-         edge between them. The nearest such pair wins. */
+         edge between them. The nearest such pair wins.
+
+         An offer already made is held on looser terms than a new one is
+         made on, so a pair at the edge of reach does not flick in and out,
+         and another image passing closer does not snatch it away. */
+      function lockFits(m, o, side, loose){
+        if (sideTaken(m, side) || sideTaken(o, OPP[side])) return null;
+        const a = rect(m), b = rect(o);
+        const flat = side === 'left' || side === 'right';
+        const gap = { right:b.l - a.r, left:a.l - b.r, bottom:b.t - a.b, top:a.t - b.b }[side];
+        const shared = flat ? Math.min(a.b, b.b) - Math.max(a.t, b.t)
+                            : Math.min(a.r, b.r) - Math.max(a.l, b.l);
+        const edge = flat ? Math.min(hOf(m), hOf(o)) : Math.min(m.w, o.w);
+        const reach = (loose ? 110 : 70) / vs;
+        if (gap > reach || gap < -edge * (loose ? 0.35 : 0.2)) return null;
+        if (shared < edge * (loose ? 0.15 : 0.3)) return null;
+        return Math.abs(gap);
+      }
       function findLock(moving){
         const group = groupOf(moving), mine = new Set(group.map(o => o.id));
-        const reach = 70 / vs;
+        if (cand && mine.has(cand.m.id) && !mine.has(cand.o.id) && items.includes(cand.o) &&
+            lockFits(cand.m, cand.o, cand.side, true) !== null) return cand;
         let best = null, bestD = Infinity;
-        group.forEach(m => {
-          const a = rect(m);
-          items.forEach(o => {
-            if (mine.has(o.id)) return;
-            const b = rect(o);
-            const across = {
-              right:  [b.l - a.r, Math.min(a.b, b.b) - Math.max(a.t, b.t), Math.min(hOf(m), hOf(o))],
-              left:   [a.l - b.r, Math.min(a.b, b.b) - Math.max(a.t, b.t), Math.min(hOf(m), hOf(o))],
-              bottom: [b.t - a.b, Math.min(a.r, b.r) - Math.max(a.l, b.l), Math.min(m.w, o.w)],
-              top:    [a.t - b.b, Math.min(a.r, b.r) - Math.max(a.l, b.l), Math.min(m.w, o.w)],
-            };
-            Object.keys(across).forEach(side => {
-              const [gap, shared, edge] = across[side];
-              if (gap > reach || gap < -edge * 0.2) return;
-              if (shared < edge * 0.3) return;
-              if (sideTaken(m, side) || sideTaken(o, OPP[side])) return;
-              if (Math.abs(gap) < bestD){ bestD = Math.abs(gap); best = { m, o, side }; }
-            });
+        group.forEach(m => items.forEach(o => {
+          if (mine.has(o.id)) return;
+          ['right', 'left', 'bottom', 'top'].forEach(side => {
+            const d = lockFits(m, o, side, false);
+            if (d !== null && d < bestD){ bestD = d; best = { m, o, side }; }
           });
-        });
+        }));
         return best;
       }
 
@@ -9650,6 +9671,7 @@
         locks.push({ p:m.id, c:o.id, side });
         regroup();
         clustered = false;
+        touch(m);
         // the one being brought over is what moves; what it met stays put
         settle(() => relay(o));
         select(m);
@@ -9680,25 +9702,59 @@
         const y = side === 'bottom' ? (ra.b + rb.t) / 2 : (ra.t + rb.b) / 2;
         return { x:(Math.max(ra.l, rb.l) + Math.min(ra.r, rb.r)) / 2, y };
       }
-      function joints(){
-        stage.querySelectorAll('.rf-joint').forEach(j => j.remove());
-        const mark = (pt, cls, label, data) => {
+      /* The offer is one element for as long as it is the same offer. It
+         used to be torn down and drawn again on every step of a drag, which
+         replayed its arrival each time the image moved a pixel — a plus
+         flashing on and off for as long as the two were near. Now it
+         arrives once, when the pair first comes into reach, and after that
+         it only follows the gap. */
+      /* And it waits a beat before it arrives — long enough that an image
+         carried past others on its way somewhere does not throw up a plus
+         at each one it brushes. Let go of, the offer is there at once. */
+      let offerEl = null, offerKey = '', offerT = null;
+      function offer(now){
+        const key = cand ? `${cand.m.id}|${cand.o.id}|${cand.side}` : '';
+        if (key !== offerKey){
+          if (offerEl){ offerEl.remove(); offerEl = null; }
+          clearTimeout(offerT);
+          offerKey = key;
+          if (cand){
+            const make = () => {
+              if (offerEl || offerKey !== key || !cand) return;
+              offerEl = Object.assign(document.createElement('button'),
+                { type:'button', className:'rf-joint rf-lock' });
+              offerEl.setAttribute('aria-label', 'Lock these two together');
+              stage.appendChild(offerEl);
+              offer();
+            };
+            if (now) make(); else offerT = setTimeout(make, 160);
+            return;
+          }
+        }
+        if (now && cand && !offerEl){ clearTimeout(offerT); offerKey = ''; offer(true); return; }
+        if (offerEl){
+          const pt = jointAt(cand.m, cand.o, cand.side);
+          offerEl.style.left = pt.x + 'px';
+          offerEl.style.top = pt.y + 'px';
+        }
+      }
+      function joints(now){
+        offer(now);
+        stage.querySelectorAll('.rf-unlock').forEach(j => j.remove());
+        if (!sel) return;
+        locks.forEach((l, i) => {
+          if (l.p !== sel.id && l.c !== sel.id) return;
+          const p = byId(l.p), c = byId(l.c);
+          if (!p || !c) return;
+          const pt = jointAt(p, c, l.side);
           const j = Object.assign(document.createElement('button'),
-            { type:'button', className:`rf-joint ${cls}` });
-          j.setAttribute('aria-label', label);
+            { type:'button', className:'rf-joint rf-unlock' });
+          j.setAttribute('aria-label', 'Unlock');
           j.style.left = pt.x + 'px';
           j.style.top = pt.y + 'px';
-          Object.assign(j.dataset, data);
+          j.dataset.lock = String(i);
           stage.appendChild(j);
-        };
-        if (cand) mark(jointAt(cand.m, cand.o, cand.side), 'rf-lock', 'Lock these two together', {});
-        if (sel){
-          locks.forEach((l, i) => {
-            if (l.p !== sel.id && l.c !== sel.id) return;
-            const p = byId(l.p), c = byId(l.c);
-            if (p && c) mark(jointAt(p, c, l.side), 'rf-unlock', 'Unlock', { lock:String(i) });
-          });
-        }
+        });
       }
 
       /* ---------- ADDING ----------
@@ -9800,16 +9856,20 @@
          Cluster is the garments' arrangement: the golden-angle spiral of
          explore, every image fitted to the same box and spaced the way the
          garments are. Pressed again it deals them into the spiral in a new
-         order — a new shape from the same images.
+         order — a new shape from the same images. Locked groups are dealt
+         like anything else, as one piece brought to the cluster's size
+         together, so a group keeps its shape and its gaps.
 
-         A locked group goes in as one piece, its images brought to the
-         cluster's size together so the group keeps its shape and its gaps.
-         With groups on the board the pieces are no longer one size, so each
-         is laid at the first point along the same spiral where it clears
-         everything already laid.
+         What the reader has just put somewhere stays there. The last few
+         pieces moved or sized by hand since the previous cluster are where
+         the reader is building, so they are left exactly as they are and
+         the cluster gathers round them instead of round the middle. If
+         nothing has been touched there is nothing to keep, and every piece
+         is dealt again.
 
          The layout it replaced is kept, once, the first time it is pressed
          after the reader arranged things by hand. Reverse is that layout. */
+      const KEEP = 3;            // how many recent moves count as "where I'm building"
       const snap = () => items.map(it => ({ id:it.id, x:it.x, y:it.y, w:it.w }));
       function shuffle(a){
         for (let i = a.length - 1; i > 0; i--){
@@ -9818,51 +9878,65 @@
         }
         return a;
       }
+      const boundsOf = list => {
+        const rs = list.map(rect);
+        return { l:Math.min(...rs.map(r => r.l)), r:Math.max(...rs.map(r => r.r)),
+                 t:Math.min(...rs.map(r => r.t)), b:Math.max(...rs.map(r => r.b)) };
+      };
 
       function cluster(){
         if (items.length < 2){ say('Add a few images first'); return; }
         if (!clustered) before = snap();
-        const units = [], seen = new Set();
+
+        const units = [], unitOf = {};
         items.forEach(it => {
-          if (seen.has(it.gid || it.id)) return;
-          seen.add(it.gid || it.id);
-          units.push(groupOf(it));
+          const key = it.gid || it.id;
+          if (!unitOf[key]){ unitOf[key] = groupOf(it); units.push(unitOf[key]); }
         });
-        /* Singles are dealt in a new order every press. Groups go down
-           first, the biggest in the middle, so the pieces that cannot be
-           moved apart are the ones the rest gather round. */
-        shuffle(units);
-        units.sort((a, b) => (b.length > 1 ? b.length : 0) - (a.length > 1 ? a.length : 0));
+        // the pieces just worked on, newest first, never every piece
+        const kept = [];
+        touched.slice().reverse().forEach(id => {
+          const it = byId(id);
+          const u = it && unitOf[it.gid || it.id];
+          if (u && !kept.includes(u) && kept.length < KEEP) kept.push(u);
+        });
+        if (kept.length >= units.length) kept.length = Math.max(0, units.length - 1);
+        const deal = shuffle(units.filter(u => !kept.includes(u)));
 
         settle(() => {
-          if (units.every(u => u.length === 1)){
-            const pts = packOffsets(units.length), k = CSPACE / SPACING;
-            units.forEach(([it], i) => {
+          if (!kept.length && deal.every(u => u.length === 1)){
+            const pts = packOffsets(deal.length), k = CSPACE / SPACING;
+            deal.forEach(([it], i) => {
               it.x = pts[i][0] * k; it.y = pts[i][1] * k; it.w = boxW(it.ar, CBOX);
               place(it);
             });
           } else {
+            /* Pieces of different sizes, and possibly some that cannot move:
+               each is laid at the first point along the spiral where it
+               clears everything already down, the kept pieces first. The
+               spiral turns about the kept pieces when there are any. */
             const margin = (CSPACE - CBOX) / 2, step = CSPACE * 0.22;
-            const laid = [];
+            const laid = kept.map(u => boundsOf(u));
+            const all = laid.length ? {
+              l:Math.min(...laid.map(r => r.l)), r:Math.max(...laid.map(r => r.r)),
+              t:Math.min(...laid.map(r => r.t)), b:Math.max(...laid.map(r => r.b)) } : null;
+            const ox = all ? (all.l + all.r) / 2 : 0, oy = all ? (all.t + all.b) / 2 : 0;
             const clear = r => laid.every(o => r.r + margin <= o.l - margin || r.l - margin >= o.r + margin ||
                                                 r.b + margin <= o.t - margin || r.t - margin >= o.b + margin);
-            units.forEach(u => {
-              // the group comes to the cluster's size as one
+            deal.forEach(u => {
               const mean = u.reduce((s, it) => s + Math.max(it.w, hOf(it)), 0) / u.length;
               const k = CBOX / mean;
               u.forEach(it => { it.w *= k; });
               relay(u[0]);
-              const bx = u.map(rect);
-              const box = { l:Math.min(...bx.map(r => r.l)), r:Math.max(...bx.map(r => r.r)),
-                            t:Math.min(...bx.map(r => r.t)), b:Math.max(...bx.map(r => r.b)) };
+              const box = boundsOf(u);
               const cx = (box.l + box.r) / 2, cy = (box.t + box.b) / 2;
-              for (let i = 0; i < 20000; i++){
+              for (let i = 0; i < 40000; i++){
                 const r = step * Math.sqrt(i), a = i * GOLDEN;
-                const px = Math.cos(a) * r, py = Math.sin(a) * r;
-                const cand = { l:box.l - cx + px, r:box.r - cx + px, t:box.t - cy + py, b:box.b - cy + py };
-                if (!clear(cand)) continue;
+                const px = ox + Math.cos(a) * r, py = oy + Math.sin(a) * r;
+                const spot = { l:box.l - cx + px, r:box.r - cx + px, t:box.t - cy + py, b:box.b - cy + py };
+                if (!clear(spot)) continue;
                 u.forEach(it => { it.x += px - cx; it.y += py - cy; place(it); });
-                laid.push(cand);
+                laid.push(spot);
                 break;
               }
             });
@@ -9870,6 +9944,7 @@
           fit();
         });
         cand = null;
+        touched = [];
         clustered = true;
         sync(); save();
       }
@@ -10322,11 +10397,16 @@
         }
       });
 
+      function touch(it){
+        touched = touched.filter(id => id !== it.id);
+        touched.push(it.id);
+      }
       function lift(e){
         if (!pts.has(e.pointerId)) return;
         pts.delete(e.pointerId);
         root.classList.remove('panning');
-        if (g && g.moved) clustered = false;
+        if (g && g.moved){ clustered = false; if (g.item) touch(g.item); }
+        if (g && g.mode === 'move') joints(true);
         if (g) save();
         g = null;          // a pinch that loses a finger stops rather than jumping
       }
@@ -10397,6 +10477,7 @@
           const step = (e.shiftKey ? 40 : 8) / vs;
           groupOf(sel).forEach(o => { o.x += DIRS[e.key][0] * step; o.y += DIRS[e.key][1] * step; place(o); });
           clustered = false;
+          touch(sel);
           cand = findLock(sel);
           joints(); save();
         }
