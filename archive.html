@@ -642,6 +642,23 @@
     }
     .btn-save-inline:hover{ color:#888; }
     .btn-save-inline[aria-pressed="true"]{ color:var(--ink); }
+    /* the plus that sends a garment to the reference board */
+    .name-marks{ flex:none; display:flex; align-items:flex-start; gap:8px; }
+    .btn-ref-inline{
+      flex:none;
+      background:transparent;
+      border:none;
+      padding:0;
+      margin-top:1px;
+      color:#c9c9c9;
+      cursor:pointer;
+      transition:color .3s cubic-bezier(.4,0,.2,1);
+    }
+    .btn-ref-inline svg{ display:block; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+    .btn-ref-inline:hover{ color:#888; }
+    .btn-ref-inline[aria-pressed="true"]{ color:var(--ink); }
+    body.single-result .item.hold-mark .btn-ref-inline{ opacity:0; }
+    body.single-result .item .btn-ref-inline{ transition:opacity .3s cubic-bezier(.4,0,.2,1); }
 
     .item .tag{
       display:block;
@@ -3002,41 +3019,8 @@
                 right:calc(-16px * var(--inv)); bottom:calc(-16px * var(--inv)); }
     }
 
-    #refsHead{
-      position:absolute;
-      top:64px;
-      left:50%;
-      transform:translateX(-50%);
-      width:min(94vw, 880px);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      font-size:10px;
-      letter-spacing:.2em;
-      text-transform:uppercase;
-      color:#9a9a9a;
-      pointer-events:none;
-      z-index:2;
-    }
-    .rh-src{ display:flex; align-items:center; gap:14px; }
-    .rh-title{ color:var(--ink); }
-    #refsHead button{
-      pointer-events:auto;
-      padding:3px 0;
-      border:none;
-      border-bottom:1.5px solid transparent;
-      background:none;
-      font:inherit;
-      letter-spacing:inherit;
-      text-transform:inherit;
-      color:#9a9a9a;
-      cursor:pointer;
-    }
-    #refsHead button[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--line); }
-    #refsHead button em{ font-style:normal; color:#c4c4c4; margin-left:4px; }
-
     #refsEmpty{
+      width:min(88vw, 380px);
       position:absolute;
       left:50%; top:50%;
       transform:translate(-50%, -60%);
@@ -3057,8 +3041,7 @@
       transition:transform .2s cubic-bezier(.4,0,.2,1);
     }
     #refsAddBig:hover{ transform:scale(1.06); }
-    .re-line{ margin:18px 0 0; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink); }
-    .re-sub{ margin:8px 0 0; font-size:10.5px; line-height:1.6; color:#9a9a9a; }
+    .re-sub{ margin:18px 0 0; font-size:10.5px; line-height:1.7; color:#9a9a9a; }
     #refs.dropping{ background:var(--faint); }
 
     /* The board's bar: where the search bar stands, on the search bar's
@@ -3096,13 +3079,103 @@
     #refsTools button:hover{ background:var(--faint); }
     #refsTools button:disabled{ color:#c4c4c4; cursor:default; background:none; }
     #refsTools svg{ width:14px; height:14px; flex:none; fill:currentColor; }
+    /* the count: there, but not asking to be read */
+    .rt-count{
+      flex:none;
+      min-width:26px;
+      padding:0 6px 0 8px;
+      font-size:10px;
+      letter-spacing:.14em;
+      font-variant-numeric:tabular-nums;
+      color:#c4c4c4;
+    }
+    #refsTools .rt-info{ flex:none; width:22px; padding:0; margin-left:-10px; color:#b4b4b4; }
+    #refsTools .rt-info:hover{ background:none; color:var(--ink); }
+    #refsTools .rt-info svg{ width:13px; height:13px; }
+
+    /* the mark between two images: a plus where they can lock, a minus on
+       each lock of the picked image */
+    .rf-joint{
+      position:absolute;
+      width:calc(16px * var(--inv)); height:calc(16px * var(--inv));
+      transform:translate(-50%, -50%);
+      padding:0;
+      border:none;
+      background:var(--line) url('/plus-white.svg') center / 72% no-repeat;
+      z-index:1000000;
+      cursor:pointer;
+    }
+    .rf-joint.rf-lock{ animation:rfJoint .28s cubic-bezier(.4,0,.2,1); }
+    .rf-joint.rf-unlock{
+      background-color:var(--bg);
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.4 8 H12.6' stroke='%23000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+      box-shadow:0 0 0 calc(1.5px * var(--inv)) var(--line) inset;
+    }
+    @keyframes rfJoint{ from{ transform:translate(-50%, -50%) scale(.3); opacity:0; } }
+    @media (pointer:coarse){
+      .rf-joint{ width:calc(24px * var(--inv)); height:calc(24px * var(--inv)); }
+    }
+
+    /* garments waiting to be dragged on, just above the bar */
+    #refsTray{
+      position:absolute;
+      left:50%;
+      bottom:96px;
+      transform:translateX(-50%);
+      width:min(94vw, 880px);
+      display:flex;
+      gap:8px;
+      overflow-x:auto;
+      scrollbar-width:none;
+      z-index:2;
+      touch-action:pan-x;
+    }
+    #refsTray[hidden]{ display:none; }
+    #refsTray::-webkit-scrollbar{ display:none; }
+    .rf-wait{
+      flex:none;
+      width:62px; height:62px;
+      padding:4px;
+      border:1.5px solid #ececec;
+      background:var(--bg);
+      cursor:grab;
+      transition:border-color .2s cubic-bezier(.4,0,.2,1);
+    }
+    .rf-wait:hover{ border-color:var(--line); }
+    .rf-wait img{ display:block; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+    .rf-ghost{
+      position:fixed;
+      width:110px; height:110px;
+      object-fit:contain;
+      transform:translate(-50%, -50%);
+      pointer-events:none;
+      z-index:90;
+      opacity:.9;
+    }
+
+    /* the square on the middle button's corner: garments are waiting */
+    #dockExplore{ position:relative; overflow:visible; }
+    .rf-badge{
+      position:absolute;
+      top:-5px; right:-5px;
+      width:9px; height:9px;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      pointer-events:none;
+      opacity:0;
+      transform:scale(.4);
+      transition:opacity .25s cubic-bezier(.4,0,.2,1), transform .25s cubic-bezier(.4,0,.2,1);
+    }
+    .rf-badge.on{ opacity:1; transform:scale(1); }
+    .rf-badge.on.pop{ animation:rfBadge .5s cubic-bezier(.4,0,.2,1); }
+    @keyframes rfBadge{ 40%{ transform:scale(1.6); } }
     #refsTools svg .st{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
     @media (max-width:640px){
-      #refsTools span{ display:none; }
-      #refsHead{ top:60px; }
+      #refsTools button span{ display:none; }
     }
     @media (prefers-reduced-motion:reduce){
       #refs, #refs.rf-moving #refsStage, #refs.rf-moving .rf-item{ transition:none; }
+      .rf-badge, .rf-badge.on.pop, .rf-joint.rf-lock{ transition:none; animation:none; }
     }
 </style>
 </head>
@@ -3219,6 +3292,7 @@
        rather than opening an empty section or changing the count line,
        which reads as a page fault rather than an answer. -->
   <div id="noData" role="status" aria-live="polite" aria-hidden="true">No Data Saved</div>
+  <div class="bmu-pop" id="refsExportPop" role="tooltip">Export saves the board as one .zip — every image, where it sits and what is locked together.<br>Add that .zip back with the plus to pick up where you left off.</div>
   <div class="bmu-pop" id="countPop" role="tooltip">Github has its cons, storage wise. So consider this a BETA version—we’ll have every single military garment on MarshalOS.<br>The number ninety nine is found on all British labels acting as the Nato Stock Number (NSN) and a worthy detail to note.</div>
 
   <!-- EXPLORE — every garment in the archive as one spiral -->
@@ -3251,21 +3325,14 @@
        middle button; see the REFERENCES script. -->
   <section id="refs" hidden aria-hidden="true" aria-label="References">
     <div id="refsStage"></div>
-    <div id="refsHead">
-      <div class="rh-src" role="tablist" aria-label="Where the references come from">
-        <span class="rh-title">References</span>
-        <button type="button" role="tab" data-src="mine" aria-selected="true">Yours</button>
-        <button type="button" role="tab" data-src="bank" aria-selected="false">Bank <em>Soon</em></button>
-      </div>
-      <span id="refsCount"></span>
-    </div>
     <div id="refsEmpty">
       <button type="button" id="refsAddBig" aria-label="Add images">
         <img src="/plus-white.svg" alt="" aria-hidden="true" width="18" height="18">
       </button>
-      <p class="re-line">Add references</p>
-      <p class="re-sub">Images, or a references file exported from here.<br>Drop or paste them in as well.</p>
+      <p class="re-sub">Add images, or a references file exported from here.<br>Drop or paste them in as well.<br>Garments can be added from the archive too.</p>
     </div>
+    <!-- garments sent from the archive, waiting to be dragged on -->
+    <div id="refsTray" hidden aria-label="Garments from the archive"></div>
     <input type="file" id="refsFile" multiple hidden
            accept="image/*,.zip,application/zip,application/x-zip-compressed">
   </section>
@@ -3321,6 +3388,7 @@
     <!-- REFERENCES — the board's own bar. Hidden until the plus face is
          pressed, and then it stands exactly where the search bar was. -->
     <div id="refsTools" class="dock-sq" role="toolbar" aria-label="Reference board">
+      <span id="refsCount" class="rt-count" aria-label="Images on the board">00</span>
       <button type="button" data-act="add" aria-label="Add images">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M8 2.6 V13.4 M2.6 8 H13.4"/></svg><span>Add</span>
       </button>
@@ -3332,6 +3400,9 @@
       </button>
       <button type="button" data-act="export" aria-label="Export the board as a file">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M8 2.6 V10 M4.8 6.9 L8 10.1 L11.2 6.9 M3 13.2 H13"/></svg><span>Export</span>
+      </button>
+      <button type="button" id="refsExportInfo" class="rt-info" aria-label="About exporting">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><g class="st"><circle cx="8" cy="8" r="6.1"/><path d="M8 7.3 V11.3"/><path d="M8 4.7 V5.3"/></g></svg>
       </button>
       <button type="button" data-act="clear" aria-label="Clear the board">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M4.4 4.4 L11.6 11.6 M11.6 4.4 L4.4 11.6"/></svg><span>Clear</span>
@@ -4171,11 +4242,18 @@
                      last word in the name's own ink. Each has an element of
                      its own, so writing one cannot touch the other. -->
                 <div class="name"><span class="nm">${esc(p.name)}</span>${p.ref ? `<span class="ref">${esc(p.ref)}</span>` : ''}</div>
-                <button type="button" class="btn-save-inline" aria-pressed="false" aria-label="Save to library">
-                  <svg class="bm" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                    <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
-                  </svg>
-                </button>
+                <span class="name-marks">
+                  <button type="button" class="btn-ref-inline" aria-pressed="false" aria-label="Add to references">
+                    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                      <path d="M8 3 V13 M3 8 H13"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn-save-inline" aria-pressed="false" aria-label="Save to library">
+                    <svg class="bm" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                      <path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/>
+                    </svg>
+                  </button>
+                </span>
               </div>
               <span class="tag">${esc(p.cat)}</span>
               <div class="req-panel"><div class="req-inner">
@@ -5219,6 +5297,17 @@
     const REQUEST_URL = 'https://formsubmit.co/ajax/' + REQUEST_TO;
 
     function wireCard(el, name, ref, txtPath){
+      el.querySelectorAll('.btn-ref-inline').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const shot = el.querySelector('.slot .shot');
+          if (!shot) return;
+          references.queueGarment({ id:el.dataset.id, name, ref,
+                                    src:shot.getAttribute('src') });
+        });
+      });
+      // a card built after the board knows what is waiting says so itself
+      try { references.paintGarments(); } catch {}
       el.querySelectorAll('.btn-save, .btn-save-inline').forEach(btn => {
         btn.addEventListener('click', e => {
           e.stopPropagation();
@@ -9275,21 +9364,37 @@
 
        The fourth face on the middle button. Pressed, the archive goes out
        of sight under a layer of its own — nothing in it is changed, moved
-       or rebuilt — and the reader has an empty board and a plus. What they
-       add can be dragged about, made bigger and smaller from the corner
-       handle (or pinched), and gathered with Cluster into the same golden-
-       angle spiral the garments sit in. Reverse puts them back the way they
-       were before the cluster.
+       or rebuilt — the face turns to a cross, and the reader has an empty
+       board and a plus. The cross takes them back and the face is the plus
+       again: a loop.
+
+       What they add can be dragged about, made bigger and smaller from the
+       corner handle (or pinched), and gathered with Cluster into the same
+       golden-angle spiral the garments sit in. Reverse puts them back the
+       way they were before the cluster.
+
+       Two images brought edge to edge offer a small plus between them;
+       pressing it locks them into a pair, centred on each other with a
+       thin white gap. A pair is one thing from then on — it moves, sizes
+       and clusters together — and more can be locked to any free side of
+       any image in it. Picking an image shows a minus on each of its locks,
+       which lets that one go.
+
+       Garments come in from the archive by the plus on their own tab. They
+       wait in a tray above the board's bar, and a square on the middle
+       button's corner says there are some waiting, until they are dragged
+       (or pressed) onto the board.
 
        Nothing leaves the reader's browser. The board is kept there between
        visits (IndexedDB, best effort — a private window keeps nothing) and
        carried anywhere else as an exported .zip: the photographs themselves
        as numbered PNG/JPEG files, plus references.json with where each one
-       sat. Adding that .zip back with the plus brings the board back.
+       sat and what was locked to what. Adding that .zip back with the plus
+       brings the board back.
 
-       Every name in here is refs- or rf-, and the only thing it touches
-       outside its own elements is the dock's search bar, which it swaps for
-       its own bar while it is open.
+       Every name in here is refs- or rf-. Outside its own elements it only
+       swaps the dock's search bar for its own bar while it is open, wears
+       the cross on the middle button, and puts a plus on each garment.
        ============================================================ */
     const references = (function(){
       const root    = document.getElementById('refs');
@@ -9298,35 +9403,37 @@
       const fileIn  = document.getElementById('refsFile');
       const countEl = document.getElementById('refsCount');
       const tools   = document.getElementById('refsTools');
+      const tray    = document.getElementById('refsTray');
       const T = act => tools.querySelector(`[data-act="${act}"]`);
 
       /* ---------- WHERE REFERENCES COME FROM ----------
-         One board, two sources.
+         One board, two sources. Only the first is built.
 
-           mine  the reader's own: added with the plus, kept in this
-                 browser, carried between browsers as an exported .zip.
+           mine  the reader's own: added with the plus, or from the archive,
+                 kept in this browser, carried as an exported .zip.
            bank  BMU's reference bank — the images posted to the reference
                  Instagram account, filed into /references/ with a
                  bank.json manifest beside them. Not built yet: the account
                  is not settled (the archive's alias is @wimpreysmock, and
-                 the bank will be an account of its own). The tab is there
-                 and labelled so the board is laid out for it. When `live`
-                 goes true, bank.json is
-                     { account, images:[{ file, caption, posted }] }
+                 the bank will be an account of its own). When it is,
+                 bank.json is  { account, images:[{ file, caption, posted }] }
                  and the board reads it the way it reads an imported .zip,
-                 but read-only. */
+                 but read-only. There is nothing on screen for it until then. */
       const SOURCES = {
-        mine: { label:'Yours', editable:true },
-        bank: { label:'Bank', editable:false, live:false,
-                account:null, manifest:'/references/bank.json' },
+        mine: { editable:true },
+        bank: { editable:false, live:false, account:null, manifest:'/references/bank.json' },
       };
 
       const BOX  = 200;          // a new image fits a 200px square
       const CBOX = 190;          // in a cluster, every image fits the same box
       const CSPACE = CBOX * (SPACING / 150);   // and clears it the way a garment does
+      const GAP  = 5;            // the white between two locked images
+      const OPP  = { left:'right', right:'left', top:'bottom', bottom:'top' };
 
-      let items = [];            // { id, blob, name, ar, x, y, w, z, url, el }
+      let items = [];            // { id, blob, name, ar, x, y, w, z, gid, garment, url, el }
+      let locks = [];            // { p, c, side } — c sits on p's `side`
       let sel = null;
+      let cand = null;           // { m, o, side } — a lock on offer: o sits on m's side
       let vs = 1, vx = 0, vy = 0;              // the view: scale and pan
       let before = null;         // the layout the last cluster replaced
       let clustered = false;
@@ -9337,6 +9444,10 @@
       const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
       const byId = id => items.find(it => it.id === id);
       const W = () => root.clientWidth, H = () => root.clientHeight;
+      const hOf = it => it.w * it.ar;
+      const rect = it => ({ l:it.x - it.w / 2, r:it.x + it.w / 2,
+                            t:it.y - hOf(it) / 2, b:it.y + hOf(it) / 2 });
+      const groupOf = it => it.gid ? items.filter(o => o.gid === it.gid) : [it];
 
       /* ---------- SAID AND GONE ----------
          The bar's own way of answering, as the music's "No data" is. */
@@ -9361,18 +9472,19 @@
         stage.style.setProperty('--inv', String(1 / vs));
       }
       function toScreen(x, y){ return { x: W() / 2 + vx + x * vs, y: H() / 2 + vy + y * vs }; }
+      function toWorld(sx, sy){ return { x:(sx - W() / 2 - vx) / vs, y:(sy - H() / 2 - vy) / vs }; }
 
-      /* Everything on the board in frame, clear of the header and its row
-         above and the dock below. */
+      /* Everything on the board in frame, clear of the header above and the
+         tray and the dock below. */
       function fit(){
         if (!items.length){ vs = 1; vx = 0; vy = 0; applyView(); return; }
         let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
         items.forEach(it => {
-          const h = it.w * it.ar;
-          x0 = Math.min(x0, it.x - it.w / 2); x1 = Math.max(x1, it.x + it.w / 2);
-          y0 = Math.min(y0, it.y - h / 2);    y1 = Math.max(y1, it.y + h / 2);
+          const r = rect(it);
+          x0 = Math.min(x0, r.l); x1 = Math.max(x1, r.r);
+          y0 = Math.min(y0, r.t); y1 = Math.max(y1, r.b);
         });
-        const top = 100, bottom = 120, side = W() < 640 ? 24 : 70;
+        const top = 80, bottom = tray.hidden ? 120 : 200, side = W() < 640 ? 24 : 70;
         const room = { w: W() - side * 2, h: H() - top - bottom };
         vs = clamp(Math.min(room.w / (x1 - x0), room.h / (y1 - y0)), 0.05, 2.2);
         vx = -((x0 + x1) / 2) * vs;
@@ -9387,7 +9499,7 @@
         void stage.offsetWidth;
         fn();
         clearTimeout(settleT);
-        settleT = setTimeout(() => root.classList.remove('rf-moving'), 900);
+        settleT = setTimeout(() => { root.classList.remove('rf-moving'); joints(); }, 900);
       }
 
       /* ---------- ONE IMAGE ON THE BOARD ---------- */
@@ -9421,33 +9533,180 @@
         if (sel && sel.el) sel.el.classList.remove('sel');
         sel = it || null;
         if (sel) sel.el.classList.add('sel');
+        joints();
       }
-      function front(it){ it.z = ++zTop; place(it); }
+      function front(it){ groupOf(it).forEach(o => { o.z = ++zTop; place(o); }); }
 
       function remove(it){
         if (sel === it) select(null);
+        if (cand && (cand.m === it || cand.o === it)) cand = null;
         URL.revokeObjectURL(it.url);
         it.el.remove();
         items = items.filter(o => o !== it);
-        sync(); save();
+        locks = locks.filter(l => l.p !== it.id && l.c !== it.id);
+        regroup();
+        joints(); sync(); save(); paintGarments();
       }
 
       function sync(){
         empty.hidden = items.length > 0;
-        const n = items.length;
-        countEl.textContent = n ? `${n} image${n === 1 ? '' : 's'}` : '';
-        T('cluster').disabled = n < 2;
+        countEl.textContent = String(items.length).padStart(2, '0');
+        T('cluster').disabled = items.length < 2;
         T('reverse').disabled = !before;
-        T('export').disabled = !n;
-        T('clear').disabled = !n;
+        T('export').disabled = !items.length;
+        T('clear').disabled = !items.length;
+      }
+
+      /* ---------- LOCKED TOGETHER ----------
+         A lock is one image set on one side of another, the two centred on
+         each other across a GAP of white. The locks of a group form a tree,
+         so its whole layout follows from any one image in it: relay() walks
+         the tree out from the image that is to stay put and sets every other
+         one against its neighbour. That is what lets one image in a pair be
+         made bigger and the rest of the group make room rather than overlap. */
+      function setBeside(a, b, side){
+        if (side === 'right' || side === 'left'){
+          const d = a.w / 2 + GAP + b.w / 2;
+          b.x = a.x + (side === 'right' ? d : -d); b.y = a.y;
+        } else {
+          const d = hOf(a) / 2 + GAP + hOf(b) / 2;
+          b.y = a.y + (side === 'bottom' ? d : -d); b.x = a.x;
+        }
+      }
+      function relay(anchor){
+        if (!anchor.gid) return;
+        const seen = new Set([anchor.id]), queue = [anchor];
+        while (queue.length){
+          const a = queue.shift();
+          locks.forEach(l => {
+            let b = null, side = null;
+            if (l.p === a.id && !seen.has(l.c)){ b = byId(l.c); side = l.side; }
+            else if (l.c === a.id && !seen.has(l.p)){ b = byId(l.p); side = OPP[l.side]; }
+            if (!b) return;
+            seen.add(b.id);
+            setBeside(a, b, side);
+            place(b);
+            queue.push(b);
+          });
+        }
+        place(anchor);
+      }
+      // groups are whatever the locks connect; one image on its own is no group
+      function regroup(){
+        const left = new Set(items.map(it => it.id));
+        items.forEach(it => { it.gid = null; });
+        items.forEach(start => {
+          if (!left.has(start.id)) return;
+          const comp = [], queue = [start];
+          left.delete(start.id);
+          while (queue.length){
+            const a = queue.shift();
+            comp.push(a);
+            locks.forEach(l => {
+              const other = l.p === a.id ? l.c : l.c === a.id ? l.p : null;
+              if (other && left.has(other)){ left.delete(other); queue.push(byId(other)); }
+            });
+          }
+          if (comp.length > 1){ const gid = uid(); comp.forEach(it => { it.gid = gid; }); }
+        });
+      }
+      const sideTaken = (it, side) =>
+        locks.some(l => (l.p === it.id && l.side === side) || (l.c === it.id && l.side === OPP[side]));
+
+      /* What is close enough to lock: two images facing each other across a
+         small gap — or slightly overlapping — and sharing a good part of the
+         edge between them. The nearest such pair wins. */
+      function findLock(moving){
+        const group = groupOf(moving), mine = new Set(group.map(o => o.id));
+        const reach = 70 / vs;
+        let best = null, bestD = Infinity;
+        group.forEach(m => {
+          const a = rect(m);
+          items.forEach(o => {
+            if (mine.has(o.id)) return;
+            const b = rect(o);
+            const across = {
+              right:  [b.l - a.r, Math.min(a.b, b.b) - Math.max(a.t, b.t), Math.min(hOf(m), hOf(o))],
+              left:   [a.l - b.r, Math.min(a.b, b.b) - Math.max(a.t, b.t), Math.min(hOf(m), hOf(o))],
+              bottom: [b.t - a.b, Math.min(a.r, b.r) - Math.max(a.l, b.l), Math.min(m.w, o.w)],
+              top:    [a.t - b.b, Math.min(a.r, b.r) - Math.max(a.l, b.l), Math.min(m.w, o.w)],
+            };
+            Object.keys(across).forEach(side => {
+              const [gap, shared, edge] = across[side];
+              if (gap > reach || gap < -edge * 0.2) return;
+              if (shared < edge * 0.3) return;
+              if (sideTaken(m, side) || sideTaken(o, OPP[side])) return;
+              if (Math.abs(gap) < bestD){ bestD = Math.abs(gap); best = { m, o, side }; }
+            });
+          });
+        });
+        return best;
+      }
+
+      function lockOffered(){
+        if (!cand) return;
+        const { m, o, side } = cand;
+        cand = null;
+        locks.push({ p:m.id, c:o.id, side });
+        regroup();
+        clustered = false;
+        // the one being brought over is what moves; what it met stays put
+        settle(() => relay(o));
+        select(m);
+        sync(); save();
+      }
+      function unlock(l){
+        locks = locks.filter(x => x !== l);
+        regroup();
+        clustered = false;
+        // the two let go of each other a little, so it is seen to have happened
+        const p = byId(l.p), c = byId(l.c);
+        if (p && c){
+          const push = 14 / vs, dir = { right:[1,0], left:[-1,0], bottom:[0,1], top:[0,-1] }[l.side];
+          settle(() => groupOf(c).forEach(o => { o.x += dir[0] * push; o.y += dir[1] * push; place(o); }));
+        }
+        joints(); save();
+      }
+
+      /* The marks between images: a plus where a lock is on offer, a minus
+         on each lock of the picked image. Drawn on the board itself, at one
+         size on the glass whatever the zoom. */
+      function jointAt(a, b, side){
+        const ra = rect(a), rb = rect(b);
+        if (side === 'right' || side === 'left'){
+          const x = side === 'right' ? (ra.r + rb.l) / 2 : (ra.l + rb.r) / 2;
+          return { x, y:(Math.max(ra.t, rb.t) + Math.min(ra.b, rb.b)) / 2 };
+        }
+        const y = side === 'bottom' ? (ra.b + rb.t) / 2 : (ra.t + rb.b) / 2;
+        return { x:(Math.max(ra.l, rb.l) + Math.min(ra.r, rb.r)) / 2, y };
+      }
+      function joints(){
+        stage.querySelectorAll('.rf-joint').forEach(j => j.remove());
+        const mark = (pt, cls, label, data) => {
+          const j = Object.assign(document.createElement('button'),
+            { type:'button', className:`rf-joint ${cls}` });
+          j.setAttribute('aria-label', label);
+          j.style.left = pt.x + 'px';
+          j.style.top = pt.y + 'px';
+          Object.assign(j.dataset, data);
+          stage.appendChild(j);
+        };
+        if (cand) mark(jointAt(cand.m, cand.o, cand.side), 'rf-lock', 'Lock these two together', {});
+        if (sel){
+          locks.forEach((l, i) => {
+            if (l.p !== sel.id && l.c !== sel.id) return;
+            const p = byId(l.p), c = byId(l.c);
+            if (p && c) mark(jointAt(p, c, l.side), 'rf-unlock', 'Unlock', { lock:String(i) });
+          });
+        }
       }
 
       /* ---------- ADDING ----------
          Images go in a small spiral round the middle of whatever is on
-         screen. A .zip is a board coming back: its references.json says
-         where everything sat, and it is laid out that way — beside the
-         board if there is already one there, so nothing lands on top of
-         anything. */
+         screen, or exactly where they were dropped. A .zip is a board coming
+         back: its references.json says where everything sat and what was
+         locked to what, and it is laid out that way — beside the board if
+         there is already one there, so nothing lands on top of anything. */
       const isZip = f => /\.zip$/i.test(f.name) || /zip/.test(f.type);
       const isImage = f => /^image\//.test(f.type) || /\.(png|jpe?g|webp|gif|avif|heic|heif)$/i.test(f.name);
 
@@ -9461,15 +9720,24 @@
         });
       }
 
-      async function addEntries(entries){
+      async function addEntries(entries, lockSpec){
         const wasEmpty = !items.length;
         const ok = [];
         for (const en of entries){
           try { ok.push({ ...en, ar: await measure(en.blob) }); } catch {}
         }
         if (!ok.length) return { added:0, refused:entries.length };
+        const made = [], byKey = {};
+        const make = (en, x, y, w, z) => {
+          const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar, x, y, w, z,
+                       gid:null, garment:en.garment || null };
+          items.push(it); mount(it); made.push(it);
+          if (en.key) byKey[en.key] = it;
+          return it;
+        };
 
-        const laid = ok.filter(en => en.lay), loose = ok.filter(en => !en.lay);
+        const laid = ok.filter(en => en.lay), at = ok.filter(en => en.at),
+              loose = ok.filter(en => !en.lay && !en.at);
 
         // a board coming back keeps its shape, set beside what is already here
         if (laid.length){
@@ -9479,41 +9747,42 @@
             const left = Math.min(...laid.map(en => en.lay.x - en.lay.w / 2));
             dx = right - left + CSPACE;
           }
-          const zs = laid.map(en => en.lay.z || 0), z0 = Math.min(...zs);
-          laid.forEach(en => {
-            const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar,
-                         x:en.lay.x + dx, y:en.lay.y, w:en.lay.w, z:zTop + 1 + (en.lay.z || 0) - z0 };
-            items.push(it); mount(it);
-          });
+          const z0 = Math.min(...laid.map(en => en.lay.z || 0));
+          laid.forEach(en => make(en, en.lay.x + dx, en.lay.y, en.lay.w, zTop + 1 + (en.lay.z || 0) - z0));
           zTop = Math.max(zTop, ...items.map(it => it.z));
         }
-
+        at.forEach(en => make(en, en.at.x, en.at.y, boxW(en.ar, BOX), ++zTop));
         if (loose.length){
-          const c = { x: -vx / vs, y: (-vy + 20) / vs };
+          const c = toWorld(W() / 2, H() / 2 - 20);
           const pts = packOffsets(loose.length);
           const k = (BOX + 30) / SPACING;      // packOffsets is spaced for garments
-          loose.forEach((en, i) => {
-            const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar,
-                         x:c.x + pts[i][0] * k, y:c.y + pts[i][1] * k,
-                         w:boxW(en.ar, BOX), z:++zTop };
-            items.push(it); mount(it);
+          loose.forEach((en, i) =>
+            make(en, c.x + pts[i][0] * k, c.y + pts[i][1] * k, boxW(en.ar, BOX), ++zTop));
+        }
+
+        if (lockSpec && lockSpec.length){
+          lockSpec.forEach(l => {
+            const p = byKey[l.p], c = byKey[l.c];
+            if (p && c && OPP[l.side]) locks.push({ p:p.id, c:c.id, side:l.side });
           });
+          regroup();
+          made.forEach(it => { if (it.gid && !made.some(o => o.gid === it.gid && o !== it && o.z < it.z)) relay(it); });
         }
 
         clustered = false;
         if (wasEmpty || laid.length) settle(fit);
-        sync(); save();
+        sync(); save(); paintGarments();
         return { added:ok.length, refused:entries.length - ok.length };
       }
 
       async function addFiles(list){
         const files = [...(list || [])];
-        if (!files.length) return;
-        if (!SOURCES.mine.editable) return;
+        if (!files.length || !SOURCES.mine.editable) return;
         let added = 0, refused = 0;
         for (const f of files.filter(isZip)){
           try {
-            const r = await addEntries(await readBoard(f));
+            const board = await readBoard(f);
+            const r = await addEntries(board.entries, board.locks);
             added += r.added; refused += r.refused;
           } catch { refused++; }
         }
@@ -9533,27 +9802,74 @@
          garments are. Pressed again it deals them into the spiral in a new
          order — a new shape from the same images.
 
+         A locked group goes in as one piece, its images brought to the
+         cluster's size together so the group keeps its shape and its gaps.
+         With groups on the board the pieces are no longer one size, so each
+         is laid at the first point along the same spiral where it clears
+         everything already laid.
+
          The layout it replaced is kept, once, the first time it is pressed
          after the reader arranged things by hand. Reverse is that layout. */
       const snap = () => items.map(it => ({ id:it.id, x:it.x, y:it.y, w:it.w }));
+      function shuffle(a){
+        for (let i = a.length - 1; i > 0; i--){
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
 
       function cluster(){
         if (items.length < 2){ say('Add a few images first'); return; }
         if (!clustered) before = snap();
-        const order = items.slice();
-        for (let i = order.length - 1; i > 0; i--){
-          const j = Math.floor(Math.random() * (i + 1));
-          [order[i], order[j]] = [order[j], order[i]];
-        }
-        const pts = packOffsets(order.length);
-        const k = CSPACE / SPACING;
+        const units = [], seen = new Set();
+        items.forEach(it => {
+          if (seen.has(it.gid || it.id)) return;
+          seen.add(it.gid || it.id);
+          units.push(groupOf(it));
+        });
+        /* Singles are dealt in a new order every press. Groups go down
+           first, the biggest in the middle, so the pieces that cannot be
+           moved apart are the ones the rest gather round. */
+        shuffle(units);
+        units.sort((a, b) => (b.length > 1 ? b.length : 0) - (a.length > 1 ? a.length : 0));
+
         settle(() => {
-          order.forEach((it, i) => {
-            it.x = pts[i][0] * k; it.y = pts[i][1] * k; it.w = boxW(it.ar, CBOX);
-            place(it);
-          });
+          if (units.every(u => u.length === 1)){
+            const pts = packOffsets(units.length), k = CSPACE / SPACING;
+            units.forEach(([it], i) => {
+              it.x = pts[i][0] * k; it.y = pts[i][1] * k; it.w = boxW(it.ar, CBOX);
+              place(it);
+            });
+          } else {
+            const margin = (CSPACE - CBOX) / 2, step = CSPACE * 0.22;
+            const laid = [];
+            const clear = r => laid.every(o => r.r + margin <= o.l - margin || r.l - margin >= o.r + margin ||
+                                                r.b + margin <= o.t - margin || r.t - margin >= o.b + margin);
+            units.forEach(u => {
+              // the group comes to the cluster's size as one
+              const mean = u.reduce((s, it) => s + Math.max(it.w, hOf(it)), 0) / u.length;
+              const k = CBOX / mean;
+              u.forEach(it => { it.w *= k; });
+              relay(u[0]);
+              const bx = u.map(rect);
+              const box = { l:Math.min(...bx.map(r => r.l)), r:Math.max(...bx.map(r => r.r)),
+                            t:Math.min(...bx.map(r => r.t)), b:Math.max(...bx.map(r => r.b)) };
+              const cx = (box.l + box.r) / 2, cy = (box.t + box.b) / 2;
+              for (let i = 0; i < 20000; i++){
+                const r = step * Math.sqrt(i), a = i * GOLDEN;
+                const px = Math.cos(a) * r, py = Math.sin(a) * r;
+                const cand = { l:box.l - cx + px, r:box.r - cx + px, t:box.t - cy + py, b:box.b - cy + py };
+                if (!clear(cand)) continue;
+                u.forEach(it => { it.x += px - cx; it.y += py - cy; place(it); });
+                laid.push(cand);
+                break;
+              }
+            });
+          }
           fit();
         });
+        cand = null;
         clustered = true;
         sync(); save();
       }
@@ -9567,9 +9883,12 @@
             it.x = s.x; it.y = s.y; it.w = s.w;
             place(it);
           });
+          // a lock made since the cluster still holds
+          const done = new Set();
+          items.forEach(it => { if (it.gid && !done.has(it.gid)){ done.add(it.gid); relay(it); } });
           fit();
         });
-        before = null; clustered = false;
+        before = null; clustered = false; cand = null;
         sync(); save();
       }
 
@@ -9578,8 +9897,8 @@
         if (!window.confirm('Clear every image from the board? Export first to keep them.')) return;
         select(null);
         items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
-        items = []; before = null; clustered = false;
-        fit(); sync(); save();
+        items = []; locks = []; before = null; clustered = false; cand = null;
+        joints(); fit(); sync(); save(); paintGarments();
       }
 
       /* ---------- THE FILE ----------
@@ -9676,62 +9995,194 @@
 
       const TYPES = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', webp:'image/webp',
                       gif:'image/gif', avif:'image/avif', heic:'image/heic', heif:'image/heif' };
+      const extOfName = n => ((n.match(/\.([a-z0-9]+)$/i) || [])[1] || '').toLowerCase();
       const extOf = it => {
         const byType = Object.keys(TYPES).find(k => TYPES[k] === it.blob.type);
-        const byName = ((it.name || '').match(/\.([a-z0-9]+)$/i) || [])[1];
-        return (byType === 'jpeg' ? 'jpg' : byType) || (byName || 'png').toLowerCase();
+        return (byType === 'jpeg' ? 'jpg' : byType) || extOfName(it.name || '') || 'png';
       };
 
       async function readBoard(file){
         const entries = await readZip(file);
         const man = entries.find(en => en.name === 'references.json');
-        let lay = {};
+        let lay = {}, lockSpec = [];
         if (man){
           try {
             const m = JSON.parse(dec.decode(man.data));
             (m.items || []).forEach(r => { if (r && r.file) lay[r.file] = r; });
+            if (Array.isArray(m.locks)) lockSpec = m.locks;
           } catch {}
         }
-        const imgs = entries.filter(en => TYPES[(en.name.match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase()]);
+        const imgs = entries.filter(en => TYPES[extOfName(en.name)]);
         if (!imgs.length) throw new Error('no images');
         // in the order they were laid down, so the stacking comes back too
         imgs.sort((a, b) => ((lay[a.name] || {}).z || 0) - ((lay[b.name] || {}).z || 0));
-        return imgs.map(en => {
-          const r = lay[en.name];
-          const type = TYPES[en.name.match(/\.([a-z0-9]+)$/i)[1].toLowerCase()];
-          const ok = r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0;
-          return { blob:new Blob([en.data], { type }), name:(r && r.name) || en.name,
-                   lay: ok ? { x:r.x, y:r.y, w:r.w, z:r.z || 0 } : null };
-        });
+        return {
+          locks: lockSpec,
+          entries: imgs.map(en => {
+            const r = lay[en.name];
+            const ok = r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0;
+            return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
+                     name:(r && r.name) || en.name, garment:(r && r.garment) || null,
+                     lay: ok ? { x:r.x, y:r.y, w:r.w, z:r.z || 0 } : null };
+          }),
+        };
+      }
+
+      /* BMU-References-001, -002 … counted in this browser, so a reader's
+         exports line up in their downloads in the order they were made. */
+      function nextExportName(){
+        let n = 1;
+        try {
+          n = (parseInt(localStorage.getItem('bmu-refs-exports'), 10) || 0) + 1;
+          localStorage.setItem('bmu-refs-exports', String(n));
+        } catch {}
+        return `BMU-References-${String(n).padStart(3, '0')}.zip`;
       }
 
       async function exportBoard(){
         if (!items.length){ say('Nothing to export yet'); return; }
         const order = items.slice().sort((a, b) => a.z - b.z);
-        const pad = String(order.length).length < 2 ? 2 : String(order.length).length;
+        const pad = Math.max(2, String(order.length).length);
+        const fileOf = {};
         const files = [], man = {
           format:'bmu-references', version:1, exported:new Date().toISOString(),
           note:'Add this file back with the plus on the BMU archive reference board.',
-          items:[],
+          items:[], locks:[],
         };
         for (let i = 0; i < order.length; i++){
           const it = order[i];
           const file = `${String(i + 1).padStart(pad, '0')}.${extOf(it)}`;
+          fileOf[it.id] = file;
           files.push({ name:file, data:new Uint8Array(await it.blob.arrayBuffer()) });
-          man.items.push({ file, name:it.name || file, x:Math.round(it.x), y:Math.round(it.y),
-                           w:Math.round(it.w), z:i + 1 });
+          const row = { file, name:it.name || file, x:Math.round(it.x * 10) / 10,
+                        y:Math.round(it.y * 10) / 10, w:Math.round(it.w * 10) / 10, z:i + 1 };
+          if (it.garment) row.garment = it.garment;
+          man.items.push(row);
         }
+        man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
+                         .filter(l => l.p && l.c);
         files.unshift({ name:'references.json', data:enc.encode(JSON.stringify(man, null, 2)) });
-        const d = new Date(), two = n => String(n).padStart(2, '0');
         const a = document.createElement('a');
         a.href = URL.createObjectURL(makeZip(files));
-        a.download = `bmu-references-${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}.zip`;
+        a.download = nextExportName();
         document.body.appendChild(a);
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        say(`Exported ${order.length} image${order.length === 1 ? '' : 's'}`);
+        say(`Exported ${String(order.length).padStart(2, '0')}`);
       }
+
+      /* ---------- FROM THE ARCHIVE ----------
+         The plus on a garment's tab puts it in the tray, not on the board:
+         the board is the reader's to arrange, so the garment waits above
+         the bar until it is dragged on (or pressed, which drops it in the
+         middle). The tray is only ids and the photograph's address, so it
+         is kept in localStorage and is there from the first paint — which
+         is what lets the middle button wear its square before the board has
+         ever been opened. */
+      const TRAY_KEY = 'bmu-refs-tray';
+      let waiting = [];
+      try { waiting = JSON.parse(localStorage.getItem(TRAY_KEY) || '[]').filter(g => g && g.id && g.src); } catch {}
+      const keepTray = () => { try { localStorage.setItem(TRAY_KEY, JSON.stringify(waiting)); } catch {} };
+
+      const badge = Object.assign(document.createElement('span'), { className:'rf-badge' });
+      badge.setAttribute('aria-hidden', 'true');
+      dockExplore.appendChild(badge);
+
+      function paintGarments(){
+        const queued = new Set(waiting.map(g => g.id));
+        document.querySelectorAll('.item').forEach(el => {
+          const on = queued.has(el.dataset.id);
+          el.querySelectorAll('.btn-ref-inline').forEach(b => b.setAttribute('aria-pressed', on ? 'true' : 'false'));
+        });
+        const show = waiting.length > 0 && !isOpen;
+        if (show && !badge.classList.contains('on')){
+          badge.classList.remove('pop'); void badge.offsetWidth; badge.classList.add('pop');
+        }
+        badge.classList.toggle('on', show);
+        dockExplore.classList.toggle('has-waiting', show);
+        drawTray();
+      }
+
+      function queueGarment(g){
+        const at = waiting.findIndex(w => w.id === g.id);
+        if (at >= 0){
+          waiting.splice(at, 1);
+          keepTray(); paintGarments();
+          return false;
+        }
+        waiting.push(g);
+        keepTray();
+        badge.classList.remove('pop');
+        paintGarments();
+        void badge.offsetWidth; badge.classList.add('pop');
+        return true;
+      }
+
+      function drawTray(){
+        tray.innerHTML = '';
+        tray.hidden = !waiting.length;
+        waiting.forEach(g => {
+          const b = Object.assign(document.createElement('button'), { type:'button', className:'rf-wait' });
+          b.dataset.id = g.id;
+          b.setAttribute('aria-label', `Add ${g.name} to the board`);
+          const img = document.createElement('img');
+          img.src = g.src; img.alt = ''; img.draggable = false;
+          b.appendChild(img);
+          tray.appendChild(b);
+        });
+      }
+
+      async function landGarment(id, sx, sy){
+        const i = waiting.findIndex(w => w.id === id);
+        if (i < 0) return;
+        const g = waiting[i];
+        try {
+          const r = await fetch(g.src);
+          if (!r.ok) throw new Error(r.status);
+          const blob = await r.blob();
+          const name = `${g.ref || g.name}.${extOfName(g.src) || 'png'}`;
+          const at = sx == null ? toWorld(W() / 2, H() / 2 - 40) : toWorld(sx, sy);
+          const res = await addEntries([{ blob, name, at, garment:g.id }]);
+          if (!res.added) throw new Error('unreadable');
+          waiting.splice(waiting.findIndex(w => w.id === id), 1);
+          keepTray(); paintGarments();
+        } catch { say('That garment could not be loaded'); }
+      }
+
+      // dragged out of the tray: a copy follows the finger, and lets go where it lands
+      let ghost = null, tg = null;
+      tray.addEventListener('pointerdown', e => {
+        const b = e.target.closest('.rf-wait');
+        if (!b || e.button > 0) return;
+        e.preventDefault();
+        tray.setPointerCapture(e.pointerId);
+        tg = { id:b.dataset.id, pid:e.pointerId, sx:e.clientX, sy:e.clientY, moved:false, src:b.querySelector('img').src };
+      });
+      tray.addEventListener('pointermove', e => {
+        if (!tg || e.pointerId !== tg.pid) return;
+        if (!tg.moved && Math.hypot(e.clientX - tg.sx, e.clientY - tg.sy) < 6) return;
+        if (!ghost){
+          ghost = Object.assign(document.createElement('img'), { className:'rf-ghost', src:tg.src, alt:'' });
+          document.body.appendChild(ghost);
+        }
+        tg.moved = true;
+        ghost.style.left = e.clientX + 'px';
+        ghost.style.top = e.clientY + 'px';
+      });
+      const trayUp = e => {
+        if (!tg || e.pointerId !== tg.pid) return;
+        const t = tg; tg = null;
+        if (ghost){ ghost.remove(); ghost = null; }
+        if (e.type === 'pointercancel') return;
+        if (!t.moved){ landGarment(t.id); return; }
+        // back over the tray or the bar is a change of mind
+        const over = document.elementFromPoint(e.clientX, e.clientY);
+        if (over && over.closest('#refsTray, #dock')) return;
+        landGarment(t.id, e.clientX, e.clientY);
+      };
+      tray.addEventListener('pointerup', trayUp);
+      tray.addEventListener('pointercancel', trayUp);
 
       /* ---------- KEPT IN THIS BROWSER ----------
          Best effort, and never waited on: a private window, or a browser
@@ -9753,8 +10204,9 @@
           try {
             const d = await db();
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
-              items: items.map(({ id, blob, name, ar, x, y, w, z }) => ({ id, blob, name, ar, x, y, w, z })),
-              before, clustered,
+              items: items.map(({ id, blob, name, ar, x, y, w, z, gid, garment }) =>
+                               ({ id, blob, name, ar, x, y, w, z, gid, garment })),
+              locks, before, clustered,
             }, 'mine');
           } catch {}
         }, 350);
@@ -9773,6 +10225,8 @@
             const it = { ...s };
             items.push(it); mount(it);
           });
+          locks = (got.locks || []).filter(l => byId(l.p) && byId(l.c));
+          regroup();
           zTop = Math.max(1, ...items.map(it => it.z || 0));
           before = got.before || null;
           clustered = !!got.clustered;
@@ -9783,9 +10237,10 @@
       }
 
       /* ---------- HANDLING THE BOARD ----------
-         One finger, or the mouse: on an image it moves it, on its corner it
-         sizes it, on the board it pans. Two fingers: on an image they size
-         it, on the board they zoom. The wheel zooms, as it does in explore. */
+         One finger, or the mouse: on an image it moves it (and whatever is
+         locked to it), on its corner it sizes it, on the board it pans. Two
+         fingers: on an image they size it, on the board they zoom. The
+         wheel zooms, as it does in explore. */
       const pts = new Map();
       let g = null;
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -9793,7 +10248,7 @@
 
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
-        if (e.target.closest('.rf-del, #refsHead button, #refsEmpty button')) return;
+        if (e.target.closest('.rf-del, .rf-joint, #refsEmpty button, #refsTray')) return;
         root.setPointerCapture(e.pointerId);
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
 
@@ -9814,9 +10269,11 @@
         }
         if (it){
           select(it); front(it);
-          g = { mode:'move', item:it, sx:e.clientX, sy:e.clientY, x0:it.x, y0:it.y, moved:false };
+          g = { mode:'move', item:it, sx:e.clientX, sy:e.clientY, moved:false,
+                from:groupOf(it).map(o => [o, o.x, o.y]) };
           return;
         }
+        cand = null;
         select(null);
         root.classList.add('panning');
         g = { mode:'pan', sx:e.clientX, sy:e.clientY, vx0:vx, vy0:vy };
@@ -9827,10 +10284,11 @@
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
         if (!g) return;
         if (g.mode === 'move'){
-          g.item.x = g.x0 + (e.clientX - g.sx) / vs;
-          g.item.y = g.y0 + (e.clientY - g.sy) / vs;
+          const dx = (e.clientX - g.sx) / vs, dy = (e.clientY - g.sy) / vs;
+          g.from.forEach(([o, x, y]) => { o.x = x + dx; o.y = y + dy; place(o); });
           g.moved = true;
-          place(g.item);
+          cand = findLock(g.item);
+          joints();
         } else if (g.mode === 'pan'){
           vx = g.vx0 + e.clientX - g.sx;
           vy = g.vy0 + e.clientY - g.sy;
@@ -9842,6 +10300,8 @@
           it.w = clamp(half * 2 / vs, 30, 6000);
           g.moved = true;
           place(it);
+          relay(it);
+          joints();
         } else if (g.mode === 'pinch' && pts.size >= 2){
           const [a, b] = [...pts.values()];
           const k = dist(a, b) / (g.d0 || 1);
@@ -9849,6 +10309,8 @@
             g.item.w = clamp(g.w0 * k, 30, 6000);
             g.moved = true;
             place(g.item);
+            relay(g.item);
+            joints();
           } else {
             const n = clamp(g.vs0 * k, 0.05, 6), m = mid(a, b);
             const ox = g.m0.x - W() / 2, oy = g.m0.y - H() / 2;
@@ -9876,7 +10338,12 @@
         if (del){
           const it = byId(del.closest('.rf-item').dataset.id);
           if (it) remove(it);
+          return;
         }
+        const j = e.target.closest('.rf-joint');
+        if (!j) return;
+        if (j.classList.contains('rf-lock')) lockOffered();
+        else { const l = locks[Number(j.dataset.lock)]; if (l) unlock(l); }
       });
 
       root.addEventListener('wheel', e => {
@@ -9888,7 +10355,6 @@
         vy = cy - (cy - vy) * (n / vs);
         vs = n;
         applyView();
-        save();
       }, { passive:false });
 
       // dropped in from the desktop, or pasted
@@ -9929,9 +10395,10 @@
           e.preventDefault(); e.stopPropagation();
           if (!sel) return;
           const step = (e.shiftKey ? 40 : 8) / vs;
-          sel.x += DIRS[e.key][0] * step; sel.y += DIRS[e.key][1] * step;
+          groupOf(sel).forEach(o => { o.x += DIRS[e.key][0] * step; o.y += DIRS[e.key][1] * step; place(o); });
           clustered = false;
-          place(sel); save();
+          cand = findLock(sel);
+          joints(); save();
         }
       }, true);
 
@@ -9943,14 +10410,18 @@
         if (!b || b.disabled) return;
         ({ add:() => fileIn.click(), cluster, reverse, export:exportBoard, clear:clearBoard })[b.dataset.act]();
       });
-      document.getElementById('refsHead').addEventListener('click', e => {
-        const b = e.target.closest('button[data-src]');
-        if (!b) return;
-        const src = SOURCES[b.dataset.src];
-        if (!src.live && b.dataset.src !== 'mine'){ say('The reference bank is on its way'); return; }
-      });
+      wireInfoMark(document.getElementById('refsExportInfo'),
+                   document.getElementById('refsExportPop'));
 
-      /* ---------- IN AND OUT ---------- */
+      /* ---------- IN AND OUT ----------
+         Open, the middle button wears a cross: it is the way back to the
+         archive, and pressing it puts the plus back. */
+      function wearFace(on){
+        if (!FACE.refs) return;
+        FACE.refs.src = on ? '/close-white.svg' : '/plus-white.svg';
+        FACE_LABEL.refs = on ? 'Back to the archive' : 'References';
+        if (currentFace() === 'refs') dockExplore.setAttribute('aria-label', FACE_LABEL.refs);
+      }
       function open(){
         if (isOpen) return;
         isOpen = true;
@@ -9958,6 +10429,8 @@
         root.setAttribute('aria-hidden', 'false');
         document.body.classList.add('refs-on');
         requestAnimationFrame(() => root.classList.add('in'));
+        wearFace(true);
+        paintGarments();
         if (!loaded){ loaded = true; load(); }
         applyView();
         sync();
@@ -9965,17 +10438,25 @@
       function close(){
         if (!isOpen) return;
         isOpen = false;
+        cand = null;
         select(null);
         root.classList.remove('in');
         document.body.classList.remove('refs-on');
         root.setAttribute('aria-hidden', 'true');
+        wearFace(false);
+        paintGarments();
         setTimeout(() => { if (!isOpen) root.hidden = true; }, 320);
       }
+
+      paintGarments();
+      sync();
 
       return {
         open, close,
         toggle(){ isOpen ? close() : open(); },
         isOpen: () => isOpen,
+        queueGarment,
+        paintGarments,
       };
     })();
   </script>

@@ -28,13 +28,16 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   rewrites every `<n>.html`.
 - The middle dock button has four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
-  postMessage, no SoundCloud script). Plus opens **References**: the
-  reader's own image board, a separate layer (`#refs`, `#refsTools`, all
-  `refs`/`rf-` names) that changes nothing else. Kept in the reader's
-  browser (IndexedDB) and carried as an exported `.zip` (images +
-  `references.json`) that the plus reads back. The `bank` source (an
-  Instagram-fed reference bank under `/references/`) is labelled but not
-  built — `SOURCES.bank.live` is false.
+  postMessage, no SoundCloud script). Plus opens **References** (and wears
+  a cross while open): the reader's own image board, a separate layer
+  (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
+  nothing else. Images lock in pairs/groups (5px gap, `locks` tree). Each
+  garment card has a `+` (`.btn-ref-inline`) that queues it in the tray
+  (localStorage `bmu-refs-tray`); a square on the button's corner says
+  garments are waiting. The board is kept in IndexedDB and exported as
+  `BMU-References-NNN.zip` (images + `references.json`, locks included),
+  which the plus reads back. The `bank` source (an Instagram-fed reference
+  bank under `/references/`) is in code only — `SOURCES.bank.live` false.
 - Icons are loose `.svg` at root; `flags/`, `partners/`, `patterns/` are images only.
 
 ## Form submissions
