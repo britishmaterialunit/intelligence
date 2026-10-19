@@ -32,8 +32,12 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   save square), all calling `pressFace(face)`. The old stacked button
   `#dockExplore` is hidden but kept, because the script still speaks to it.
   On a phone the open search bar takes its own row under the squares.
-  Board garments have three views (square top-left: 1 photo, 2 header,
-  3 landscape tab); geometry goes through `wOf`/`hOf`. Originally the
+  Board garments have three views (squares 1/2/3 down the left edge: photo,
+  header, landscape tab); geometry goes through `wOf`/`hOf`. The board's
+  Search (`#refsSearch`) asks Wikimedia Commons and Openverse in parallel —
+  no keys, both CORS-open; Openverse is slow (10–40s) so it is timed out at
+  45s. Each placed result keeps its `credit` (title, creator, licence, page),
+  saved and exported. Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** (and wears
