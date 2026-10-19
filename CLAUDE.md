@@ -27,7 +27,14 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   append-only `NUMBERS` map in `archive.html` — never by position in `ITEMS`,
   never reused, never edited by hand. `seo_build.py` assigns new ones and
   rewrites every `<n>.html`.
-- The middle dock button has four faces: circle (explore), list, play,
+- The dock's four tools are now separate squares beside the search bar
+  (`.dock-tool`: `#dockCircle` `#dockList` `#dockPlay` `#dockRefs`, then the
+  save square), all calling `pressFace(face)`. The old stacked button
+  `#dockExplore` is hidden but kept, because the script still speaks to it.
+  On a phone the open search bar takes its own row under the squares.
+  Board garments have three views (square top-left: 1 photo, 2 header,
+  3 landscape tab); geometry goes through `wOf`/`hOf`. Originally the
+  middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** (and wears
   a cross while open): the reader's own image board, a separate layer

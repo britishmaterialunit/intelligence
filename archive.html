@@ -2301,14 +2301,17 @@
                  opacity .5s cubic-bezier(.4,0,.2,1);
     }
     /* the two tools come out from behind the bar's right edge as it opens */
-    #dockExplore, #dockLibrary, #dockFile{
+    /* the stack is hidden while the faces are laid out as their own squares */
+    #dockExplore{ display:none !important; }
+    .dock-tool img{ display:block; width:16px; height:16px; }
+    #dockExplore, #dockLibrary, #dockFile, .dock-tool{
       transition:opacity .34s cubic-bezier(.4,0,.2,1) .2s,
                  transform .44s cubic-bezier(.65,0,.35,1) .2s;
     }
 
     /* opened: fills the bar width less the arrow square and its gap */
     #dock.open #dockSearch{
-      width:calc(var(--dock-w) - 112px);   /* two 46px buttons + two 10px gaps */
+      width:calc(var(--dock-w) - 280px);   /* five 46px squares + five 10px gaps */
       background:var(--bg);
       cursor:text;
     }
@@ -2375,7 +2378,26 @@
     /* one more square in the row, so the field gives up one more square's
        worth of width when the bar is open */
     body.has-file.dock-list #dock.open #dockSearch{
-      width:calc(var(--dock-w) - 168px);
+      width:calc(var(--dock-w) - 336px);
+    }
+    /* Six squares and a bar do not fit a phone in one row — the bar was
+       left a sliver with its own tools piled on the glass. So on a phone the
+       open bar takes a row of its own, the full measure, and the squares sit
+       in a row above it, at the bar's right-hand end where the thumb is.
+       Closed, the bar is a square like the rest and they all share one row.
+       The board's bar is not the search bar and still fits beside its two. */
+    @media (max-width:640px){
+      #dock{ gap:6px; }
+      #dock .dock-sq{ width:40px; height:40px; }
+      #dock.open{ flex-wrap:wrap; justify-content:flex-end; width:var(--dock-w); }
+      #dock.open #dockSearch,
+      body.has-file.dock-list #dock.open #dockSearch{ order:2; flex-basis:100%; width:100%; }
+      body.dock-list{ padding-bottom:150px; }
+      /* the fade has to reach above the second row as well */
+      body.dock-list::after{
+        height:176px;
+        background:linear-gradient(to top, var(--bg) 0, var(--bg) 64px, transparent 176px);
+      }
     }
 
     @media (max-width:640px){
@@ -3002,8 +3024,114 @@
       outline:calc(1.5px * var(--inv)) solid var(--line);
       outline-offset:calc(5px * var(--inv));
     }
-    .rf-del, .rf-size{ display:none; position:absolute; padding:0; }
-    .rf-item.sel .rf-del, .rf-item.sel .rf-size{ display:block; }
+    .rf-del, .rf-size, .rf-mode{ display:none; position:absolute; padding:0; }
+    .rf-item.sel .rf-del, .rf-item.sel .rf-size, .rf-item.sel .rf-mode{ display:block; }
+    /* the square that steps a garment through its three views */
+    .rf-mode{
+      top:calc(-15px * var(--inv)); left:calc(-15px * var(--inv));
+      width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
+      border:none;
+      background:var(--line);
+      color:#fff;
+      font-family:var(--font);
+      font-size:calc(10px * var(--inv));
+      line-height:calc(20px * var(--inv));
+      text-align:center;
+      font-variant-numeric:tabular-nums;
+      cursor:pointer;
+      z-index:2;
+    }
+    @media (pointer:coarse){
+      .rf-mode{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
+                line-height:calc(28px * var(--inv));
+                top:calc(-20px * var(--inv)); left:calc(-20px * var(--inv)); }
+    }
+
+    /* Everything here is measured off --w, the photograph's own width, so a
+       header or a tab grows and shrinks with the garment it belongs to and
+       the board's sums (HDR, PANEL) are exactly what is drawn. */
+    .rf-head, .rf-panel{ display:none; }
+    .rf-item.rf-m2, .rf-item.rf-m3{
+      background:var(--bg);
+      box-shadow:0 0 0 calc(1px * var(--inv)) #e4e4e4;
+    }
+    .rf-item.rf-m2 img, .rf-item.rf-m3 img{ box-shadow:none; }
+    .rf-item.rf-m2 .rf-head{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:calc(var(--w) * .018);
+      height:calc(var(--w) * .22);
+      padding:0 calc(var(--w) * .05);
+      border-bottom:calc(1px * var(--inv)) solid #ececec;
+      overflow:hidden;
+    }
+    .rh-top{
+      display:flex; align-items:center; gap:calc(var(--w) * .03);
+      font-size:calc(var(--w) * .038);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink);
+      font-weight:bold;
+      white-space:nowrap;
+    }
+    .rh-top .rh-cat{ font-weight:400; color:#9a9a9a; margin-left:auto; }
+    /* the flag is an <img> inside an item, so it has to outrank the item's
+       own picture rule, which would stretch it to the full width */
+    .rf-item .rh-flag{ height:calc(var(--w) * .05); width:auto; display:block; flex:none; box-shadow:none; }
+    .rh-name{
+      font-size:calc(var(--w) * .046);
+      line-height:1.3;
+      font-weight:bold;
+      color:var(--ink);
+      overflow:hidden;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+    }
+    .rh-ref{ margin-left:.55em; font-weight:400; color:#b4b4b4; font-size:.8em; letter-spacing:.14em; }
+
+    .rf-item.rf-m3{ display:grid; grid-template-columns:var(--w) var(--w); }
+    .rf-item.rf-m3 > img{ grid-column:1; grid-row:1; }
+    .rf-item.rf-m3 .rf-panel{
+      grid-column:2; grid-row:1;
+      display:flex;
+      flex-direction:column;
+      height:var(--ih);
+      padding:calc(var(--w) * .07);
+      border-left:calc(1px * var(--inv)) solid #ececec;
+      overflow:hidden;
+      color:var(--ink);
+    }
+    .rp-nation{
+      display:flex; align-items:center; gap:calc(var(--w) * .03);
+      font-size:calc(var(--w) * .04);
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:bold;
+    }
+    .rp-name{ margin-top:calc(var(--w) * .05); font-size:calc(var(--w) * .062); line-height:1.25; font-weight:bold; }
+    .rp-ref{ margin-top:calc(var(--w) * .02); font-size:calc(var(--w) * .036); letter-spacing:.2em; color:#9a9a9a; }
+    .rp-facts{
+      margin:calc(var(--w) * .06) 0 0;
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:calc(var(--w) * .012) calc(var(--w) * .05);
+      font-size:calc(var(--w) * .04);
+    }
+    .rp-facts dt{ color:#9a9a9a; }
+    .rp-facts dd{ margin:0; }
+    .rp-open{
+      margin-top:auto;
+      align-self:flex-start;
+      padding:calc(var(--w) * .025) calc(var(--w) * .045);
+      border:calc(1.5px * var(--inv)) solid var(--line);
+      font-size:calc(var(--w) * .034);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      text-decoration:none;
+      color:var(--ink);
+    }
+    .rp-open:hover{ background:var(--faint); }
     .rf-del{
       top:calc(-15px * var(--inv)); right:calc(-15px * var(--inv));
       width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
@@ -3055,12 +3183,14 @@
     #refsTools{ display:none; }
     body.refs-on #dockSearch,
     body.refs-on #dockLibrary,
-    body.refs-on #dockFile{ display:none !important; }
+    body.refs-on #dockFile,
+    body.refs-on #dockCircle,
+    body.refs-on #dockList{ display:none !important; }
     body.refs-on #refsTools{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      width:calc(var(--dock-w) - 56px);
+      width:calc(var(--dock-w) - 112px);
       padding:0 6px;
       background:var(--bg);
       cursor:default;
@@ -3169,7 +3299,7 @@
     }
 
     /* the square on the middle button's corner: garments are waiting */
-    #dockExplore{ position:relative; overflow:visible; }
+    #dockExplore, #dockRefs{ position:relative; overflow:visible; }
     /* It carries the count: how many garments are waiting in the tray. */
     .rf-badge{
       position:absolute;
@@ -3198,6 +3328,7 @@
     #refsTools svg .st{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
     @media (max-width:640px){
       #refsTools button span{ display:none; }
+      body.refs-on #refsTools{ width:calc(var(--dock-w) - 92px); height:40px; }
     }
     @media (prefers-reduced-motion:reduce){
       #refs, #refs.rf-moving #refsStage, #refs.rf-moving .rf-item{ transition:none; }
@@ -3442,6 +3573,23 @@
         <img class="face face-play" src="/play-white.svg" alt="" aria-hidden="true" width="16" height="16">
         <img class="face face-refs" src="/plus-white.svg" alt="" aria-hidden="true" width="16" height="16">
       </span>
+    </button>
+    <!-- The four faces, each a square of its own. The stack above held them
+         behind one button you had to scroll or swipe to change, and nothing
+         said it could be — so this lays them out side by side to see how it
+         reads. The stack is kept, hidden, because the rest of the script
+         still speaks to it; every square here runs the same press. -->
+    <button type="button" id="dockCircle" class="dock-sq dock-tool" data-face="explore" aria-label="Explore the archive">
+      <img src="/circle-white.svg" alt="" aria-hidden="true" width="16" height="16">
+    </button>
+    <button type="button" id="dockList" class="dock-sq dock-tool" data-face="list" aria-label="Nation list">
+      <img src="/menu-white.svg" alt="" aria-hidden="true" width="16" height="16">
+    </button>
+    <button type="button" id="dockPlay" class="dock-sq dock-tool" data-face="play" aria-label="Play the archive’s music" aria-pressed="false">
+      <img src="/play-white.svg" alt="" aria-hidden="true" width="16" height="16">
+    </button>
+    <button type="button" id="dockRefs" class="dock-sq dock-tool" data-face="refs" aria-label="References" aria-pressed="false">
+      <img src="/plus-white.svg" alt="" aria-hidden="true" width="16" height="16">
     </button>
     <!-- Only for a reader who is signed in, and only on the list: the way
          back to their own file from inside the archive. -->
@@ -7134,6 +7282,7 @@
         setTimeout(() => gatherSaved(), 40);
       }
       dockExplore.setAttribute('aria-pressed', 'true');
+      document.getElementById('dockCircle').setAttribute('aria-pressed', 'true');
       document.body.classList.add('exploring');
       document.body.style.overflow = 'hidden';
       // the dock returns to the middle of the screen for explore
@@ -7208,6 +7357,7 @@
       exploreOn = false;
       explore.setAttribute('aria-hidden', 'true');
       dockExplore.setAttribute('aria-pressed', 'false');
+      document.getElementById('dockCircle').setAttribute('aria-pressed', 'false');
       document.body.classList.remove('exploring');
       document.body.style.overflow = '';
       exploreClosing = false;
@@ -7555,10 +7705,29 @@
       soundOn = !!on;
       if (FACE.play) FACE.play.src = on ? '/pause-white.svg' : '/play-white.svg';
       dockExplore.setAttribute('aria-pressed', on ? 'true' : 'false');
+      const sq = document.getElementById('dockPlay');
+      if (sq){
+        sq.querySelector('img').src = on ? '/pause-white.svg' : '/play-white.svg';
+        sq.setAttribute('aria-pressed', on ? 'true' : 'false');
+        sq.setAttribute('aria-label', on ? 'Pause the archive\u2019s music' : 'Play the archive\u2019s music');
+      }
     }
 
     dockExplore.addEventListener('click', e => {
       if (swiped){ swiped = false; return; }       // that was a swipe
+      pressFace(currentFace());
+    });
+
+    /* The faces as squares of their own, each running the same press the
+       stack ran for whichever face it was wearing. */
+    document.querySelectorAll('#dock .dock-tool').forEach(b =>
+      b.addEventListener('click', () => pressFace(b.dataset.face)));
+    // the player warms up when a hand comes near play, not only when it is pressed
+    ['pointerenter', 'focus', 'touchstart'].forEach(ev =>
+      document.getElementById('dockPlay').addEventListener(ev, () => { try { scEnsure(); } catch {} },
+                                                           { passive:true }));
+
+    function pressFace(pressed){
 
       /* The plus is the reference board, and it is answered before anything
          else here: the board is its own layer over the archive, whatever
@@ -7566,9 +7735,11 @@
          and leaves the archive exactly as it was. The music plays over the
          board; the circle and the list put the board away and then do what
          they always do. */
-      const pressed = currentFace();
       if (pressed === 'refs'){ references.toggle(); return; }
       if (pressed !== 'play' && references.isOpen()) references.close();
+      /* Play is its own square now, so it plays — it used to be the stack
+         wearing a face, and pressing any face but the list opened the door. */
+      if (pressed === 'play'){ toggleSound(); return; }
 
       /* While the door is shut this button is either the key or the way
          round — whichever glyph it is wearing. The circle opens the field it
@@ -7576,7 +7747,7 @@
          the way, because a reader who has chosen the list has answered the
          question the door was asking. */
       if (gateShut()){
-        if (currentFace() === 'list'){
+        if (pressed === 'list'){
           revealed = true;
           document.body.classList.remove('gated');
           spiral.classList.remove('sp-waiting');
@@ -7592,9 +7763,7 @@
         return;
       }
 
-      const face = currentFace();
-
-      if (face === 'play'){ toggleSound(); return; }
+      const face = pressed;
 
       if (face === 'list'){
         /* ---------- THE LIST, FROM THE TOP ----------
@@ -7662,7 +7831,7 @@
       } else {
         glide(() => fitSpiral());
       }
-    });
+    }
 
     /* Resetting to the whole archive. The field used to slide back to its
        opening shape with whatever was already on screen staying on screen,
@@ -8139,6 +8308,8 @@
     onceAtATime(document.getElementById('savedBtn'), 900);
     onceAtATime(document.getElementById('dqExplore'), 900);
     onceAtATime(document.getElementById('dockExplore'), 900);
+    onceAtATime(document.getElementById('dockCircle'), 900);
+    onceAtATime(document.getElementById('dockList'), 900);
     onceAtATime(document.getElementById('dqFlag'), 1100);
     onceAtATime(document.getElementById('dqFlagFR'), 1100);
     onceAtATime(document.getElementById('flagBtn'), 1100);
@@ -9521,8 +9692,26 @@
       const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
       const byId = id => items.find(it => it.id === id);
       const W = () => root.clientWidth, H = () => root.clientHeight;
-      const hOf = it => it.w * it.ar;
-      const rect = it => ({ l:it.x - it.w / 2, r:it.x + it.w / 2,
+      /* ---------- THREE WAYS TO SHOW A GARMENT ----------
+         A garment brought from the archive knows what it is, so it can say
+         so. The square in its top-left corner, once it is picked, steps
+         through three views:
+
+           1  the photograph, as it is
+           2  the photograph under its header: flag, nation, type, name, ref
+           3  the archive's own tab, laid landscape: the photograph and,
+              beside it, the record — nation, name, ref, type, era,
+              material, and the way back to it in the archive
+
+         `w` is always the photograph's width; the views add to it, a header
+         of HDR × w above or a panel of PANEL × w beside. Every measurement
+         below goes through wOf/hOf, so locking, the gap, clustering and
+         sizing treat a garment in its tab exactly as they treat a picture. */
+      const HDR = 0.22, PANEL = 1;
+      const modeOf = it => (it.garment && it.mode) || 1;
+      const wOf = it => it.w * (modeOf(it) === 3 ? 1 + PANEL : 1);
+      const hOf = it => it.w * it.ar + (modeOf(it) === 2 ? it.w * HDR : 0);
+      const rect = it => ({ l:it.x - wOf(it) / 2, r:it.x + wOf(it) / 2,
                             t:it.y - hOf(it) / 2, b:it.y + hOf(it) / 2 });
       const groupOf = it => it.gid ? items.filter(o => o.gid === it.gid) : [it];
 
@@ -9583,8 +9772,65 @@
       function place(it){
         it.el.style.left = it.x + 'px';
         it.el.style.top = it.y + 'px';
-        it.el.style.width = it.w + 'px';
+        it.el.style.width = wOf(it) + 'px';
         it.el.style.zIndex = it.z;
+        it.el.style.setProperty('--w', it.w + 'px');
+        it.el.style.setProperty('--ih', it.w * it.ar + 'px');
+        const m = modeOf(it);
+        it.el.classList.toggle('rf-m2', m === 2);
+        it.el.classList.toggle('rf-m3', m === 3);
+        const sq = it.el.querySelector('.rf-mode');
+        if (sq) sq.textContent = String(m);
+      }
+
+      /* What the archive knows about a garment, read from the register the
+         page already holds — nothing is fetched. */
+      function garmentInfo(id){
+        const p = ITEMS.find(x => `${x.n}/${slugBase(x.name)}` === id);
+        if (!p) return null;
+        const nat = NATIONS.find(n => n.key === p.n) || { label:p.n, flag:'' };
+        return {
+          name:p.name, ref:p.ref || '', cat:p.cat, mat:p.mat && p.mat !== 'Unlisted' ? p.mat : '',
+          nation:nat.label, flag:nat.flag ? `/flags/${nat.flag}` : '',
+          era:(p.name.match(/\b(?:1[89]|20)\d0s\b/) || [''])[0],
+          no:GARMENT_NO.get(id) || 0,
+        };
+      }
+      const escH = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
+      function dressGarment(it){
+        const g = garmentInfo(it.garment);
+        if (!g) return;
+        const flag = g.flag ? `<img class="rh-flag" src="${escH(g.flag)}" alt="" draggable="false">` : '';
+        const head = document.createElement('div');
+        head.className = 'rf-head';
+        head.innerHTML =
+          `<div class="rh-top">${flag}<span>${escH(g.nation)}</span><span class="rh-cat">${escH(g.cat)}</span></div>` +
+          `<div class="rh-name"><span>${escH(g.name)}</span><span class="rh-ref">${escH(g.ref)}</span></div>`;
+        const facts = [['Nation', g.nation], ['Type', g.cat], ['Archive ref', g.ref], ['Era', g.era], ['Material', g.mat]]
+          .filter(f => f[1]).map(f => `<dt>${escH(f[0])}</dt><dd>${escH(f[1])}</dd>`).join('');
+        const panel = document.createElement('div');
+        panel.className = 'rf-panel';
+        panel.innerHTML =
+          `<div class="rp-nation">${flag}<span>${escH(g.nation)}</span></div>` +
+          `<div class="rp-name">${escH(g.name)}</div>` +
+          `<div class="rp-ref">${escH(g.ref)}</div>` +
+          `<dl class="rp-facts">${facts}</dl>` +
+          (g.no ? `<a class="rp-open" href="/archive/${g.no}">Open in the archive</a>` : '');
+        const sq = Object.assign(document.createElement('button'), { type:'button', className:'rf-mode' });
+        sq.setAttribute('aria-label', 'Change how this garment is shown');
+        it.el.insertBefore(head, it.el.firstChild);
+        it.el.insertBefore(panel, it.el.querySelector('.rf-del'));
+        it.el.appendChild(sq);
+        it.el.classList.add('rf-garment');
+      }
+      function cycleMode(it){
+        settle(() => {
+          it.mode = modeOf(it) % 3 + 1;
+          place(it);
+          relay(it);
+        });
+        clustered = false;
+        joints(); save();
       }
       function mount(it){
         it.url = URL.createObjectURL(it.blob);
@@ -9601,6 +9847,7 @@
         const size = Object.assign(document.createElement('span'), { className:'rf-size' });
         el.append(img, del, size);
         it.el = el;
+        if (it.garment) dressGarment(it);
         place(it);
         stage.appendChild(el);
       }
@@ -9643,7 +9890,7 @@
          made bigger and the rest of the group make room rather than overlap. */
       function setBeside(a, b, side){
         if (side === 'right' || side === 'left'){
-          const d = a.w / 2 + GAP + b.w / 2;
+          const d = wOf(a) / 2 + GAP + wOf(b) / 2;
           b.x = a.x + (side === 'right' ? d : -d); b.y = a.y;
         } else {
           const d = hOf(a) / 2 + GAP + hOf(b) / 2;
@@ -9704,7 +9951,7 @@
         const gap = { right:b.l - a.r, left:a.l - b.r, bottom:b.t - a.b, top:a.t - b.b }[side];
         const shared = flat ? Math.min(a.b, b.b) - Math.max(a.t, b.t)
                             : Math.min(a.r, b.r) - Math.max(a.l, b.l);
-        const edge = flat ? Math.min(hOf(m), hOf(o)) : Math.min(m.w, o.w);
+        const edge = flat ? Math.min(hOf(m), hOf(o)) : Math.min(wOf(m), wOf(o));
         const reach = (loose ? 110 : 70) / vs;
         if (gap > reach || gap < -edge * (loose ? 0.35 : 0.2)) return null;
         if (shared < edge * (loose ? 0.15 : 0.3)) return null;
@@ -9846,8 +10093,9 @@
         if (!ok.length) return { added:0, refused:entries.length };
         const made = [], byKey = {};
         const make = (en, x, y, w, z) => {
+          const mode = en.lay && en.lay.mode ? en.lay.mode : 1;
           const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar, x, y, w, z,
-                       gid:null, garment:en.garment || null };
+                       gid:null, garment:en.garment || null, mode };
           items.push(it); mount(it); made.push(it);
           if (en.key) byKey[en.key] = it;
           return it;
@@ -9860,7 +10108,7 @@
         if (laid.length){
           let dx = 0;
           if (items.length){
-            const right = Math.max(...items.map(it => it.x + it.w / 2));
+            const right = Math.max(...items.map(it => rect(it).r));
             const left = Math.min(...laid.map(en => en.lay.x - en.lay.w / 2));
             dx = right - left + CSPACE;
           }
@@ -9965,7 +10213,7 @@
         const deal = shuffle(units.filter(u => !kept.includes(u)));
 
         settle(() => {
-          if (!kept.length && deal.every(u => u.length === 1)){
+          if (!kept.length && deal.every(u => u.length === 1 && modeOf(u[0]) === 1)){
             const pts = packOffsets(deal.length), k = CSPACE / SPACING;
             deal.forEach(([it], i) => {
               it.x = pts[i][0] * k; it.y = pts[i][1] * k; it.w = boxW(it.ar, CBOX);
@@ -9985,7 +10233,7 @@
             const clear = r => laid.every(o => r.r + margin <= o.l - margin || r.l - margin >= o.r + margin ||
                                                 r.b + margin <= o.t - margin || r.t - margin >= o.b + margin);
             deal.forEach(u => {
-              const mean = u.reduce((s, it) => s + Math.max(it.w, hOf(it)), 0) / u.length;
+              const mean = u.reduce((s, it) => s + Math.max(wOf(it), hOf(it)), 0) / u.length;
               const k = CBOX / mean;
               u.forEach(it => { it.w *= k; });
               relay(u[0]);
@@ -10159,7 +10407,7 @@
             const ok = r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0;
             return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
                      name:(r && r.name) || en.name, garment:(r && r.garment) || null,
-                     lay: ok ? { x:r.x, y:r.y, w:r.w, z:r.z || 0 } : null };
+                     lay: ok ? { x:r.x, y:r.y, w:r.w, z:r.z || 0, mode:[1, 2, 3].includes(r.mode) ? r.mode : 1 } : null };
           }),
         };
       }
@@ -10193,6 +10441,7 @@
           const row = { file, name:it.name || file, x:Math.round(it.x * 10) / 10,
                         y:Math.round(it.y * 10) / 10, w:Math.round(it.w * 10) / 10, z:i + 1 };
           if (it.garment) row.garment = it.garment;
+          if (modeOf(it) > 1) row.mode = modeOf(it);
           man.items.push(row);
         }
         man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
@@ -10223,7 +10472,8 @@
 
       const badge = Object.assign(document.createElement('span'), { className:'rf-badge' });
       badge.setAttribute('aria-hidden', 'true');
-      dockExplore.appendChild(badge);
+      const refsSq = document.getElementById('dockRefs');
+      refsSq.appendChild(badge);
 
       function paintGarments(){
         const queued = new Set(waiting.map(g => g.id));
@@ -10237,7 +10487,7 @@
         }
         if (waiting.length) badge.textContent = String(waiting.length);   // kept while it fades out
         badge.classList.toggle('on', show);
-        dockExplore.classList.toggle('has-waiting', show);
+        refsSq.classList.toggle('has-waiting', show);
         drawTray();
       }
 
@@ -10341,8 +10591,8 @@
           try {
             const d = await db();
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
-              items: items.map(({ id, blob, name, ar, x, y, w, z, gid, garment }) =>
-                               ({ id, blob, name, ar, x, y, w, z, gid, garment })),
+              items: items.map(({ id, blob, name, ar, x, y, w, z, gid, garment, mode }) =>
+                               ({ id, blob, name, ar, x, y, w, z, gid, garment, mode })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -10385,7 +10635,7 @@
 
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
-        if (e.target.closest('.rf-del, .rf-joint, #refsEmpty button, #refsTray')) return;
+        if (e.target.closest('.rf-del, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray')) return;
         root.setPointerCapture(e.pointerId);
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
 
@@ -10433,8 +10683,8 @@
         } else if (g.mode === 'size'){
           // sized about its own middle: the corner follows the finger
           const it = g.item, c = toScreen(it.x, it.y);
-          const half = Math.max(Math.abs(e.clientX - c.x), Math.abs(e.clientY - c.y) / it.ar);
-          it.w = clamp(half * 2 / vs, 30, 6000);
+          const kx = wOf(it) / it.w, ky = hOf(it) / it.w;
+          it.w = clamp(Math.max(Math.abs(e.clientX - c.x) * 2 / kx, Math.abs(e.clientY - c.y) * 2 / ky) / vs, 30, 6000);
           g.moved = true;
           place(it);
           relay(it);
@@ -10480,6 +10730,12 @@
         if (del){
           const it = byId(del.closest('.rf-item').dataset.id);
           if (it) remove(it);
+          return;
+        }
+        const sq = e.target.closest('.rf-mode');
+        if (sq){
+          const it = byId(sq.closest('.rf-item').dataset.id);
+          if (it) cycleMode(it);
           return;
         }
         const j = e.target.closest('.rf-joint');
@@ -10564,6 +10820,9 @@
         FACE.refs.src = on ? '/close-white.svg' : '/plus-white.svg';
         FACE_LABEL.refs = on ? 'Back to the archive' : 'References';
         if (currentFace() === 'refs') dockExplore.setAttribute('aria-label', FACE_LABEL.refs);
+        refsSq.querySelector('img').src = on ? '/close-white.svg' : '/plus-white.svg';
+        refsSq.setAttribute('aria-label', FACE_LABEL.refs);
+        refsSq.setAttribute('aria-pressed', on ? 'true' : 'false');
       }
       function open(){
         if (isOpen) return;
