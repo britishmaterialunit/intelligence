@@ -2245,6 +2245,18 @@
     @media (max-width:640px){ .bmu-nodata{ bottom:96px; } }
     @media (prefers-reduced-motion:reduce){ .bmu-nodata{ transition:none; } }
 
+    /* The page the reader has gone to, laid over the archive so the music
+       keeps playing — see THE MUSIC GOES WITH THE READER. */
+    #bmuCarry{
+      position:fixed;
+      inset:0;
+      width:100%; height:100%;
+      border:0;
+      z-index:2147483000;
+      background:var(--bg);
+    }
+    body.carried{ overflow:hidden; }
+
     /* ---------- IT COMES OUT FROM UNDER THE BAR ----------
        79 against the dock's 80, which is what makes this work: the player
        rises from behind the three squares rather than appearing in front
@@ -7734,7 +7746,209 @@
         sq.setAttribute('aria-pressed', on ? 'true' : 'false');
         sq.setAttribute('aria-label', on ? 'Pause the archive\u2019s music' : 'Play the archive\u2019s music');
       }
+      if (on) carried.live = true;      // from the first note, the music goes wherever the reader goes
+      carried.paint();
     }
+
+    /* ============================================================
+       THE MUSIC GOES WITH THE READER
+       The site is separate pages, and leaving one unloads it — the player
+       with it. So once the reader has started the music here, the archive
+       stops being left. A link to any other page opens that page in a
+       frame laid over the whole window instead, and the archive, its
+       player still playing, waits underneath. The address bar, the tab's
+       title and the back button follow the page in the frame, so to the
+       reader it is the site as it always was, with the music still on.
+
+       In the frame the page's header gains the play/pause square, to the
+       left of its archive mark — the one place the music can be reached
+       from when the dock is not there. It is only ever added here, so it
+       is only ever on a page when the music was started on the archive.
+
+       Coming back to the archive — its mark, "Open the archive", the back
+       button, anything — lifts the frame off. The archive is already
+       there, exactly as it was left, and the music never stopped.
+
+       Before the music has been started none of this exists: every link is
+       an ordinary link and every page loads the way it always did.
+       ============================================================ */
+    const carried = (function(){
+      const api = { live:false, paint, open, close, isOpen:() => !!frame };
+      let frame = null, watch = null, archiveTitle = '';
+
+      const ARCHIVE = /^\/archive(?:\.html)?\/?$|^\/archive\/\d+(?:\.html)?\/?$/;
+      const isArchive = u => ARCHIVE.test(u.pathname);
+      const numberIn = u => {
+        const m = u.pathname.match(/^\/archive\/(\d+)/) || (u.hash || '').match(/^#g=(\d+)$/);
+        return m ? Number(m[1]) : 0;
+      };
+      const here = u => u.pathname + u.search + u.hash;
+
+      // a link the archive should keep hold of: same site, same tab, plain press
+      function ours(a, e){
+        if (!a || !a.href || a.hasAttribute('download')) return null;
+        if (a.target && a.target !== '_self') return null;
+        if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0)) return null;
+        let u; try { u = new URL(a.href, location.href); } catch { return null; }
+        if (u.origin !== location.origin) return null;
+        return u;
+      }
+
+      /* ---------- ON THE ARCHIVE ----------
+         Caught before the page's own handlers, which would fade the page
+         and then load the next one over the top of the music. */
+      window.addEventListener('click', e => {
+        if (!api.live || frame) return;
+        const u = ours(e.target.closest && e.target.closest('a[href]'), e);
+        if (!u) return;
+        if (isArchive(u)){
+          // a garment of the archive's own, opened in place rather than reloaded
+          const n = numberIn(u);
+          if (!n) return;
+          e.preventDefault(); e.stopPropagation();
+          if (references.isOpen()) references.close();
+          openNumber(n);
+          return;
+        }
+        if (u.pathname === location.pathname && u.search === location.search) return;   // within this page
+        e.preventDefault(); e.stopPropagation();
+        open(here(u));
+      }, true);
+
+      function open(url, opts){
+        archiveTitle = archiveTitle || document.title;
+        if (frame){
+          // an existing frame is moved on in place, adding no entry of its own
+          try { frame.contentWindow.location.replace(url); } catch { frame.src = url; }
+        } else {
+          frame = document.createElement('iframe');
+          frame.id = 'bmuCarry';
+          frame.title = 'British Material Unit';
+          frame.addEventListener('load', landed);
+          frame.src = url;
+          document.body.appendChild(frame);
+          document.body.classList.add('carried');
+        }
+        try {
+          if (opts && opts.replace) history.replaceState({ carried:url }, '', url);
+          else history.pushState({ carried:url }, '', url);
+        } catch {}
+      }
+
+      /* Off again, and the archive is what is there. Given where the reader
+         was heading in the archive, if anywhere in particular. */
+      function close(toUrl, fromHistory){
+        if (!frame) return;
+        clearInterval(watch);
+        const f = frame; frame = null;
+        f.removeEventListener('load', landed);
+        f.remove();
+        document.body.classList.remove('carried');
+        document.title = archiveTitle || 'Archive | BMU';
+        let u = null; try { u = toUrl ? new URL(toUrl, location.href) : null; } catch {}
+        const n = u ? numberIn(u) : 0;
+        // the back button has already put the address right; a link has not
+        if (!fromHistory){ try { history.pushState(null, '', u ? here(u) : '/archive'); } catch {} }
+        if (n) openNumber(n);
+      }
+
+      /* Every page the frame arrives at: dressed with the square, its title
+         and address carried up to the window, and watched so that the
+         moment it starts to leave for the archive the frame is lifted —
+         before a second archive can draw itself inside the first. */
+      function landed(){
+        let w, d;
+        try { w = frame.contentWindow; d = frame.contentDocument; } catch { return; }
+        if (!w || !d) return;
+        const u = new URL(w.location.href);
+        if (isArchive(u)){ close(here(u)); return; }
+        sync(w, d);
+        dress(d);
+        d.addEventListener('click', e => {
+          const a = e.target.closest && e.target.closest('a[href]');
+          if (!a || !a.href) return;
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+          let v; try { v = new URL(a.href, w.location.href); } catch { return; }
+          if (a.target && a.target !== '_self') return;
+          if (v.origin !== location.origin){
+            // another site cannot be shown in here; it is a real departure
+            if (/^https?:$/.test(v.protocol)){ e.preventDefault(); e.stopPropagation(); location.href = v.href; }
+            return;
+          }
+          if (isArchive(v)){ e.preventDefault(); e.stopPropagation(); close(here(v)); return; }
+          // within the page — "#", a jump to its footer — is the page's own business
+          if (v.pathname === w.location.pathname && v.search === w.location.search) return;
+          /* Anywhere else on the site goes through open(), not the page's own
+             navigation. A frame that navigates itself leaves an entry in the
+             window's history that belongs to the frame, and once the frame is
+             lifted those entries step back in the wrong order; through open()
+             every page is one entry of the window's own. */
+          e.preventDefault(); e.stopPropagation();
+          open(here(v));
+        }, true);
+        w.addEventListener('hashchange', () => sync(w, d));
+        w.addEventListener('popstate', () => sync(w, d));
+        w.addEventListener('pagehide', () => {
+          // the page in the frame is going; watch where it goes
+          clearInterval(watch);
+          watch = setInterval(() => {
+            if (!frame) return clearInterval(watch);
+            let loc; try { loc = frame.contentWindow.location; } catch { return; }
+            if (!loc || loc.href === 'about:blank') return;
+            let v; try { v = new URL(loc.href); } catch { return; }
+            if (v.href === u.href) return;
+            clearInterval(watch);
+            if (isArchive(v)) close(here(v));
+          }, 30);
+        });
+      }
+
+      function sync(w, d){
+        const url = here(new URL(w.location.href));
+        try { history.replaceState({ carried:url }, '', url); } catch {}
+        const t = d.querySelector('title');
+        const copy = () => { document.title = d.title || 'British Material Unit (BMU)'; };
+        copy();
+        if (t && !t.__carried){
+          t.__carried = true;
+          new MutationObserver(copy).observe(t, { childList:true, characterData:true, subtree:true });
+        }
+      }
+
+      const PLAY  = '<path class="ico-fill" d="M5.2 3.4 L12.4 8 L5.2 12.6 Z"/>';
+      const PAUSE = '<path class="ico-fill" d="M4.4 3.4 H6.9 V12.6 H4.4 Z M9.1 3.4 H11.6 V12.6 H9.1 Z"/>';
+      function dress(d){
+        if (d.getElementById('hdMusic')) return paint();
+        const tools = d.querySelector('.hd-tools');
+        if (!tools) return;
+        const b = d.createElement('button');
+        b.type = 'button';
+        b.className = 'hd-ico';
+        b.id = 'hdMusic';
+        b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"></svg>';
+        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleSound(); });
+        tools.insertBefore(b, d.getElementById('hdExplore') || tools.firstChild);
+        paint();
+      }
+
+      function paint(){
+        if (!frame) return;
+        let b; try { b = frame.contentDocument && frame.contentDocument.getElementById('hdMusic'); } catch { return; }
+        if (!b) return;
+        b.querySelector('svg').innerHTML = soundOn ? PAUSE : PLAY;
+        b.setAttribute('aria-label', soundOn ? 'Pause the archive\u2019s music' : 'Play the archive\u2019s music');
+        b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+      }
+
+      // back and forward between the archive and a carried page
+      window.addEventListener('popstate', e => {
+        const st = e.state;
+        if (st && st.carried){ if (api.live) open(st.carried, { replace:true }); return; }
+        if (frame) close(null, true);
+      });
+
+      return api;
+    })();
 
     dockExplore.addEventListener('click', e => {
       if (swiped){ swiped = false; return; }       // that was a swipe
@@ -9372,6 +9586,7 @@
 
     let leaving = false;
     function leaveTo(href){
+      if (carried.live){ carried.open(href); return; }   // the music keeps playing
       if (leaving) return;              // a second press must not re-arm it
       leaving = true;
       document.body.classList.add('leaving');

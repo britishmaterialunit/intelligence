@@ -48,6 +48,14 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   `BMU-References-NNN.zip` (images + `references.json`, locks included),
   which the plus reads back. The `bank` source (an Instagram-fed reference
   bank under `/references/`) is in code only — `SOURCES.bank.live` false.
+- **Music across pages** (`carried` in `archive.html`): once the music has
+  been started, the archive is never unloaded. Links to other pages open
+  them in a full-window iframe (`#bmuCarry`) over the archive, with the
+  address bar, tab title and back button kept in step, and a play/pause
+  square (`#hdMusic`) injected into that page's header left of
+  `#hdExplore`. Any way back to `/archive` lifts the frame. No other page
+  carries code for this — it is all done from the archive, so pages must
+  keep `.hd-tools` / `#hdExplore` in their header for the square to land.
 - Icons are loose `.svg` at root; `flags/`, `partners/`, `patterns/` are images only.
 
 ## Form submissions
