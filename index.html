@@ -2402,6 +2402,24 @@
     const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let typeSeq = 0;
 
+    /* ---------- THE TAB TYPES ITS OWN NAME ----------
+       Everything on this page arrives typed, and the tab is the first thing
+       a reader sees of it — so it types too, once, on arrival. The <title>
+       in the markup stays whole: it is what search engines, link previews
+       and a bookmark read, and none of them should see a half-typed name.
+       Only the live tab is written to. */
+    (function typeTheTab(){
+      const NAME = document.title;
+      if (REDUCED || !NAME) return;
+      let n = 1;
+      document.title = NAME.slice(0, n);
+      (function next(){
+        if (++n > NAME.length){ document.title = NAME; return; }
+        document.title = NAME.slice(0, n);
+        setTimeout(next, 75);
+      })();
+    })();
+
     function bmuType(text, element, delay, callback, guard){
       if (!element){ if (callback) callback(); return; }
       const run = ++typeSeq;

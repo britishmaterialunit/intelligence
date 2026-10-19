@@ -13,6 +13,7 @@ one self-contained HTML file with its CSS in `<style>` and its JS in `<script>`.
 | `files.html` | **Files** (the signed-in reviewer's view). Supabase config in `files-config.js`. The Supabase table is still `bmu_collections` — the page was renamed, the database was not |
 | `contact.html` `ew.html` `ou.html` `earlyaccess_2.html` `privacy.html` | content pages |
 | `soframa.html` | the Soframa partner page — built on `ew.html`'s chrome. The **third partnership**, Soframa is the **Circular Partner** (Ramco is the **Research Partner**, and every footer's Research & Development line opens `/ou`): listed in the Operations sheet and sitting at 03 in the partner run (East West 01 → Ramco 02 → Soframa 03 → MarshalOS 04). Still `noindex` and out of the sitemap — listed on the site is not the same as asking to be found from outside it. Out of the footer partners reel, which carries marks and has none for Soframa |
+| `contact.html` booking | three Cal.com calendars (`data-cal` on each tab, `app.cal.com/.../embed`) in one iframe, no Cal script. The page must answer Cal's `__iframeReady` with `parentKnowsIframeReady` or the calendar stays blank; it reads `__dimensionChanged` (from `type`, `method` or `fullType`) to size the frame, and covers the Cal.com wordmark band (80px) only when the frame is ≥768px wide, the only layout that has it |
 | `join.html` | redirect stub to `/#join`. `collections.html` redirects to `/files` — reviewers were emailed the old address |
 
 Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
