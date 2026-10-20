@@ -1556,11 +1556,23 @@
       margin-top:24px;
     }
     .cl-card{
+      position:relative;
       display:flex;
       flex-direction:column;
       border:1.5px solid var(--line);
       background:var(--bg);
     }
+    /* the nation, in the bottom-right corner of each garment's tab; the
+       meta keeps its last line clear of it */
+    .cl-flag{
+      position:absolute;
+      right:12px; bottom:12px;
+      width:18px; height:12px;
+      object-fit:cover;
+      display:block;
+      pointer-events:none;
+    }
+    .cl-card .cl-meta{ padding-right:40px; }
     .cl-img{
       aspect-ratio:1 / 1;
       display:flex;
@@ -3558,6 +3570,10 @@
         const tail = mode === 'switch'
           ? switchHtml(g.id, picks.has(g.id), true)
           : mode === 'picked' ? `<span class="cl-picked">Affirmative</span>` : '';
+        // the nation's flag, in the tab's bottom-right corner — the same flag
+        // the garment's own tab carries in its title bar
+        const flag = g.flag
+          ? `<img class="cl-flag" src="/flags/${esc(g.flag)}" alt="" aria-hidden="true" loading="lazy">` : '';
         return `<article class="cl-card">` +
                  `<div class="cl-img"><img src="${esc(g.img)}" alt="${esc(g.name)}" loading="lazy"></div>` +
                  `<div class="cl-meta">` +
@@ -3565,6 +3581,7 @@
                    `<span class="cl-sub">${esc(g.nation)}${g.ref ? ' · ' + esc(g.ref) : ''}</span>` +
                    tail +
                  `</div>` +
+                 flag +
                `</article>`;
       }
 
