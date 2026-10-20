@@ -2313,6 +2313,32 @@
       touch-action:none;
     }
     #scMini.off{ display:none; }
+    /* in the row: one of the squares, placed by the row */
+    #scMini.docked{
+      position:relative;
+      left:auto; top:auto;
+      transform:none;
+      z-index:auto;
+      flex:none;
+    }
+    #scMini.sc-leaving{ opacity:0; transition:opacity .24s cubic-bezier(.4,0,.2,1); }
+    /* the gap it opens in the row while it is carried over it */
+    #scSlot{
+      flex:none;
+      width:46px; height:46px;
+      border:1.5px dashed #ff5500;
+      background:transparent;
+    }
+    #scSlot.sc-grow, #scMini.sc-grow{ animation:dockGrow .24s cubic-bezier(.4,0,.2,1) both; }
+    #scSlot.sc-shrink{ animation:dockShrink .2s cubic-bezier(.4,0,.2,1) both; }
+    /* the row keeps its length while it holds one more square: the bar flexes */
+    #dock.open.has-sc{ width:var(--dock-w); }
+    #dock.open.has-sc #dockSearch,
+    body.has-file.dock-list #dock.open.has-sc #dockSearch{ flex:1 1 0; width:auto !important; min-width:0; }
+    @media (max-width:640px){
+      #scSlot, #scMini.docked{ width:40px; height:40px; }
+      #dock.open.has-sc.more #dockSearch{ flex-basis:100%; }
+    }
     #scMini svg{ width:16px; height:16px; fill:#fff; }
     #scPanel.dragging .sc-head, #scMini.dragging{ cursor:grabbing; }
     /* while it is carried, the frame under it must not take the pointer */
@@ -2441,13 +2467,14 @@
     /* On a desktop the row is one line, so the squares also grow out of
        nothing as they rise — width and their gap — and shrink back as they
        fall, with the bar flexing into the room between. */
+    /* to the row's own square size and gap: 46 and 10, or 40 and 6 on a phone */
     @keyframes dockGrow{
-      from{ width:0; margin-left:-10px; }
-      to  { width:46px; margin-left:0; }
+      from{ width:0; margin-left:calc(var(--gap-sq, 10px) * -1); }
+      to  { width:var(--sq, 46px); margin-left:0; }
     }
     @keyframes dockShrink{
-      from{ width:46px; margin-left:0; }
-      to  { width:0; margin-left:-10px; }
+      from{ width:var(--sq, 46px); margin-left:0; }
+      to  { width:0; margin-left:calc(var(--gap-sq, 10px) * -1); }
     }
     @media (min-width:641px){
       #dock.more-anim{ width:var(--dock-fix); }
@@ -2500,7 +2527,7 @@
        Closed, the bar is a square like the rest and they all share one row.
        The board's bar is not the search bar and still fits beside its two. */
     @media (max-width:640px){
-      #dock{ gap:6px; }
+      #dock{ gap:6px; --sq:40px; --gap-sq:6px; }
       #dock .dock-sq{ width:40px; height:40px; }
       #dock.open #dockSearch{ width:calc(var(--dock-w) - 92px); }      /* at rest: one row */
       #dock.open.more{ flex-wrap:wrap; justify-content:flex-end; width:var(--dock-w); }
@@ -8011,7 +8038,7 @@
         scEnsure();
         // the player comes up with the music, unless it has been put away small
         if (scView === 'hidden') scShow('open');
-        if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); }
+        if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); fadeFromRow(); }
         else scPlay();
         return;
       }
@@ -8052,6 +8079,7 @@
     }
     function scPlace(){
       if (!scBox) return;
+      if (scMini && scMini.classList.contains('docked') && scView === 'min') return;
       const w = scBox.offsetWidth || Math.min(SC_W, window.innerWidth - 32);
       const box = scView === 'min' ? [46, 46] : [w, SC_H + SC_HEAD];
       scPos = scClamp(scPos || scDefaultPos(), box[0], box[1]);
@@ -8061,10 +8089,189 @@
       });
     }
     function scShow(view){
+      const was = scView;
       scView = view;
       scBox.classList.toggle('off', view !== 'open');
+      // a square locked into the row goes back to its place in it when folded
+      if (view === 'min' && scDocked && !scMini.classList.contains('docked')){
+        scMini.classList.remove('off');
+        dockInto(scBeforeEl(), true);
+        return;
+      }
+      if (view !== 'min' && scMini.classList.contains('docked')) undock(true, true);
       scMini.classList.toggle('off', view !== 'min');
+      if (was !== view) scPlace();
+    }
+
+    /* ---------- THE SQUARE CAN JOIN THE DOCK ----------
+       Folded, the player is a square the size of the dock's squares, so it
+       can take a place among them. Carried towards the dock it opens a gap
+       there — the squares part, the bar gives up the room — and the gap
+       follows it along the row; let go there and it is locked in, one of
+       the row. Carried back out, the gap closes behind it. Pressed in the
+       row it opens the player just above itself, and folding the player
+       puts it back where it was. Pausing with the black play square takes
+       it out of the row altogether: it fades, and the row closes up.
+
+       The row keeps its length throughout — the bar flexes into whatever
+       the squares leave — so nothing but the squares beside the gap moves. */
+    let scDocked = false, scSlot = null, scBefore = null;
+    try {
+      const d = JSON.parse(localStorage.getItem('bmu-sc-dock') || 'null');
+      if (d){ scDocked = true; scBefore = d.before || null; }
+    } catch {}
+    const keepDock = () => { try {
+      if (scDocked) localStorage.setItem('bmu-sc-dock', JSON.stringify({ before:scBefore }));
+      else localStorage.removeItem('bmu-sc-dock');
+    } catch {} };
+    const scBeforeEl = () => (scBefore && document.getElementById(scBefore)) || null;
+    const rowSquares = () => [...dock.children].filter(el =>
+      el !== scSlot && el !== scMini && el.classList.contains('dock-sq') &&
+      el.id !== 'dockSearch' && el.id !== 'refsTools' && el.id !== 'dockExplore' &&
+      getComputedStyle(el).display !== 'none');
+    function nearDock(x, y){
+      const r = dock.getBoundingClientRect();
+      return x > r.left - 40 && x < r.right + 60 && y > r.top - 80 && y < r.bottom + 40;
+    }
+    // the square it would sit in front of, from where it is being carried; null is the end
+    function slotBefore(x){
+      return rowSquares().find(el => { const r = el.getBoundingClientRect(); return x < r.left + r.width / 2; }) || null;
+    }
+    function rowHolds(on){
+      dock.classList.toggle('has-sc', on);
+    }
+    // everything in the row that is not growing or shrinking slides to where it now belongs
+    function slide(fn){
+      const els = [...dock.children].filter(el => el !== scSlot && el !== scMini);
+      const before = new Map(els.map(el => [el, el.getBoundingClientRect().left]));
+      fn();
+      els.forEach(el => {
+        const a = before.get(el), b = el.getBoundingClientRect().left;
+        if (a == null || Math.abs(a - b) < 0.5) return;
+        el.style.transition = 'none';
+        el.style.transform = `translateX(${a - b}px)`;
+        void el.offsetWidth;
+        el.style.transition = 'transform .26s cubic-bezier(.4,0,.2,1)';
+        el.style.transform = '';
+        setTimeout(() => { el.style.transition = ''; }, 300);
+      });
+    }
+    function openGap(before){
+      if (!scSlot){
+        scSlot = Object.assign(document.createElement('div'), { id:'scSlot' });
+        scSlot.setAttribute('aria-hidden', 'true');
+        rowHolds(true);
+        dock.insertBefore(scSlot, before || dockMore.nextSibling);
+        scSlot.classList.add('sc-grow');
+      } else if (scSlot.nextElementSibling !== before){
+        slide(() => dock.insertBefore(scSlot, before || dockMore.nextSibling));
+      }
+    }
+    function closeGap(){
+      if (!scSlot) return;
+      const g = scSlot; scSlot = null;
+      g.classList.remove('sc-grow');
+      g.classList.add('sc-shrink');
+      setTimeout(() => {
+        g.remove();
+        if (!scMini.classList.contains('docked') && !scSlot) rowHolds(false);
+      }, 220);
+    }
+    // into the row: where the gap is, or (folding back) where it was last locked
+    function dockInto(before, fresh){
+      const from = scMini.getBoundingClientRect();
+      if (fresh) openGap(before);
+      const at = scSlot;
+      rowHolds(true);
+      dock.insertBefore(scMini, at);
+      scSlot = null;
+      at.remove();
+      scMini.classList.add('docked');
+      scMini.classList.toggle('sc-grow', !!fresh);
+      if (!fresh){
+        // it travels from where it was let go to its place
+        const to = scMini.getBoundingClientRect();
+        scMini.style.transition = 'none';
+        scMini.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px)`;
+        void scMini.offsetWidth;
+        scMini.style.transition = 'transform .3s cubic-bezier(.2,.8,.2,1)';
+        scMini.style.transform = '';
+        setTimeout(() => { scMini.style.transition = ''; }, 340);
+      } else setTimeout(() => scMini.classList.remove('sc-grow'), 300);
+      scDocked = true;
+      const next = scMini.nextElementSibling;
+      scBefore = next && next.id ? next.id : null;
+      keepDock();
+    }
+    // out of the row, leaving a gap that closes (unless the square is held over it)
+    function undock(closeNow, keepPos){
+      if (!scMini.classList.contains('docked')) return;
+      const r = scMini.getBoundingClientRect();
+      scSlot = Object.assign(document.createElement('div'), { id:'scSlot' });
+      dock.insertBefore(scSlot, scMini);
+      document.body.appendChild(scMini);
+      scMini.classList.remove('docked', 'sc-grow');
+      // carried out by hand it starts where it was; opened, the player's place is already set
+      if (!keepPos) scPos = { x:r.left, y:r.top };
       scPlace();
+      if (closeNow) closeGap();
+    }
+    // pausing takes it out of the row altogether
+    function fadeFromRow(){
+      if (!scMini || !scMini.classList.contains('docked')) return false;
+      scMini.classList.add('sc-leaving');
+      setTimeout(() => {
+        scMini.classList.remove('sc-leaving');
+        undock(true);
+        scMini.classList.add('off');
+        scView = 'hidden';
+        scDocked = false; keepDock();
+      }, 240);
+      return true;
+    }
+
+    function miniDrag(){
+      let st = null;
+      scMini.addEventListener('pointerdown', e => {
+        if (e.button > 0) return;
+        st = { id:e.pointerId, sx:e.clientX, sy:e.clientY, moved:false, docked:scMini.classList.contains('docked') };
+        scMini.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      });
+      scMini.addEventListener('pointermove', e => {
+        if (!st || e.pointerId !== st.id) return;
+        const dx = e.clientX - st.sx, dy = e.clientY - st.sy;
+        if (!st.moved){
+          if (Math.hypot(dx, dy) < 5) return;
+          st.moved = true;
+          if (st.docked){ undock(false); scDocked = false; keepDock(); }
+          st.x0 = scPos.x; st.y0 = scPos.y;
+          scMini.classList.add('dragging');
+        }
+        scPos = { x:st.x0 + dx, y:st.y0 + dy };
+        scPlace();
+        if (nearDock(e.clientX, e.clientY)) openGap(slotBefore(e.clientX));
+        else closeGap();
+      });
+      const up = e => {
+        if (!st || e.pointerId !== st.id) return;
+        const t = st; st = null;
+        scMini.classList.remove('dragging');
+        if (!t.moved){
+          if (e.type !== 'pointerup') return;
+          // pressed: the player opens; from the row, just above the square
+          if (scMini.classList.contains('docked')){
+            const r = scMini.getBoundingClientRect(), w = Math.min(SC_W, window.innerWidth - 32);
+            scPos = { x:r.right - w, y:r.top - (SC_H + SC_HEAD) - 12 };
+          }
+          scShow('open');
+          return;
+        }
+        if (scSlot && e.type === 'pointerup') dockInto(null, false);
+        else { closeGap(); scKeepPos(); }
+      };
+      scMini.addEventListener('pointerup', up);
+      scMini.addEventListener('pointercancel', up);
     }
     function scKeepPos(){ try { localStorage.setItem('bmu-sc-pos', JSON.stringify(scPos)); } catch {} }
 
@@ -8133,10 +8340,11 @@
       scBox.querySelector('.sc-fold').addEventListener('click', () => scShow('min'));
       scBox.querySelector('.sc-shut').addEventListener('click', () => {
         if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); }
+        scDocked = false; keepDock();
         scShow('hidden');
       });
       scDraggable(scBox.querySelector('.sc-head'));
-      scDraggable(scMini, () => scShow('open'));
+      miniDrag();
       window.addEventListener('resize', scPlace);
       scPlace();
     }

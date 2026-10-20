@@ -34,7 +34,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   Play opens SoundCloud's own widget in a draggable window (`#scPanel`,
   over everything incl. carried pages); its minus folds it to an orange
   46px square (`#scMini`) that drags and reopens it; its cross pauses and
-  hides it. Position kept in localStorage `bmu-sc-pos`. The old stacked button
+  hides it. Position kept in localStorage `bmu-sc-pos`. Carried near the
+  dock the square opens a gap (`#scSlot`) and locks into the row (`.docked`,
+  `#dock.has-sc` makes the bar flex); pressed there it opens the player
+  above itself, folding returns it to its place (`bmu-sc-dock`), and pausing
+  with `#dockPlay` fades it out of the row. The old stacked button
   `#dockExplore` is hidden but kept, because the script still speaks to it.
   On a phone the open search bar takes its own row under the squares.
   Board garments have three views (squares 1/2/3 down the left edge: photo,
