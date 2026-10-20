@@ -38,7 +38,13 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   Search (`#refsSearch`) asks Wikimedia Commons and Openverse in parallel —
   no keys, both CORS-open; Openverse is slow (10–40s) so it is timed out at
   45s. Each placed result keeps its `credit` (title, creator, licence, page),
-  saved and exported. Originally the
+  saved and exported.
+  **Cut out** (scissors on a picked board image) lifts the background in the
+  browser: a plain even ground is flood-filled from the edges; anything else
+  goes through U²-Net-p (`models/u2netp.onnx`, Apache-2.0, see
+  `models/README.md`) on ONNX Runtime Web 1.22.0 from jsDelivr — **the one
+  external script on the site, loaded only when a reader asks for a cut**.
+  The original is kept (`orig`) so the same button restores it. Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** (and wears
