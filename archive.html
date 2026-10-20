@@ -3171,7 +3171,7 @@
     .rf-item .rh-flag{ height:calc(var(--w) * .05); width:auto; display:block; flex:none; box-shadow:none; }
     /* The whole name, every time: two lines at a size that holds the
        longest in the register ("United States Air Force 1990s Tri Colour
-       Desert Coffee Stain Camouflage Ripstop Combat Jacket") inside the
+       Desert Camouflage Ripstop Combat Jacket") inside the
        header's fixed height. The ref moves up beside the type. */
     .rh-name{
       font-size:calc(var(--w) * .034);
@@ -3185,13 +3185,13 @@
     }
     .rh-ref{ color:#b4b4b4; letter-spacing:.14em; }
 
-    .rf-item.rf-m3{ display:grid; grid-template-columns:var(--w) var(--w); }
-    .rf-item.rf-m3 > img{ grid-column:1; grid-row:1; }
+    .rf-item.rf-m3{ display:grid; grid-template-columns:var(--w) calc(var(--w) * var(--pk, 1)); }
+    .rf-item.rf-m3 > img{ grid-column:1; grid-row:1; align-self:center; }
     .rf-item.rf-m3 .rf-panel{
       grid-column:2; grid-row:1;
       display:flex;
       flex-direction:column;
-      height:var(--ih);
+      height:var(--ph, var(--ih));
       padding:calc(var(--w) * .07);
       border-left:calc(1px * var(--inv)) solid #ececec;
       overflow:hidden;
@@ -3206,8 +3206,10 @@
     }
     .rp-name{ margin-top:calc(var(--w) * .05); font-size:calc(var(--w) * .062); line-height:1.25; font-weight:bold; }
     .rp-ref{ margin-top:calc(var(--w) * .02); font-size:calc(var(--w) * .036); letter-spacing:.2em; color:#9a9a9a; }
+    /* the button always has air above it: the facts keep a margin below,
+       and the panel is sized to hold it (see panelFit) */
     .rp-facts{
-      margin:calc(var(--w) * .06) 0 0;
+      margin:calc(var(--w) * .06) 0 calc(var(--w) * .07);
       display:grid;
       grid-template-columns:auto 1fr;
       gap:calc(var(--w) * .012) calc(var(--w) * .05);
@@ -4167,7 +4169,7 @@
         img:"TA2000M2008DCFS.png", ref:"TA2000M2008DCFS", mat:"Ripstop" },      /* ---------------- UNITED STATES ---------------- */
       { n:"turkish", name:"Turkish Air Force 2000s M08 Flight Jacket", cat:"Jackets",
         img:"TAF2000M08FJ.png", ref:"TAF2000M08FJ", mat:"Unlisted" },
-      { n:"united-states", name:"United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket", cat:"Jackets",
+      { n:"united-states", name:"United States Air Force 1990s Tri Colour Desert Camouflage Ripstop Combat Jacket", cat:"Jackets",
         img:"USAF1990TCDCSCRCJ.png", ref:"USAF1990TCDCSCRCJ", mat:"Cotton" },
       { n:"united-states", name:"United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket", cat:"Jackets",
         img:"USAF2000DTSCBCJ.png", ref:"USAF2000DTSCBCJ", mat:"Cotton" },
@@ -10183,8 +10185,19 @@
          sizing treat a garment in its tab exactly as they treat a picture. */
       const HDR = 0.22, PANEL = 1;
       const modeOf = it => (it.garment && it.mode) || 1;
-      const wOf = it => it.w * (modeOf(it) === 3 ? 1 + PANEL : 1);
-      const hOf = it => it.w * it.ar + (modeOf(it) === 2 ? it.w * HDR : 0);
+      /* View 3's panel is as wide and as tall as its words need. Everything
+         in it is measured in fractions of the photograph's width, so what a
+         garment needs is one fixed shape whatever size it is shown at —
+         measured once (panelFit) and kept. Wider first, by quarter steps up
+         to 1¾ times the photograph; only if it still does not fit beside the
+         photograph does the card grow taller than it. */
+      const panelOf = it => modeOf(it) === 3 ? panelFit(it) : null;
+      const wOf = it => { const f = panelOf(it); return it.w * (f ? 1 + f.k : 1); };
+      const hOf = it => {
+        const f = panelOf(it);
+        if (f) return it.w * Math.max(it.ar, f.h);
+        return it.w * it.ar + (modeOf(it) === 2 ? it.w * HDR : 0);
+      };
       const rect = it => ({ l:it.x - wOf(it) / 2, r:it.x + wOf(it) / 2,
                             t:it.y - hOf(it) / 2, b:it.y + hOf(it) / 2 });
       const groupOf = it => it.gid ? items.filter(o => o.gid === it.gid) : [it];
@@ -10253,6 +10266,11 @@
         const m = modeOf(it);
         it.el.classList.toggle('rf-m2', m === 2);
         it.el.classList.toggle('rf-m3', m === 3);
+        if (m === 3){
+          const f = panelFit(it);
+          it.el.style.setProperty('--pk', String(f.k));
+          it.el.style.setProperty('--ph', it.w * Math.max(it.ar, f.h) + 'px');
+        }
         it.el.querySelectorAll('.rf-mode').forEach(sq =>
           sq.classList.toggle('on', Number(sq.dataset.mode) === m));
         showShot(it);
@@ -10260,7 +10278,14 @@
 
       /* What the archive knows about a garment, read from the register the
          page already holds — nothing is fetched. */
+      /* A garment renamed after readers had it on a board, or waiting in the
+         tray, is still found by the name it had. Old id → new id. */
+      const RENAMED = {
+        'united-states/united-states-air-force-1990s-tri-colour-desert-coffee-stain-camouflage-ripstop-combat-jacket':
+          'united-states/united-states-air-force-1990s-tri-colour-desert-camouflage-ripstop-combat-jacket',
+      };
       function garmentInfo(id){
+        id = RENAMED[id] || id;
         const p = ITEMS.find(x => `${x.n}/${slugBase(x.name)}` === id);
         if (!p) return null;
         const nat = NATIONS.find(n => n.key === p.n) || { label:p.n, flag:'' };
@@ -10322,6 +10347,38 @@
         });
         it.el.classList.add('rf-garment');
       }
+      const fits = new Map();          // garment id → { k: panel width, h: card height }, in photo widths
+      function panelFit(it){
+        const key = it.garment;
+        if (fits.has(key)) return fits.get(key);
+        const panel = it.el && it.el.querySelector('.rf-panel');
+        let best = { k:PANEL, h:it.ar };
+        if (panel){
+          const probe = document.createElement('div');
+          probe.className = 'rf-item rf-m3 rf-probe';
+          probe.style.cssText = 'position:fixed;left:-99999px;top:0;visibility:hidden;--w:1000px;--inv:1;';
+          const copy = panel.cloneNode(true);
+          copy.style.height = 'auto';
+          probe.append(Object.assign(document.createElement('img'), { alt:'' }), copy);
+          document.body.appendChild(probe);
+          best = null;
+          for (const k of [1, 1.25, 1.5, 1.75]){
+            probe.style.setProperty('--pk', String(k));
+            const need = copy.offsetHeight / 1000;
+            if (need <= it.ar){ best = { k, h:it.ar }; break; }
+            if (k === 1.75) best = { k, h:need };
+          }
+          probe.remove();
+          fits.set(key, best);
+        }
+        return best;
+      }
+      // measured in the archive's own type, so measured again once it has arrived
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
+        fits.clear();
+        items.forEach(it => { if (modeOf(it) === 3){ place(it); relay(it); } });
+      });
+
       function showShot(it){
         const img = it.el && it.el.querySelector(':scope > img');
         if (!img) return;
@@ -11183,6 +11240,13 @@
       const TRAY_KEY = 'bmu-refs-tray';
       let waiting = [];
       try { waiting = JSON.parse(localStorage.getItem(TRAY_KEY) || '[]').filter(g => g && g.id && g.src); } catch {}
+      // a waiting garment that has since been renamed is waiting under its new name
+      waiting.forEach(g => {
+        const to = RENAMED[g.id];
+        if (!to) return;
+        g.src = g.src.replace(g.id.split('/')[1], to.split('/')[1]);
+        g.id = to;
+      });
       const keepTray = () => { try { localStorage.setItem(TRAY_KEY, JSON.stringify(waiting)); } catch {} };
 
       const badge = Object.assign(document.createElement('span'), { className:'rf-badge' });
@@ -12003,7 +12067,20 @@
         const hit = e.target.closest('.rf-item');
         const it = hit && byId(hit.dataset.id);
         if (it && e.target.closest('.rf-size')){
-          g = { mode:'size', item:it };
+          /* Sized from its corner with the opposite corner held, so what it
+             lines up against stays where it is. What it can line up against
+             is everything near except what this resize will push — the
+             images further along in its own group. */
+          /* An image beside it in its group is pushed sideways by the
+             resize, so its top and bottom edges stay true lines and its left
+             and right do not; one below it is pushed down, so the reverse. */
+          const r0 = rect(it);
+          const targets = items.filter(o => o !== it).map(o => {
+            const r = rect(o), mine = o.gid && o.gid === it.gid;
+            const right = mine && r.l >= r0.r - 1, below = mine && r.t >= r0.b - 1;
+            return { r, x:!right, y:!below };
+          }).filter(tg => tg.x || tg.y);
+          g = { mode:'size', item:it, l:r0.l, t:r0.t, targets };
           return;
         }
         if (it){
@@ -12036,10 +12113,43 @@
           vy = g.vy0 + e.clientY - g.sy;
           applyView();
         } else if (g.mode === 'size'){
-          // sized about its own middle: the corner follows the finger
-          const it = g.item, c = toScreen(it.x, it.y);
-          const kx = wOf(it) / it.w, ky = hOf(it) / it.w;
-          it.w = clamp(Math.max(Math.abs(e.clientX - c.x) * 2 / kx, Math.abs(e.clientY - c.y) * 2 / ky) / vs, 30, 6000);
+          // the corner follows the finger; the opposite corner stays put
+          const it = g.item, kx = wOf(it) / it.w, ky = hOf(it) / it.w;
+          const pt = toWorld(e.clientX, e.clientY);
+          let w = Math.max((pt.x - g.l) / kx, (pt.y - g.t) / ky);
+          // and its far edges find the lines around it, as a drag does
+          if (!e.altKey){
+            const th = SNAP / vs, R = g.l + w * kx, B = g.t + w * ky;
+            let best = null;
+            g.targets.forEach(({ r, x, y }) => {
+              if (x) [r.r, r.l - GAP, r.l].forEach(X => {
+                const d = Math.abs(R - X);
+                if (d <= th && (!best || d < best.d)) best = { d, w:(X - g.l) / kx, axis:'x', at:X, r };
+              });
+              if (y) [r.b, r.t - GAP, r.t].forEach(Y => {
+                const d = Math.abs(B - Y);
+                if (d <= th && (!best || d < best.d)) best = { d, w:(Y - g.t) / ky, axis:'y', at:Y, r };
+              });
+            });
+            hideGuides();
+            if (best && best.w > 30){
+              w = best.w;
+              const [gv, gh] = guideEls;
+              const R2 = g.l + w * kx, B2 = g.t + w * ky;
+              if (best.axis === 'x'){
+                const t = Math.min(g.t, best.r.t) - 12 / vs, b = Math.max(B2, best.r.b) + 12 / vs;
+                Object.assign(gv.style, { left:best.at + 'px', top:t + 'px', width:'', height:(b - t) + 'px' });
+                gv.className = 'rf-guide v'; gv.hidden = false;
+              } else {
+                const l = Math.min(g.l, best.r.l) - 12 / vs, r = Math.max(R2, best.r.r) + 12 / vs;
+                Object.assign(gh.style, { top:best.at + 'px', left:l + 'px', height:'', width:(r - l) + 'px' });
+                gh.className = 'rf-guide h'; gh.hidden = false;
+              }
+            }
+          } else hideGuides();
+          it.w = clamp(w, 30, 6000);
+          it.x = g.l + wOf(it) / 2;
+          it.y = g.t + hOf(it) / 2;
           g.moved = true;
           place(it);
           relay(it);
@@ -12383,7 +12493,7 @@
         <li><a href="/archive/swiss/shirts/swiss-army-1980s-taz83-alpenflage-camouflage-field-shirt/">Swiss Army 1980s TAZ83 Alpenflage Camouflage Field Shirt</a></li>
         <li><a href="/archive/turkish/shirts/turkish-army-2000s-m2008-digital-camouflage-field-shirt/">Turkish Army 2000s M2008 Digital Camouflage Field Shirt</a></li>
         <li><a href="/archive/turkish/jackets/turkish-air-force-2000s-m08-flight-jacket/">Turkish Air Force 2000s M08 Flight Jacket</a></li>
-        <li><a href="/archive/united-states/jackets/united-states-air-force-1990s-tri-colour-desert-coffee-stain-camouflage-ripstop-combat-jacket/">United States Air Force 1990s Tri Colour Desert Coffee Stain Camouflage Ripstop Combat Jacket</a></li>
+        <li><a href="/archive/united-states/jackets/united-states-air-force-1990s-tri-colour-desert-camouflage-ripstop-combat-jacket/">United States Air Force 1990s Tri Colour Desert Camouflage Ripstop Combat Jacket</a></li>
         <li><a href="/archive/united-states/jackets/united-states-air-force-2000s-digital-tiger-stripe-camouflage-bdu-combat-jacket/">United States Air Force 2000s Digital Tiger Stripe Camouflage BDU Combat Jacket</a></li>
         <li><a href="/archive/united-states/jackets/united-states-air-force-2010s-multicam-camouflage-combat-jacket/">United States Air Force 2010s Multicam Camouflage Combat Jacket</a></li>
         <li><a href="/archive/united-states/jackets/united-states-marine-corps-1980s-m81-woodland-camouflage-bdu-combat-jacket/">United States Marine Corps 1980s M81 Woodland Camouflage BDU Combat Jacket</a></li>

@@ -58,7 +58,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   length when within `FIT` (15%), and locks it to every face image and any
   other neighbour it ends up flush with. Dragging snaps to nearby edges,
   centres and gap-lines with hairline guides (`snapUnit`; Alt to place
-  freely). Garments: no Cut out; extra photographs (`shots`) get dots in
+  freely); resizing from the corner holds the opposite corner and snaps its
+  far edges the same way. View 3's panel is sized to its words (`panelFit`:
+  wider in quarter steps to 1.75×, then taller). Garments: no Cut out; extra photographs (`shots`) get dots in
   views 2 and 3. Search is filtered as in the owner's `commons-filter.js`, ported
   inline: `obscenity` 0.4.6 (MIT, jsDelivr `+esm`, fetched when Search
   opens) plus `EXTRA_BLOCK_TERMS`/`WHITELIST`/`BLOCK_CATEGORY_PATTERNS`, and
@@ -138,6 +140,15 @@ entry; write a record when there is something to say.
 **`ITEMS` is still the register** — a folder that is not in it is invisible:
 no card, no cluster, no page, no sitemap entry. `ingest.py` writes the entry
 so you do not have to, and `check.py` reports any folder that was missed.
+
+## Renaming a garment
+
+The folder — and so the garment's page address — comes from its name, so a
+rename moves it. `git mv` the folder, change the name in `ITEMS` and the
+record's first line, keep the **ref** (the `/archive/<n>` number belongs to
+it), and leave an `index.html` marked `BMU-MOVED` in the old folder that
+redirects to the new one (check.py knows it is not a stray). Add the old →
+new id to `RENAMED` in archive.html so boards and trays still find it.
 
 ## After adding or renaming a garment by hand
 

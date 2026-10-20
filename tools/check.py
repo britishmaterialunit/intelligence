@@ -103,6 +103,12 @@ def main():
                 if not os.path.isdir(gp):
                     continue
                 rel = os.path.join('archive', nation, cat, g)
+                # a renamed garment leaves its old folder holding only a
+                # redirect to the new one: that is not a stray
+                idx = os.path.join(gp, 'index.html')
+                if rel not in on_disk and set(os.listdir(gp)) - {'.DS_Store'} == {'index.html'} \
+                        and 'BMU-MOVED' in io.open(idx, encoding='utf-8').read():
+                    continue
                 if rel not in on_disk:
                     pics = [f for f in os.listdir(gp) if f.lower().endswith('.png')]
                     stray.append((rel, pics))
