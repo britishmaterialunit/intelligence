@@ -2403,21 +2403,46 @@
     let typeSeq = 0;
 
     /* ---------- THE TAB TYPES ITS OWN NAME ----------
-       Everything on this page arrives typed, and the tab is the first thing
-       a reader sees of it — so it types too, once, on arrival. The <title>
-       in the markup stays whole: it is what search engines, link previews
-       and a bookmark read, and none of them should see a half-typed name.
-       Only the live tab is written to. */
+       A flourish for the person looking at the tab, and only for them. The
+       one way to animate a tab is to rewrite the page's title a letter at a
+       time, and that is the title anything else reads too — so a half-typed
+       name ("British Mat") was turning up where the whole one belongs:
+
+         a background tab   a browser slows a hidden tab's timers to about
+                            one a second, so a page opened behind another
+                            sat on half its name for half a minute;
+         Google             renders the page and reads its title, and could
+                            read it mid-sentence;
+         a bookmark, the history list, a link preview — the same.
+
+       So the title stays whole until the page has loaded and is actually
+       on screen. Crawlers, previewers and automated browsers never see it
+       typed at all. And if the tab goes into the background mid-way, the
+       whole name is put straight back. Driven by the clock, not by a count
+       of ticks, so it always takes the same time to write. */
     (function typeTheTab(){
       const NAME = document.title;
       if (REDUCED || !NAME) return;
-      let n = 1;
-      document.title = NAME.slice(0, n);
-      (function next(){
-        if (++n > NAME.length){ document.title = NAME; return; }
-        document.title = NAME.slice(0, n);
-        setTimeout(next, 75);
-      })();
+      const READER_NOT_A_PERSON = /bot|crawl|spider|slurp|googleother|google-inspectiontool|mediapartners|adsbot|bingpreview|yandex|baidu|duckduck|facebookexternalhit|twitterbot|slackbot|discordbot|whatsapp|telegram|linkedin|embedly|pinterest|headless|lighthouse|prerender/i;
+      if (navigator.webdriver || READER_NOT_A_PERSON.test(navigator.userAgent || '')) return;
+      let run = 0;
+      const whole = () => { run++; document.title = NAME; };
+      function write(){
+        if (document.hidden) return;
+        const mine = ++run, t0 = performance.now(), total = NAME.length * 70;
+        (function step(){
+          if (mine !== run) return;
+          if (document.hidden){ whole(); return; }
+          const n = Math.max(1, Math.min(NAME.length,
+                    Math.ceil((performance.now() - t0) / total * NAME.length)));
+          document.title = NAME.slice(0, n);
+          if (n < NAME.length) setTimeout(step, 50); else document.title = NAME;
+        })();
+      }
+      document.addEventListener('visibilitychange', () => { if (document.hidden) whole(); });
+      const begin = () => setTimeout(write, 350);
+      if (document.readyState === 'complete') begin();
+      else window.addEventListener('load', begin, { once:true });
     })();
 
     function bmuType(text, element, delay, callback, guard){
