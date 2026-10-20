@@ -3444,6 +3444,38 @@
     .rs-close{ border:none; background:none; color:#9a9a9a; font-size:13px; cursor:pointer; padding:4px; }
     .rs-close:hover{ color:var(--ink); }
     .rs-note{ flex:none; margin:0; padding:9px 14px; font-size:10px; line-height:1.5; color:#9a9a9a; }
+    /* Search and Saved: the bar's own tabs, an underline for the one open */
+    .rs-tabs{ flex:none; display:flex; gap:18px; padding:10px 14px 0; border-bottom:1px solid #ececec; }
+    .rs-tabs button{
+      padding:0 0 8px;
+      border:none; border-bottom:1.5px solid transparent; margin-bottom:-1px;
+      background:none;
+      font-family:var(--font); font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+      color:#9a9a9a; cursor:pointer;
+    }
+    .rs-tabs button[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--line); }
+    .rs-tabs button span{ color:#b4b4b4; margin-left:4px; }
+    .rs-cols[hidden]{ display:none; }
+    .rs-hit.rs-blank{ min-height:90px; display:flex; align-items:flex-end; padding:30px 10px 10px; }
+    .rs-blank-t{ font-size:10px; line-height:1.4; color:#9a9a9a; }
+    /* the bookmark on a result: keep it for later */
+    .rs-save{
+      position:absolute; top:6px; left:6px;
+      width:22px; height:22px;
+      padding:0; border:none;
+      background:rgba(255,255,255,.92);
+      color:#9a9a9a;
+      cursor:pointer;
+      opacity:0;
+      transition:opacity .18s, color .18s;
+      z-index:1;
+    }
+    .rs-save svg{ display:block; width:12px; height:12px; margin:auto; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linejoin:round; }
+    .rs-hit:hover .rs-save, .rs-hit:focus-within .rs-save, .rs-save[aria-pressed="true"]{ opacity:1; }
+    .rs-save[aria-pressed="true"]{ color:var(--ink); }
+    .rs-save[aria-pressed="true"] svg{ fill:currentColor; }
+    .rs-save:hover{ color:var(--ink); }
+    @media (hover:none){ .rs-save{ opacity:1; } }
     .rs-grid{
       flex:1;
       overflow-y:auto;
@@ -3727,8 +3759,12 @@
                placeholder="Search images — camouflage, parka, DPM…" aria-label="Search images">
         <button type="button" class="rs-close" id="refsSearchClose" aria-label="Close search">✕</button>
       </form>
+      <div class="rs-tabs" role="tablist" aria-label="Search or saved">
+        <button type="button" role="tab" data-tab="results" aria-selected="true">Search</button>
+        <button type="button" role="tab" data-tab="saved" aria-selected="false">Saved <span id="refsSavedN"></span></button>
+      </div>
       <p class="rs-note" id="refsSearchNote">Openly licensed military images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.</p>
-      <div class="rs-grid" id="refsResults"><div class="rs-cols" id="refsCols"></div></div>
+      <div class="rs-grid" id="refsResults"><div class="rs-cols" id="refsCols"></div><div class="rs-cols" id="refsSavedCols" hidden></div></div>
       <button type="button" class="rs-more" id="refsMore" hidden>More</button>
     </aside>
     <!-- garments sent from the archive, waiting to be dragged on -->
@@ -11465,6 +11501,8 @@
       const sQ     = document.getElementById('refsQ');
       const sGrid  = document.getElementById('refsResults');
       const sCols  = document.getElementById('refsCols');
+      const svCols = document.getElementById('refsSavedCols');
+      const svN    = document.getElementById('refsSavedN');
       const sMore  = document.getElementById('refsMore');
       const sNote  = document.getElementById('refsSearchNote');
       const NOTE   = 'Openly licensed military images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.';
@@ -11738,24 +11776,114 @@
       }
       document.getElementById('refsSearchClose').addEventListener('click', () => toggleSearch(false));
 
-      function addHit(h){
-        if (hits.has(h.id)) return;
-        hits.set(h.id, h);
-        const b = Object.assign(document.createElement('button'), { type:'button', className:'rs-hit' });
+      /* ---------- SAVED ----------
+         A result can be kept for later with the bookmark in its corner. What
+         is kept is the result itself — where its picture lives, its title,
+         creator, licence and page — in this browser's storage, not the
+         picture: a hundred saved references cost a few kilobytes, and each
+         is fetched afresh when it is placed. The Saved tab is the same
+         column of tiles and works the same way: press to place, or drag.
+         Newest first. */
+      const SAVED_KEY = 'bmu-refs-saved';
+      let saved = [];
+      try { saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]').filter(h => h && h.id && h.thumb); } catch {}
+      const keepSaved = () => { try { localStorage.setItem(SAVED_KEY, JSON.stringify(saved)); } catch {} };
+      const isSavedHit = id => saved.some(h => h.id === id);
+      const findHit = id => hits.get(id) || saved.find(h => h.id === id);
+
+      /* A thumbnail that fails is tried again from the picture's other
+         addresses. A result that still cannot be shown is dropped; a saved
+         one never is — it stays as a plain box with its title, so it can
+         still be placed or let go. */
+      function tile(h, keep){
+        const b = Object.assign(document.createElement('div'), { className:'rs-hit', tabIndex:0 });
+        b.setAttribute('role', 'button');
         b.dataset.id = h.id;
         b.title = [h.title, h.creator && `by ${h.creator}`, h.license].filter(Boolean).join(' · ');
         b.setAttribute('aria-label', `Place ${h.title || 'this image'} on the board`);
         const img = Object.assign(document.createElement('img'), { alt:'', loading:'lazy', draggable:false });
         // the box keeps its shape while the picture arrives
         if (h.w && h.h) img.style.aspectRatio = `${h.w} / ${h.h}`;
-        img.src = h.thumb;
-        img.addEventListener('error', () => b.remove());
-        b.appendChild(img);
-        sCols.appendChild(b);
+        const tries = [h.thumb, h.fallback, h.full].filter((u, i, a) => u && a.indexOf(u) === i);
+        img.src = tries.shift();
+        img.addEventListener('error', () => {
+          if (tries.length){ img.src = tries.shift(); return; }
+          if (!keep){ b.remove(); return; }
+          img.remove();
+          b.classList.add('rs-blank');
+          b.prepend(Object.assign(document.createElement('span'), { className:'rs-blank-t', textContent:h.title || 'Saved image' }));
+        });
+        const sv = Object.assign(document.createElement('button'), { type:'button', className:'rs-save' });
+        sv.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/></svg>';
+        b.append(img, sv);
+        paintSave(b);
+        return b;
+      }
+      function paintSave(b){
+        const on = isSavedHit(b.dataset.id), sv = b.querySelector('.rs-save');
+        if (!sv) return;
+        sv.setAttribute('aria-pressed', on ? 'true' : 'false');
+        sv.setAttribute('aria-label', on ? 'Remove from saved' : 'Save for later');
+      }
+      function drawSaved(){
+        svCols.innerHTML = '';
+        saved.forEach(h => svCols.appendChild(tile(h, true)));
+        svN.textContent = saved.length ? String(saved.length).padStart(2, '0') : '';
+        if (svTab === 'saved') sNote.textContent = saved.length
+          ? 'Saved in this browser. Press one to place it, or drag it onto the board.'
+          : 'Nothing saved yet — press the bookmark on any search result.';
+      }
+      function toggleSave(id){
+        const i = saved.findIndex(h => h.id === id);
+        if (i >= 0) saved.splice(i, 1);
+        else {
+          const h = findHit(id);
+          if (!h) return;
+          const { thumb, full, fallback, w, h:hh, title, creator, license, source, page } = h;
+          saved.unshift({ id, thumb, full, fallback, w, h:hh, title, creator, license, source, page });
+        }
+        keepSaved();
+        sGrid.querySelectorAll('.rs-hit').forEach(paintSave);
+        drawSaved();
+      }
+
+      let svTab = 'results';
+      function showTab(which){
+        svTab = which;
+        document.querySelectorAll('#refsSearch .rs-tabs button').forEach(t =>
+          t.setAttribute('aria-selected', t.dataset.tab === which ? 'true' : 'false'));
+        sCols.hidden = which !== 'results';
+        svCols.hidden = which !== 'saved';
+        sGrid.scrollTop = 0;
+        if (which === 'saved'){ sMore.hidden = true; drawSaved(); }
+        else {
+          sNote.textContent = hits.size ? NOTE : (sTerm ? sNote.dataset.err || `Nothing found for “${sTerm}”.` : NOTE);
+          sMore.hidden = !sTerm || sState.every(st => st.done);
+        }
+      }
+      document.querySelector('#refsSearch .rs-tabs').addEventListener('click', e => {
+        const t = e.target.closest('button[data-tab]');
+        if (t) showTab(t.dataset.tab);
+      });
+      sGrid.addEventListener('click', e => {
+        const sv = e.target.closest('.rs-save');
+        if (sv){ e.stopPropagation(); toggleSave(sv.closest('.rs-hit').dataset.id); }
+      });
+      // a tile is a button to a keyboard too
+      sGrid.addEventListener('keydown', e => {
+        const b = e.target.closest && e.target.closest('.rs-hit');
+        if (b && e.target === b && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); landResult(b.dataset.id); }
+      });
+      drawSaved();
+
+      function addHit(h){
+        if (hits.has(h.id)) return;
+        hits.set(h.id, h);
+        sCols.appendChild(tile(h));
       }
 
       function settleNote(run){
-        if (run !== sRun || sPending) return;
+        if (run !== sRun || sPending || svTab !== 'results') return;
         if (!hits.size) sNote.textContent = sNote.dataset.err || `Nothing found for “${sTerm}”.`;
         else sNote.textContent = NOTE;
         sMore.hidden = sState.every(st => st.done);
@@ -11783,6 +11911,7 @@
         }
         if (more && sPending) return;
         if (!more){
+          if (svTab !== 'results') showTab('results');
           sTerm = term; sRun++; hits.clear(); sCols.innerHTML = ''; sGrid.scrollTop = 0;
           sState = SOURCES_S.map(() => ({}));
           delete sNote.dataset.err;
@@ -11800,7 +11929,7 @@
               const ok = await Promise.all(list.map(isAllowedResult));
               if (run !== sRun) return;
               list.forEach((h, i) => { if (ok[i]) addHit(h); });
-              if (hits.size) sNote.textContent = NOTE;
+              if (hits.size && svTab === 'results') sNote.textContent = NOTE;
             })
             .catch(err => {
               st.done = true;
@@ -11814,13 +11943,13 @@
       sMore.addEventListener('click', () => runSearch(true));
       // more arrives on its own at the foot of the column
       sGrid.addEventListener('scroll', () => {
-        if (!sPending && !sMore.hidden && sGrid.scrollTop + sGrid.clientHeight > sGrid.scrollHeight - 240) runSearch(true);
+        if (svTab === 'results' && !sPending && !sMore.hidden && sGrid.scrollTop + sGrid.clientHeight > sGrid.scrollHeight - 240) runSearch(true);
       }, { passive:true });
 
       async function landResult(id, sx, sy){
-        const h = hits.get(id);
+        const h = findHit(id);
         if (!h) return;
-        const tile = sGrid.querySelector(`.rs-hit[data-id="${CSS.escape(id)}"]`);
+        const tiles = sGrid.querySelectorAll(`.rs-hit[data-id="${CSS.escape(id)}"]`);
         let blob = null;
         for (const src of [h.full, h.fallback, h.thumb]){
           if (!src) continue;
@@ -11837,14 +11966,14 @@
         const at = sx == null ? toWorld(W() / 2 - (sPanel.hidden ? 0 : 180), H() / 2 - 40) : toWorld(sx, sy);
         const credit = { title:h.title, creator:h.creator, license:h.license, source:h.source, page:h.page };
         const out = await addEntries([{ blob, name:`${base}.${ext}`, at, credit }]);
-        if (out.added && tile) tile.classList.add('added');
+        if (out.added) tiles.forEach(t => t.classList.add('added'));
       }
 
       // pressed, it goes to the middle; dragged, it goes where it is let go
       let sg = null, sGhost = null;
       sGrid.addEventListener('pointerdown', e => {
         const b = e.target.closest('.rs-hit');
-        if (!b || e.button > 0) return;
+        if (!b || e.button > 0 || e.target.closest('.rs-save')) return;
         sg = { id:b.dataset.id, pid:e.pointerId, sx:e.clientX, sy:e.clientY, moved:false,
                src:b.querySelector('img').src, touch:e.pointerType !== 'mouse' };
       });
