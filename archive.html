@@ -3696,7 +3696,7 @@
                placeholder="Search images — camouflage, parka, DPM…" aria-label="Search images">
         <button type="button" class="rs-close" id="refsSearchClose" aria-label="Close search">✕</button>
       </form>
-      <p class="rs-note" id="refsSearchNote">Openly licensed images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.</p>
+      <p class="rs-note" id="refsSearchNote">Openly licensed military images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.</p>
       <div class="rs-grid" id="refsResults"><div class="rs-cols" id="refsCols"></div></div>
       <button type="button" class="rs-more" id="refsMore" hidden>More</button>
     </aside>
@@ -11316,39 +11316,227 @@
       const sCols  = document.getElementById('refsCols');
       const sMore  = document.getElementById('refsMore');
       const sNote  = document.getElementById('refsSearchNote');
-      const NOTE   = 'Openly licensed images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.';
+      const NOTE   = 'Openly licensed military images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.';
       sNote.textContent = NOTE;
       const hits = new Map();          // id → { thumb, full, w, h, title, creator, license, source, page }
       let sTerm = '', sRun = 0, sPending = 0;
       const stripTags = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return (d.textContent || '').trim(); };
 
+      /* ============================================================
+         WHAT THE SEARCH WILL SHOW
+         From commons-filter.js, ported to run here — the page has no build
+         step, so `obscenity` (MIT) is fetched as a browser module from
+         jsDelivr the first time Search is used, and never otherwise.
+
+         Two questions are asked of every search and every result:
+
+           Is it fit?        Sexual, bodily and gross-out material is kept
+                             out, on obscenity's own English list (swearing
+                             and slurs) plus the image terms below. Dark but
+                             relevant subjects stay in: death, the war dead,
+                             funerals, executions, propaganda, Nazi and
+                             Soviet uniform and insignia — the record of
+                             military dress includes all of them. The
+                             whitelist keeps the archive's own vocabulary out
+                             of the net (Gore-Tex, Essex, a breast pocket, a
+                             rifle butt, a cuirass). A result is judged on its
+                             title, its description and, for Commons, its
+                             categories, which catch far more than words do.
+
+           Is it military?   "US Vietnam" should bring back the war, not a
+                             doctor on holiday in Hanoi. A search with no
+                             military word in it is run several times over
+                             with one added — military, army, war, uniform —
+                             and the results merged; then only what carries
+                             a military term in its title, description or
+                             categories is kept. MILITARY_ONLY switches this
+                             half off, if the board is ever meant to range
+                             wider.
+
+         If obscenity cannot be fetched, the search still runs, judged on the
+         image terms alone — never on nothing.
+         ============================================================ */
+      const MILITARY_ONLY = true;
+      const BLOCK_GRAPHIC_INJURY = false;
+      const EXTRA_BLOCK_TERMS = [
+        // nudity / sexual
+        'porn', 'porno', 'pornography', 'pornographic', 'nsfw', 'xxx',
+        'nude', 'nudes', 'nudity', 'naked', 'topless', 'bottomless',
+        'erotic', 'erotica', 'sexual intercourse', 'sex act', 'sex toy', 'sex toys',
+        'masturbation', 'masturbating', 'orgasm', 'ejaculation', 'semen',
+        'penis', 'penises', 'vagina', 'vulva', 'genitals', 'genitalia',
+        'testicles', 'scrotum', 'anus', 'clitoris', 'labia', 'foreskin',
+        'erection', 'dildo', 'vibrator', 'buttplug',
+        'hentai', 'camgirl', 'onlyfans', 'striptease', 'stripper',
+        'upskirt', 'voyeur', 'exhibitionism', 'exhibitionist',
+        'bdsm', 'fetish', 'spanking',
+        // bodily waste / gross-out
+        'feces', 'faeces', 'excrement', 'poop', 'turd', 'diarrhea', 'diarrhoea',
+        'urine', 'urination', 'urinating', 'vomit', 'vomiting', 'menstrual',
+        'menstruation', 'pubic hair',
+        // clinical close-ups rarely useful as garment reference
+        'syphilis', 'gonorrhea', 'genital warts',
+        'circumcision', 'colonoscopy', 'rectal', 'gynecological', 'gynaecological',
+        // animal abuse
+        'bestiality', 'zoophilia', 'animal cruelty',
+      ];
+      const GRAPHIC_TERMS = [
+        'gore',             // Gore-Tex is protected by the whitelist
+        'decapitated', 'decapitation', 'dismembered', 'disembowelled',
+        'mutilated', 'mutilation', 'autopsy', 'dissection', 'open wound',
+      ];
+      const WHITELIST = [
+        // places / regiments
+        'essex', 'sussex', 'middlesex', 'wessex', 'sexton', 'scunthorpe',
+        // garment construction
+        'breast pocket', 'double-breasted', 'single-breasted', 'breastplate',
+        'buttonhole', 'button', 'buttons', 'stripe', 'stripes',
+        'gore-tex', 'goretex', 'gored', 'gusset', 'titanium',
+        // weapons / kit
+        'rifle butt', 'butt plate', 'buttstock', 'shell dressing',
+        // military phrases
+        'naked bayonet', 'strip search', 'cockade', 'cockpit', 'cocked hat',
+        'cock feather', 'cock feathers', 'cockerel', "cock's feathers",
+        'shitake', 'dickey', 'dickie',
+        // everyday words containing "ass" / "anal" etc.
+        'analysis', 'analyse', 'analyze', 'analog', 'analogue', 'canal',
+        'assault', 'assassin', 'assassination', 'assembly', 'assessment',
+        'assistant', 'associate', 'association', 'class', 'brass', 'compass',
+        'embassy', 'grass', 'glass', 'harass', 'mass', 'pass', 'passage',
+        'cuirass', 'cutlass', 'ambassador', 'bass', 'lass', 'molasses',
+      ];
+      const BLOCK_CATEGORY_PATTERNS = [
+        /\bnude\b/i, /\bnudity\b/i, /\bnaked\b/i, /\btopless\b/i,
+        /\berotic/i, /\bpornograph/i, /\bsexual (activity|intercourse|acts?)\b/i,
+        /\bmasturbation\b/i, /\bpenis/i, /\bvulva/i, /\bvagina/i, /\bgenitalia\b/i,
+        /\bsex toys?\b/i, /\bBDSM\b/i, /\bfetish/i,
+        /\b(feces|faeces|urine|vomit)\b/i,
+      ];
+      const MILITARY_TERMS = [
+        // general (avoiding words with common civilian meanings)
+        'military', 'militaria', 'army', 'armies', 'navy', 'naval', 'air force',
+        'marine', 'marines', 'soldier', 'soldiers', 'troops', 'war', 'wars',
+        'wartime', 'warfare', 'combat', 'battle', 'battles', 'battlefield',
+        'veteran', 'veterans', 'armed forces', 'guerrilla', 'guerrillas',
+        'militia', 'militias', 'insurgent', 'insurgents', 'partisan', 'partisans',
+        'trench', 'trenches', 'conscript', 'conscripts', 'conscription',
+        'mercenary', 'mercenaries', 'paramilitary', 'gendarmerie', 'commando',
+        'commandos', 'special forces', 'prisoner of war', 'prisoners of war',
+        // units and ranks
+        'regiment', 'regimental', 'battalion', 'brigade', 'platoon', 'squadron',
+        'legion', 'legionnaire', 'cavalry', 'infantry', 'infantryman', 'artillery',
+        'airborne', 'paratrooper', 'paratroopers', 'hussar', 'hussars', 'dragoon',
+        'dragoons', 'lancer', 'lancers', 'grenadier', 'grenadiers', 'fusilier',
+        'fusiliers', 'guardsman', 'sergeant', 'corporal', 'lieutenant', 'colonel',
+        'admiral', 'marine corps',
+        // dress and kit
+        'military uniform', 'military uniforms', 'army uniform', 'army uniforms',
+        'combat uniform', 'dress uniform', 'service uniform', 'camouflage', 'camo',
+        'fatigues', 'battledress', 'battle dress', 'combat dress', 'service dress',
+        'greatcoat', 'military helmet', 'military helmets', 'combat helmet',
+        'insignia', 'cap badge', 'epaulette', 'epaulettes', 'military medal',
+        'military decorations', 'webbing', 'flak jacket', 'body armour',
+        'body armor', 'rifle', 'rifles', 'bayonet', 'bayonets',
+        // named wars and forces
+        'world war', 'ww1', 'wwi', 'ww2', 'wwii', 'great war', 'napoleonic',
+        'viet cong', 'vietcong', 'nva', 'arvn', 'wehrmacht', 'waffen-ss',
+        'red army', 'royal navy', 'raf', 'usmc', 'us army', 'u.s. army',
+        'foreign legion', 'luftwaffe', 'kriegsmarine', 'idf',
+      ];
+      const CONTEXT_WORDS = ['military', 'army', 'war', 'uniform'];
+
+      const reEsc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const militaryRegex = new RegExp('\\b(' + MILITARY_TERMS.map(reEsc).join('|') + ')\\b', 'i');
+      const hasMilitaryTerm = (text = '') => militaryRegex.test(text);
+      function buildSearchQueries(q){
+        q = String(q || '').trim();
+        if (!q) return [];
+        if (!MILITARY_ONLY || hasMilitaryTerm(q)) return [q];
+        return CONTEXT_WORDS.map(w => `${q} ${w}`);
+      }
+      const isMilitaryRelevant = ({ title = '', description = '', categories = [] }) =>
+        !MILITARY_ONLY || hasMilitaryTerm(title) || hasMilitaryTerm(description) || categories.some(c => hasMilitaryTerm(c));
+
+      /* The matcher. obscenity reads text through its "recommended
+         transformers", one of which collapses doubled letters before
+         matching — so a pattern spelled with a double letter ("stripper",
+         "poop", "buttplug") never meets the text it was written for. Each
+         such term is entered collapsed as well, so the list blocks what it
+         says it blocks. */
+      const blockTerms = BLOCK_GRAPHIC_INJURY ? EXTRA_BLOCK_TERMS.concat(GRAPHIC_TERMS) : EXTRA_BLOCK_TERMS;
+      const collapse = t => t.replace(/(.)\1+/g, '$1');
+      // the stand-in, used only if obscenity cannot be fetched
+      const fallbackRe = new RegExp('(^|[^a-z])(' + blockTerms.map(reEsc).join('|') + ')($|[^a-z])', 'i');
+      const fallbackBlocked = text => {
+        let t = ' ' + String(text || '').toLowerCase() + ' ';
+        WHITELIST.forEach(w => { t = t.split(w).join(' '); });
+        return fallbackRe.test(t);
+      };
+      let matcherP = null;
+      function loadMatcher(){
+        if (matcherP) return matcherP;
+        matcherP = import('https://cdn.jsdelivr.net/npm/obscenity@0.4.6/+esm').then(O => {
+          const esc = t => t.replace(/[\[\]()?|\\]/g, '\\$&');
+          const ds = new O.DataSet().addAll(O.englishDataset);
+          blockTerms.forEach(term => {
+            const forms = [...new Set([term, collapse(term)])];
+            ds.addPhrase(p => forms.reduce((q, f) => q.addPattern(O.parseRawPattern(`|${esc(f)}|`)),
+                                           p.setMetadata({ originalWord:term })));
+          });
+          const m = new O.RegExpMatcher({ ...ds.build(), ...O.englishRecommendedTransformers, whitelistedTerms:WHITELIST });
+          return text => m.hasMatch(String(text || ''));
+        }).catch(() => fallbackBlocked);
+        return matcherP;
+      }
+      async function isBlockedText(text){ return (await loadMatcher())(text); }
+      async function isAllowedResult(r){
+        const blocked = await loadMatcher();
+        if (blocked(r.title) || blocked(r.description)) return false;
+        if ((r.categories || []).some(c => BLOCK_CATEGORY_PATTERNS.some(re => re.test(c)))) return false;
+        return isMilitaryRelevant(r);
+      }
+
       const SOURCES_S = [
         {
           name:'Wikimedia Commons',
+          /* Each steered query keeps its own place in its results, so More
+             asks every one of them for its next page and merges again. */
           async page(term, st){
-            const q = new URLSearchParams({
-              action:'query', format:'json', origin:'*',
-              generator:'search', gsrsearch:`filetype:bitmap ${term}`, gsrnamespace:'6',
-              gsrlimit:'20', gsroffset:String(st.cursor || 0),
-              prop:'imageinfo', iiprop:'url|size|mime|extmetadata',
-              iiextmetadatafilter:'Artist|LicenseShortName', iiurlwidth:'600',
-            });
-            const r = await fetch(`https://commons.wikimedia.org/w/api.php?${q}`);
-            if (!r.ok) throw new Error(String(r.status));
-            const d = await r.json();
-            const pages = Object.values((d.query && d.query.pages) || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
-            st.cursor = d.continue && d.continue.gsroffset;
-            st.done = !st.cursor;
-            return pages.map(pg => {
+            const queries = buildSearchQueries(term);
+            st.offsets = st.offsets || queries.map(() => 0);
+            const per = Math.max(10, Math.ceil(40 / queries.length));
+            const batches = await Promise.all(queries.map(async (q, i) => {
+              if (st.offsets[i] == null) return [];
+              const params = new URLSearchParams({
+                action:'query', format:'json', origin:'*',
+                generator:'search', gsrsearch:`filetype:bitmap ${q}`, gsrnamespace:'6',
+                gsrlimit:String(Math.min(per, 50)), gsroffset:String(st.offsets[i]),
+                prop:'categories|imageinfo', cllimit:'max', clshow:'!hidden',
+                iiprop:'url|size|mime|extmetadata',
+                iiextmetadatafilter:'Artist|LicenseShortName|ImageDescription', iiurlwidth:'600',
+              });
+              const r = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`);
+              if (!r.ok) throw new Error(String(r.status));
+              const d = await r.json();
+              st.offsets[i] = d.continue && d.continue.gsroffset != null ? d.continue.gsroffset : null;
+              return Object.values((d.query && d.query.pages) || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
+            }));
+            st.done = st.offsets.every(o => o == null);
+            const out = [], seen = new Set();
+            // interleaved, so the merge keeps each query's best first
+            const longest = Math.max(0, ...batches.map(b => b.length));
+            for (let k = 0; k < longest; k++) batches.forEach(b => { if (b[k] && !seen.has(b[k].pageid)){ seen.add(b[k].pageid); out.push(b[k]); } });
+            return out.map(pg => {
               const ii = pg.imageinfo && pg.imageinfo[0];
               if (!ii || !ii.thumburl) return null;
               const m = ii.extmetadata || {};
               const plain = /^image\/(jpeg|png|gif|webp)$/.test(ii.mime);
-              // the original if it is a size a board can hold, a large copy if not
               const full = plain && ii.width <= 2000 ? ii.url : ii.thumburl.replace(/\/\d+px-/, '/1600px-');
               return {
                 id:`wc:${pg.pageid}`, thumb:ii.thumburl, full, w:ii.thumbwidth, h:ii.thumbheight,
                 title:pg.title.replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '').replace(/_/g, ' '),
+                description:stripTags(m.ImageDescription && m.ImageDescription.value),
+                categories:(pg.categories || []).map(c => c.title.replace(/^Category:/, '')),
                 creator:stripTags(m.Artist && m.Artist.value), license:(m.LicenseShortName && m.LicenseShortName.value) || '',
                 source:'Wikimedia Commons', page:`https://commons.wikimedia.org/wiki/${encodeURIComponent(pg.title)}`,
               };
@@ -11357,8 +11545,13 @@
         },
         {
           name:'Openverse',
+          /* Openverse is slow and metered, so it is not asked four times
+             over: one search, with "military" added when the words have no
+             military term of their own. Its tags stand in for categories. */
           async page(term, st){
-            const q = new URLSearchParams({ q:term, page:String((st.cursor || 0) + 1), page_size:'20', mature:'false' });
+            const q0 = String(term).trim();
+            const qs = MILITARY_ONLY && !hasMilitaryTerm(q0) ? `${q0} military` : q0;
+            const q = new URLSearchParams({ q:qs, page:String((st.cursor || 0) + 1), page_size:'20', mature:'false' });
             const ctl = new AbortController();
             const t = setTimeout(() => ctl.abort(), 45000);
             let r;
@@ -11372,7 +11565,9 @@
             return (d.results || []).map(res => res && res.id ? {
               id:`ov:${res.id}`, thumb:res.thumbnail || `https://api.openverse.org/v1/images/${res.id}/thumb/`,
               full:res.url, fallback:res.thumbnail, w:res.width, h:res.height,
-              title:res.title || '', creator:res.creator || '',
+              title:res.title || '', description:'',
+              categories:(res.tags || []).map(tg => tg && tg.name).filter(Boolean),
+              creator:res.creator || '',
               license:[res.license, res.license_version].filter(Boolean).join(' '),
               source:res.source ? `${res.source} via Openverse` : 'Openverse', page:res.foreign_landing_url || '',
             } : null).filter(Boolean);
@@ -11381,42 +11576,19 @@
       ];
       let sState = SOURCES_S.map(() => ({}));
 
-      /* ---------- NOT HERE ----------
-         Inspiration can come from anything, and dark is not the same as
-         unfit — death, war, skulls, the morgue drawer are all fair subjects
-         for a reference board. What is kept out is sexual material and
-         graphic gore. A search made of either is not run at all, and any
-         result whose title or credit is made of one is left out of the
-         column — Openverse is already asked for nothing mature, but Commons
-         has no such switch. Matched as whole words or their stems, so
-         "Essex" and "Sussex" and "skirt" go through — and the words that
-         mean something else in a military archive are left off the list:
-         Gore-Tex, a breast pocket, a butt pack, an escort carrier. Readers can still put
-         their own images on their own board; this is only what the search
-         offers them. */
-      const BLOCK = new RegExp('(^|[^a-z])(' + [
-        'porn\\w*', 'p0rn', 'xxx', 'nsfw', 'nude\\w*', 'nudity', 'naked', 'topless', 'bottomless',
-        'sex', 'sexy', 'sexual\\w*', 'erotic\\w*', 'erotica', 'fetish\\w*', 'bdsm', 'bondage',
-        'hentai', 'onlyfans', 'camgirl\\w*', 'stripper\\w*', 'striptease', 'lingerie',
-        'boob\\w*', 'tits', 'titties', 'nipples?', 'buttocks', 'arse',
-        'penis\\w*', 'vagina\\w*', 'vulva', 'genital\\w*', 'pussy', 'orgasm\\w*',
-        'masturbat\\w*', 'orgy', 'orgies', 'milf', 'prostitut\\w*', 'brothel',
-        'gore(?![- ]?tex)', 'gory', 'beheading\\w*', 'decapitat\\w*', 'dismember\\w*', 'mutilat\\w*',
-        'disembowel\\w*', 'snuff', 'execution video', 'corpse porn',
-      ].join('|') + ')($|[^a-z])', 'i');
-      const unfit = t => BLOCK.test(String(t || '').toLowerCase());
-
       function toggleSearch(force){
         const on = typeof force === 'boolean' ? force : sPanel.hidden;
         sPanel.hidden = !on;
         T('search').setAttribute('aria-pressed', on ? 'true' : 'false');
-        if (on) setTimeout(() => { try { sQ.focus({ preventScroll:true }); } catch {} }, 30);
+        if (on){
+          loadMatcher();       // fetched while the reader types, not after
+          setTimeout(() => { try { sQ.focus({ preventScroll:true }); } catch {} }, 30);
+        }
       }
       document.getElementById('refsSearchClose').addEventListener('click', () => toggleSearch(false));
 
       function addHit(h){
         if (hits.has(h.id)) return;
-        if (unfit(h.title) || unfit(h.creator)) return;
         hits.set(h.id, h);
         const b = Object.assign(document.createElement('button'), { type:'button', className:'rs-hit' });
         b.dataset.id = h.id;
@@ -11438,12 +11610,24 @@
         sMore.hidden = sState.every(st => st.done);
       }
 
-      function runSearch(more){
-        const term = more ? sTerm : sQ.value.trim();
+      let pendingCheck = null;
+      function runSearch(more, checked){
+        const term = more ? sTerm : (checked || sQ.value.trim());
         if (!term) return;
-        if (unfit(term)){
-          sRun++; hits.clear(); sCols.innerHTML = ''; sMore.hidden = true;
-          sNote.textContent = 'That search is not available here.';
+        if (!more && checked !== term){
+          // judged first; the matcher may still be arriving on the first search
+          pendingCheck = term;
+          sNote.textContent = 'Searching…';
+          isBlockedText(term).then(bad => {
+            if (pendingCheck !== term) return;
+            pendingCheck = null;
+            if (bad){
+              sRun++; hits.clear(); sCols.innerHTML = ''; sMore.hidden = true;
+              sNote.textContent = 'That search is not available here.';
+              return;
+            }
+            runSearch(false, term);
+          });
           return;
         }
         if (more && sPending) return;
@@ -11460,7 +11644,13 @@
           if (st.done) return;
           sPending++;
           src.page(term, st)
-            .then(list => { if (run === sRun){ list.forEach(addHit); if (hits.size) sNote.textContent = NOTE; } })
+            .then(async list => {
+              if (run !== sRun) return;
+              const ok = await Promise.all(list.map(isAllowedResult));
+              if (run !== sRun) return;
+              list.forEach((h, i) => { if (ok[i]) addHit(h); });
+              if (hits.size) sNote.textContent = NOTE;
+            })
             .catch(err => {
               st.done = true;
               if (run === sRun && err && err.message === 'slow') sNote.dataset.err = 'That is a lot of searching — give it a minute.';

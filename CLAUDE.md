@@ -59,7 +59,12 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   other neighbour it ends up flush with. Dragging snaps to nearby edges,
   centres and gap-lines with hairline guides (`snapUnit`; Alt to place
   freely). Garments: no Cut out; extra photographs (`shots`) get dots in
-  views 2 and 3. Search refuses sexual/gore terms (`BLOCK`).
+  views 2 and 3. Search is filtered as in the owner's `commons-filter.js`, ported
+  inline: `obscenity` 0.4.6 (MIT, jsDelivr `+esm`, fetched when Search
+  opens) plus `EXTRA_BLOCK_TERMS`/`WHITELIST`/`BLOCK_CATEGORY_PATTERNS`, and
+  `MILITARY_ONLY` relevance (queries without a military word are run with
+  military/army/war/uniform; results must carry a military term in title,
+  description or categories). `BLOCK_GRAPHIC_INJURY` is false.
   Cluster deals everything randomly except the last few pieces moved by
   hand (`touched`, `KEEP`), which stay put and are clustered around. Each
   garment card has a `+` (`.btn-ref-inline`) that queues it in the tray
