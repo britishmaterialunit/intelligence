@@ -8144,14 +8144,34 @@
         b.id = 'hdMusic';
         b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"></svg>';
         b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleSound(); });
-        // the header lays out space-between, so it is pushed right and
-        // spaced from the row by the row's own gap
+        // the header lays out space-between, so it is pushed right of the mark
         b.style.marginLeft = 'auto';
-        const gapNow = () => { b.style.marginRight = d.defaultView.getComputedStyle(tools).columnGap || '18px'; };
-        gapNow();
-        d.defaultView.addEventListener('resize', gapNow);
+        b.style.marginRight = d.defaultView.getComputedStyle(tools).columnGap || '18px';
         inner.insertBefore(b, tools);
+        d.defaultView.addEventListener('resize', () => spaceSquare(d));
         paint();
+      }
+
+      /* The same space between play/pause and the archive mark as between
+         the archive mark and the sandwich — measured on what is drawn, not
+         on the buttons' boxes, because each glyph fills its square
+         differently: the pause bars sit well inside theirs, the sandwich
+         runs nearly edge to edge. Measured again whenever the glyph changes
+         and whenever the window does. */
+      function spaceSquare(d){
+        const b = d.getElementById('hdMusic'), arch = d.getElementById('hdExplore');
+        const menu = arch && arch.nextElementSibling;
+        if (!b || !arch || !menu || !b.offsetParent) return;
+        const ink = el => {
+          const rs = [...el.querySelectorAll('path, circle, rect, line, polyline, polygon')]
+            .map(x => x.getBoundingClientRect()).filter(r => r.width || r.height);
+          if (!rs.length) return el.getBoundingClientRect();
+          return { left:Math.min(...rs.map(r => r.left)), right:Math.max(...rs.map(r => r.right)) };
+        };
+        const want = ink(menu).left - ink(arch).right;
+        const have = ink(arch).left - ink(b).right;
+        const now = parseFloat(b.style.marginRight) || 0;
+        if (Math.abs(want - have) > 0.25) b.style.marginRight = (now + want - have) + 'px';
       }
 
       function paint(){
@@ -8159,6 +8179,7 @@
         let b; try { b = frame.contentDocument && frame.contentDocument.getElementById('hdMusic'); } catch { return; }
         if (!b) return;
         b.querySelector('svg').innerHTML = soundOn ? PAUSE : PLAY;
+        try { spaceSquare(frame.contentDocument); } catch {}
         b.setAttribute('aria-label', soundOn ? 'Pause the archive\u2019s music' : 'Play the archive\u2019s music');
         b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
       }
