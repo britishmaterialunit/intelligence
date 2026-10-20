@@ -31,9 +31,10 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   icon) and a plus (`#dockMore`). The plus adds `.more` to `#dock`, laying
   out list, play, the board (`#dockRefs`, asterisk icon) and save, and
   becomes a minus. Every tool square calls `pressFace(face)`.
-  Play has no music source for now: `BMU_SOUND.src` is empty, so it answers
-  "No data". The previous player is parked, whole, on the git branch
-  `parked/music-player` (not published — Pages serves `main` only). The old stacked button
+  Play opens SoundCloud's own widget in a draggable window (`#scPanel`,
+  over everything incl. carried pages); its minus folds it to an orange
+  46px square (`#scMini`) that drags and reopens it; its cross pauses and
+  hides it. Position kept in localStorage `bmu-sc-pos`. The old stacked button
   `#dockExplore` is hidden but kept, because the script still speaks to it.
   On a phone the open search bar takes its own row under the squares.
   Board garments have three views (squares 1/2/3 down the left edge: photo,
@@ -49,7 +50,8 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   external script on the site, loaded only when a reader asks for a cut**.
   The original is kept (`orig`) so the same button restores it. Originally the
   middle dock button had four faces: circle (explore), list, play,
-  plus. Plus opens **References** (and wears
+  plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
+  postMessage, no SoundCloud script). Plus opens **References** (and wears
   a cross while open): the reader's own image board, a separate layer
   (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
   nothing else. Images lock in groups (5px gap). A lock `{p, c, side, d}`
