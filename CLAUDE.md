@@ -30,7 +30,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
 - The dock at rest is the search bar, explore (`#dockCircle`, compass
   icon) and a plus (`#dockMore`). The plus adds `.more` to `#dock`, laying
   out list, play, the board (`#dockRefs`, asterisk icon) and save, and
-  becomes a minus. Every tool square calls `pressFace(face)`. The old stacked button
+  becomes a minus. Every tool square calls `pressFace(face)`.
+  Play opens SoundCloud's own widget in a draggable window (`#scPanel`,
+  over everything incl. carried pages); its minus folds it to an orange
+  46px square (`#scMini`) that drags and reopens it; its cross pauses and
+  hides it. Position kept in localStorage `bmu-sc-pos`. The old stacked button
   `#dockExplore` is hidden but kept, because the script still speaks to it.
   On a phone the open search bar takes its own row under the squares.
   Board garments have three views (squares 1/2/3 down the left edge: photo,

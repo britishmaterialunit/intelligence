@@ -2257,38 +2257,66 @@
     }
     body.carried{ overflow:hidden; }
 
-    /* ---------- IT COMES OUT FROM UNDER THE BAR ----------
-       79 against the dock's 80, which is what makes this work: the player
-       rises from behind the three squares rather than appearing in front
-       of them, so it reads as having been down there all along.
-
-       It is only up when it has to be: when a browser would not let it start
-       on its own and wants a press inside it. Once it plays it goes back
-       down the way it came and keeps playing out of sight, and the face on
-       the button is what pauses and plays it from then on. */
-    .bmu-player{
+    /* ---------- THE SOUNDCLOUD WINDOW, AND ITS SQUARE ----------
+       Over everything, including a page carried in front of the archive, so
+       the music can be reached wherever the reader is. The window is framed
+       the way the site frames things — one rule, the page's own ground — and
+       SoundCloud's orange marks it as theirs; folded, it is a square of that
+       orange the size of the dock's squares. */
+    #scPanel, #scMini{
       position:fixed;
-      left:50%;
-      bottom:92px;
-      width:min(94vw, 880px);
-      z-index:79;
-      border:1px solid var(--line);
+      left:0; top:0;
+      transform:translate(var(--sx, 0px), var(--sy, 0px));
+      z-index:2147483600;
+    }
+    #scPanel{
+      width:min(360px, calc(100vw - 32px));
       background:var(--bg);
-      transform:translateX(-50%) translateY(40px);
-      opacity:0;
-      pointer-events:none;
-      transition:transform .52s cubic-bezier(.4,0,.2,1),
-                 opacity .34s cubic-bezier(.4,0,.2,1);
+      border:1.5px solid var(--line);
+      transition:opacity .22s cubic-bezier(.4,0,.2,1);
     }
-    .bmu-player.in{
-      transform:translateX(-50%) translateY(0);
-      opacity:1;
-      pointer-events:auto;
+    #scPanel.off{ opacity:0; visibility:hidden; pointer-events:none; }
+    #scPanel iframe{ display:block; border:0; }
+    .sc-head{
+      display:flex;
+      align-items:center;
+      height:30px;
+      padding:0 2px 0 10px;
+      border-bottom:1px solid #ececec;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--ink);
+      cursor:grab;
+      touch-action:none;
+      -webkit-user-select:none;
+      user-select:none;
     }
-    .bmu-player iframe{ display:block; }
-    @media (prefers-reduced-motion:reduce){
-      .bmu-player{ transition:opacity .2s linear; transform:translateX(-50%); }
+    .sc-dot{ width:8px; height:8px; background:#ff5500; margin-right:9px; flex:none; }
+    .sc-name{ flex:1; }
+    .sc-act{
+      width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      padding:0; border:none; background:none;
+      color:#9a9a9a; cursor:pointer;
     }
+    .sc-act:hover{ color:var(--ink); }
+    .sc-act svg{ width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+    #scMini{
+      width:46px; height:46px;
+      padding:0;
+      display:flex; align-items:center; justify-content:center;
+      background:#ff5500;
+      border:1.5px solid #ff5500;
+      border-radius:0;
+      cursor:grab;
+      touch-action:none;
+    }
+    #scMini.off{ display:none; }
+    #scMini svg{ width:16px; height:16px; fill:#fff; }
+    #scPanel.dragging .sc-head, #scMini.dragging{ cursor:grabbing; }
+    /* while it is carried, the frame under it must not take the pointer */
+    #scPanel.dragging iframe{ pointer-events:none; }
 
     .dock-sq{
       flex:none;
@@ -7926,8 +7954,6 @@
         if (soundOn) return;
         clearTimeout(scStartCheck);
         setPlayFace(true);
-        // it is going: the transport has nothing left to offer, so down it goes
-        setTimeout(() => { if (scBox && soundOn) scBox.classList.remove('in'); }, 700);
       }
       if (m.method === 'pause') setPlayFace(false);
     });
@@ -7955,7 +7981,7 @@
          player comes up so the reader can start it with their own press. */
       clearTimeout(scStartCheck);
       scStartCheck = setTimeout(() => {
-        if (!soundOn && scBox) scBox.classList.add('in');
+        if (!soundOn && scBox && scView !== 'open') scShow('open');
       }, 2200);
     }
 
@@ -7969,13 +7995,9 @@
       if (!soundReady()){ sayNoData(); return; }
 
       if (!BMU_SOUND.src && BMU_SOUND.soundcloud){
-        if (!scBox){ scEnsure(); scPlay(); return; }
-        // up and waiting to be pressed: pressing the face again puts it away
-        if (scBox.classList.contains('in') && !soundOn){
-          clearTimeout(scStartCheck);
-          scBox.classList.remove('in');
-          return;
-        }
+        scEnsure();
+        // the player comes up with the music, unless it has been put away small
+        if (scView === 'hidden') scShow('open');
         if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); }
         else scPlay();
         return;
@@ -7983,29 +8005,127 @@
       toggleAudio();
     }
 
-    /* The player is built once, out of sight. It is built the moment the
-       play face comes round on the button — before the press — because the
-       artist's list takes a few seconds to arrive and the first track can
-       only be drawn from what has. A reader who never reaches the face
-       never loads it. */
+    /* ---------- SOUNDCLOUD'S OWN PLAYER, ON SHOW ----------
+       The music is SoundCloud's, and its player is how it is meant to be
+       heard: their widget, with their mark, their controls and the track
+       list. Play brings it up as a window of its own, floating over
+       whatever is on screen — the archive, the board, or another page of
+       the site — and it can be taken by its head and moved anywhere.
+
+       Folded, with the minus, it becomes a square the size of the dock's
+       squares in SoundCloud's orange, where the window was. The square can
+       be moved too, and pressing it opens the window again where the square
+       now is. The cross puts the player away and pauses the music; play
+       brings both back. Shuffle and the play/pause squares work as before,
+       through the widget's own messages.
+
+       Built once, out of sight, as soon as a hand comes near play — the
+       artist's list takes a few seconds to arrive, and the first track is
+       drawn from it. Its place is remembered for the next visit. */
+    const SC_W = 360, SC_H = 380, SC_HEAD = 30;
+    let scView = 'hidden', scMini = null, scPos = null;
+    try { scPos = JSON.parse(localStorage.getItem('bmu-sc-pos') || 'null'); } catch {}
+
+    function scDefaultPos(){
+      const w = Math.min(SC_W, window.innerWidth - 32);
+      const small = window.innerWidth <= 640;
+      return { x: small ? 16 : window.innerWidth - w - 24,
+               y: Math.max(64, window.innerHeight - (SC_H + SC_HEAD) - (small ? 170 : 110)) };
+    }
+    // kept on the screen: at least the head (or the square) is always reachable
+    function scClamp(p, w, h){
+      return { x: Math.max(8, Math.min(window.innerWidth - w - 8, p.x)),
+               y: Math.max(8, Math.min(window.innerHeight - h - 8, p.y)) };
+    }
+    function scPlace(){
+      if (!scBox) return;
+      const w = scBox.offsetWidth || Math.min(SC_W, window.innerWidth - 32);
+      const box = scView === 'min' ? [46, 46] : [w, SC_H + SC_HEAD];
+      scPos = scClamp(scPos || scDefaultPos(), box[0], box[1]);
+      [scBox, scMini].forEach(el => {
+        el.style.setProperty('--sx', scPos.x + 'px');
+        el.style.setProperty('--sy', scPos.y + 'px');
+      });
+    }
+    function scShow(view){
+      scView = view;
+      scBox.classList.toggle('off', view !== 'open');
+      scMini.classList.toggle('off', view !== 'min');
+      scPlace();
+    }
+    function scKeepPos(){ try { localStorage.setItem('bmu-sc-pos', JSON.stringify(scPos)); } catch {} }
+
+    /* Moved by its head, or the square by itself. A press that does not
+       travel is a press: on the square it opens the window. */
+    function scDraggable(handle, onPress){
+      let st = null;
+      handle.addEventListener('pointerdown', e => {
+        if (e.button > 0 || e.target.closest('.sc-act')) return;
+        st = { id:e.pointerId, sx:e.clientX, sy:e.clientY, x0:scPos.x, y0:scPos.y, moved:false };
+        handle.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      });
+      handle.addEventListener('pointermove', e => {
+        if (!st || e.pointerId !== st.id) return;
+        const dx = e.clientX - st.sx, dy = e.clientY - st.sy;
+        if (!st.moved && Math.hypot(dx, dy) < 5) return;
+        st.moved = true;
+        scBox.classList.add('dragging'); scMini.classList.add('dragging');
+        scPos = { x:st.x0 + dx, y:st.y0 + dy };
+        scPlace();
+      });
+      const up = e => {
+        if (!st || e.pointerId !== st.id) return;
+        const moved = st.moved; st = null;
+        scBox.classList.remove('dragging'); scMini.classList.remove('dragging');
+        if (moved) scKeepPos(); else if (onPress && e.type === 'pointerup') onPress();
+      };
+      handle.addEventListener('pointerup', up);
+      handle.addEventListener('pointercancel', up);
+    }
+
     function scEnsure(){
       if (scBox || BMU_SOUND.src || !BMU_SOUND.soundcloud) return;
       const q = new URLSearchParams({
-        url: BMU_SOUND.soundcloud, color: '#000000', auto_play: 'false',
+        url: BMU_SOUND.soundcloud, color: '#ff5500', auto_play: 'false',
         hide_related: 'true', show_comments: 'false', show_user: 'true',
         show_reposts: 'false', show_teaser: 'false', visual: 'false',
       });
-      scBox = Object.assign(document.createElement('div'), { className:'bmu-player' });
+      scBox = Object.assign(document.createElement('div'), { id:'scPanel', className:'off' });
+      scBox.setAttribute('role', 'dialog');
+      scBox.setAttribute('aria-label', 'The archive\u2019s music, on SoundCloud');
+      scBox.innerHTML =
+        '<div class="sc-head"><span class="sc-dot" aria-hidden="true"></span><span class="sc-name">SoundCloud</span>' +
+        '<button type="button" class="sc-act sc-fold" aria-label="Fold the player away">' +
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8 H12.6"/></svg></button>' +
+        '<button type="button" class="sc-act sc-shut" aria-label="Close the player and stop the music">' +
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.4 4.4 L11.6 11.6 M11.6 4.4 L4.4 11.6"/></svg></button></div>';
       scFrame = Object.assign(document.createElement('iframe'), {
         src: `${SC_ORIGIN}/player/?${q}`, title: 'The archive\u2019s music',
       });
       scFrame.width = '100%';
-      scFrame.height = '166';
+      scFrame.height = String(SC_H);
       scFrame.setAttribute('frameborder', '0');
       scFrame.setAttribute('scrolling', 'no');
       scFrame.allow = 'autoplay; encrypted-media';
       scBox.appendChild(scFrame);
-      document.body.appendChild(scBox);
+
+      scMini = Object.assign(document.createElement('button'), { type:'button', id:'scMini', className:'off' });
+      scMini.setAttribute('aria-label', 'Open the SoundCloud player');
+      scMini.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true">' +
+        '<rect x="2.2" y="6.2" width="1.6" height="3.6"/><rect x="5.2" y="3.6" width="1.6" height="8.8"/>' +
+        '<rect x="8.2" y="5" width="1.6" height="6"/><rect x="11.2" y="2.6" width="1.6" height="10.8"/></svg>';
+      document.body.append(scBox, scMini);
+
+      scBox.querySelector('.sc-fold').addEventListener('click', () => scShow('min'));
+      scBox.querySelector('.sc-shut').addEventListener('click', () => {
+        if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); }
+        scShow('hidden');
+      });
+      scDraggable(scBox.querySelector('.sc-head'));
+      scDraggable(scMini, () => scShow('open'));
+      window.addEventListener('resize', scPlace);
+      scPlace();
     }
 
     function toggleAudio(){
