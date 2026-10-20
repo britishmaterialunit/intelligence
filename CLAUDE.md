@@ -50,7 +50,16 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   postMessage, no SoundCloud script). Plus opens **References** (and wears
   a cross while open): the reader's own image board, a separate layer
   (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
-  nothing else. Images lock in pairs/groups (5px gap, `locks` tree).
+  nothing else. Images lock in groups (5px gap). A lock `{p, c, side, d}`
+  keeps c on p's side with `d` = the offset of their leading cross edges, so
+  rows stay top-aligned and columns left-aligned; `relay()` walks the locks,
+  `untangle()` eases apart any two group members that overlap. Locking to a
+  group meets its whole flush face (`faceOf`), fits the arrival to the face's
+  length when within `FIT` (15%), and locks it to every face image and any
+  other neighbour it ends up flush with. Dragging snaps to nearby edges,
+  centres and gap-lines with hairline guides (`snapUnit`; Alt to place
+  freely). Garments: no Cut out; extra photographs (`shots`) get dots in
+  views 2 and 3. Search refuses sexual/gore terms (`BLOCK`).
   Cluster deals everything randomly except the last few pieces moved by
   hand (`touched`, `KEEP`), which stay put and are clustered around. Each
   garment card has a `+` (`.btn-ref-inline`) that queues it in the tray

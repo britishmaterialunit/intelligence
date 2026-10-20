@@ -3061,6 +3061,30 @@
       z-index:2;
     }
     .rf-item.cut .rf-cut{ background-image:url('/restore-white.svg'); }
+    /* a garment is the archive's own photograph: it is never cut out */
+    .rf-item.rf-garment .rf-cut{ display:none !important; }
+
+    /* a garment's other photographs, under the picture, in views 2 and 3 */
+    .rf-dots{
+      display:none;
+      position:absolute;
+      left:calc(var(--w) / 2);
+      bottom:calc(var(--w) * .04);
+      transform:translateX(-50%);
+      gap:calc(var(--w) * .022);
+      z-index:2;
+    }
+    .rf-item.rf-m2 .rf-dots, .rf-item.rf-m3 .rf-dots{ display:flex; }
+    .rf-dot{
+      width:calc(var(--w) * .03); height:calc(var(--w) * .03);
+      padding:0;
+      border:calc(1px * var(--inv)) solid #c4c4c4;
+      border-radius:50%;
+      background:var(--bg);
+      cursor:pointer;
+    }
+    .rf-dot:hover{ border-color:#8f8f8f; }
+    .rf-dot.on{ background:#9a9a9a; border-color:#9a9a9a; }
     @media (pointer:coarse){
       .rf-cut{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
                top:calc(-20px * var(--inv)); right:calc(14px * var(--inv)); }
@@ -3128,27 +3152,38 @@
     }
     .rh-top{
       display:flex; align-items:center; gap:calc(var(--w) * .03);
-      font-size:calc(var(--w) * .038);
+      font-size:calc(var(--w) * .03);
       letter-spacing:.16em;
       text-transform:uppercase;
       color:var(--ink);
       font-weight:bold;
       white-space:nowrap;
     }
-    .rh-top .rh-cat{ font-weight:400; color:#9a9a9a; margin-left:auto; }
+    /* the nation keeps its room; type and ref give way to it, with an
+       ellipsis rather than off the edge of the header */
+    .rh-top > span:not(.rh-cat){ flex:none; }
+    .rh-top .rh-cat{
+      font-weight:400; color:#9a9a9a; margin-left:auto;
+      min-width:0; overflow:hidden; text-overflow:ellipsis; letter-spacing:.1em;
+    }
     /* the flag is an <img> inside an item, so it has to outrank the item's
        own picture rule, which would stretch it to the full width */
     .rf-item .rh-flag{ height:calc(var(--w) * .05); width:auto; display:block; flex:none; box-shadow:none; }
+    /* The whole name, every time: two lines at a size that holds the
+       longest in the register ("United States Air Force 1990s Tri Colour
+       Desert Coffee Stain Camouflage Ripstop Combat Jacket") inside the
+       header's fixed height. The ref moves up beside the type. */
     .rh-name{
-      font-size:calc(var(--w) * .046);
-      line-height:1.3;
+      font-size:calc(var(--w) * .034);
+      line-height:1.25;
       font-weight:bold;
       color:var(--ink);
       overflow:hidden;
-      white-space:nowrap;
-      text-overflow:ellipsis;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
     }
-    .rh-ref{ margin-left:.55em; font-weight:400; color:#b4b4b4; font-size:.8em; letter-spacing:.14em; }
+    .rh-ref{ color:#b4b4b4; letter-spacing:.14em; }
 
     .rf-item.rf-m3{ display:grid; grid-template-columns:var(--w) var(--w); }
     .rf-item.rf-m3 > img{ grid-column:1; grid-row:1; }
@@ -3291,6 +3326,19 @@
     #refsTools .rt-info{ flex:none; width:22px; padding:0; margin-left:-10px; color:#b4b4b4; }
     #refsTools .rt-info:hover{ background:none; color:var(--ink); }
     #refsTools .rt-info svg{ width:13px; height:13px; }
+
+    /* the guides a dragged image lines itself up on: hairlines, over
+       everything, never in the way of a press */
+    .rf-guide{
+      position:absolute;
+      background:var(--line);
+      opacity:.5;
+      pointer-events:none;
+      z-index:999999;
+    }
+    .rf-guide.v{ width:calc(1px * var(--inv)); }
+    .rf-guide.h{ height:calc(1px * var(--inv)); }
+    .rf-guide[hidden]{ display:none; }
 
     /* the mark between two images: a plus where they can lock, a minus on
        each lock of the picked image */
@@ -10207,6 +10255,7 @@
         it.el.classList.toggle('rf-m3', m === 3);
         it.el.querySelectorAll('.rf-mode').forEach(sq =>
           sq.classList.toggle('on', Number(sq.dataset.mode) === m));
+        showShot(it);
       }
 
       /* What the archive knows about a garment, read from the register the
@@ -10220,6 +10269,9 @@
           nation:nat.label, flag:nat.flag ? `/flags/${nat.flag}` : '',
           era:(p.name.match(/\b(?:1[89]|20)\d0s\b/) || [''])[0],
           no:GARMENT_NO.get(id) || 0,
+          // the lead photograph and any others, as the archive's tab has them
+          shots:[p.img || slug(p.name)].concat(Array.isArray(p.shots) ? p.shots : [])
+                  .map(f => `${assetDir(p.n, p.cat, p.name)}/${f}`),
         };
       }
       const escH = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
@@ -10230,8 +10282,9 @@
         const head = document.createElement('div');
         head.className = 'rf-head';
         head.innerHTML =
-          `<div class="rh-top">${flag}<span>${escH(g.nation)}</span><span class="rh-cat">${escH(g.cat)}</span></div>` +
-          `<div class="rh-name"><span>${escH(g.name)}</span><span class="rh-ref">${escH(g.ref)}</span></div>`;
+          `<div class="rh-top">${flag}<span>${escH(g.nation)}</span>` +
+          `<span class="rh-cat">${escH(g.cat)}${g.ref ? ` · <span class="rh-ref">${escH(g.ref)}</span>` : ''}</span></div>` +
+          `<div class="rh-name">${escH(g.name)}</div>`;
         const facts = [['Nation', g.nation], ['Type', g.cat], ['Archive ref', g.ref], ['Era', g.era], ['Material', g.mat]]
           .filter(f => f[1]).map(f => `<dt>${escH(f[0])}</dt><dd>${escH(f[1])}</dd>`).join('');
         const panel = document.createElement('div');
@@ -10244,6 +10297,21 @@
           (g.no ? `<a class="rp-open" href="/archive/${g.no}">Open in the archive</a>` : '');
         it.el.insertBefore(head, it.el.firstChild);
         it.el.insertBefore(panel, it.el.querySelector('.rf-del'));
+        /* A garment with more than one photograph turns over the way its tab
+           in the archive does — a dot per view, under the picture. Only in
+           views 2 and 3, where it is being looked at as the garment; in
+           view 1 it is a picture on the board and shows its lead. */
+        it.shots = g.shots;
+        if (g.shots.length > 1){
+          const dots = Object.assign(document.createElement('div'), { className:'rf-dots' });
+          g.shots.forEach((src, k) => {
+            const d = Object.assign(document.createElement('button'), { type:'button', className:'rf-dot' });
+            d.dataset.shot = String(k);
+            d.setAttribute('aria-label', `View ${k + 1} of ${g.shots.length}`);
+            dots.appendChild(d);
+          });
+          it.el.appendChild(dots);
+        }
         // one square per view, down the left edge: top, middle, bottom
         [['1', 'The photograph'], ['2', 'With its header'], ['3', 'As its archive tab']].forEach(([n, say]) => {
           const sq = Object.assign(document.createElement('button'),
@@ -10253,6 +10321,14 @@
           it.el.appendChild(sq);
         });
         it.el.classList.add('rf-garment');
+      }
+      function showShot(it){
+        const img = it.el && it.el.querySelector(':scope > img');
+        if (!img) return;
+        const k = it.shots && it.shots.length > 1 && modeOf(it) > 1 ? (it.shot || 0) % it.shots.length : 0;
+        const want = k ? it.shots[k] : it.url;
+        if (img.getAttribute('src') !== want) img.src = want;
+        it.el.querySelectorAll('.rf-dot').forEach(d => d.classList.toggle('on', Number(d.dataset.shot) === k));
       }
       function setMode(it, m){
         if (modeOf(it) === m) return;
@@ -10317,20 +10393,40 @@
       }
 
       /* ---------- LOCKED TOGETHER ----------
-         A lock is one image set on one side of another, the two centred on
-         each other across a GAP of white. The locks of a group form a tree,
-         so its whole layout follows from any one image in it: relay() walks
-         the tree out from the image that is to stay put and sets every other
-         one against its neighbour. That is what lets one image in a pair be
-         made bigger and the rest of the group make room rather than overlap. */
-      function setBeside(a, b, side){
+         A lock is one image set on one side of another across a GAP of
+         white. It also remembers how the two line up along that side — `d`,
+         the distance from the first one's leading edge to the second's (its
+         top, for a side-by-side pair; its left, for a stacked one) — so a
+         row stays top-aligned and a column stays left-aligned when one of
+         them is made bigger, rather than everything re-centring.
+
+         relay() walks a group's locks out from the image that is to stay put
+         and sets every other one against its neighbour. A group's locks can
+         close into loops — four images in a square are locked all the way
+         round — and where two locks disagree the first one walked wins and
+         untangle() settles the rest: nothing in a group is ever left lying
+         over anything else in it. Images that are not locked together may
+         overlap freely; that is the reader's to choose. */
+      const crossOf = side => (side === 'left' || side === 'right') ? 'y' : 'x';
+      const startOf = (it, side) => crossOf(side) === 'y' ? rect(it).t : rect(it).l;
+      const crossLen = (it, side) => crossOf(side) === 'y' ? hOf(it) : wOf(it);
+
+      function setBeside(a, b, side, d){
+        const ra = rect(a);
         if (side === 'right' || side === 'left'){
-          const d = wOf(a) / 2 + GAP + wOf(b) / 2;
-          b.x = a.x + (side === 'right' ? d : -d); b.y = a.y;
+          const dist = wOf(a) / 2 + GAP + wOf(b) / 2;
+          b.x = a.x + (side === 'right' ? dist : -dist);
+          b.y = ra.t + (d || 0) + hOf(b) / 2;
         } else {
-          const d = hOf(a) / 2 + GAP + hOf(b) / 2;
-          b.y = a.y + (side === 'bottom' ? d : -d); b.x = a.x;
+          const dist = hOf(a) / 2 + GAP + hOf(b) / 2;
+          b.y = a.y + (side === 'bottom' ? dist : -dist);
+          b.x = ra.l + (d || 0) + wOf(b) / 2;
         }
+      }
+      // what the lock's `d` is, read off where the two actually are
+      function measureLock(l){
+        const p = byId(l.p), c = byId(l.c);
+        if (p && c) l.d = startOf(c, l.side) - startOf(p, l.side);
       }
       function relay(anchor){
         if (!anchor.gid) return;
@@ -10338,18 +10434,69 @@
         while (queue.length){
           const a = queue.shift();
           locks.forEach(l => {
-            let b = null, side = null;
-            if (l.p === a.id && !seen.has(l.c)){ b = byId(l.c); side = l.side; }
-            else if (l.c === a.id && !seen.has(l.p)){ b = byId(l.p); side = OPP[l.side]; }
+            let b = null, side = null, d = 0;
+            if (l.p === a.id && !seen.has(l.c)){ b = byId(l.c); side = l.side; d = l.d || 0; }
+            else if (l.c === a.id && !seen.has(l.p)){ b = byId(l.p); side = OPP[l.side]; d = -(l.d || 0); }
             if (!b) return;
             seen.add(b.id);
-            setBeside(a, b, side);
+            setBeside(a, b, side, d);
             place(b);
             queue.push(b);
           });
         }
         place(anchor);
+        untangle(groupOf(anchor), new Set([anchor.id]));
       }
+
+      /* ---------- NOTHING IN A GROUP LIES OVER ANYTHING ELSE IN IT ----------
+         Two images that are only connected through others — the two ends of
+         an L, the corners of a square — can be brought into each other by a
+         resize, a change of view, or a lock that closes a loop. Each such
+         pair is eased apart until there is a GAP between them again. The one
+         that moves is the one not being held (`fixed`), and it moves across
+         its own locks rather than along them, so the lock it has stays a
+         lock: an image locked under another slides sideways, not down. */
+      function untangle(members, fixed){
+        fixed = fixed || new Set();
+        const lockedAxes = it => {
+          const ax = new Set();
+          locks.forEach(l => { if (l.p === it.id || l.c === it.id) ax.add(crossOf(l.side) === 'y' ? 'x' : 'y'); });
+          return ax;     // the axes its locks hold it on
+        };
+        for (let pass = 0; pass < 16; pass++){
+          let moved = false;
+          for (let i = 0; i < members.length; i++){
+            for (let j = i + 1; j < members.length; j++){
+              const a = members[i], b = members[j];
+              const ra = rect(a), rb = rect(b);
+              const ox = Math.min(ra.r, rb.r) - Math.max(ra.l, rb.l) + GAP;
+              const oy = Math.min(ra.b, rb.b) - Math.max(ra.t, rb.t) + GAP;
+              if (ox <= 0.5 || oy <= 0.5) continue;              // clear of each other
+              // a pair that is locked to each other is set by its lock, not here
+              if (locks.some(l => (l.p === a.id && l.c === b.id) || (l.p === b.id && l.c === a.id))) continue;
+              let mover = b, other = a;
+              if (fixed.has(b.id) && !fixed.has(a.id)){ mover = a; other = b; }
+              const held = lockedAxes(mover);
+              let axis = ox < oy ? 'x' : 'y';
+              if (held.has(axis) && !held.has(axis === 'x' ? 'y' : 'x')) axis = axis === 'x' ? 'y' : 'x';
+              if (axis === 'x'){
+                const dir = mover.x >= other.x ? 1 : -1;
+                mover.x += dir * ox;
+              } else {
+                const dir = mover.y >= other.y ? 1 : -1;
+                mover.y += dir * oy;
+              }
+              place(mover);
+              fixed.add(mover.id);        // settled; the next pass moves something else
+              moved = true;
+            }
+          }
+          if (!moved) break;
+        }
+        // whatever slid along a lock is now lined up differently: say so
+        locks.forEach(l => { if (members.some(m => m.id === l.p)) measureLock(l); });
+      }
+
       // groups are whatever the locks connect; one image on its own is no group
       function regroup(){
         const left = new Set(items.map(it => it.id));
@@ -10407,16 +10554,88 @@
         return best;
       }
 
+      /* ---------- LOCKING TO A BLOCK ----------
+         An image brought up to three stacked in a column is not being locked
+         to the top one: it is being locked to the column. So the face it
+         meets is read as everything in that group whose edge on that side is
+         flush with the one it was offered (and free), and the image is set
+         against the whole face.
+
+         If it is nearly the face's length already — within FIT, 15% — it is
+         brought to that length exactly, so a column of three and the image
+         beside it start and finish together. Clearly longer or shorter is
+         somebody composing, and it is left the size it is and where it was
+         put along the face. The same either way round: beside a column, or
+         under a row. */
+      const FIT = 0.15;
+      function faceOf(o, side){
+        const edgeAt = it => { const r = rect(it); return { left:r.l, right:r.r, top:r.t, bottom:r.b }[side]; };
+        const at = edgeAt(o);
+        const face = groupOf(o).filter(b => b === o || (Math.abs(edgeAt(b) - at) < 2 && !sideTaken(b, side)));
+        const starts = face.map(b => startOf(b, side === 'left' || side === 'right' ? 'left' : 'top'));
+        const ends = face.map(b => startOf(b, side === 'left' || side === 'right' ? 'left' : 'top') + crossLen(b, side));
+        return { face, start:Math.min(...starts), end:Math.max(...ends) };
+      }
+
       function lockOffered(){
         if (!cand) return;
-        const { m, o, side } = cand;
+        const { m, o, side } = cand;          // o sits on m's `side`; m is the one brought over
         cand = null;
-        locks.push({ p:m.id, c:o.id, side });
-        regroup();
+        const unit = groupOf(m), still = groupOf(o);
+        const meet = OPP[side];               // the face of o's group that m meets
+        const { face, start, end } = faceOf(o, meet);
+        const along = crossOf(side);
+
+        settle(() => {
+          // a single image close to the face's length is brought to it
+          if (unit.length === 1){
+            const len = end - start, mine = crossLen(m, side);
+            const oLen = crossLen(o, side), oStart = startOf(o, side);
+            let fitTo = null;
+            if (face.length > 1 && Math.abs(mine - len) / len < FIT) fitTo = [start, len];
+            else if (Math.abs(mine - oLen) / oLen < FIT) fitTo = [oStart, oLen];
+            if (fitTo){
+              m.w *= fitTo[1] / mine;
+              if (along === 'y') m.y = fitTo[0] + hOf(m) / 2; else m.x = fitTo[0] + wOf(m) / 2;
+            }
+          }
+          // then set across the gap from the face, the whole unit together
+          const rm = rect(m), ro = rect(o);
+          let dx = 0, dy = 0;
+          if (side === 'right')  dx = (ro.l - GAP) - rm.r;
+          if (side === 'left')   dx = (ro.r + GAP) - rm.l;
+          if (side === 'bottom') dy = (ro.t - GAP) - rm.b;
+          if (side === 'top')    dy = (ro.b + GAP) - rm.t;
+          unit.forEach(it => { it.x += dx; it.y += dy; place(it); });
+
+          /* Locked to every image of the face it now sits against, not just
+             one. One side of the arrival can carry several locks — it is
+             beside a whole column — but each image of the face still takes
+             only one on the side it shows. */
+          const already = (a, b) => locks.some(l => (l.p === a.id && l.c === b.id) || (l.p === b.id && l.c === a.id));
+          const flush = (a, b, sd) => {
+            const ra = rect(a), rb = rect(b);
+            const gap = { right:rb.l - ra.r, left:ra.l - rb.r, bottom:rb.t - ra.b, top:ra.t - rb.b }[sd];
+            const flat = sd === 'left' || sd === 'right';
+            const shared = flat ? Math.min(ra.b, rb.b) - Math.max(ra.t, rb.t) : Math.min(ra.r, rb.r) - Math.max(ra.l, rb.l);
+            return Math.abs(gap - GAP) < 2 && shared > Math.min(crossLen(a, sd), crossLen(b, sd)) * 0.15;
+          };
+          const lock = (a, b, sd) => {
+            if (already(a, b) || sideTaken(b, OPP[sd])) return;
+            const l = { p:a.id, c:b.id, side:sd }; measureLock(l); locks.push(l);
+          };
+          lock(m, o, side);
+          face.forEach(b => { if (b !== o && flush(m, b, side)) lock(m, b, side); });
+          regroup();
+          // anything the new arrival now lies over in its new group moves off it,
+          // and whatever it ends up flush against on another side is locked too
+          untangle(groupOf(m), new Set(still.map(it => it.id)));
+          unit.forEach(a => still.forEach(b =>
+            ['right', 'left', 'bottom', 'top'].forEach(sd => { if (flush(a, b, sd)) lock(a, b, sd); })));
+          regroup();
+        });
         clustered = false;
         touch(m);
-        // the one being brought over is what moves; what it met stays put
-        settle(() => relay(o));
         select(m);
         sync(); save();
       }
@@ -10426,11 +10645,66 @@
         clustered = false;
         // the two let go of each other a little, so it is seen to have happened
         const p = byId(l.p), c = byId(l.c);
-        if (p && c){
+        if (p && c && p.gid !== c.gid){
           const push = 14 / vs, dir = { right:[1,0], left:[-1,0], bottom:[0,1], top:[0,-1] }[l.side];
           settle(() => groupOf(c).forEach(o => { o.x += dir[0] * push; o.y += dir[1] * push; place(o); }));
         }
         joints(); save();
+      }
+
+      /* ---------- GUIDES ----------
+         Dragging, an image lines itself up with the images around it: its
+         edges and middle with theirs, and its edge a GAP off theirs, which
+         is where a lock sits. A hairline shows each line it has found. Within
+         SNAP of a line it is on the line; hold Alt to place it freely. Only
+         images near enough to matter are asked, so a picture across the
+         board does not tug at one being placed here. */
+      const SNAP = 7;
+      const guideEls = [0, 1].map(() => {
+        const g = Object.assign(document.createElement('div'), { className:'rf-guide' });
+        g.hidden = true;
+        stage.appendChild(g);
+        return g;
+      });
+      function hideGuides(){ guideEls.forEach(g => { g.hidden = true; }); }
+      function snapUnit(unit, dx, dy){
+        const mine = new Set(unit.map(([o]) => o.id));
+        const rs = unit.map(([o, x, y]) => {
+          const hw = wOf(o) / 2, hh = hOf(o) / 2, X = x + dx, Y = y + dy;
+          return { l:X - hw, r:X + hw, t:Y - hh, b:Y + hh };
+        });
+        const box = { l:Math.min(...rs.map(r => r.l)), r:Math.max(...rs.map(r => r.r)),
+                      t:Math.min(...rs.map(r => r.t)), b:Math.max(...rs.map(r => r.b)) };
+        const th = SNAP / vs, near = 320 / vs;
+        let bx = null, by = null;
+        items.forEach(o => {
+          if (mine.has(o.id)) return;
+          const r = rect(o);
+          if (r.l > box.r + near || r.r < box.l - near || r.t > box.b + near || r.b < box.t - near) return;
+          const cx = (r.l + r.r) / 2, cy = (r.t + r.b) / 2, bcx = (box.l + box.r) / 2, bcy = (box.t + box.b) / 2;
+          [[box.l, r.l], [box.l, r.r + GAP], [box.r, r.r], [box.r, r.l - GAP], [bcx, cx]].forEach(([u, t]) => {
+            const d = t - u;
+            if (Math.abs(d) <= th && (!bx || Math.abs(d) < Math.abs(bx.d))) bx = { d, at:t, r };
+          });
+          [[box.t, r.t], [box.t, r.b + GAP], [box.b, r.b], [box.b, r.t - GAP], [bcy, cy]].forEach(([u, t]) => {
+            const d = t - u;
+            if (Math.abs(d) <= th && (!by || Math.abs(d) < Math.abs(by.d))) by = { d, at:t, r };
+          });
+        });
+        const ox = bx ? bx.d : 0, oy = by ? by.d : 0;
+        const nb = { l:box.l + ox, r:box.r + ox, t:box.t + oy, b:box.b + oy };
+        const [gv, gh] = guideEls;
+        if (bx){
+          const t = Math.min(nb.t, bx.r.t) - 12 / vs, b = Math.max(nb.b, bx.r.b) + 12 / vs;
+          Object.assign(gv.style, { left:bx.at + 'px', top:t + 'px', width:'', height:(b - t) + 'px' });
+          gv.className = 'rf-guide v'; gv.hidden = false;
+        } else gv.hidden = true;
+        if (by){
+          const l = Math.min(nb.l, by.r.l) - 12 / vs, r = Math.max(nb.r, by.r.r) + 12 / vs;
+          Object.assign(gh.style, { top:by.at + 'px', left:l + 'px', height:'', width:(r - l) + 'px' });
+          gh.className = 'rf-guide h'; gh.hidden = false;
+        } else gh.hidden = true;
+        return { dx:ox, dy:oy };
       }
 
       /* The marks between images: a plus where a lock is on offer, a minus
@@ -10530,7 +10804,7 @@
         const make = (en, x, y, w, z) => {
           const mode = en.lay && en.lay.mode ? en.lay.mode : 1;
           const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar, x, y, w, z,
-                       gid:null, garment:en.garment || null, mode, credit:en.credit || null };
+                       gid:null, garment:en.garment || null, mode, credit:en.credit || null, shot:en.shot || 0 };
           items.push(it); mount(it); made.push(it);
           if (en.key) byKey[en.key] = it;
           return it;
@@ -10566,7 +10840,8 @@
             if (p && c && OPP[l.side]) locks.push({ p:p.id, c:c.id, side:l.side });
           });
           regroup();
-          made.forEach(it => { if (it.gid && !made.some(o => o.gid === it.gid && o !== it && o.z < it.z)) relay(it); });
+          // the file says where each one sat; the locks take their alignment from that
+          locks.forEach(l => { if (l.d == null) measureLock(l); });
         }
 
         clustered = false;
@@ -10670,7 +10945,9 @@
             deal.forEach(u => {
               const mean = u.reduce((s, it) => s + Math.max(wOf(it), hOf(it)), 0) / u.length;
               const k = CBOX / mean;
-              u.forEach(it => { it.w *= k; });
+              // the group is scaled as one picture: sizes, spacing and alignments together
+              const ax = u[0].x, ay = u[0].y;
+              u.forEach(it => { it.w *= k; it.x = ax + (it.x - ax) * k; it.y = ay + (it.y - ay) * k; });
               relay(u[0]);
               const box = boundsOf(u);
               const cx = (box.l + box.r) / 2, cy = (box.t + box.b) / 2;
@@ -10842,7 +11119,7 @@
             const ok = r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0;
             return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
                      name:(r && r.name) || en.name, garment:(r && r.garment) || null,
-                     credit:(r && r.credit) || null,
+                     credit:(r && r.credit) || null, shot:(r && r.shot) || 0,
                      lay: ok ? { x:r.x, y:r.y, w:r.w, z:r.z || 0, mode:[1, 2, 3].includes(r.mode) ? r.mode : 1 } : null };
           }),
         };
@@ -10879,6 +11156,7 @@
           if (it.garment) row.garment = it.garment;
           if (modeOf(it) > 1) row.mode = modeOf(it);
           if (it.credit) row.credit = it.credit;
+          if (it.shot) row.shot = it.shot;
           man.items.push(row);
         }
         man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
@@ -11103,6 +11381,31 @@
       ];
       let sState = SOURCES_S.map(() => ({}));
 
+      /* ---------- NOT HERE ----------
+         Inspiration can come from anything, and dark is not the same as
+         unfit — death, war, skulls, the morgue drawer are all fair subjects
+         for a reference board. What is kept out is sexual material and
+         graphic gore. A search made of either is not run at all, and any
+         result whose title or credit is made of one is left out of the
+         column — Openverse is already asked for nothing mature, but Commons
+         has no such switch. Matched as whole words or their stems, so
+         "Essex" and "Sussex" and "skirt" go through — and the words that
+         mean something else in a military archive are left off the list:
+         Gore-Tex, a breast pocket, a butt pack, an escort carrier. Readers can still put
+         their own images on their own board; this is only what the search
+         offers them. */
+      const BLOCK = new RegExp('(^|[^a-z])(' + [
+        'porn\\w*', 'p0rn', 'xxx', 'nsfw', 'nude\\w*', 'nudity', 'naked', 'topless', 'bottomless',
+        'sex', 'sexy', 'sexual\\w*', 'erotic\\w*', 'erotica', 'fetish\\w*', 'bdsm', 'bondage',
+        'hentai', 'onlyfans', 'camgirl\\w*', 'stripper\\w*', 'striptease', 'lingerie',
+        'boob\\w*', 'tits', 'titties', 'nipples?', 'buttocks', 'arse',
+        'penis\\w*', 'vagina\\w*', 'vulva', 'genital\\w*', 'pussy', 'orgasm\\w*',
+        'masturbat\\w*', 'orgy', 'orgies', 'milf', 'prostitut\\w*', 'brothel',
+        'gore(?![- ]?tex)', 'gory', 'beheading\\w*', 'decapitat\\w*', 'dismember\\w*', 'mutilat\\w*',
+        'disembowel\\w*', 'snuff', 'execution video', 'corpse porn',
+      ].join('|') + ')($|[^a-z])', 'i');
+      const unfit = t => BLOCK.test(String(t || '').toLowerCase());
+
       function toggleSearch(force){
         const on = typeof force === 'boolean' ? force : sPanel.hidden;
         sPanel.hidden = !on;
@@ -11113,6 +11416,7 @@
 
       function addHit(h){
         if (hits.has(h.id)) return;
+        if (unfit(h.title) || unfit(h.creator)) return;
         hits.set(h.id, h);
         const b = Object.assign(document.createElement('button'), { type:'button', className:'rs-hit' });
         b.dataset.id = h.id;
@@ -11137,6 +11441,11 @@
       function runSearch(more){
         const term = more ? sTerm : sQ.value.trim();
         if (!term) return;
+        if (unfit(term)){
+          sRun++; hits.clear(); sCols.innerHTML = ''; sMore.hidden = true;
+          sNote.textContent = 'That search is not available here.';
+          return;
+        }
         if (more && sPending) return;
         if (!more){
           sTerm = term; sRun++; hits.clear(); sCols.innerHTML = ''; sGrid.scrollTop = 0;
@@ -11372,6 +11681,7 @@
       const cutting = new Set();
       async function cutOut(it){
         if (cutting.has(it.id)) return;
+        if (it.garment) return;          // garments are the archive's photographs: never cut
         // cut already: the same button puts the background back
         if (it.orig){
           swapBlob(it, it.orig);
@@ -11441,8 +11751,8 @@
           try {
             const d = await db();
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
-              items: items.map(({ id, blob, name, ar, x, y, w, z, gid, garment, mode, credit, orig }) =>
-                               ({ id, blob, name, ar, x, y, w, z, gid, garment, mode, credit, orig })),
+              items: items.map(({ id, blob, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot }) =>
+                               ({ id, blob, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -11463,6 +11773,8 @@
             items.push(it); mount(it);
           });
           locks = (got.locks || []).filter(l => byId(l.p) && byId(l.c));
+          // boards saved before locks remembered their alignment are read for it
+          locks.forEach(l => { if (l.d == null) measureLock(l); });
           regroup();
           zTop = Math.max(1, ...items.map(it => it.z || 0));
           before = got.before || null;
@@ -11485,7 +11797,7 @@
 
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
-        if (e.target.closest('.rf-del, .rf-cut, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSearch')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSearch')) return;
         root.setPointerCapture(e.pointerId);
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
 
@@ -11521,7 +11833,10 @@
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
         if (!g) return;
         if (g.mode === 'move'){
-          const dx = (e.clientX - g.sx) / vs, dy = (e.clientY - g.sy) / vs;
+          let dx = (e.clientX - g.sx) / vs, dy = (e.clientY - g.sy) / vs;
+          // lined up against what is near, unless Alt says place it freely
+          if (!e.altKey){ const sn = snapUnit(g.from, dx, dy); dx += sn.dx; dy += sn.dy; }
+          else hideGuides();
           g.from.forEach(([o, x, y]) => { o.x = x + dx; o.y = y + dy; place(o); });
           g.moved = true;
           cand = findLock(g.item);
@@ -11567,6 +11882,7 @@
         if (!pts.has(e.pointerId)) return;
         pts.delete(e.pointerId);
         root.classList.remove('panning');
+        hideGuides();
         if (g && g.moved){ clustered = false; if (g.item) touch(g.item); }
         if (g && g.mode === 'move') joints(true);
         if (g) save();
@@ -11580,6 +11896,12 @@
         if (del){
           const it = byId(del.closest('.rf-item').dataset.id);
           if (it) remove(it);
+          return;
+        }
+        const dot = e.target.closest('.rf-dot');
+        if (dot){
+          const it = byId(dot.closest('.rf-item').dataset.id);
+          if (it){ it.shot = Number(dot.dataset.shot); showShot(it); save(); }
           return;
         }
         const cutBtn = e.target.closest('.rf-cut');
