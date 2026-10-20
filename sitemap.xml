@@ -782,6 +782,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/hungarian/headwear/hungarian-army-1990s-desert-scrim-scarf/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/hungarian/headwear/hungarian-army-1990s-desert-scrim-scarf/HA1990DSS.png</image:loc>
+      <image:title>Hungarian Army 1990s Desert Scrim Scarf</image:title>
+      <image:caption>Hungarian Army 1990s Desert Scrim Scarf — Hungarian military surplus headwear, archive ref HA1990DSS</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/iraqi/jackets/iraqi-army-1980s-desert-dpm-camouflage-combat-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -1352,6 +1362,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/austrian/webbing/austrian-army-1980s-alice-system-belt/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/austrian/webbing/austrian-army-1980s-alice-system-belt/AA1980ASB.png</image:loc>
+      <image:title>Austrian Army 1980s ALICE System Belt</image:title>
+      <image:caption>Austrian Army 1980s ALICE System Belt — Austrian military surplus webbing, archive ref AA1980ASB</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/serbian/shirts/serbian-army-1990s-m93-oak-leaf-camouflage-shirt/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -1369,6 +1389,26 @@
       <image:loc>https://britishmaterialunit.com/archive/french/hardware/french-army-1990s-arz-drogue-parachute/FRA1990ARZDP.png</image:loc>
       <image:title>French Army 1990s ARZ Drogue Parachute</image:title>
       <image:caption>French Army 1990s ARZ Drogue Parachute — French military surplus hardware, archive ref FRA1990ARZDP</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/hardware/french-army-1980s-nato-saint-junien-leather-gloves/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/hardware/french-army-1980s-nato-saint-junien-leather-gloves/FRA1980NSJLG.png</image:loc>
+      <image:title>French Army 1980s NATO Saint-Junien Leather Gloves</image:title>
+      <image:caption>French Army 1980s NATO Saint-Junien Leather Gloves — French military surplus hardware, archive ref FRA1980NSJLG</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/french/bags/french-army-2000s-canvas-body-armour-bag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/french/bags/french-army-2000s-canvas-body-armour-bag/FRA2000CBAB.png</image:loc>
+      <image:title>French Army 2000s Canvas Body Armour Bag</image:title>
+      <image:caption>French Army 2000s Canvas Body Armour Bag — French military surplus bag, archive ref FRA2000CBAB</image:caption>
     </image:image>
   </url>
   <url>
