@@ -2341,6 +2341,16 @@
     }
     #scMini svg{ width:16px; height:16px; fill:#fff; }
     #scPanel.dragging .sc-head, #scMini.dragging{ cursor:grabbing; }
+    /* Off the archive — another page carried over it — the window and the
+       square stand down and only the play square in that page's header is
+       left. Hidden, not removed: the player keeps playing out of sight, and
+       is exactly where it was when the reader comes back to the archive. */
+    body.carried #scPanel,
+    body.carried #scMini{
+      visibility:hidden !important;
+      opacity:0 !important;
+      pointer-events:none !important;
+    }
     /* while it is carried, the frame under it must not take the pointer */
     #scPanel.dragging iframe{ pointer-events:none; }
 
