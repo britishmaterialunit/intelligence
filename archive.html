@@ -2401,6 +2401,35 @@
     #dock:not(.more) #dockLibrary,
     #dock:not(.more) #dockFile{ display:none; }
     #dock.open.more #dockSearch{ width:calc(var(--dock-w) - 336px); }   /* six squares */
+    /* rising in, a beat apart, left to right; dropping out, right to left */
+    @keyframes dockRise{
+      from{ opacity:0; transform:translateY(16px) scale(.92); }
+      to  { opacity:1; transform:none; }
+    }
+    @keyframes dockFall{
+      from{ opacity:1; transform:none; }
+      to  { opacity:0; transform:translateY(16px) scale(.92); }
+    }
+    #dock.more-in #dockList, #dock.more-in #dockPlay, #dock.more-in #dockRefs,
+    #dock.more-in #dockFile, #dock.more-in #dockLibrary{
+      animation:dockRise .38s cubic-bezier(.2,.8,.2,1) both;
+      animation-delay:calc(var(--more-i, 0) * 60ms);
+    }
+    #dock.more-out #dockList, #dock.more-out #dockPlay, #dock.more-out #dockRefs,
+    #dock.more-out #dockFile, #dock.more-out #dockLibrary{
+      animation:dockFall .24s cubic-bezier(.4,0,1,1) both;
+      animation-delay:calc(var(--more-o, 0) * 60ms);
+      pointer-events:none;
+    }
+    /* the bar holds its narrower width until the squares have gone */
+    #dock.open.more-out #dockSearch{ width:calc(var(--dock-w) - 336px); }
+    /* the plus turns as it becomes the minus */
+    #dockMore img{ transition:transform .32s cubic-bezier(.4,0,.2,1); }
+    #dockMore.turned img{ transform:rotate(180deg); }
+    @media (prefers-reduced-motion:reduce){
+      #dock.more-in .dock-sq, #dock.more-out .dock-sq{ animation:none; }
+      #dockMore img{ transition:none; }
+    }
     body.has-file.dock-list #dock.open.more #dockSearch{
       width:calc(var(--dock-w) - 392px);
     }
@@ -8213,8 +8242,45 @@
        goes with it: on the board's own square when that is showing, on the
        plus when it is not, so the count is never hidden. */
     const dockMore = document.getElementById('dockMore');
+    /* ---------- THEY FLICK UP, ONE AFTER ANOTHER ----------
+       Laid out, the squares rise into the row left to right a beat apart
+       while the bar draws back to make their room. Put away, they drop in
+       the reverse order, last one first, and only once the last has gone
+       does the row close up and the bar run out to full width again — so
+       nothing is snatched off the screen. A press mid-way simply turns the
+       motion round. */
+    const MORE_STEP = 60, MORE_RISE = 380, MORE_FALL = 240;
+    let moreRun = 0;
+    function moreSquares(){
+      return ['dockList', 'dockPlay', 'dockRefs', 'dockFile', 'dockLibrary']
+        .map(id => document.getElementById(id))
+        .filter(el => el && getComputedStyle(el).display !== 'none');
+    }
     function setMore(on){
-      dock.classList.toggle('more', on);
+      const run = ++moreRun;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      dock.classList.remove('more-in', 'more-out');
+      if (on){
+        dock.classList.add('more');
+        if (!reduced){
+          moreSquares().forEach((el, i) => el.style.setProperty('--more-i', i));
+          void dock.offsetWidth;
+          dock.classList.add('more-in');
+          setTimeout(() => { if (run === moreRun) dock.classList.remove('more-in'); }, MORE_RISE + MORE_STEP * 5);
+        }
+      } else if (reduced || !dock.classList.contains('more')){
+        dock.classList.remove('more');
+      } else {
+        const sq = moreSquares();
+        sq.forEach((el, i) => el.style.setProperty('--more-o', sq.length - 1 - i));
+        void dock.offsetWidth;
+        dock.classList.add('more-out');
+        setTimeout(() => {
+          if (run !== moreRun) return;
+          dock.classList.remove('more', 'more-out');
+        }, MORE_FALL + MORE_STEP * (sq.length - 1));
+      }
+      dockMore.classList.toggle('turned', on);
       dockMore.querySelector('img').src = on ? '/minus-white.svg' : '/plus-white.svg';
       dockMore.setAttribute('aria-expanded', on ? 'true' : 'false');
       dockMore.setAttribute('aria-label', on ? 'Fewer tools' : 'More tools');
