@@ -66,9 +66,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   opens) plus `EXTRA_BLOCK_TERMS`/`WHITELIST`/`BLOCK_CATEGORY_PATTERNS`, and
   The search column has Search / Saved tabs: a bookmark on any result keeps
   it (metadata only, localStorage `bmu-refs-saved`), newest first, placeable
-  like a result. `MILITARY_ONLY` relevance (queries without a military word are run with
-  military/army/war/uniform; results must carry a military term in title,
-  description or categories). `BLOCK_GRAPHIC_INJURY` is false.
+  like a result. `MILITARY_ONLY` is **false** (owner's call: "terrain" should
+  mean landscapes) — the steering and relevance code is kept, switched off.
+  `BLOCK_GRAPHIC_INJURY` is false.
   Cluster deals everything randomly except the last few pieces moved by
   hand (`touched`, `KEEP`), which stay put and are clustered around. Each
   garment card has a `+` (`.btn-ref-inline`) that queues it in the tray

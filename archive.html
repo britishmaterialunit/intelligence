@@ -3795,7 +3795,7 @@
         <button type="button" role="tab" data-tab="results" aria-selected="true">Search</button>
         <button type="button" role="tab" data-tab="saved" aria-selected="false">Saved <span id="refsSavedN"></span></button>
       </div>
-      <p class="rs-note" id="refsSearchNote">Openly licensed military images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.</p>
+      <p class="rs-note" id="refsSearchNote">Openly licensed images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.</p>
       <div class="rs-grid" id="refsResults"><div class="rs-cols" id="refsCols"></div><div class="rs-cols" id="refsSavedCols" hidden></div></div>
       <button type="button" class="rs-more" id="refsMore" hidden>More</button>
     </aside>
@@ -11559,7 +11559,7 @@
       const svN    = document.getElementById('refsSavedN');
       const sMore  = document.getElementById('refsMore');
       const sNote  = document.getElementById('refsSearchNote');
-      const NOTE   = 'Openly licensed military images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.';
+      const NOTE   = 'Openly licensed images from Wikimedia Commons and Openverse. Press one to place it, or drag it onto the board.';
       sNote.textContent = NOTE;
       const hits = new Map();          // id → { thumb, full, w, h, title, creator, license, source, page }
       let sTerm = '', sRun = 0, sPending = 0;
@@ -11599,7 +11599,11 @@
          If obscenity cannot be fetched, the search still runs, judged on the
          image terms alone — never on nothing.
          ============================================================ */
-      const MILITARY_ONLY = true;
+      /* Off: a reader searching "terrain" wants landscapes, and "camo" wants
+         every camouflage, not only what Commons happens to file as military.
+         The steering and the relevance check are kept, switched off, in case
+         a military-only board is wanted again. */
+      const MILITARY_ONLY = false;
       const BLOCK_GRAPHIC_INJURY = false;
       const EXTRA_BLOCK_TERMS = [
         // nudity / sexual
