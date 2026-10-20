@@ -2109,8 +2109,29 @@
        held at the foot, where the home page left it. finishTheFall takes
        over from here. -->
   <script>
+    /* Where the box is now, on the home page's own fall: .66s on
+       cubic-bezier(.4,0,.2,1), from the moment it began. The same curve and
+       the same clock on both pages, so the seam cannot show. */
+    // read once, here, before anything clears it; every later frame asks this
+    var bmuFall = { f:0, t:0 };
     try {
-      var d = parseFloat(sessionStorage.getItem('bmu.repo.drop')) || 0;
+      bmuFall.f = +sessionStorage.getItem('bmu.repo.fall') || 0;
+      bmuFall.t = +sessionStorage.getItem('bmu.repo.fallAt') || 0;
+      sessionStorage.removeItem('bmu.repo.fallAt');     // one arrival, one fall
+    } catch(_){}
+    window.bmuFallLeft = function(){
+      var f = bmuFall.f, t = bmuFall.t;
+      if (!(f > 1) || !t) return 0;
+      var p = Math.min(1, Math.max(0, (Date.now() - t) / 660));
+      // x(s), y(s) of the curve; s found for x = p
+      var X = function(s){ return 3 * s * (1 - s) * (1 - s) * .4 + 3 * s * s * (1 - s) * .2 + s * s * s; },
+          Y = function(s){ return 3 * s * s * (1 - s) + s * s * s; };
+      var lo = 0, hi = 1;
+      for (var i = 0; i < 24; i++){ var mid = (lo + hi) / 2; if (X(mid) < p) lo = mid; else hi = mid; }
+      return f * (1 - Y((lo + hi) / 2));
+    };
+    try {
+      var d = window.bmuFallLeft();
       if (d > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches){
         document.documentElement.style.setProperty('--drop', d + 'px');
         document.documentElement.classList.add('ws-dropping');
@@ -3515,10 +3536,7 @@
          the same time, which is the point of handing over early. */
       (function finishTheFall(){
         let drop = 0;
-        try {
-          drop = parseFloat(sessionStorage.getItem('bmu.repo.drop')) || 0;
-          sessionStorage.removeItem('bmu.repo.drop');
-        } catch(_){}
+        try { drop = window.bmuFallLeft ? window.bmuFallLeft() : 0; } catch(_){}
         if (!(drop > 1) || window.matchMedia('(prefers-reduced-motion: reduce)').matches){
           document.documentElement.classList.remove('ws-dropping');
           return;
@@ -3537,18 +3555,21 @@
           mark.style.transform  = 'translateY(' + drop + 'px)';
         }
         document.documentElement.classList.remove('ws-dropping');
-        void dock.offsetWidth;                       // committed up there
-        dock.style.transition = 'transform .34s cubic-bezier(.25,0,.2,1)';
-        if (mark) mark.style.transition = 'transform .34s cubic-bezier(.25,0,.2,1)';
-        requestAnimationFrame(() => {
-          dock.style.transform = '';
-          if (mark) mark.style.transform = '';
-        });
-        setTimeout(() => {
+        /* and on down, frame by frame, on the home page's own curve — the
+           rest of the one fall rather than a second, shorter one */
+        (function step(){
+          let left = 0;
+          try { left = window.bmuFallLeft(); } catch(_){}
+          if (left > 0.5){
+            dock.style.transform = 'translateX(-50%) translateY(' + (-left) + 'px)';
+            if (mark) mark.style.transform = 'translateY(' + left + 'px)';
+            requestAnimationFrame(step);
+            return;
+          }
           dock.style.transition = '';
           dock.style.transform  = '';
           if (mark){ mark.style.transition = ''; mark.style.transform = ''; }
-        }, 420);
+        })();
       })();
 
       /* ---------- THE AGREEMENT, OUT OF THE BUTTON ----------

@@ -4031,12 +4031,7 @@
          the distance still to go is handed over, and the sign-up sheet
          starts its dock up by exactly that and finishes the fall itself —
          the box does not stop and restart, it crosses the seam mid-move. */
-      later(() => {
-        const gap  = window.innerHeight - opsBtn.getBoundingClientRect().bottom;
-        const left = Math.max(0, Math.round(gap - DOCK_GAP));
-        try { sessionStorage.setItem('bmu.repo.drop', String(left)); } catch(_){}
-        window.location.href = '/repository';
-      }, 560 + 300);
+      later(() => { window.location.href = '/repository'; }, 560 + 300);
     }
 
     /* Straight down to the dock's line, at the size it already is, and no
@@ -4049,7 +4044,17 @@
     function settleToDock(){
       const r    = opsBtn.getBoundingClientRect();
       const fall = Math.max(0, Math.round(window.innerHeight - dockGap() - r.bottom));
-      try { sessionStorage.setItem('bmu.repo.fall', String(fall)); } catch(_){}
+      /* When it began, as well as how far it goes. The next page works out
+         where the box must be at the moment it first paints — from the
+         clock, on the same curve — instead of trusting a distance measured
+         before it existed. Measured that way the hand-over always guessed
+         wrong: the old page stays up while the new one loads and the box
+         goes on falling meanwhile, so the new page put it back up where it
+         had been and dropped it again. */
+      try {
+        sessionStorage.setItem('bmu.repo.fall', String(fall));
+        sessionStorage.setItem('bmu.repo.fallAt', String(Date.now()));
+      } catch(_){}
       opsBtn.style.setProperty('--settle', fall + 'px');
       void opsBtn.offsetWidth;
       opsBtn.classList.add('settle-down');
