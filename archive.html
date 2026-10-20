@@ -2410,6 +2410,38 @@
       from{ opacity:1; transform:none; }
       to  { opacity:0; transform:translateY(16px) scale(.92); }
     }
+    /* On a desktop the row is one line, so the squares also grow out of
+       nothing as they rise — width and their gap — and shrink back as they
+       fall, with the bar flexing into the room between. */
+    @keyframes dockGrow{
+      from{ width:0; margin-left:-10px; }
+      to  { width:46px; margin-left:0; }
+    }
+    @keyframes dockShrink{
+      from{ width:46px; margin-left:0; }
+      to  { width:0; margin-left:-10px; }
+    }
+    @media (min-width:641px){
+      #dock.more-anim{ width:var(--dock-fix); }
+      #dock.more-anim #dockSearch,
+      body.has-file.dock-list #dock.more-anim #dockSearch{
+        flex:1 1 0; width:auto !important; min-width:0; transition:none;
+      }
+      body #dock.more-in #dockList, body #dock.more-in #dockPlay, body #dock.more-in #dockRefs,
+      body #dock.more-in #dockFile, body #dock.more-in #dockLibrary{
+        animation:dockRise .38s cubic-bezier(.2,.8,.2,1) both,
+                  dockGrow .38s cubic-bezier(.4,0,.2,1) both;
+        animation-delay:calc(var(--more-i, 0) * 60ms);
+        overflow:hidden;
+      }
+      body #dock.more-out #dockList, body #dock.more-out #dockPlay, body #dock.more-out #dockRefs,
+      body #dock.more-out #dockFile, body #dock.more-out #dockLibrary{
+        animation:dockFall .24s cubic-bezier(.4,0,1,1) both,
+                  dockShrink .24s cubic-bezier(.4,0,.2,1) both;
+        animation-delay:calc(var(--more-o, 0) * 60ms);
+        overflow:hidden;
+      }
+    }
     #dock.more-in #dockList, #dock.more-in #dockPlay, #dock.more-in #dockRefs,
     #dock.more-in #dockFile, #dock.more-in #dockLibrary{
       animation:dockRise .38s cubic-bezier(.2,.8,.2,1) both;
@@ -8292,20 +8324,41 @@
         .map(id => document.getElementById(id))
         .filter(el => el && getComputedStyle(el).display !== 'none');
     }
+    /* While the row changes, the dock holds its width — which is the same
+       laid out as at rest — and the bar fills whatever the squares leave.
+       The squares grow out of nothing as they rise (gap and all), so the
+       row never changes length: explore glides towards or away from the
+       plus as they come and go, and the plus stays where it is. Let go of
+       once the motion is over, when the bar's own width already agrees. */
+    function holdDock(on){
+      if (on){
+        dock.style.setProperty('--dock-fix', dock.getBoundingClientRect().width + 'px');
+        dock.classList.add('more-anim');
+      } else {
+        dock.classList.remove('more-anim');
+        dock.style.removeProperty('--dock-fix');
+      }
+    }
     function setMore(on){
       const run = ++moreRun;
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       dock.classList.remove('more-in', 'more-out');
+      if (!reduced && dock.classList.contains('open')) holdDock(true);
       if (on){
         dock.classList.add('more');
         if (!reduced){
           moreSquares().forEach((el, i) => el.style.setProperty('--more-i', i));
           void dock.offsetWidth;
           dock.classList.add('more-in');
-          setTimeout(() => { if (run === moreRun) dock.classList.remove('more-in'); }, MORE_RISE + MORE_STEP * 5);
+          setTimeout(() => {
+            if (run !== moreRun) return;
+            dock.classList.remove('more-in');
+            holdDock(false);
+          }, MORE_RISE + MORE_STEP * 5);
         }
       } else if (reduced || !dock.classList.contains('more')){
         dock.classList.remove('more');
+        holdDock(false);
       } else {
         const sq = moreSquares();
         sq.forEach((el, i) => el.style.setProperty('--more-o', sq.length - 1 - i));
@@ -8314,6 +8367,7 @@
         setTimeout(() => {
           if (run !== moreRun) return;
           dock.classList.remove('more', 'more-out');
+          holdDock(false);
         }, MORE_FALL + MORE_STEP * (sq.length - 1));
       }
       dockMore.classList.toggle('turned', on);
