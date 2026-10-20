@@ -1372,6 +1372,66 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/austrian/headwear/austrian-army-1990s-aramid-helmet/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/austrian/headwear/austrian-army-1990s-aramid-helmet/AA1990AH.png</image:loc>
+      <image:title>Austrian Army 1990s Aramid Helmet</image:title>
+      <image:caption>Austrian Army 1990s Aramid Helmet — Austrian military surplus headwear, archive ref AA1990AH</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/austrian/trousers/austrian-army-1990s-ripstop-cargo-trousers/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/austrian/trousers/austrian-army-1990s-ripstop-cargo-trousers/AA1990RCT.png</image:loc>
+      <image:title>Austrian Army 1990s Ripstop Cargo Trousers</image:title>
+      <image:caption>Austrian Army 1990s Ripstop Cargo Trousers — Austrian military surplus trouser, archive ref AA1990RCT</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/austrian/bags/austrian-army-1990s-sea-kit-bag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/austrian/bags/austrian-army-1990s-sea-kit-bag/AA1990SKB.png</image:loc>
+      <image:title>Austrian Army 1990s Sea Kit Bag</image:title>
+      <image:caption>Austrian Army 1990s Sea Kit Bag — Austrian military surplus bag, archive ref AA1990SKB</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/austrian/hardware/austrian-army-1990s-sniper-mittens/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/austrian/hardware/austrian-army-1990s-sniper-mittens/AA1990SM.png</image:loc>
+      <image:title>Austrian Army 1990s Sniper Mittens</image:title>
+      <image:caption>Austrian Army 1990s Sniper Mittens — Austrian military surplus hardware, archive ref AA1990SM</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/austrian/hardware/austrian-army-2000s-canvas-two-tone-mittens/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/austrian/hardware/austrian-army-2000s-canvas-two-tone-mittens/AA2000CTTM.png</image:loc>
+      <image:title>Austrian Army 2000s Canvas Two Tone Mittens</image:title>
+      <image:caption>Austrian Army 2000s Canvas Two Tone Mittens — Austrian military surplus hardware, archive ref AA2000CTTM</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/austrian/vests/austrian-army-2000s-tactical-vest/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/austrian/vests/austrian-army-2000s-tactical-vest/AA2000TV.png</image:loc>
+      <image:title>Austrian Army 2000s Tactical Vest</image:title>
+      <image:caption>Austrian Army 2000s Tactical Vest — Austrian military surplus vest, archive ref AA2000TV</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/serbian/shirts/serbian-army-1990s-m93-oak-leaf-camouflage-shirt/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
