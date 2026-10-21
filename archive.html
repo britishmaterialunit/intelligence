@@ -3266,6 +3266,8 @@
       box-shadow:0 0 0 calc(1px * var(--inv)) #e4e4e4;
     }
     .rf-item.rf-m2 img, .rf-item.rf-m3 img{ box-shadow:none; }
+    /* a garment in view 1 is the photograph alone: the hairline is views 2 and 3's */
+    .rf-item.rf-garment:not(.rf-m2):not(.rf-m3) img{ box-shadow:none; }
     .rf-item.rf-m2 .rf-head{
       display:flex;
       flex-direction:column;
@@ -10834,6 +10836,18 @@
       }
 
       /* ---------- THE VIEW ---------- */
+      /* Everything on the board hangs off one 0×0 stage, and browsers —
+         Safari above all — do not always clear what a picture painted
+         outside its new bounds: a box shrunk or carried left its old plus,
+         handles and corners behind as stray pixels. Lifting the stage onto
+         a layer of its own for a frame and setting it down again repaints
+         all of it from nothing. Done when a gesture ends, not during it,
+         so a zoom is not held at the wrong sharpness. */
+      function repaint(){
+        stage.style.willChange = 'transform';
+        requestAnimationFrame(() => requestAnimationFrame(() => { stage.style.willChange = ''; }));
+      }
+
       function applyView(){
         stage.style.transform = `translate(${vx}px, ${vy}px) scale(${vs})`;
         stage.style.setProperty('--inv', String(1 / vs));
@@ -10866,7 +10880,7 @@
         void stage.offsetWidth;
         fn();
         clearTimeout(settleT);
-        settleT = setTimeout(() => { root.classList.remove('rf-moving'); joints(); }, 900);
+        settleT = setTimeout(() => { root.classList.remove('rf-moving'); joints(); repaint(); }, 900);
       }
 
       /* ---------- ONE IMAGE ON THE BOARD ---------- */
@@ -11051,7 +11065,7 @@
         items = items.filter(o => o !== it);
         locks = locks.filter(l => l.p !== it.id && l.c !== it.id);
         regroup();
-        joints(); sync(); save(); paintGarments();
+        joints(); sync(); save(); paintGarments(); repaint();
       }
 
       function sync(){
@@ -12936,12 +12950,15 @@
         if (g && g.moved){ clustered = false; if (g.item) touch(g.item); }
         if (g && g.mode === 'move') joints(true);
         if (g) save();
+        repaint();
         g = null;          // a pinch that loses a finger stops rather than jumping
       }
       root.addEventListener('pointerup', lift);
       root.addEventListener('pointercancel', lift);
 
       root.addEventListener('click', e => {
+        // a view changed or a lock undone resizes a box: clear what it leaves
+        if (e.target.closest('.rf-del, .rf-dot, .rf-cut, .rf-mode, .rf-joint')) requestAnimationFrame(repaint);
         const del = e.target.closest('.rf-del');
         if (del){
           const it = byId(del.closest('.rf-item').dataset.id);
