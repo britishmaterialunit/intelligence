@@ -3648,6 +3648,38 @@
     }
     .rf-wait:hover{ border-color:var(--line); }
     .rf-wait img{ display:block; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+    /* the reader's saved garments: a square at the head of the tray opens
+       them in a row of their own, just above the bar, and the tray steps up */
+    #refsTray{ transition:bottom .3s cubic-bezier(.4,0,.2,1); }
+    #refs.sv-open #refsTray{ bottom:166px; }
+    #refsSaved{
+      position:absolute;
+      left:50%;
+      bottom:96px;
+      transform:translateX(-50%);
+      width:min(94vw, 880px);
+      display:flex;
+      gap:8px;
+      overflow-x:auto;
+      scrollbar-width:none;
+      z-index:2;
+      touch-action:pan-x;
+    }
+    #refsSaved[hidden]{ display:none; }
+    #refsSaved::-webkit-scrollbar{ display:none; }
+    .rf-shelf{
+      flex:none;
+      width:62px; height:62px;
+      display:flex; align-items:center; justify-content:center;
+      border:1.5px solid var(--line);
+      background:var(--line);
+      color:#fff;
+      cursor:pointer;
+      font-family:var(--font);
+    }
+    .rf-shelf .bm{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linejoin:round; }
+    .rf-shelf[aria-pressed="true"] .bm{ fill:currentColor; }
+    .rf-shelf .sv-n{ margin-left:5px; font-size:10px; font-variant-numeric:tabular-nums; }
     .rf-ghost{
       position:fixed;
       width:110px; height:110px;
@@ -3659,7 +3691,10 @@
     }
 
     /* the square on the middle button's corner: garments are waiting */
-    #dockExplore, #dockRefs, #dockMore{ position:relative; overflow:visible; }
+    #dockExplore, #dockRefs, #dockMore, #dockLibrary{ position:relative; overflow:visible; }
+    /* the saved count wears the same square; folded onto the plus it takes
+       the other corner, so the two counts never sit on each other */
+    #dockMore .sv-badge{ right:auto; left:-7px; }
     /* It carries the count: how many garments are waiting in the tray. */
     .rf-badge{
       position:absolute;
@@ -3866,6 +3901,8 @@
     </aside>
     <!-- garments sent from the archive, waiting to be dragged on -->
     <div id="refsTray" hidden aria-label="Garments from the archive"></div>
+    <!-- the reader's saved garments, opened from the square at the head of the tray -->
+    <div id="refsSaved" hidden aria-label="Saved garments"></div>
     <input type="file" id="refsFile" multiple hidden
            accept="image/*,.zip,application/zip,application/x-zip-compressed">
   </section>
@@ -5136,6 +5173,29 @@
       if (i === -1) savedIds.push(id); else savedIds.splice(i, 1);
       persistSaved();
       paintSaved();
+      if (i === -1) popSavedBadge();
+    }
+
+    /* The save square counts what is kept, as the board's square counts
+       what is waiting: the same square on its corner, on the plus while
+       the tools are folded away. */
+    let savedBadge = null;
+    function paintSavedBadge(){
+      if (!savedBadge){
+        const host = document.getElementById('dock').classList.contains('more')
+          ? document.getElementById('dockLibrary') : document.getElementById('dockMore');
+        if (!host) return;
+        savedBadge = Object.assign(document.createElement('span'), { className:'rf-badge sv-badge' });
+        savedBadge.setAttribute('aria-hidden', 'true');
+        host.appendChild(savedBadge);
+      }
+      const n = savedIds.length;
+      if (n) savedBadge.textContent = String(n);   // kept while it fades out
+      savedBadge.classList.toggle('on', n > 0);
+    }
+    function popSavedBadge(){
+      if (!savedBadge) return;
+      savedBadge.classList.remove('pop'); void savedBadge.offsetWidth; savedBadge.classList.add('pop');
     }
 
     /* the tabs show either because the flag asked for them or because a
@@ -5210,6 +5270,9 @@
       savedCountEl.textContent = n ? String(n) : '';
       savedBtn.setAttribute('aria-pressed', savedOnly ? 'true' : 'false');
       if (savedOnly && !n) savedOnly = false;
+      paintSavedBadge();
+      // the board's saved row follows the shelf
+      try { references.paintGarments(); } catch {}
     }
 
     let soloId = null;      // one garment held open on its own
@@ -8744,8 +8807,10 @@
       dockMore.querySelector('img').src = on ? '/minus-white.svg' : '/plus-white.svg';
       dockMore.setAttribute('aria-expanded', on ? 'true' : 'false');
       dockMore.setAttribute('aria-label', on ? 'Fewer tools' : 'More tools');
-      const badge = document.querySelector('.rf-badge');
+      const badge = document.querySelector('.rf-badge:not(.sv-badge)');
       if (badge) (on ? document.getElementById('dockRefs') : dockMore).appendChild(badge);
+      const svBadge = document.querySelector('.sv-badge');
+      if (svBadge) (on ? dockLibrary : dockMore).appendChild(svBadge);
     }
     dockMore.addEventListener('click', e => { e.stopPropagation(); setMore(!dock.classList.contains('more')); });
 
@@ -10674,6 +10739,8 @@
       const countEl = document.getElementById('refsCount');
       const tools   = document.getElementById('refsTools');
       const tray    = document.getElementById('refsTray');
+      const shelf   = document.getElementById('refsSaved');
+      let shelfOpen = false;
       const T = act => tools.querySelector(`[data-act="${act}"]`);
 
       /* ---------- WHERE REFERENCES COME FROM ----------
@@ -11832,9 +11899,39 @@
         return true;
       }
 
+      // a saved garment, read off its card: the shelf is only ids
+      function savedGarment(id){
+        const el = allItems.find(x => x.dataset.id === id);
+        const shot = el && el.querySelector('.slot .shot');
+        if (!shot) return null;
+        return { id, name:el.dataset.gname, ref:el.dataset.gref, src:shot.getAttribute('src') };
+      }
+
       function drawTray(){
         tray.innerHTML = '';
-        tray.hidden = !waiting.length;
+        const kept = savedIds.map(savedGarment).filter(Boolean);
+        if (!kept.length) shelfOpen = false;
+        tray.hidden = !waiting.length && !kept.length;
+        if (kept.length){
+          const sq = Object.assign(document.createElement('button'), { type:'button', className:'rf-shelf' });
+          sq.setAttribute('aria-pressed', shelfOpen ? 'true' : 'false');
+          sq.setAttribute('aria-label', shelfOpen ? 'Close saved garments' : 'Open saved garments');
+          sq.innerHTML = '<svg class="bm" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.2 h8 v11.6 l-4 -3.1 -4 3.1 Z"/></svg>'
+            + `<span class="sv-n">${kept.length}</span>`;
+          tray.appendChild(sq);
+        }
+        shelf.innerHTML = '';
+        shelf.hidden = !shelfOpen;
+        root.classList.toggle('sv-open', shelfOpen);
+        if (shelfOpen) kept.forEach(g => {
+          const b = Object.assign(document.createElement('button'), { type:'button', className:'rf-wait' });
+          b.dataset.id = g.id;
+          b.setAttribute('aria-label', `Add ${g.name} to the board`);
+          const img = document.createElement('img');
+          img.src = g.src; img.alt = ''; img.draggable = false;
+          b.appendChild(img);
+          shelf.appendChild(b);
+        });
         waiting.forEach(g => {
           const b = Object.assign(document.createElement('button'), { type:'button', className:'rf-wait' });
           b.dataset.id = g.id;
@@ -11847,9 +11944,10 @@
       }
 
       async function landGarment(id, sx, sy){
+        // from the tray it leaves the tray; from the saved row it stays saved
         const i = waiting.findIndex(w => w.id === id);
-        if (i < 0) return;
-        const g = waiting[i];
+        const g = i >= 0 ? waiting[i] : savedGarment(id);
+        if (!g) return;
         try {
           const r = await fetch(g.src);
           if (!r.ok) throw new Error(r.status);
@@ -11858,21 +11956,26 @@
           const at = sx == null ? toWorld(W() / 2, H() / 2 - 40) : toWorld(sx, sy);
           const res = await addEntries([{ blob, name, at, garment:g.id }]);
           if (!res.added) throw new Error('unreadable');
-          waiting.splice(waiting.findIndex(w => w.id === id), 1);
-          keepTray(); paintGarments();
+          const at2 = waiting.findIndex(w => w.id === id);
+          if (at2 >= 0){ waiting.splice(at2, 1); keepTray(); paintGarments(); }
         } catch { say('That garment could not be loaded'); }
       }
 
       // dragged out of the tray: a copy follows the finger, and lets go where it lands
       let ghost = null, tg = null;
-      tray.addEventListener('pointerdown', e => {
+      tray.addEventListener('click', e => {
+        if (!e.target.closest('.rf-shelf')) return;
+        shelfOpen = !shelfOpen;
+        drawTray();
+      });
+      [tray, shelf].forEach(strip => strip.addEventListener('pointerdown', e => {
         const b = e.target.closest('.rf-wait');
         if (!b || e.button > 0) return;
         e.preventDefault();
-        tray.setPointerCapture(e.pointerId);
+        strip.setPointerCapture(e.pointerId);
         tg = { id:b.dataset.id, pid:e.pointerId, sx:e.clientX, sy:e.clientY, moved:false, src:b.querySelector('img').src };
-      });
-      tray.addEventListener('pointermove', e => {
+      }));
+      const trayMove = e => {
         if (!tg || e.pointerId !== tg.pid) return;
         if (!tg.moved && Math.hypot(e.clientX - tg.sx, e.clientY - tg.sy) < 6) return;
         if (!ghost){
@@ -11882,7 +11985,7 @@
         tg.moved = true;
         ghost.style.left = e.clientX + 'px';
         ghost.style.top = e.clientY + 'px';
-      });
+      };
       const trayUp = e => {
         if (!tg || e.pointerId !== tg.pid) return;
         const t = tg; tg = null;
@@ -11891,11 +11994,14 @@
         if (!t.moved){ landGarment(t.id); return; }
         // back over the tray or the bar is a change of mind
         const over = document.elementFromPoint(e.clientX, e.clientY);
-        if (over && over.closest('#refsTray, #dock')) return;
+        if (over && over.closest('#refsTray, #refsSaved, #dock')) return;
         landGarment(t.id, e.clientX, e.clientY);
       };
-      tray.addEventListener('pointerup', trayUp);
-      tray.addEventListener('pointercancel', trayUp);
+      [tray, shelf].forEach(strip => {
+        strip.addEventListener('pointermove', trayMove);
+        strip.addEventListener('pointerup', trayUp);
+        strip.addEventListener('pointercancel', trayUp);
+      });
 
       /* ---------- SEARCH ----------
          Pinterest and Google have no image search a page can ask without an
@@ -12695,7 +12801,7 @@
 
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
-        if (e.target.closest('.rf-del, .rf-cut, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSearch')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch')) return;
         root.setPointerCapture(e.pointerId);
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
 
