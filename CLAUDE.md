@@ -81,7 +81,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   hand (`touched`, `KEEP`), which stay put and are clustered around. Each
   garment card has a `+` (`.btn-ref-inline`) that queues it in the tray
   (localStorage `bmu-refs-tray`); a square on the button's corner says
-  garments are waiting. The board is kept in IndexedDB and exported as
+  garments are waiting. The save square (`#dockLibrary`) wears the same
+  square counting saved garments (`.sv-badge`; on `#dockMore`'s left corner
+  while folded). On the board a bookmark square (`.rf-shelf`) heads the tray
+  and opens the saved garments in `#refsSaved`, just above the bar; placing
+  one leaves it saved. The board is kept in IndexedDB and exported as
   `BMU-References-NNN.zip` (images + `references.json`, locks included),
   which the plus reads back. The `bank` source (an Instagram-fed reference
   bank under `/references/`) is in code only — `SOURCES.bank.live` false.
