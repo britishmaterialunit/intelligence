@@ -33,8 +33,8 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   becomes a minus. Every tool square calls `pressFace(face)`.
   Play opens SoundCloud's own widget in a draggable window (`#scPanel`,
   over everything incl. carried pages); its minus folds it to an orange
-  46px square (`#scMini`) that drags and reopens it; its cross pauses and
-  hides it. Position kept in localStorage `bmu-sc-pos`. Carried near the
+  46px square (`#scMini`) that drags and reopens it; its cross locks the
+  square into the dock (music keeps playing). Position kept in localStorage `bmu-sc-pos`. Carried near the
   dock the square opens a gap (`#scSlot`) and locks into the row (`.docked`,
   `#dock.has-sc` makes the bar flex); pressed there it opens the player
   above itself, folding returns it to its place (`bmu-sc-dock`), and pausing
@@ -58,7 +58,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   postMessage, no SoundCloud script). Plus opens **References** (and wears
   a cross while open): the reader's own image board, a separate layer
   (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
-  nothing else. Images lock in groups (5px gap). A lock `{p, c, side, d}`
+  nothing else. Images lock in groups (`GAP`, 14px). A lock `{p, c, side, d}`
   keeps c on p's side with `d` = the offset of their leading cross edges, so
   rows stay top-aligned and columns left-aligned; `relay()` walks the locks,
   `untangle()` eases apart any two group members that overlap. Locking to a

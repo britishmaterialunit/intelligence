@@ -237,16 +237,13 @@ def derive_ref(name, key, nats, page):
 # ------------------------------------------------------------ the picture
 
 def to_png(src, dest):
-    """1000 square PNG, flattened onto white.
+    """1000 square PNG, keeping a cut-out's transparency.
 
-    Pillow first, sips only as a fallback — which is the other way round
-    from how this started, and the reason is alpha. A shop's cut-out comes
-    down as RGBA; sips resamples it and keeps the transparency, so the
-    garment lands in the archive as a 927KB RGBA file where every other
-    photograph is a flattened RGB one. Flattening is not cosmetic here:
-    it costs nothing visible on a white page and saves roughly a fifth of
-    the file, which across a large intake is what keeps the repository
-    under the GitHub Pages cap.
+    Pillow first, sips only as a fallback. This used to flatten every
+    RGBA cut-out onto white to save about a fifth of the file, but the
+    archive and the reference board show garments on their own ground —
+    a white square round a garment reads as a box on the board — so the
+    owner's call is that a transparent original stays transparent.
 
     One LANCZOS resample straight from the original, not a series of
     steps — resampling once holds more detail than stepping down does.
@@ -256,9 +253,8 @@ def to_png(src, dest):
         im = Image.open(src)
         if im.mode in ('RGBA', 'LA', 'P'):
             im = im.convert('RGBA')
-            flat = Image.new('RGB', im.size, (255, 255, 255))
-            flat.paste(im, mask=im.split()[-1])
-            im = flat
+            if im.getextrema()[3][0] == 255:     # alpha that hides nothing
+                im = im.convert('RGB')
         else:
             im = im.convert('RGB')
         im = im.resize((PX, PX), Image.LANCZOS)
@@ -273,8 +269,6 @@ def to_png(src, dest):
                             src, '--out', dest],
                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         if r.returncode == 0:
-            print('      ! resampled with sips — any transparency is kept, '
-                  'which the rest of the archive does not have')
             return True
     shutil.copy2(src, dest)
     print('      ! copied as-is — could not resample (no Pillow, no sips)')

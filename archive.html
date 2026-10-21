@@ -8446,7 +8446,7 @@
         '<div class="sc-head"><span class="sc-dot" aria-hidden="true"></span><span class="sc-name">SoundCloud</span>' +
         '<button type="button" class="sc-act sc-fold" aria-label="Fold the player away">' +
           '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8 H12.6"/></svg></button>' +
-        '<button type="button" class="sc-act sc-shut" aria-label="Close the player and stop the music">' +
+        '<button type="button" class="sc-act sc-shut" aria-label="Close the player into the dock">' +
           '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.4 4.4 L11.6 11.6 M11.6 4.4 L4.4 11.6"/></svg></button></div>';
       scFrame = Object.assign(document.createElement('iframe'), {
         src: `${SC_ORIGIN}/player/?${q}`, title: 'The archive\u2019s music',
@@ -8466,10 +8466,13 @@
       document.body.append(scBox, scMini);
 
       scBox.querySelector('.sc-fold').addEventListener('click', () => scShow('min'));
+      /* Closing the player puts its square in the dock, where the reader
+         can find it again — not loose on the page, and not gone. The music
+         carries on; the dock's play pauses it, which takes the square out
+         of the row as well. */
       scBox.querySelector('.sc-shut').addEventListener('click', () => {
-        if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); }
-        scDocked = false; keepDock();
-        scShow('hidden');
+        scDocked = true;
+        scShow('min');
       });
       scDraggable(scBox.querySelector('.sc-head'));
       miniDrag();
@@ -10797,7 +10800,7 @@
       const BOX  = 200;          // a new image fits a 200px square
       const CBOX = 190;          // in a cluster, every image fits the same box
       const CSPACE = CBOX * (SPACING / 150);   // and clears it the way a garment does
-      const GAP  = 5;            // the white between two locked images
+      const GAP  = 14;           // the white between two locked images
       const OPP  = { left:'right', right:'left', top:'bottom', bottom:'top' };
 
       let items = [];            // { id, blob, name, ar, x, y, w, z, gid, garment, url, el }
@@ -12822,6 +12825,9 @@
           // boards saved before locks remembered their alignment are read for it
           locks.forEach(l => { if (l.d == null) measureLock(l); });
           regroup();
+          // a board kept at an older gap opens at today's
+          const laid = new Set();
+          items.forEach(it => { if (it.gid && !laid.has(it.gid)){ laid.add(it.gid); relay(it); } });
           zTop = Math.max(1, ...items.map(it => it.z || 0));
           before = got.before || null;
           clustered = !!got.clustered;
