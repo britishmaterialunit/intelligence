@@ -282,6 +282,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/british/bags/british-army-1950s-webbing-bag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/british/bags/british-army-1950s-webbing-bag/BA1950WB.png</image:loc>
+      <image:title>British Army 1950s Webbing Bag</image:title>
+      <image:caption>British Army 1950s Webbing Bag — British military surplus bag, archive ref BA1950WB</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/austrian/jackets/austrian-army-1990s-olive-drab-lightweight-ripstop-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -359,6 +369,26 @@
       <image:loc>https://britishmaterialunit.com/archive/czech/liners/czech-army-1990s-cold-weather-liner-jacket/CZA1990CWLJ.png</image:loc>
       <image:title>Czech Army 1990s Cold Weather Liner Jacket</image:title>
       <image:caption>Czech Army 1990s Cold Weather Liner Jacket — Czech military surplus liner, archive ref CZA1990CWLJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/czech/jackets/czech-peoples-army-1990s-mechanics-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/czech/jackets/czech-peoples-army-1990s-mechanics-jacket/CZPA1990MJ.png</image:loc>
+      <image:title>Czech Peoples Army 1990s Mechanics Jacket</image:title>
+      <image:caption>Czech Peoples Army 1990s Mechanics Jacket — Czech military surplus jacket, archive ref CZPA1990MJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/czech/headwear/czech-peoples-army-1990s-vz92-mechanics-cap/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/czech/headwear/czech-peoples-army-1990s-vz92-mechanics-cap/CZPA1990VZ92MC.png</image:loc>
+      <image:title>Czech Peoples Army 1990s VZ92 Mechanics Cap</image:title>
+      <image:caption>Czech Peoples Army 1990s VZ92 Mechanics Cap — Czech military surplus headwear, archive ref CZPA1990VZ92MC</image:caption>
     </image:image>
   </url>
   <url>
