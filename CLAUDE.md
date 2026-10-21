@@ -87,7 +87,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   (`#dockShelf`, beside play, with its own count) opens the saved garments in
   `#refsSaved`, just above the bar; placing one leaves it saved. The board is kept in IndexedDB and exported as
   `BMU-References-NNN.zip` (images + `references.json`, locks included),
-  which the plus reads back. The `bank` source (an Instagram-fed reference
+  which the plus reads back. **Send** (`#refsSend`, admins only, checked
+  against `bmu_admins`) puts that zip in the private Supabase bucket
+  `bmu-boards` and names it in a file's `board_path`; `/archive?board=<file
+  id>` (Files' "Open reference board") lays it down. Plain fetch with the
+  session /files keeps — see `setup/collections.sql` for the rules. The `bank` source (an Instagram-fed reference
   bank under `/references/`) is in code only — `SOURCES.bank.live` false.
 - **Music across pages** (`carried` in `archive.html`): once the music has
   been started, the archive is never unloaded. Links to other pages open

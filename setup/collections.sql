@@ -116,6 +116,45 @@ create policy "reviewer amends reply" on public.bmu_responses
   );
 
 -- ============================================================
+-- REFERENCE BOARDS
+-- A file can carry a reference board, sent from the archive's board by an
+-- admin. The board is a .zip kept in a private storage bucket; the file's
+-- board_path names it. Only an admin can put one there, and only the
+-- designer the file is addressed to (or an admin) can read it back.
+-- ============================================================
+alter table public.bmu_collections
+  add column if not exists board_path text;
+
+insert into storage.buckets (id, name, public)
+  values ('bmu-boards', 'bmu-boards', false)
+  on conflict (id) do nothing;
+
+drop policy if exists "bmu boards read"    on storage.objects;
+drop policy if exists "bmu boards add"     on storage.objects;
+drop policy if exists "bmu boards replace" on storage.objects;
+drop policy if exists "bmu boards remove"  on storage.objects;
+
+create policy "bmu boards read" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'bmu-boards'
+    and (public.bmu_is_admin()
+         or exists (select 1 from public.bmu_collections c
+                    where c.board_path = objects.name
+                      and lower(c.reviewer_email) = public.bmu_email()))
+  );
+create policy "bmu boards add" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'bmu-boards' and public.bmu_is_admin());
+create policy "bmu boards replace" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'bmu-boards' and public.bmu_is_admin())
+  with check (bucket_id = 'bmu-boards' and public.bmu_is_admin());
+create policy "bmu boards remove" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'bmu-boards' and public.bmu_is_admin());
+
+-- ============================================================
 -- MAKE YOURSELF THE ADMIN — run once, after you have created your own
 -- login (Authentication → Users → Add user). Put your email in the quotes.
 -- ============================================================

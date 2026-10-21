@@ -1469,6 +1469,7 @@
     }
     .cl-btn.cl-solid{ background:#000; color:#fff; }
     .cl-btn.cl-solid:hover{ background:#262626; color:#fff; }
+    a.cl-btn{ text-decoration:none; }
 
     .cl-row{
       display:flex;
@@ -2430,6 +2431,10 @@
           <span class="cl-sub cv-for" id="cvFor" hidden></span>
           <p class="cl-lede" id="cvNote"></p>
           <p class="cl-lede" id="cvMissing" hidden></p>
+          <!-- a reference board sent from the archive's board, opened there -->
+          <div class="cl-row" id="cvBoardRow" hidden>
+            <a class="cl-btn cl-solid" id="cvBoard" href="/archive">Open reference board</a>
+          </div>
 
           <!-- the reviewer's side: what they want, and a note -->
           <div class="cl-reply" id="cvReplyBox" hidden>
@@ -3640,6 +3645,8 @@
         shown = c.garments.map(gid => byId.get(gid)).filter(Boolean);
         const gone = c.garments.length - shown.length;
         $('cvMissing').hidden = !gone;
+        $('cvBoardRow').hidden = !c.board_path;
+        $('cvBoard').href = '/archive?board=' + encodeURIComponent(c.id);
         $('cvMissing').textContent = gone
           ? plural(gone, 'garment in this file is', 'garments in this file are') + ' no longer in the archive.'
           : '';

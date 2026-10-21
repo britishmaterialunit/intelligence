@@ -3502,7 +3502,11 @@
     .rf-joint.rf-lock:hover{
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 3.4 V12.6 M3.4 8 H12.6' stroke='%23222' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
     }
+    .rf-item.rf-locked .rf-mode{ display:none !important; }
+    /* the minus is a view square's size, so on a garment's edge it stands
+       where the 2 stood rather than over it */
     .rf-joint.rf-unlock{
+      width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
       background-color:var(--bg);
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.4 8 H12.6' stroke='%23000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
       box-shadow:0 0 0 calc(1.5px * var(--inv)) var(--line) inset;
@@ -3660,6 +3664,44 @@
     }
     .rf-wait:hover{ border-color:var(--line); }
     .rf-wait img{ display:block; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+    #refsTools button[hidden]{ display:none; }
+    #refsSend{
+      position:absolute;
+      left:50%; bottom:96px;
+      transform:translateX(-50%);
+      width:min(400px, calc(100vw - 32px));
+      box-sizing:border-box;
+      padding:16px 16px 14px;
+      display:flex; flex-direction:column;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      z-index:4;
+      cursor:default;
+      font-family:var(--font);
+    }
+    #refsSend[hidden], #sdNew[hidden]{ display:none; }
+    #sdNew{ display:flex; flex-direction:column; }
+    .sd-head{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); margin-bottom:6px; }
+    .sd-lab{ margin:12px 0 5px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#9a9a9a; }
+    .sd-field{
+      height:36px; padding:0 10px; box-sizing:border-box;
+      border:1.5px solid #e4e4e4; border-radius:0; background:var(--bg);
+      font-family:var(--font); font-size:12px; color:var(--ink);
+    }
+    .sd-field:focus{ outline:none; border-color:var(--line); }
+    .sd-msg{ min-height:15px; margin:12px 0 0; font-size:11px; line-height:1.4; color:#8a8a8a; }
+    .sd-row{ display:flex; gap:8px; margin-top:10px; }
+    .sd-btn{
+      flex:1 1 0; height:36px;
+      border:1.5px solid var(--line); background:var(--bg); color:var(--ink);
+      font-family:var(--font); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+      cursor:pointer;
+    }
+    .sd-btn:hover{ background:var(--faint); }
+    .sd-go{ background:var(--line); color:#fff; }
+    .sd-go:hover{ background:var(--line); opacity:.85; }
+    .sd-btn:disabled{ opacity:.4; cursor:default; }
+    @media (max-width:640px){ #refsSend{ bottom:88px; } }
     /* the reader's saved garments: the bookmark square beside play opens
        them in a row of their own, just above the bar, and the tray steps up */
     #refsTray{ transition:bottom .3s cubic-bezier(.4,0,.2,1); }
@@ -3900,6 +3942,24 @@
     </aside>
     <!-- garments sent from the archive, waiting to be dragged on -->
     <div id="refsTray" hidden aria-label="Garments from the archive"></div>
+    <!-- Send: the admin only. The board goes to a file in /files, for the
+         one designer that file is addressed to. -->
+    <aside id="refsSend" hidden aria-label="Send the board to a file">
+      <span class="sd-head">Send board to file</span>
+      <label class="sd-lab" for="sdFile">File</label>
+      <select id="sdFile" class="sd-field"></select>
+      <div id="sdNew">
+        <label class="sd-lab" for="sdTitle">Title</label>
+        <input id="sdTitle" class="sd-field" type="text" autocomplete="off" placeholder="e.g. Spring references">
+        <label class="sd-lab" for="sdEmail">Designer’s email</label>
+        <input id="sdEmail" class="sd-field" type="email" autocomplete="off" spellcheck="false" placeholder="name@studio.com">
+      </div>
+      <p class="sd-msg" id="sdMsg" role="status" aria-live="polite"></p>
+      <div class="sd-row">
+        <button type="button" class="sd-btn" id="sdCancel">Cancel</button>
+        <button type="button" class="sd-btn sd-go" id="sdGo">Send</button>
+      </div>
+    </aside>
     <!-- the reader's saved garments, opened from the square at the head of the tray -->
     <div id="refsSaved" hidden aria-label="Saved garments"></div>
     <input type="file" id="refsFile" multiple hidden
@@ -3978,6 +4038,9 @@
           <svg viewBox="0 0 16 16" aria-hidden="true"><g class="st"><circle cx="8" cy="8" r="6.1"/><path d="M8 7.3 V11.3"/><path d="M8 4.7 V5.3"/></g></svg>
         </button>
       </span>
+      <button type="button" data-act="send" id="refsSendBtn" aria-label="Send the board to a file" hidden>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M2.6 8 H12.8 M9 4.2 L12.8 8 L9 11.8"/></svg><span>Send</span>
+      </button>
       <button type="button" data-act="clear" aria-label="Clear the board">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M4.4 4.4 L11.6 11.6 M11.6 4.4 L4.4 11.6"/></svg><span>Clear</span>
       </button>
@@ -4034,6 +4097,8 @@
     </button>
   </div>
 
+  <!-- the Files project's address and public key: for sending a board -->
+  <script src="/files-config.js"></script>
   <script>
     /* ============================================================
        NATIONS — display order of the dropdowns.
@@ -11234,6 +11299,10 @@
           }
           if (comp.length > 1){ const gid = uid(); comp.forEach(it => { it.gid = gid; }); }
         });
+        // a locked image keeps the view it was locked in: its minus has to
+        // come off before the 1/2/3 squares are offered again
+        items.forEach(it => it.el && it.el.classList.toggle('rf-locked',
+          locks.some(l => l.p === it.id || l.c === it.id)));
       }
       const sideTaken = (it, side) =>
         locks.some(l => (l.p === it.id && l.side === side) || (l.c === it.id && l.side === OPP[side]));
@@ -11857,6 +11926,18 @@
 
       async function exportBoard(){
         if (!items.length){ say('Nothing to export yet'); return; }
+        const { blob, count } = await boardZip();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = nextExportName();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        say(`Exported ${String(count).padStart(2, '0')}`);
+      }
+      // the board as its .zip: what Export downloads and Send puts in a file
+      async function boardZip(){
         const order = items.slice().sort((a, b) => a.z - b.z);
         const pad = Math.max(2, String(order.length).length);
         const fileOf = {};
@@ -11881,14 +11962,177 @@
         man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
                          .filter(l => l.p && l.c);
         files.unshift({ name:'references.json', data:enc.encode(JSON.stringify(man, null, 2)) });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(makeZip(files));
-        a.download = nextExportName();
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        say(`Exported ${String(order.length).padStart(2, '0')}`);
+        return { blob:makeZip(files), count:order.length };
+      }
+
+      /* ---------- SENDING A BOARD TO A FILE ----------
+         The admin's board goes into one of the /files files, for the one
+         designer it is addressed to. The .zip is kept in a private Supabase
+         bucket (bmu-boards) and the file row carries its name (board_path);
+         the database's own rules (setup/collections.sql) are what let the
+         admin write it and only that file's designer read it back. No
+         address is in the page or the repository: the list of files and
+         who they are for is read from the database, signed in as the admin.
+
+         The session is the one /files keeps in this origin's storage, used
+         over plain fetch rather than by loading the whole client for it. An
+         expired access token is refreshed with its refresh token and written
+         back where the client keeps it, so /files stays signed in too. */
+      const FILES = window.BMU_FILES || {};
+      const SB = String(FILES.url || '').replace(/\/$/, '');
+      const BUCKET = 'bmu-boards';
+      function storedSession(){
+        try {
+          for (let i = 0; i < localStorage.length; i++){
+            const k = localStorage.key(i);
+            if (!/^sb-.+-auth-token$/.test(k)) continue;
+            const raw = localStorage.getItem(k);
+            if (!raw || raw.startsWith('base64-')) continue;
+            const v = JSON.parse(raw);
+            const ses = v && (v.currentSession || v);
+            if (ses && ses.access_token) return { k, ses, wrapped: !!v.currentSession };
+          }
+        } catch {}
+        return null;
+      }
+      async function token(){
+        if (!SB || !FILES.anonKey) return null;
+        const got = storedSession();
+        if (!got) return null;
+        const { k, ses } = got;
+        if ((ses.expires_at || 0) * 1000 > Date.now() + 60000) return ses.access_token;
+        if (!ses.refresh_token) return null;
+        try {
+          const r = await fetch(`${SB}/auth/v1/token?grant_type=refresh_token`, {
+            method:'POST',
+            headers:{ apikey:FILES.anonKey, 'Content-Type':'application/json' },
+            body:JSON.stringify({ refresh_token:ses.refresh_token }),
+          });
+          if (!r.ok) return null;
+          const fresh = await r.json();
+          if (!fresh.expires_at) fresh.expires_at = Math.floor(Date.now() / 1000) + (fresh.expires_in || 3600);
+          if (!got.wrapped) localStorage.setItem(k, JSON.stringify(fresh));
+          return fresh.access_token;
+        } catch { return null; }
+      }
+      async function sb(path, opts = {}){
+        const tok = await token();
+        if (!tok) throw new Error('signed out');
+        const r = await fetch(SB + path, { ...opts,
+          headers:{ apikey:FILES.anonKey, Authorization:'Bearer ' + tok, ...(opts.headers || {}) } });
+        if (!r.ok) throw new Error(`${r.status} ${await r.text().catch(() => '')}`.trim());
+        return r;
+      }
+
+      // the Send tool is shown to an admin and nobody else
+      let admin = false;
+      async function checkAdmin(){
+        admin = false;
+        try {
+          const rows = await (await sb('/rest/v1/bmu_admins?select=user_id')).json();
+          admin = Array.isArray(rows) && rows.length > 0;
+        } catch {}
+        T('send').hidden = !admin;
+      }
+
+      const sendEl = document.getElementById('refsSend');
+      const sdFile = document.getElementById('sdFile');
+      const sdNew = document.getElementById('sdNew');
+      const sdTitle = document.getElementById('sdTitle');
+      const sdEmail = document.getElementById('sdEmail');
+      const sdMsg = document.getElementById('sdMsg');
+      const sdGo = document.getElementById('sdGo');
+      let fileRows = [];
+      const sdSay = t => { sdMsg.textContent = t || ''; };
+      function toggleSend(on){
+        on = on == null ? sendEl.hidden : on;
+        sendEl.hidden = !on;
+        if (!on) return;
+        if (!items.length){ sendEl.hidden = true; say('Nothing on the board to send'); return; }
+        toggleSearch(false);
+        sdSay('');
+        sdGo.disabled = false;
+        sdFile.innerHTML = '<option value="">New file…</option>';
+        sdNew.hidden = false;
+        sb('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path&order=created_at.desc')
+          .then(r => r.json())
+          .then(rows => {
+            fileRows = Array.isArray(rows) ? rows : [];
+            fileRows.forEach(c => {
+              const o = document.createElement('option');
+              o.value = c.id;
+              o.textContent = `${c.title} — ${c.reviewer_email}${c.board_path ? ' · has a board' : ''}`;
+              sdFile.appendChild(o);
+            });
+          })
+          .catch(() => sdSay('Could not reach Files. Sign in again from the person icon.'));
+      }
+      sdFile.addEventListener('change', () => { sdNew.hidden = !!sdFile.value; sdSay(''); });
+      document.getElementById('sdCancel').addEventListener('click', () => toggleSend(false));
+      sdGo.addEventListener('click', async () => {
+        const id = sdFile.value;
+        const prev = fileRows.find(c => c.id === id);
+        const title = sdTitle.value.trim(), email = sdEmail.value.trim().toLowerCase();
+        if (!id && (!title || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))){
+          sdSay('A title and the designer’s email, please.'); return;
+        }
+        if (prev && prev.board_path && !window.confirm(`“${prev.title}” already has a board. Replace it with this one?`)) return;
+        sdGo.disabled = true;
+        sdSay('Sending…');
+        try {
+          const { blob, count } = await boardZip();
+          const path = `${(crypto.randomUUID && crypto.randomUUID()) || uid()}.zip`;
+          await sb(`/storage/v1/object/${BUCKET}/${path}`, {
+            method:'POST', headers:{ 'Content-Type':'application/zip' }, body:blob });
+          const now = new Date().toISOString();
+          if (id){
+            await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}`, {
+              method:'PATCH', headers:{ 'Content-Type':'application/json' },
+              body:JSON.stringify({ board_path:path, updated_at:now }) });
+            // the board it replaced is not left behind in the bucket
+            if (prev && prev.board_path) sb(`/storage/v1/object/${BUCKET}/${prev.board_path}`, { method:'DELETE' }).catch(() => {});
+          } else {
+            await sb('/rest/v1/bmu_collections', {
+              method:'POST', headers:{ 'Content-Type':'application/json', Prefer:'return=minimal' },
+              body:JSON.stringify({ title, reviewer_email:email, note:'', garments:[], board_path:path, updated_at:now }) });
+          }
+          toggleSend(false);
+          sdTitle.value = ''; sdEmail.value = '';
+          say(`Sent ${String(count).padStart(2, '0')} to “${prev ? prev.title : title}”`);
+        } catch (err){
+          sdGo.disabled = false;
+          sdSay(/signed out/.test(err.message) ? 'Signed out. Sign in again from the person icon.'
+                                               : 'That did not send. Try again in a moment.');
+        }
+      });
+
+      /* ---------- OPENING A BOARD FROM A FILE ----------
+         /archive?board=<file id>: the link a file's "Open reference board"
+         makes. The designer it is for (or the admin) is signed in already;
+         the board is fetched, and laid down in place of whatever is on the
+         reader's own board — asked first if there is anything there. */
+      async function openSent(id){
+        // the reader's own board is read first, so it is asked about, not lost
+        if (!loaded){ loaded = true; await load(); }
+        open();
+        try {
+          const rows = await (await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}&select=title,board_path`)).json();
+          const c = rows && rows[0];
+          if (!c || !c.board_path){ say('That board could not be found'); return; }
+          const blob = await (await sb(`/storage/v1/object/authenticated/${BUCKET}/${c.board_path}`)).blob();
+          const board = await readBoard(blob);
+          if (items.length){
+            if (!window.confirm(`Open “${c.title}” in place of your board? Export first to keep yours.`)) return;
+            select(null);
+            items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
+            items = []; locks = []; before = null; clustered = false; cand = null;
+          }
+          await addEntries(board.entries, board.locks);
+          fit(); sync(); save();
+          say(`“${c.title}”`);
+        } catch (err){
+          say(/signed out/.test(err.message) ? 'Sign in to Files to open this board' : 'That board could not be opened');
+        }
       }
 
       /* ---------- FROM THE ARCHIVE ----------
@@ -12849,7 +13093,7 @@
 
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
-        if (e.target.closest('.rf-del, .rf-cut, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
         root.setPointerCapture(e.pointerId);
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
 
@@ -13087,7 +13331,8 @@
       tools.addEventListener('click', e => {
         const b = e.target.closest('button[data-act]');
         if (!b || b.disabled) return;
-        ({ add:() => fileIn.click(), search:toggleSearch, cluster, reverse, export:exportBoard, clear:clearBoard })[b.dataset.act]();
+        ({ add:() => fileIn.click(), search:toggleSearch, cluster, reverse, export:exportBoard, clear:clearBoard,
+           send:() => toggleSend() })[b.dataset.act]();
       });
       wireInfoMark(document.getElementById('refsExportInfo'),
                    document.getElementById('refsExportPop'));
@@ -13113,6 +13358,7 @@
         requestAnimationFrame(() => root.classList.add('in'));
         wearFace(true);
         paintGarments();
+        checkAdmin();
         if (!loaded){ loaded = true; load(); }
         applyView();
         sync();
@@ -13123,6 +13369,7 @@
         cand = null;
         select(null);
         toggleSearch(false);
+        toggleSend(false);
         root.classList.remove('in');
         document.body.classList.remove('refs-on');
         root.setAttribute('aria-hidden', 'true');
@@ -13133,6 +13380,11 @@
 
       paintGarments();
       sync();
+      const sentId = new URLSearchParams(location.search).get('board');
+      if (sentId){
+        history.replaceState(history.state, '', location.pathname + location.hash);
+        openSent(sentId);
+      }
 
       return {
         open, close,

@@ -67,6 +67,19 @@ the archive's header).
   the collection shows *Replied*, and it's emailed to
   hello@britishmaterialunit.com the same way Join requests are.
 
+## Sending a reference board
+Run `setup/collections.sql` again once (it is safe to re-run): it adds the
+`board_path` column, a private storage bucket `bmu-boards`, and the rules
+that let only an admin put a board there and only the file's designer read
+it.
+
+Then, signed in as the admin (the person icon in the archive's header), open
+the archive's reference board: a **Send** tool appears in its bar. Pick an
+existing file or make a new one (title + the designer's email) and press
+Send. The designer sees **Open reference board** on that file in /files,
+which opens it on their own board. Nobody else sees the Send tool, and the
+emails only ever come from the database — none are in the site's code.
+
 ## Managing people's logins
 Everything about accounts is in **Authentication → Users**:
 - **See everyone** who has a login.
