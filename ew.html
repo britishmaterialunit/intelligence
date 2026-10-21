@@ -2731,11 +2731,26 @@
           'pg-moving', 'pg-still');
       });
 
+      /* Back to Operations is Back, when Operations is where the reader came
+         from: the home page is in the browser's cache with the box still
+         open, and returning to it shows it as it was rather than a new
+         visit opening it again. From anywhere else it is a link. */
+      const fromHome = (() => {
+        try {
+          const r = new URL(document.referrer);
+          return r.origin === location.origin && r.pathname === '/';
+        } catch(_){ return false; }
+      })();
+      const travel = (href, dir) => {
+        if (dir === 'back' && href === '/#operations' && fromHome && history.length > 1) history.back();
+        else location.href = href;
+      };
+
       let going = false;
       function go(href, dir){
         if (going || !href) return;
         going = true;
-        if (REDUCED){ location.href = href; return; }
+        if (REDUCED){ travel(href, dir); return; }
         try {
           sessionStorage.setItem(DIR_KEY, dir);
           /* and whether the footer was up, so the page being gone to does
@@ -2753,7 +2768,7 @@
         setTimeout(() => {
           document.body.classList.add(dir === 'next' ? 'pg-out-left' : 'pg-out-right');
         }, more ? 300 : 40);
-        setTimeout(() => { location.href = href; }, (more ? 300 : 40) + 440);
+        setTimeout(() => travel(href, dir), (more ? 300 : 40) + 440);
       }
 
       const nextBtn = nav.querySelector('.pg-next');

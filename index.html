@@ -956,6 +956,9 @@
        The column fades and the chrome stays, exactly as #partner does over
        there, so the header and the footer are the two fixed things the
        whole set is read through. */
+    html.ops-instant *, html.ops-instant *::before, html.ops-instant *::after{
+      transition:none !important; animation:none !important;
+    }
     body.pg-leaving #page{
       opacity:0;
       transition:opacity .34s cubic-bezier(.4,0,.2,1);
@@ -3013,7 +3016,9 @@
     let paperTyped = false;
     let opsTimers = [];
 
-    function later(fn, ms){ opsTimers.push(setTimeout(fn, ms)); }
+    // set while the box is being put up already open: every step runs at once
+    let opsInstant = false;
+    function later(fn, ms){ opsTimers.push(setTimeout(fn, opsInstant ? 0 : ms)); }
     function clearOpsTimers(){ opsTimers.forEach(clearTimeout); opsTimers = []; }
 
     /* read the layout rather than the breakpoint: the row is a row on
@@ -3532,6 +3537,18 @@
     function resetArchRow(){
       leaving = false;
       document.body.classList.remove('arch-leaving');
+      /* Back from the partner set, the box was open when the page left and
+         it is open now: the cache hands it back exactly as it was. Only the
+         fade-out comes off. Running the rest of this collapsed the box to a
+         button that still believed it was open — the word pinned left over
+         an empty bar — and left goingToPartners set, so the next swipe
+         left did nothing. */
+      if (goingToPartners && opsState === 'open'){
+        goingToPartners = false;
+        document.body.classList.remove('pg-leaving');
+        try { sessionStorage.removeItem('bmu.pg.dir'); } catch(_){}
+        return;
+      }
       /* ---------- AND THE WAY OUT TO THE PARTNER SET ----------
          Operations' swipe fades this page out and then leaves. A cached
          restore hands it back exactly as it went — pg-leaving still on,
@@ -4352,6 +4369,10 @@
          of the partnerships changes, the swipe follows it */
       const first = document.querySelector('#opsNews .news-item');
       const href = (first && first.getAttribute('href')) || '/ou';
+      /* This entry is what Back returns to. Restored from the cache it is
+         the open box as it was; if the browser has dropped it, the address
+         is what reloads, so it says Operations and the box is put up open. */
+      history.replaceState(history.state, '', '/#operations');
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       try {
         sessionStorage.setItem('bmu.pg.dir', 'next');
@@ -4739,6 +4760,29 @@
       /* The panel is opened a beat after arrival rather than on it: each of
          these measures the button row it grows out of, and that row has
          only just been laid out. */
+      /* Back from East West the box is not opened, it is open: the reader
+         left it standing, so it is put up as it was, with nothing played. */
+      let backFromPartners = false;
+      try {
+        backFromPartners = want === 'operations' && sessionStorage.getItem('bmu.pg.dir') === 'back';
+        if (backFromPartners) sessionStorage.removeItem('bmu.pg.dir');
+      } catch(_){}
+      if (backFromPartners){
+        window.scrollTo(0, 0);
+        document.documentElement.classList.add('ops-instant');
+        opsInstant = true;
+        paperTyped = true;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          openOps();
+          setTimeout(() => {
+            opsInstant = false;
+            document.documentElement.classList.remove('ops-instant');
+            if (window.bmuFooterCheck) window.bmuFooterCheck();
+          }, 120);
+        }));
+        return;
+      }
+
       if (PANELS[want]){
         window.scrollTo(0, 0);
         if (window.bmuFooterCheck) window.bmuFooterCheck();
