@@ -8,5 +8,13 @@
 <link rel="canonical" href="https://britishmaterialunit.com/privacy#terms" />
 <meta name="robots" content="noindex,follow" />
 </head>
-<body><a href="/privacy#terms">Terms &amp; Conditions</a></body>
+<body><a href="/privacy#terms">Terms &amp; Conditions</a>  <script>
+    /* Back. The browser's own back button brings a page out of its cache
+       exactly as it was left — and every page here leaves by fading or
+       sliding itself out first, so it came back blank. Restored that way it
+       is loaded again instead. (The home page restores itself in place;
+       see resetArchRow there.) */
+    window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+  </script>
+</body>
 </html>

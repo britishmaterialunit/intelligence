@@ -3020,5 +3020,13 @@
     else window.addEventListener('load', function(){ setTimeout(fill, 1200); });
   })();
 </script>
+  <script>
+    /* Back. The browser's own back button brings a page out of its cache
+       exactly as it was left — and every page here leaves by fading or
+       sliding itself out first, so it came back blank. Restored that way it
+       is loaded again instead. (The home page restores itself in place;
+       see resetArchRow there.) */
+    window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+  </script>
 </body>
 </html>
