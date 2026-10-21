@@ -1312,6 +1312,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/german/jackets/german-army-1980s-sports-track-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/german/jackets/german-army-1980s-sports-track-jacket/GA1980STJ.png</image:loc>
+      <image:title>German Army 1980s Sports Track Jacket</image:title>
+      <image:caption>German Army 1980s Sports Track Jacket — German military surplus jacket, archive ref GA1980STJ</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/west-german/shirts/west-german-army-1970s-field-grey-long-sleeve-field-shirt/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
