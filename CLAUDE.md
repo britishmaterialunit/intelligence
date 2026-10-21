@@ -58,7 +58,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   postMessage, no SoundCloud script). Plus opens **References** (and wears
   a cross while open): the reader's own image board, a separate layer
   (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
-  nothing else. Images lock in groups (`GAP`, 14px). A lock `{p, c, side, d}`
+  nothing else. Images lock in groups (`gapOf`: 5px between two images, 14px where a garment meets anything). Stray pixels from a shrunk box are cleared by repainting the whole board (`repaint`/`repaintSoon`, `#refs.rf-flush`). A lock `{p, c, side, d}`
   keeps c on p's side with `d` = the offset of their leading cross edges, so
   rows stay top-aligned and columns left-aligned; `relay()` walks the locks,
   `untangle()` eases apart any two group members that overlap. Locking to a

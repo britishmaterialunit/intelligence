@@ -2997,6 +2997,17 @@
        header that is about them rather than about it. */
     #hdColl{ opacity:0; animation:collIn .7s cubic-bezier(.4,0,.2,1) .55s forwards; }
     @keyframes collIn{ to{ opacity:1; } }
+    /* signed in: a dot on the shoulder, so it can be seen at a glance */
+    #hdColl{ position:relative; }
+    body.has-file #hdColl::after{
+      content:'';
+      position:absolute;
+      right:3px; bottom:4px;
+      width:5px; height:5px;
+      border-radius:50%;
+      background:var(--ink);
+      box-shadow:0 0 0 1.5px var(--bg);
+    }
     @media (prefers-reduced-motion:reduce){
       #hdColl{ opacity:1; animation:none; }
     }
@@ -3136,6 +3147,10 @@
       user-select:none;
     }
     #refs.in{ opacity:1; }
+    /* a background that looks the same but is not: changing to it and back
+       makes the browser paint the whole board again, which is what clears
+       what a moved or resized box left behind */
+    #refs.rf-flush{ background-image:linear-gradient(var(--bg), var(--bg)); }
     #refs[hidden]{ display:none; }
     #refs.panning{ cursor:grabbing; }
     #refsStage{
@@ -3161,8 +3176,11 @@
        square is drawn as a hairline, so two locked images read as two boxes
        with the white between them. Nothing is filled: what is transparent
        stays transparent, on the board and in the export. */
+    /* Drawn inside the image's own edge, not outside it: paint that spills
+       past a box is what browsers forget to clear when the box shrinks. */
     .rf-item img{
-      box-shadow:0 0 0 calc(1px * var(--inv)) #e4e4e4;
+      outline:calc(1px * var(--inv)) solid #e4e4e4;
+      outline-offset:calc(-1px * var(--inv));
       display:block;
       width:100%;
       height:auto;
@@ -3261,13 +3279,17 @@
        header or a tab grows and shrinks with the garment it belongs to and
        the board's sums (HDR, PANEL) are exactly what is drawn. */
     .rf-head, .rf-panel{ display:none; }
-    .rf-item.rf-m2, .rf-item.rf-m3{
-      background:var(--bg);
-      box-shadow:0 0 0 calc(1px * var(--inv)) #e4e4e4;
+    .rf-item.rf-m2, .rf-item.rf-m3{ background:var(--bg); }
+    .rf-item.rf-m2::before, .rf-item.rf-m3::before{
+      content:'';
+      position:absolute; inset:0;
+      border:calc(1px * var(--inv)) solid #e4e4e4;
+      pointer-events:none;
+      z-index:1;
     }
-    .rf-item.rf-m2 img, .rf-item.rf-m3 img{ box-shadow:none; }
+    .rf-item.rf-m2 img, .rf-item.rf-m3 img{ outline:none; }
     /* a garment in view 1 is the photograph alone: the hairline is views 2 and 3's */
-    .rf-item.rf-garment:not(.rf-m2):not(.rf-m3) img{ box-shadow:none; }
+    .rf-item.rf-garment:not(.rf-m2):not(.rf-m3) img{ outline:none; }
     .rf-item.rf-m2 .rf-head{
       display:flex;
       flex-direction:column;
@@ -3682,6 +3704,8 @@
     #refsSend[hidden], #sdNew[hidden]{ display:none; }
     #sdNew{ display:flex; flex-direction:column; }
     .sd-head{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); margin-bottom:6px; }
+    .sd-who{ margin:0 0 2px; font-size:11px; line-height:1.4; color:#8a8a8a; }
+    .sd-who a{ color:var(--ink); }
     .sd-lab{ margin:12px 0 5px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#9a9a9a; }
     .sd-field{
       height:36px; padding:0 10px; box-sizing:border-box;
@@ -3946,6 +3970,7 @@
          one designer that file is addressed to. -->
     <aside id="refsSend" hidden aria-label="Send the board to a file">
       <span class="sd-head">Send board to file</span>
+      <p class="sd-who" id="sdWho"></p>
       <label class="sd-lab" for="sdFile">File</label>
       <select id="sdFile" class="sd-field"></select>
       <div id="sdNew">
@@ -10868,7 +10893,10 @@
       const BOX  = 200;          // a new image fits a 200px square
       const CBOX = 190;          // in a cluster, every image fits the same box
       const CSPACE = CBOX * (SPACING / 150);   // and clears it the way a garment does
-      const GAP  = 14;           // the white between two locked images
+      /* The white between two locked images: close for two pictures, wider
+         where a garment meets anything, so its tab reads as its own. */
+      const GAP_IMG = 5, GAP_GARMENT = 14;
+      const gapOf = (a, b) => (a && a.garment) || (b && b.garment) ? GAP_GARMENT : GAP_IMG;
       const OPP  = { left:'right', right:'left', top:'bottom', bottom:'top' };
 
       let items = [];            // { id, blob, name, ar, x, y, w, z, gid, garment, url, el }
@@ -10941,13 +10969,22 @@
       /* Everything on the board hangs off one 0×0 stage, and browsers —
          Safari above all — do not always clear what a picture painted
          outside its new bounds: a box shrunk or carried left its old plus,
-         handles and corners behind as stray pixels. Lifting the stage onto
-         a layer of its own for a frame and setting it down again repaints
-         all of it from nothing. Done when a gesture ends, not during it,
-         so a zoom is not held at the wrong sharpness. */
+         handles and corners behind as stray pixels. Those pixels are in the
+         board's own layer, under the stage, so it is the board that is
+         repainted: its background is changed to one that looks the same
+         (rf-flush) for a frame and back, and the whole of it is drawn again
+         from nothing. Lifting just the stage onto a layer did not reach them. */
       function repaint(){
-        stage.style.willChange = 'transform';
-        requestAnimationFrame(() => requestAnimationFrame(() => { stage.style.willChange = ''; }));
+        root.classList.add('rf-flush');
+        requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('rf-flush')));
+      }
+      // after anything is placed: once it settles, and every so often during a long drag
+      let paintT = null, paintDue = 0;
+      function repaintSoon(){
+        const now = Date.now();
+        if (!paintDue) paintDue = now + 300;
+        clearTimeout(paintT);
+        paintT = setTimeout(() => { paintDue = 0; repaint(); }, Math.max(0, Math.min(140, paintDue - now)));
       }
 
       function applyView(){
@@ -11004,6 +11041,7 @@
         it.el.querySelectorAll('.rf-mode').forEach(sq =>
           sq.classList.toggle('on', Number(sq.dataset.mode) === m));
         showShot(it);
+        repaintSoon();
       }
 
       /* What the archive knows about a garment, read from the register the
@@ -11201,11 +11239,11 @@
       function setBeside(a, b, side, d){
         const ra = rect(a);
         if (side === 'right' || side === 'left'){
-          const dist = wOf(a) / 2 + GAP + wOf(b) / 2;
+          const dist = wOf(a) / 2 + gapOf(a, b) + wOf(b) / 2;
           b.x = a.x + (side === 'right' ? dist : -dist);
           b.y = ra.t + (d || 0) + hOf(b) / 2;
         } else {
-          const dist = hOf(a) / 2 + GAP + hOf(b) / 2;
+          const dist = hOf(a) / 2 + gapOf(a, b) + hOf(b) / 2;
           b.y = a.y + (side === 'bottom' ? dist : -dist);
           b.x = ra.l + (d || 0) + wOf(b) / 2;
         }
@@ -11256,6 +11294,7 @@
             for (let j = i + 1; j < members.length; j++){
               const a = members[i], b = members[j];
               const ra = rect(a), rb = rect(b);
+              const GAP = gapOf(a, b);
               const ox = Math.min(ra.r, rb.r) - Math.max(ra.l, rb.l) + GAP;
               const oy = Math.min(ra.b, rb.b) - Math.max(ra.t, rb.t) + GAP;
               if (ox <= 0.5 || oy <= 0.5) continue;              // clear of each other
@@ -11391,7 +11430,7 @@
             }
           }
           // then set across the gap from the face, the whole unit together
-          const rm = rect(m), ro = rect(o);
+          const rm = rect(m), ro = rect(o), GAP = gapOf(m, o);
           let dx = 0, dy = 0;
           if (side === 'right')  dx = (ro.l - GAP) - rm.r;
           if (side === 'left')   dx = (ro.r + GAP) - rm.l;
@@ -11409,7 +11448,7 @@
             const gap = { right:rb.l - ra.r, left:ra.l - rb.r, bottom:rb.t - ra.b, top:ra.t - rb.b }[sd];
             const flat = sd === 'left' || sd === 'right';
             const shared = flat ? Math.min(ra.b, rb.b) - Math.max(ra.t, rb.t) : Math.min(ra.r, rb.r) - Math.max(ra.l, rb.l);
-            return Math.abs(gap - GAP) < 2 && shared > Math.min(crossLen(a, sd), crossLen(b, sd)) * 0.15;
+            return Math.abs(gap - gapOf(a, b)) < 2 && shared > Math.min(crossLen(a, sd), crossLen(b, sd)) * 0.15;
           };
           const lock = (a, b, sd) => {
             if (already(a, b) || sideTaken(b, OPP[sd])) return;
@@ -11468,9 +11507,10 @@
                       t:Math.min(...rs.map(r => r.t)), b:Math.max(...rs.map(r => r.b)) };
         const th = SNAP / vs, near = 320 / vs;
         let bx = null, by = null;
+        const unitGarment = unit.some(([o]) => o.garment);
         items.forEach(o => {
           if (mine.has(o.id)) return;
-          const r = rect(o);
+          const r = rect(o), GAP = unitGarment || o.garment ? GAP_GARMENT : GAP_IMG;
           if (r.l > box.r + near || r.r < box.l - near || r.t > box.b + near || r.b < box.t - near) return;
           const cx = (r.l + r.r) / 2, cy = (r.t + r.b) / 2, bcx = (box.l + box.r) / 2, bcy = (box.t + box.b) / 2;
           [[box.l, r.l], [box.l, r.r + GAP], [box.r, r.r], [box.r, r.l - GAP], [bcx, cx]].forEach(([u, t]) => {
@@ -12029,6 +12069,10 @@
 
       // the Send tool is shown to an admin and nobody else
       let admin = false;
+      const signedInAs = () => {
+        const got = storedSession();
+        return (got && got.ses.user && got.ses.user.email) || '';
+      };
       async function checkAdmin(){
         admin = false;
         try {
@@ -12054,6 +12098,11 @@
         if (!items.length){ sendEl.hidden = true; say('Nothing on the board to send'); return; }
         toggleSearch(false);
         sdSay('');
+        // who this goes out as, and where that sign-in is kept
+        const who = signedInAs();
+        document.getElementById('sdWho').innerHTML = who
+          ? `Signed in as ${who.replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c])} · <a href="/files">Files</a>`
+          : '';
         sdGo.disabled = false;
         sdFile.innerHTML = '<option value="">New file…</option>';
         sdNew.hidden = false;
@@ -13123,7 +13172,7 @@
           const targets = items.filter(o => o !== it).map(o => {
             const r = rect(o), mine = o.gid && o.gid === it.gid;
             const right = mine && r.l >= r0.r - 1, below = mine && r.t >= r0.b - 1;
-            return { r, x:!right, y:!below };
+            return { r, x:!right, y:!below, gap:gapOf(it, o) };
           }).filter(tg => tg.x || tg.y);
           g = { mode:'size', item:it, l:r0.l, t:r0.t, targets };
           return;
@@ -13166,7 +13215,7 @@
           if (!e.altKey){
             const th = SNAP / vs, R = g.l + w * kx, B = g.t + w * ky;
             let best = null;
-            g.targets.forEach(({ r, x, y }) => {
+            g.targets.forEach(({ r, x, y, gap:GAP }) => {
               if (x) [r.r, r.l - GAP, r.l].forEach(X => {
                 const d = Math.abs(R - X);
                 if (d <= th && (!best || d < best.d)) best = { d, w:(X - g.l) / kx, axis:'x', at:X, r };
