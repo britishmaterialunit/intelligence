@@ -795,24 +795,8 @@
       #opsBtn #opsLabel{ transition:none; }
     }
 
-    /* The cross is the footer arrow's size and weight, on the Operations
-       line, its right edge on the partner boxes' right edge: --ops-pad is
-       the sheet body's indent, measured off the same box. */
-    .ops-close{
-      display:none;
-      position:absolute;
-      top:0; right:var(--ops-pad);
-      width:16px; height:calc(var(--bar-h) - 3px);
-      align-items:center;
-      justify-content:flex-end;
-      cursor:pointer;
-      opacity:.45;
-      transition:opacity .3s cubic-bezier(.4,0,.2,1);
-    }
-    .ops-close:hover{ opacity:.8; }
-    #opsBtn.open .ops-close{ display:flex; }
-    .ops-close svg, .ops-next svg{ width:16px; height:16px; display:block; overflow:visible; }
-    .ops-close path, .ops-next path{
+    .ops-next svg{ width:16px; height:16px; display:block; overflow:visible; }
+    .ops-next path{
       fill:none; stroke:#000; stroke-width:1.6;
       stroke-linecap:round; stroke-linejoin:round;
     }
@@ -2190,7 +2174,6 @@
            company mid-transition — cannot occur. -->
       <div id="opsBtn" class="bm-button" role="button" tabindex="0" aria-expanded="false" aria-label="Operations">
         <span id="opsLabel">Operations</span>
-        <span class="ops-close" id="opsClose" role="button" aria-label="Close Operations"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3.9 3.9 L12.1 12.1"/><path d="M12.1 3.9 L3.9 12.1"/></svg></span>
 
         <div id="opsSheet" aria-hidden="true">
           <div class="ops-body">
@@ -2995,7 +2978,6 @@
        whitepaper types → news fades in
        ============================================================ */
     const opsBtn   = document.getElementById('opsBtn');
-    const opsClose = document.getElementById('opsClose');
     const opsSheet = document.getElementById('opsSheet');
     const opsHead  = document.getElementById('opsHead');
     const opsNews  = document.getElementById('opsNews');
@@ -4124,10 +4106,6 @@
       if (e.key !== 'Enter' && e.key !== ' ') return;
       if (joinState !== 'off'){ e.preventDefault(); submitJoin(); return; }
       if (opsState === 'closed'){ e.preventDefault(); openOps(); }
-    });
-    opsClose.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (joinState !== 'off') closeJoin(); else closeOps();
     });
 
     /* ---- the cue at the foot of the screen: down to the footer, or out of Join ---- */

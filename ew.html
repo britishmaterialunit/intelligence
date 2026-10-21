@@ -2762,14 +2762,24 @@
       if (backBtn) backBtn.addEventListener('click', () => go(backBtn.dataset.href, 'back'));
 
       /* ---------- and by hand ----------
-         A sideways drag does what the arrows do. Held to gestures that are
-         clearly sideways, so scrolling the page never turns a page. */
+         A sideways drag does what the arrows do — anywhere on the page, not
+         only over the column, so the margins, header and footer turn it
+         too. Held to gestures that are clearly sideways, so scrolling the
+         page never turns a page. Something that scrolls sideways of its own
+         keeps the gesture. */
+      const ownsSideways = el => {
+        for (let n = el; n && n !== document.body; n = n.parentElement){
+          if (n.scrollWidth > n.clientWidth + 2 &&
+              /(auto|scroll)/.test(getComputedStyle(n).overflowX)) return true;
+        }
+        return false;
+      };
       let x0 = null, y0 = null, live = false;
-      main.addEventListener('touchstart', e => {
-        if (e.touches.length !== 1) return;
+      document.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1 || ownsSideways(e.target)) return;
         x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; live = true;
       }, { passive:true });
-      main.addEventListener('touchend', e => {
+      document.addEventListener('touchend', e => {
         if (!live) return;
         live = false;
         const t = e.changedTouches[0];
@@ -2777,6 +2787,21 @@
         if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
         if (dx < 0 && nextBtn) go(nextBtn.dataset.href, 'next');
         if (dx > 0 && backBtn) go(backBtn.dataset.href, 'back');
+      }, { passive:true });
+
+      /* ...and by a trackpad's two-finger swipe, the desktop's sideways
+         drag: summed while it lasts, so one swipe turns one page */
+      let wx = 0, wxT = null;
+      document.addEventListener('wheel', e => {
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || ownsSideways(e.target)) return;
+        wx += e.deltaX;
+        clearTimeout(wxT);
+        wxT = setTimeout(() => { wx = 0; }, 250);
+        if (Math.abs(wx) < 140) return;
+        const on = wx > 0;
+        wx = 0;
+        if (on && nextBtn) go(nextBtn.dataset.href, 'next');
+        if (!on && backBtn) go(backBtn.dataset.href, 'back');
       }, { passive:true });
 
       /* ...and by keyboard, when nothing is being typed into */
