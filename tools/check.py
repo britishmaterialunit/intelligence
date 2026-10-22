@@ -117,6 +117,12 @@ def main():
         bad.append('not in ITEMS, so invisible on the site: %s\n    %s'
                    % (rel, (', '.join(pics) if pics else 'no photograph either')))
 
+    # ---- /maps is generated from archive.html, and must have kept up ----
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_maps
+    if io.open(build_maps.MAPS_HTML, encoding='utf-8').read() != build_maps.build():
+        bad.append('maps.html is behind archive.html — run python3 tools/build_maps.py')
+
     # ---- say it ---------------------------------------------------------
     print('%d garments in ITEMS' % len(items))
     if no_record:

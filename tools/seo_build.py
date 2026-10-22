@@ -551,6 +551,11 @@ def main():
     print('%s %d garment pages, %d sitemap urls'
           % ('would write' if a.dry_run else 'wrote', written, len(STATIC) + len(entries)))
 
+    # /maps is the archive re-addressed: kept in step with it on every build
+    if not a.dry_run:
+        import build_maps
+        build_maps.main()
+
 
 if __name__ == '__main__':
     main()

@@ -13631,6 +13631,9 @@
       if (sentId){
         history.replaceState(history.state, '', location.pathname + location.hash);
         openSent(sentId);
+      } else if (location.pathname === MAPS){
+        // this is maps.html: the archive, addressed as /maps — the board is up
+        open();
       } else if (q.has('maps')){
         // arrived at /maps: the archive is underneath it, and the board is up
         history.replaceState(null, '', '/archive');

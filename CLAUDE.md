@@ -55,7 +55,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   The original is kept (`orig`) so the same button restores it. Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
-  postMessage, no SoundCloud script). Plus opens **References** — **called Maps from now on**; while open the address reads `/maps` (`mapsUrl`: pushed on open, Back closes, `maps.html` hands outside arrivals to `/archive?maps`) — (and wears
+  postMessage, no SoundCloud script). Plus opens **References** — **called Maps from now on**; while open the address reads `/maps` (`mapsUrl`: pushed on open, Back closes, `maps.html` is the archive itself re-addressed — **generated** by `tools/build_maps.py` (run by `seo_build.py`; `check.py` fails if it is stale), never edited; a redirect stub made iMessage's preview fall back to the tiled icon) — (and wears
   a cross while open): the reader's own image board, a separate layer
   (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
   nothing else. Images lock in groups (`gapOf`: 5px between two images, 14px where a garment meets anything). Stray pixels from a shrunk box are cleared by repainting the whole board (`repaint`/`repaintSoon`, `#refs.rf-flush`). A lock `{p, c, side, d}`
