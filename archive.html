@@ -13561,9 +13561,38 @@
         refsSq.setAttribute('aria-label', FACE_LABEL.refs);
         refsSq.setAttribute('aria-pressed', on ? 'true' : 'false');
       }
+      /* ---------- /maps ----------
+         The board is called Maps, and while it is open the address says so.
+         Opening it puts /maps on the history, so Back closes it and Forward
+         opens it again; closing it takes /maps back off. Nothing else about
+         the board changes. /maps arriving from outside is maps.html, which
+         hands over to /archive?maps, and that opens straight onto it. */
+      const MAPS = '/maps';
+      let mapsFrom = '/archive', mapsPushed = false;
+      function mapsUrl(on){
+        try {
+          if (on){
+            if (location.pathname === MAPS) return;
+            mapsFrom = location.pathname + location.search + location.hash;
+            history.pushState({ maps:1 }, '', MAPS);
+            mapsPushed = true;
+          } else {
+            if (location.pathname !== MAPS) return;
+            if (mapsPushed && history.state && history.state.maps){ mapsPushed = false; history.back(); }
+            else history.replaceState(null, '', mapsFrom);
+          }
+        } catch {}
+      }
+      window.addEventListener('popstate', () => {
+        const atMaps = location.pathname === MAPS;
+        if (isOpen && !atMaps){ mapsPushed = false; close(); }
+        else if (!isOpen && atMaps){ mapsPushed = true; open(); }
+      });
+
       function open(){
         if (isOpen) return;
         isOpen = true;
+        mapsUrl(true);
         root.hidden = false;
         root.setAttribute('aria-hidden', 'false');
         document.body.classList.add('refs-on');
@@ -13578,6 +13607,7 @@
       function close(){
         if (!isOpen) return;
         isOpen = false;
+        mapsUrl(false);
         cand = null;
         select(null);
         toggleSearch(false);
@@ -13592,10 +13622,15 @@
 
       paintGarments();
       sync();
-      const sentId = new URLSearchParams(location.search).get('board');
+      const q = new URLSearchParams(location.search);
+      const sentId = q.get('board');
       if (sentId){
         history.replaceState(history.state, '', location.pathname + location.hash);
         openSent(sentId);
+      } else if (q.has('maps')){
+        // arrived at /maps: the archive is underneath it, and the board is up
+        history.replaceState(null, '', '/archive');
+        open();
       }
 
       return {
