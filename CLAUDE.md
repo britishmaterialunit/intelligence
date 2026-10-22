@@ -95,11 +95,14 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   against `bmu_admins`) puts that zip in the private Supabase bucket
   `bmu-boards` and names it in a file's `board_path`; `/archive?board=<file
   id>` (Files' "Open reference board") lays it down. Files' **Open Archive** (`#cvArchive`, a
-  step under the others, compass in its well, an arrow `#cvArchiveMark` where
-  they have a cross/tick, turned -45° on press before the page goes) links to
-  `/archive#keep=<id>,<id>…`: `keepFromUrl` adds those garments to the saved
-  shelf (`bmu.archive.saved`), drops the hash, and the field opens with the
-  shelf gathered (`pendingNation = 'saved'`). Plain fetch with the
+  step under the others, compass in its well, an arrow `#cvArchiveMark` that
+  turns -45° on press) writes the archive's keys itself (same origin,
+  `keepShelf`): the file's garments onto `bmu.archive.saved` (once verified:
+  affirmed kept, negatives removed — Verify does the same) and
+  `bmu.archive.joined` = their email; then `/archive#saved`. The archive
+  re-reads the shelf, holds on the loading gate (`openForShelf` skips
+  'saved'), and the reader's press opens it onto the saved cluster.
+  (`#keep=<ids>` still works: `keepFromUrl` adds them itself.) Plain fetch with the
   session /files keeps — see `setup/collections.sql` for the rules. The `bank` source (an Instagram-fed reference
   bank under `/references/`) is in code only — `SOURCES.bank.live` false.
 - **Music across pages** (`carried` in `archive.html`): once the music has

@@ -7270,7 +7270,9 @@
        and the cluster gathers in front of the reader. A beat on the filled
        mark first, so it reads as the door opening rather than a cut. */
     function openForShelf(){
-      if (!pendingNation || revealed) return;
+      /* The shelf from a file is the exception: the door waits for the
+         reader's own press, and opens onto their saved garments gathered. */
+      if (!pendingNation || revealed || pendingNation === 'saved') return;
       setTimeout(openGate, 360);
     }
 
@@ -8572,7 +8574,7 @@
         // the back button has already put the address right; a link has not
         if (!fromHistory){ try { history.pushState(null, '', u ? here(u) : '/archive'); } catch {} }
         if (n) openNumber(n);
-        else if (u && /^#keep=/.test(u.hash)) arriveAtShelf();
+        else if (u && /^#(keep=|saved$)/.test(u.hash)) arriveAtShelf();
       }
 
       /* Every page the frame arrives at: dressed with the square, its title
@@ -9181,6 +9183,18 @@
 
     function wantedNation(){
       if (keepFromUrl()) return 'saved';
+      /* /archive#saved: Open Archive on a file. Files has already put the
+         file's garments on the shelf (the same storage), so the shelf is
+         read again — on a page carried over the archive this one was loaded
+         long before. */
+      if (/^#saved$/i.test(location.hash)){
+        try {
+          const got = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+          if (Array.isArray(got)){ savedIds = got; pruneSaved(); }
+        } catch {}
+        try { history.replaceState(history.state, '', location.pathname + location.search); } catch {}
+        return 'saved';
+      }
       const m = location.hash.match(/^#nation=([a-z-]+)$/i);
       if (!m) return null;
       const key = m[1].toLowerCase();

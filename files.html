@@ -3710,9 +3710,9 @@
         $('cvGrid').hidden = isBoard;
         document.querySelector('.cv-tools').hidden = isBoard;
         $('cvBoard').href = '/archive?board=' + encodeURIComponent(c.id);
-        // the archive keeps these on the reader's shelf and opens on them gathered
+        // the archive opens on the reader's shelf, which Open Archive fills (keepShelf)
         $('cvArchiveStep').hidden = isBoard || !shown.length;
-        $('cvArchive').href = '/archive#keep=' + shown.map(g => encodeURIComponent(g.id)).join(',');
+        $('cvArchive').href = '/archive#saved';
         $('cvArchiveMark').classList.remove('on');
         $('cvMissing').textContent = gone
           ? plural(gone, 'garment in this file is', 'garments in this file are') + ' no longer in the archive.'
@@ -4045,6 +4045,31 @@
         });
       })();
 
+      /* ---------- the reader's shelf in the archive ----------
+         The archive is the same site, so its own keys are written from here.
+         Signed in here is signed in there: the reviewer counts as joined. A
+         file's garments go on their saved shelf, beside whatever they keep
+         already — all of them while the file is open, and once it is
+         verified the affirmed ones stay and the negatives come off. */
+      const SHELF_KEY = 'bmu.archive.saved', JOINED_KEY = 'bmu.archive.joined';
+      function keepShelf(add, drop){
+        try {
+          let ids = JSON.parse(localStorage.getItem(SHELF_KEY) || '[]');
+          if (!Array.isArray(ids)) ids = [];
+          ids = ids.filter(id => !drop.includes(id));
+          add.forEach(id => { if (!ids.includes(id)) ids.push(id); });
+          localStorage.setItem(SHELF_KEY, JSON.stringify(ids));
+          if (me && me.email && !localStorage.getItem(JOINED_KEY)) localStorage.setItem(JOINED_KEY, me.email);
+        } catch {}
+      }
+      // what this file puts on the shelf: everything, or once verified, what was affirmed
+      function shelveFile(){
+        if (!current) return;
+        const ids = shown.map(g => g.id);
+        if ($('cvSendMark').classList.contains('on')) keepShelf(ids.filter(id => picks.has(id)), ids.filter(id => !picks.has(id)));
+        else keepShelf(ids, []);
+      }
+
       /* Open Archive the same way: the arrow turns up and away first, then
          the archive takes over. Back from the archive it points on again. */
       (function wireArchive(){
@@ -4054,6 +4079,7 @@
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
           if ($('cvArchiveMark').classList.contains('on')) return;   // already turned
           e.preventDefault();
+          shelveFile();
           $('cvArchiveMark').classList.add('on');
           setTimeout(() => { location.href = a.getAttribute('href'); }, 420);
         });
@@ -4407,6 +4433,8 @@
           replies.set(current.id + '|' + me.email, saved || row);
           tellUs(current, row);
           turnMark('cvSendMark');
+          // the shelf follows the answer: affirmed kept, negatives let go
+          keepShelf(row.picks, current.garments.filter(id => !picks.has(id)));
           say($('cvMsg'), 'Sent ' + new Date().toLocaleString('en-GB'));
         } catch {
           say($('cvMsg'), 'Could not send', true);
