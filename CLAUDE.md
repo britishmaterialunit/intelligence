@@ -58,8 +58,10 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   a cross while open): the reader's own image board, a separate layer
   (`#refs`, `#refsTools`, `#refsTray`, all `refs`/`rf-` names) that changes
   nothing else. Images lock in groups (`gapOf`: 5px between two images, 14px where a garment meets anything). Stray pixels from a shrunk box are cleared by repainting the whole board (`repaint`/`repaintSoon`, `#refs.rf-flush`). A lock `{p, c, side, d}`
-  keeps c on p's side with `d` = the offset of their leading cross edges, so
-  rows stay top-aligned and columns left-aligned; `relay()` walks the locks,
+  keeps c on p's side lined up on the line they met at when locked — `at`
+  = s (leading edges), m (centres) or e (far edges), `d` the offset there — so
+  rows stay top-aligned and a garment centred on a picture stays centred as
+  either is resized; `relay()` walks the locks,
   `untangle()` eases apart any two group members that overlap. Locking to a
   group meets its whole flush face (`faceOf`), fits the arrival to the face's
   length when within `FIT` (15%), and locks it to every face image and any

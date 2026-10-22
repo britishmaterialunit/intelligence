@@ -10675,7 +10675,7 @@
       const OPP  = { left:'right', right:'left', top:'bottom', bottom:'top' };
 
       let items = [];            // { id, blob, name, ar, x, y, w, z, gid, garment, url, el }
-      let locks = [];            // { p, c, side } — c sits on p's `side`
+      let locks = [];            // { p, c, side, d, at } — c sits on p's `side`, lined up at `at` (s/m/e) offset d
       let sel = null;
       let cand = null;           // { m, o, side } — a lock on offer: o sits on m's side
       let vs = 1, vx = 0, vy = 0;              // the view: scale and pan
@@ -11029,22 +11029,38 @@
       const startOf = (it, side) => crossOf(side) === 'y' ? rect(it).t : rect(it).l;
       const crossLen = (it, side) => crossOf(side) === 'y' ? hOf(it) : wOf(it);
 
-      function setBeside(a, b, side, d){
-        const ra = rect(a);
+      /* A lock keeps the two lined up where they were lined up when it was
+         made: by their leading edges (s), their middles (m) or their far
+         edges (e). So a garment locked centred on a picture stays centred
+         on it however either is sized, as a row stays top-aligned. `d` is
+         the offset at that line — 0 when they meet it exactly. */
+      const lineOf = (it, side, at) =>
+        startOf(it, side) + crossLen(it, side) * (at === 'm' ? 0.5 : at === 'e' ? 1 : 0);
+      function setBeside(a, b, side, d, at){
+        const line = lineOf(a, side, at) + (d || 0);
+        const k = at === 'm' ? 0.5 : at === 'e' ? 1 : 0;
         if (side === 'right' || side === 'left'){
           const dist = wOf(a) / 2 + gapOf(a, b) + wOf(b) / 2;
           b.x = a.x + (side === 'right' ? dist : -dist);
-          b.y = ra.t + (d || 0) + hOf(b) / 2;
+          b.y = line - hOf(b) * k + hOf(b) / 2;
         } else {
           const dist = hOf(a) / 2 + gapOf(a, b) + hOf(b) / 2;
           b.y = a.y + (side === 'bottom' ? dist : -dist);
-          b.x = ra.l + (d || 0) + wOf(b) / 2;
+          b.x = line - wOf(b) * k + wOf(b) / 2;
         }
       }
-      // what the lock's `d` is, read off where the two actually are
+      /* What the lock's line and `d` are, read off where the two actually
+         are. Two the same length meet on every line at once; they keep the
+         line they had, so a centred pair passing through the same size on
+         the way to a new one is still centred after it. */
       function measureLock(l){
         const p = byId(l.p), c = byId(l.c);
-        if (p && c) l.d = startOf(c, l.side) - startOf(p, l.side);
+        if (!p || !c) return;
+        const off = at => lineOf(c, l.side, at) - lineOf(p, l.side, at);
+        const meets = ['s', 'm', 'e'].filter(at => Math.abs(off(at)) < 1);
+        if (meets.length === 1) l.at = meets[0];
+        else if (!l.at) l.at = 's';
+        l.d = off(l.at || 's');
       }
       function relay(anchor){
         if (!anchor.gid) return;
@@ -11057,7 +11073,7 @@
             else if (l.c === a.id && !seen.has(l.p)){ b = byId(l.p); side = OPP[l.side]; d = -(l.d || 0); }
             if (!b) return;
             seen.add(b.id);
-            setBeside(a, b, side, d);
+            setBeside(a, b, side, d, l.at || 's');
             place(b);
             queue.push(b);
           });
@@ -11483,7 +11499,7 @@
           });
           regroup();
           // the file says where each one sat; the locks take their alignment from that
-          locks.forEach(l => { if (l.d == null) measureLock(l); });
+          locks.forEach(l => { if (l.d == null || !l.at) measureLock(l); });
         }
 
         clustered = false;
@@ -12951,7 +12967,7 @@
           });
           locks = (got.locks || []).filter(l => byId(l.p) && byId(l.c));
           // boards saved before locks remembered their alignment are read for it
-          locks.forEach(l => { if (l.d == null) measureLock(l); });
+          locks.forEach(l => { if (l.d == null || !l.at) measureLock(l); });
           regroup();
           // a board kept at an older gap opens at today's
           const laid = new Set();
