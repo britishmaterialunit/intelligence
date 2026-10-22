@@ -302,6 +302,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/british/shirts/british-army-1990s-dpm-s95-field-shirt/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/british/shirts/british-army-1990s-dpm-s95-field-shirt/BA1990DS95FS.png</image:loc>
+      <image:title>British Army 1990s DPM S95 Field Shirt</image:title>
+      <image:caption>British Army 1990s DPM S95 Field Shirt — British military surplus shirt, archive ref BA1990DS95FS</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/austrian/jackets/austrian-army-1990s-olive-drab-lightweight-ripstop-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
