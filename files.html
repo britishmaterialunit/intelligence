@@ -1742,17 +1742,6 @@
     .cv-left .cl-field{ width:100%; }
     .cv-right{ min-width:0; }
     .cv-right [hidden], #cvReplyBox [hidden]{ display:none !important; }
-    /* A board file's right-hand side: the board, drawn small from its own
-       file, every picture where the designer's board will put it. */
-    .cv-map{
-      position:relative;
-      width:100%;
-      border:1.5px solid var(--line);
-      background:var(--bg);
-      overflow:hidden;
-    }
-    .cv-map img{ position:absolute; display:block; object-fit:contain; }
-    .cv-map-note{ padding:18px; font-size:12px; color:#8a8a8a; }
 
     /* the two ways of looking, and the switch between them */
     .cv-tools{
@@ -2546,8 +2535,6 @@
           </div>
 
           <div class="cl-grid" id="cvGrid"></div>
-          <!-- a board file: the board itself, small -->
-          <div class="cv-map" id="cvMap" hidden aria-label="The reference board"></div>
 
           <!-- the field: the same garments, laid out the way the archive
                lays out a cluster, and draggable -->
@@ -3684,10 +3671,10 @@
         $('cvBoardRow').hidden = !c.board_path;
         const isBoard = !!c.board_path;
         ['cvReplyLede', 'cvReply', 'cvVerifyStep'].forEach(k => { $(k).hidden = isBoard; });
-        ['cvBoardLede', 'cvZipStep', 'cvMap'].forEach(k => { $(k).hidden = !isBoard; });
+        ['cvBoardLede', 'cvZipStep'].forEach(k => { $(k).hidden = !isBoard; });
+        // a board is not shown here: it is downloaded, or opened on Maps
         $('cvGrid').hidden = isBoard;
         document.querySelector('.cv-tools').hidden = isBoard;
-        if (isBoard) drawMap(c);
         $('cvBoard').href = '/archive?board=' + encodeURIComponent(c.id);
         $('cvMissing').textContent = gone
           ? plural(gone, 'garment in this file is', 'garments in this file are') + ' no longer in the archive.'
@@ -3732,86 +3719,13 @@
       /* ---------- A REFERENCE BOARD IN A FILE ----------
          Sent from the archive's board: a .zip of its pictures and their
          places (references.json). It is fetched once per visit and kept,
-         drawn small on the right, handed over whole by Download Zip, and
-         opened on the reader's own board by Open reference board. */
+         handed over whole by Download Zip, and opened on the reader's own
+         board (Maps) by Open reference board. Nothing of it is shown here. */
       const boards = new Map();
       const boardOf = c => {
         if (!boards.has(c.id)) boards.set(c.id, api.boardZip(c.board_path).catch(err => { boards.delete(c.id); throw err; }));
         return boards.get(c.id);
       };
-      async function readZip(blob){
-        const buf = new Uint8Array(await blob.arrayBuffer());
-        const dv = new DataView(buf.buffer), dec = new TextDecoder();
-        let e = -1;
-        for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--){
-          if (dv.getUint32(i, true) === 0x06054b50){ e = i; break; }
-        }
-        if (e < 0) throw new Error('not a zip');
-        const n = dv.getUint16(e + 10, true);
-        let p = dv.getUint32(e + 16, true);
-        const out = [];
-        for (let k = 0; k < n; k++){
-          if (dv.getUint32(p, true) !== 0x02014b50) break;
-          const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
-          const nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true);
-          const at = dv.getUint32(p + 42, true);
-          const name = dec.decode(buf.subarray(p + 46, p + 46 + nlen));
-          p += 46 + nlen + xlen + clen;
-          const start = at + 30 + dv.getUint16(at + 26, true) + dv.getUint16(at + 28, true);
-          const raw = buf.subarray(start, start + csize);
-          if (method === 0) out.push({ name, data:raw });
-          else if (method === 8 && window.DecompressionStream){
-            out.push({ name, data:new Uint8Array(await new Response(
-              new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()) });
-          }
-        }
-        return out;
-      }
-      let mapRun = 0;
-      async function drawMap(c){
-        const run = ++mapRun, box = $('cvMap');
-        box.innerHTML = '<p class="cv-map-note">Opening the board…</p>';
-        box.style.height = '';
-        try {
-          const entries = await readZip(await boardOf(c));
-          if (run !== mapRun) return;
-          const man = JSON.parse(new TextDecoder().decode(entries.find(en => en.name === 'references.json').data));
-          const TYPE = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', webp:'image/webp', gif:'image/gif', avif:'image/avif' };
-          const pics = await Promise.all((man.items || []).map(it => new Promise(ok => {
-            const en = entries.find(x => x.name === it.file);
-            if (!en) return ok(null);
-            const ext = (it.file.split('.').pop() || '').toLowerCase();
-            const img = new Image();
-            img.onload = () => ok({ it, img, h:it.w * img.naturalHeight / img.naturalWidth });
-            img.onerror = () => ok(null);
-            img.src = URL.createObjectURL(new Blob([en.data], { type:TYPE[ext] || 'image/png' }));
-          })));
-          if (run !== mapRun) return;
-          const ok = pics.filter(Boolean).sort((a, b) => (a.it.z || 0) - (b.it.z || 0));
-          if (!ok.length) throw new Error('empty');
-          let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-          ok.forEach(({ it, h }) => {
-            x0 = Math.min(x0, it.x - it.w / 2); x1 = Math.max(x1, it.x + it.w / 2);
-            y0 = Math.min(y0, it.y - h / 2);    y1 = Math.max(y1, it.y + h / 2);
-          });
-          const pad = 0.06 * Math.max(x1 - x0, y1 - y0);
-          x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
-          const W = box.clientWidth, k = W / (x1 - x0);
-          box.innerHTML = '';
-          box.style.height = Math.min(Math.round((y1 - y0) * k), Math.round(window.innerHeight * 0.75)) + 'px';
-          const kk = Math.min(k, box.clientHeight / (y1 - y0));
-          const ox = (W - (x1 - x0) * kk) / 2;
-          ok.forEach(({ it, img, h }) => {
-            img.alt = it.name || '';
-            Object.assign(img.style, {
-              left:(ox + (it.x - it.w / 2 - x0) * kk) + 'px', top:((it.y - h / 2 - y0) * kk) + 'px',
-              width:(it.w * kk) + 'px', height:(h * kk) + 'px' });
-            box.appendChild(img);
-          });
-        } catch (_){
-          if (run === mapRun) box.innerHTML = '<p class="cv-map-note">The board could not be shown here. Open it on the reference board instead.</p>';
-        }
-      }
       $('cvZip').addEventListener('click', async () => {
         const c = current;
         if (!c || !c.board_path) return;

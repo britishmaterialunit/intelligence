@@ -13568,8 +13568,12 @@
          the board changes. /maps arriving from outside is maps.html, which
          hands over to /archive?maps, and that opens straight onto it. */
       const MAPS = '/maps';
-      let mapsFrom = '/archive', mapsPushed = false;
+      let mapsFrom = '/archive', mapsPushed = false, mapsTitle = '';
       function mapsUrl(on){
+        /* the tab says so as well: Safari shows only the domain in its
+           address bar, so /maps alone is invisible there */
+        if (on && document.title !== 'Maps | BMU'){ mapsTitle = document.title; document.title = 'Maps | BMU'; }
+        if (!on && document.title === 'Maps | BMU') document.title = mapsTitle || 'Archive | BMU';
         try {
           if (on){
             if (location.pathname === MAPS) return;
