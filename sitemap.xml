@@ -292,6 +292,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/british/trousers/british-army-1990s-opfor-blue-dpm-combat-trousers/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/british/trousers/british-army-1990s-opfor-blue-dpm-combat-trousers/BA1990OBDCT.png</image:loc>
+      <image:title>British Army 1990s OPFOR Blue DPM Combat Trousers</image:title>
+      <image:caption>British Army 1990s OPFOR Blue DPM Combat Trousers — British military surplus trouser, archive ref BA1990OBDCT</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/austrian/jackets/austrian-army-1990s-olive-drab-lightweight-ripstop-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
