@@ -37,7 +37,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   localStorage `bmu-sc-pos`. There is no folded SoundCloud square any more:
   `#dockPlay` itself wears the colour of the artwork playing (`scTint` →
   `--sc-col`, `html.sc-tinted`, icon inverted on pale covers via `--sc-img`).
-  The dock itself does not move — it cannot be dragged. The old stacked button
+  While music plays (`body.music-on`, set in `setPlayFace`) `#dockPlay` stays
+  out at rest beside explore and the plus, so the archive has its coloured
+  play square too. The dock itself does not move — it cannot be dragged. The old stacked button
   `#dockExplore` is hidden but kept, because the script still speaks to it.
   On a phone the open search bar takes its own row under the squares.
   Board garments have three views (squares 1/2/3 down the left edge: photo,

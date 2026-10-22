@@ -2431,6 +2431,13 @@
     #dock:not(.more) #dockLibrary,
     #dock:not(.more) #dockFile{ display:none; }
     #dock.open.more #dockSearch{ width:calc(var(--dock-w) - 336px); }   /* six squares */
+    /* While the music plays its square stays out at rest, in the colour of
+       the record — the one way back to the player once it is put away. It
+       does not rise and fall with the others: it never went anywhere. */
+    body.music-on #dock:not(.more) #dockPlay{ display:flex; }
+    body.music-on #dock.open:not(.more) #dockSearch{ width:calc(var(--dock-w) - 168px); }
+    body.music-on #dock.more-in #dockPlay,
+    body.music-on #dock.more-out #dockPlay{ animation:none !important; pointer-events:auto; }
     /* rising in, a beat apart, left to right; dropping out, right to left */
     @keyframes dockRise{
       from{ opacity:0; transform:translateY(16px) scale(.92); }
@@ -2506,6 +2513,7 @@
       #dock{ gap:6px; --sq:40px; --gap-sq:6px; }
       #dock .dock-sq{ width:40px; height:40px; }
       #dock.open #dockSearch{ width:calc(var(--dock-w) - 92px); }      /* at rest: one row */
+      body.music-on #dock.open:not(.more) #dockSearch{ width:calc(var(--dock-w) - 138px); }
       #dock.open.more{ flex-wrap:wrap; justify-content:flex-end; width:var(--dock-w); }
       #dock.open.more #dockSearch,
       body.has-file.dock-list #dock.open.more #dockSearch{ order:2; flex-basis:100%; width:100%; }
@@ -8459,6 +8467,7 @@
         sq.setAttribute('aria-pressed', on ? 'true' : 'false');
         sq.setAttribute('aria-label', on ? 'Pause the archive\u2019s music' : 'Play the archive\u2019s music');
       }
+      document.body.classList.toggle('music-on', soundOn);
       if (on) carried.live = true;      // from the first note, the music goes wherever the reader goes
       carried.paint();
     }
