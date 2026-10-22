@@ -2036,10 +2036,21 @@
     }
     @media (prefers-reduced-motion:reduce){ .cv-talk .talk-well{ transition:none; } }
     .cv-talk[disabled]{ opacity:.45; cursor:default; }
-    /* Open Archive runs the whole width, mark column and all; its well opens
-       at the far end, and the compass arrives there */
-    .cv-talk.cv-wide{ flex:1 1 auto; align-self:stretch; justify-content:space-between; }
+    /* Open Archive: the compass arrives in its well; its mark is an arrow
+       pointing on, which turns up and away when the box is pressed */
     .cv-talk .talk-star{ fill:currentColor; }
+    .cv-go .cm-go{
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.6;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      transform-origin:50% 50%;
+      transition:transform .36s cubic-bezier(.4,0,.2,1);
+    }
+    .cv-go.on{ color:var(--ink); }
+    .cv-go.on .cm-go{ transform:rotate(-45deg); }
+    @media (prefers-reduced-motion:reduce){ .cv-go .cm-go{ transition:none; } }
 
     /* the address beside it, which copies itself when pressed */
     .cv-mail{
@@ -2499,10 +2510,13 @@
               </div>
               <!-- Into the archive with the file: its garments kept on the
                    reader's shelf and gathered on the field the moment it
-                   opens. The width of the steps, and what arrives in the
-                   room the box makes is explore's own mark. -->
+                   opens. The same box as the two above; what arrives in the
+                   room it makes is explore's own mark. Where they have a
+                   cross or a tick it has an arrow, pointing on — pressed, it
+                   turns up and away, the way Book Meeting's points. -->
               <div class="cv-step" id="cvArchiveStep">
-                <a class="cv-talk cv-wide" id="cvArchive" href="/archive">
+                <span class="cv-stepmain">
+                <a class="cv-talk" id="cvArchive" href="/archive">
                   <span>Open Archive</span>
                   <span class="talk-well">
                     <svg viewBox="-2 -2 104 104" aria-hidden="true" focusable="false">
@@ -2510,6 +2524,8 @@
                     </svg>
                   </span>
                 </a>
+                </span>
+                <span class="cv-mark cv-go" id="cvArchiveMark" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><g class="cm-go"><path d="M3.5 8 H12.4"/><path d="M8.6 4.2 L12.4 8 L8.6 11.8"/></g></svg></span>
               </div>
             </div>
             <div class="cl-msg" id="cvMsg" role="status" aria-live="polite"></div>
@@ -3697,6 +3713,7 @@
         // the archive keeps these on the reader's shelf and opens on them gathered
         $('cvArchiveStep').hidden = isBoard || !shown.length;
         $('cvArchive').href = '/archive#keep=' + shown.map(g => encodeURIComponent(g.id)).join(',');
+        $('cvArchiveMark').classList.remove('on');
         $('cvMissing').textContent = gone
           ? plural(gone, 'garment in this file is', 'garments in this file are') + ' no longer in the archive.'
           : '';
@@ -4026,6 +4043,21 @@
           setMark('cvBookMark', true);
           setTimeout(() => { location.href = a.getAttribute('href'); }, 520);
         });
+      })();
+
+      /* Open Archive the same way: the arrow turns up and away first, then
+         the archive takes over. Back from the archive it points on again. */
+      (function wireArchive(){
+        const a = $('cvArchive');
+        if (!a) return;
+        a.addEventListener('click', e => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+          if ($('cvArchiveMark').classList.contains('on')) return;   // already turned
+          e.preventDefault();
+          $('cvArchiveMark').classList.add('on');
+          setTimeout(() => { location.href = a.getAttribute('href'); }, 420);
+        });
+        window.addEventListener('pageshow', ev => { if (ev.persisted) $('cvArchiveMark').classList.remove('on'); });
       })();
 
       /* ---------- Verify, counted out ----------
