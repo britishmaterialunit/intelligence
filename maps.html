@@ -12269,11 +12269,22 @@
       /* ---------- OPENING A BOARD FROM A FILE ----------
          /archive?board=<file id>: the link a file's "Open reference board"
          makes. The designer it is for (or the admin) is signed in already;
-         the board is fetched, and laid down in place of whatever is on the
-         reader's own board — asked first if there is anything there. */
+         the board is fetched and shown as it was sent — on its own, not
+         laid over the reader's own board, which is left as it is in the
+         browser and comes back when the sent board is closed. Changes to a
+         sent board are not kept: Export keeps them. */
+      let sentBoard = null;
+      function emptyBoard(){
+        select(null);
+        items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
+        items = []; locks = []; before = null; clustered = false; cand = null;
+        picked.clear();
+        joints();
+      }
       async function openSent(id){
-        // the reader's own board is read first, so it is asked about, not lost
-        if (!loaded){ loaded = true; await load(); }
+        // the reader's own board is not read: the sent one is shown alone
+        loaded = true;
+        sentBoard = id;
         open();
         try {
           const rows = await (await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}&select=title,board_path`)).json();
@@ -12281,18 +12292,22 @@
           if (!c || !c.board_path){ say('That board could not be found'); return; }
           const blob = await (await sb(`/storage/v1/object/authenticated/${BUCKET}/${c.board_path}`)).blob();
           const board = await readBoard(blob);
-          if (items.length){
-            if (!window.confirm(`Open “${c.title}” in place of your board? Export first to keep yours.`)) return;
-            select(null);
-            items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
-            items = []; locks = []; before = null; clustered = false; cand = null;
-          }
+          if (sentBoard !== id) return;
+          emptyBoard();
           await addEntries(board.entries, board.locks);
-          fit(); sync(); save();
-          say(`“${c.title}”`);
+          fit(); sync();
+          say(`“${c.title}”, as sent`);
         } catch (err){
           say(/signed out/.test(err.message) ? 'Sign in to Files to open this board' : 'That board could not be opened');
         }
+      }
+      // closing a sent board puts the reader's own back for the next opening
+      function leaveSent(){
+        if (sentBoard == null) return;
+        sentBoard = null;
+        emptyBoard();
+        loaded = false;
+        sync();
       }
 
       /* ---------- FROM THE ARCHIVE ----------
@@ -13199,6 +13214,8 @@
       }
       let saveT = null;
       function save(){
+        // a sent board is never written over the reader's own
+        if (sentBoard != null) return;
         clearTimeout(saveT);
         saveT = setTimeout(async () => {
           try {
@@ -13624,7 +13641,7 @@
         root.setAttribute('aria-hidden', 'true');
         wearFace(false);
         paintGarments();
-        setTimeout(() => { if (!isOpen) root.hidden = true; }, 320);
+        setTimeout(() => { if (!isOpen){ root.hidden = true; leaveSent(); } }, 320);
       }
 
       paintGarments();
