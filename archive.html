@@ -2292,7 +2292,9 @@
       -webkit-user-select:none;
       user-select:none;
     }
-    .sc-dot{ width:8px; height:8px; background:#ff5500; margin-right:9px; flex:none; }
+    /* the colour of the artwork playing (scTint); SoundCloud's orange until then */
+    :root{ --sc-col:#ff5500; --sc-ink:#fff; }
+    .sc-dot{ width:8px; height:8px; background:var(--sc-col); margin-right:9px; flex:none; }
     .sc-name{ flex:1; }
     .sc-act{
       width:28px; height:28px;
@@ -2306,8 +2308,9 @@
       width:46px; height:46px;
       padding:0;
       display:flex; align-items:center; justify-content:center;
-      background:#ff5500;
-      border:1.5px solid #ff5500;
+      background:var(--sc-col);
+      border:1.5px solid var(--sc-col);
+      transition:background-color .6s cubic-bezier(.4,0,.2,1), border-color .6s cubic-bezier(.4,0,.2,1);
       border-radius:0;
       cursor:grab;
       touch-action:none;
@@ -2326,7 +2329,7 @@
     #scSlot{
       flex:none;
       width:46px; height:46px;
-      border:1.5px dashed #ff5500;
+      border:1.5px dashed var(--sc-col);
       background:transparent;
     }
     #scSlot.sc-grow, #scMini.sc-grow{ animation:dockGrow .24s cubic-bezier(.4,0,.2,1) both; }
@@ -2339,7 +2342,7 @@
       #scSlot, #scMini.docked{ width:40px; height:40px; }
       #dock.open.has-sc.more #dockSearch{ flex-basis:100%; }
     }
-    #scMini svg{ width:16px; height:16px; fill:#fff; }
+    #scMini svg{ width:16px; height:16px; fill:var(--sc-ink); transition:fill .6s cubic-bezier(.4,0,.2,1); }
     #scPanel.dragging .sc-head, #scMini.dragging{ cursor:grabbing; }
     /* Off the archive — another page carried over it — the window and the
        square stand down and only the play square in that page's header is
@@ -8211,6 +8214,8 @@
       }
       // shuffle carries on: when one ends, another is drawn at random
       if (m.method === 'finish' && scCount > 1){ scSend('skip', scPick()); return; }
+      if (m.method === 'getCurrentSound'){ scTint(m.value); return; }
+      if (m.method === 'play') scSend('getCurrentSound');
       if (m.method === 'play' || m.method === 'playProgress'){
         if (soundOn) return;
         clearTimeout(scStartCheck);
@@ -8218,6 +8223,55 @@
       }
       if (m.method === 'pause') setPlayFace(false);
     });
+
+    /* ---------- THE SQUARE WEARS THE RECORD ----------
+       Each time a track starts, the widget is asked what it is playing and
+       the square takes the colour of its artwork: the cover is drawn small
+       and the commonest colour in it — not counting a plain white or black
+       ground, unless that is all there is — is the square's, with its mark
+       in white or black, whichever reads on it. SoundCloud's image host
+       answers any origin, so the picture can be read. A track with no
+       artwork of its own takes the artist's picture. */
+    let scArt = '';
+    function scTint(snd){
+      const url = snd && (snd.artwork_url || (snd.user && snd.user.avatar_url));
+      if (!url || url === scArt) return;
+      scArt = url;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        if (scArt !== url) return;
+        try {
+          const N = 32, c = document.createElement('canvas');
+          c.width = c.height = N;
+          const x = c.getContext('2d', { willReadFrequently:true });
+          x.drawImage(img, 0, 0, N, N);
+          const px = x.getImageData(0, 0, N, N).data;
+          const bins = new Map(), all = new Map();
+          for (let i = 0; i < px.length; i += 4){
+            const r = px[i], g = px[i + 1], b = px[i + 2];
+            const k = (r >> 5) << 6 | (g >> 5) << 3 | (b >> 5);
+            const hi = Math.max(r, g, b), lo = Math.min(r, g, b);
+            const plain = (hi > 235 && hi - lo < 18) || hi < 22;
+            [all, plain ? null : bins].forEach(m => {
+              if (!m) return;
+              const v = m.get(k) || [0, 0, 0, 0];
+              v[0] += r; v[1] += g; v[2] += b; v[3]++;
+              m.set(k, v);
+            });
+          }
+          const use = [...bins.values()].reduce((n, v) => n + v[3], 0) > N * N * 0.06 ? bins : all;
+          let best = null;
+          use.forEach(v => { if (!best || v[3] > best[3]) best = v; });
+          if (!best) return;
+          const [r, g, b] = best.slice(0, 3).map(t => Math.round(t / best[3]));
+          const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+          document.documentElement.style.setProperty('--sc-col', `rgb(${r}, ${g}, ${b})`);
+          document.documentElement.style.setProperty('--sc-ink', lum > 0.6 ? '#000' : '#fff');
+        } catch {}
+      };
+      img.src = url.replace('-large.', '-t200x200.');
+    }
 
     /* ---------- SHUFFLE ----------
        Every press of play starts somewhere new: the widget is asked for the
