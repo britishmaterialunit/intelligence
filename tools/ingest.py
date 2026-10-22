@@ -285,9 +285,14 @@ def insert_item(page, entry, key):
                             page, re.M))
     if hits:
         at = hits[-1].end()
-        return page[:at] + entry + page[at:]
-    end = page.index('\n    ];', page.index('const ITEMS = ['))
-    return page[:end + 1] + entry + page[end + 1:]
+    else:
+        at = page.index('\n    ];', page.index('const ITEMS = [')) + 1
+    # the entry it follows may be the last in ITEMS and carry no comma
+    before = page[:at].rstrip()
+    if before.endswith('}'):
+        page = before + ',\n' + page[at:]
+        at = len(before) + 2
+    return page[:at] + entry + page[at:]
 
 
 def parse_name(stem):

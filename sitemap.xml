@@ -1551,4 +1551,24 @@
       <image:caption>United States Army 1970s Vietnam OG 507 Fatigue Cap — United States military surplus headwear, archive ref USA1970VOG507FC</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/united-states/jackets/united-states-air-force-1990s-blue-utility-bomber-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/united-states/jackets/united-states-air-force-1990s-blue-utility-bomber-jacket/USAF1990BUBJ.png</image:loc>
+      <image:title>United States Air Force 1990s Blue Utility Bomber Jacket</image:title>
+      <image:caption>United States Air Force 1990s Blue Utility Bomber Jacket — United States military surplus jacket, archive ref USAF1990BUBJ</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/united-states/jackets/united-states-army-2000s-grey-ptu-track-jacket/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/united-states/jackets/united-states-army-2000s-grey-ptu-track-jacket/USA2000GPTJ.png</image:loc>
+      <image:title>United States Army 2000s Grey PTU Track Jacket</image:title>
+      <image:caption>United States Army 2000s Grey PTU Track Jacket — United States military surplus jacket, archive ref USA2000GPTJ</image:caption>
+    </image:image>
+  </url>
 </urlset>
