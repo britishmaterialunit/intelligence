@@ -1682,13 +1682,6 @@
       transform:translateX(-50%) translateY(0);
       pointer-events:auto;
     }
-    /* once dragged it holds an absolute position and drops the centring */
-    #dock.moved{
-      left:0; top:0; bottom:auto;
-      transform:translate(var(--dx), var(--dy));
-    }
-    #dock.moved.show{ transform:translate(var(--dx), var(--dy)); }
-    #dock.dragging{ transition:none; cursor:grabbing; }
 
     /* with the main bar gone the dock drops to the bottom edge */
     /* and the list needs room to scroll clear of it */
@@ -2257,13 +2250,11 @@
     }
     body.carried{ overflow:hidden; }
 
-    /* ---------- THE SOUNDCLOUD WINDOW, AND ITS SQUARE ----------
+    /* ---------- THE SOUNDCLOUD WINDOW ----------
        Over everything, including a page carried in front of the archive, so
        the music can be reached wherever the reader is. The window is framed
-       the way the site frames things — one rule, the page's own ground — and
-       SoundCloud's orange marks it as theirs; folded, it is a square of that
-       orange the size of the dock's squares. */
-    #scPanel, #scMini{
+       the way the site frames things — one rule, the page's own ground. */
+    #scPanel{
       position:fixed;
       left:0; top:0;
       transform:translate(var(--sx, 0px), var(--sy, 0px));
@@ -2304,52 +2295,21 @@
     }
     .sc-act:hover{ color:var(--ink); }
     .sc-act svg{ width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
-    #scMini{
-      width:46px; height:46px;
-      padding:0;
-      display:flex; align-items:center; justify-content:center;
-      background:var(--sc-col);
-      border:1.5px solid var(--sc-col);
-      transition:background-color .6s cubic-bezier(.4,0,.2,1), border-color .6s cubic-bezier(.4,0,.2,1);
-      border-radius:0;
-      cursor:grab;
-      touch-action:none;
+    /* the play square wears the record playing (scTint), once there is one */
+    #dockPlay{
+      transition:opacity .34s cubic-bezier(.4,0,.2,1) .2s,
+                 transform .44s cubic-bezier(.65,0,.35,1) .2s,
+                 background-color .6s cubic-bezier(.4,0,.2,1),
+                 border-color .6s cubic-bezier(.4,0,.2,1);
     }
-    #scMini.off{ display:none; }
-    /* in the row: one of the squares, placed by the row */
-    #scMini.docked{
-      position:relative;
-      left:auto; top:auto;
-      transform:none;
-      z-index:auto;
-      flex:none;
-    }
-    #scMini.sc-leaving{ opacity:0; transition:opacity .24s cubic-bezier(.4,0,.2,1); }
-    /* the gap it opens in the row while it is carried over it */
-    #scSlot{
-      flex:none;
-      width:46px; height:46px;
-      border:1.5px dashed var(--sc-col);
-      background:transparent;
-    }
-    #scSlot.sc-grow, #scMini.sc-grow{ animation:dockGrow .24s cubic-bezier(.4,0,.2,1) both; }
-    #scSlot.sc-shrink{ animation:dockShrink .2s cubic-bezier(.4,0,.2,1) both; }
-    /* the row keeps its length while it holds one more square: the bar flexes */
-    #dock.open.has-sc{ width:var(--dock-w); }
-    #dock.open.has-sc #dockSearch,
-    body.has-file.dock-list #dock.open.has-sc #dockSearch{ flex:1 1 0; width:auto !important; min-width:0; }
-    @media (max-width:640px){
-      #scSlot, #scMini.docked{ width:40px; height:40px; }
-      #dock.open.has-sc.more #dockSearch{ flex-basis:100%; }
-    }
-    #scMini svg{ width:16px; height:16px; fill:var(--sc-ink); transition:fill .6s cubic-bezier(.4,0,.2,1); }
-    #scPanel.dragging .sc-head, #scMini.dragging{ cursor:grabbing; }
-    /* Off the archive — another page carried over it — the window and the
-       square stand down and only the play square in that page's header is
+    html.sc-tinted #dockPlay{ background:var(--sc-col); border-color:var(--sc-col); }
+    html.sc-tinted #dockPlay img{ filter:var(--sc-img); }
+    #scPanel.dragging .sc-head{ cursor:grabbing; }
+    /* Off the archive — another page carried over it — the window stands
+       down and only the play square in that page's header is
        left. Hidden, not removed: the player keeps playing out of sight, and
        is exactly where it was when the reader comes back to the archive. */
-    body.carried #scPanel,
-    body.carried #scMini{
+    body.carried #scPanel{
       visibility:hidden !important;
       opacity:0 !important;
       pointer-events:none !important;
@@ -7932,8 +7892,6 @@
       document.getElementById('dockCircle').setAttribute('aria-pressed', 'true');
       document.body.classList.add('exploring');
       document.body.style.overflow = 'hidden';
-      // the dock returns to the middle of the screen for explore
-      dock.classList.remove('moved');
       /* Explore always opens on the circle — unless the door is still shut,
          where the circle would be offering a room that is still being built.
          There the list leads, and openGate turns it back over. */
@@ -8238,7 +8196,7 @@
 
     /* ---------- THE SQUARE WEARS THE RECORD ----------
        Each time a track starts, the widget is asked what it is playing and
-       the square takes the colour of its artwork: the cover is drawn small
+       the dock's play square takes the colour of its artwork: the cover is drawn small
        and the commonest colour in it — not counting a plain white or black
        ground, unless that is all there is — is the square's, with its mark
        in white or black, whichever reads on it. SoundCloud's image host
@@ -8280,6 +8238,9 @@
           const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
           document.documentElement.style.setProperty('--sc-col', `rgb(${r}, ${g}, ${b})`);
           document.documentElement.style.setProperty('--sc-ink', lum > 0.6 ? '#000' : '#fff');
+          // the play icon is white; on a pale record it is turned black
+          document.documentElement.style.setProperty('--sc-img', lum > 0.6 ? 'invert(1)' : 'none');
+          document.documentElement.classList.add('sc-tinted');
         } catch {}
       };
       img.src = url.replace('-large.', '-t200x200.');
@@ -8323,9 +8284,9 @@
 
       if (!BMU_SOUND.src && BMU_SOUND.soundcloud){
         scEnsure();
-        // the player comes up with the music, unless it has been put away small
+        // the player comes up with the music
         if (scView === 'hidden') scShow('open');
-        if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); fadeFromRow(); }
+        if (soundOn){ scWant = 'pause'; scSend('pause'); setPlayFace(false); }
         else scPlay();
         return;
       }
@@ -8339,18 +8300,16 @@
        whatever is on screen — the archive, the board, or another page of
        the site — and it can be taken by its head and moved anywhere.
 
-       Folded, with the minus, it becomes a square the size of the dock's
-       squares in SoundCloud's orange, where the window was. The square can
-       be moved too, and pressing it opens the window again where the square
-       now is. The cross puts the player away and pauses the music; play
-       brings both back. Shuffle and the play/pause squares work as before,
-       through the widget's own messages.
+       The cross puts the window away and the music carries on; the dock's
+       play square, in the colour of the record, pauses it and brings the
+       window back. Shuffle and the play/pause squares work through the
+       widget's own messages.
 
        Built once, out of sight, as soon as a hand comes near play — the
        artist's list takes a few seconds to arrive, and the first track is
        drawn from it. Its place is remembered for the next visit. */
     const SC_W = 360, SC_H = 380, SC_HEAD = 30;
-    let scView = 'hidden', scMini = null, scPos = null;
+    let scView = 'hidden', scPos = null;
     try { scPos = JSON.parse(localStorage.getItem('bmu-sc-pos') || 'null'); } catch {}
 
     function scDefaultPos(){
@@ -8359,212 +8318,28 @@
       return { x: small ? 16 : window.innerWidth - w - 24,
                y: Math.max(64, window.innerHeight - (SC_H + SC_HEAD) - (small ? 170 : 110)) };
     }
-    // kept on the screen: at least the head (or the square) is always reachable
+    // kept on the screen: at least the head is always reachable
     function scClamp(p, w, h){
       return { x: Math.max(8, Math.min(window.innerWidth - w - 8, p.x)),
                y: Math.max(8, Math.min(window.innerHeight - h - 8, p.y)) };
     }
     function scPlace(){
       if (!scBox) return;
-      if (scMini && scMini.classList.contains('docked') && scView === 'min') return;
       const w = scBox.offsetWidth || Math.min(SC_W, window.innerWidth - 32);
-      const box = scView === 'min' ? [46, 46] : [w, SC_H + SC_HEAD];
-      scPos = scClamp(scPos || scDefaultPos(), box[0], box[1]);
-      [scBox, scMini].forEach(el => {
-        el.style.setProperty('--sx', scPos.x + 'px');
-        el.style.setProperty('--sy', scPos.y + 'px');
-      });
+      scPos = scClamp(scPos || scDefaultPos(), w, SC_H + SC_HEAD);
+      scBox.style.setProperty('--sx', scPos.x + 'px');
+      scBox.style.setProperty('--sy', scPos.y + 'px');
     }
     function scShow(view){
       const was = scView;
       scView = view;
       scBox.classList.toggle('off', view !== 'open');
-      // a square locked into the row goes back to its place in it when folded
-      if (view === 'min' && scDocked && !scMini.classList.contains('docked')){
-        scMini.classList.remove('off');
-        dockInto(scBeforeEl(), true);
-        return;
-      }
-      if (view !== 'min' && scMini.classList.contains('docked')) undock(true, true);
-      scMini.classList.toggle('off', view !== 'min');
       if (was !== view) scPlace();
-    }
-
-    /* ---------- THE SQUARE CAN JOIN THE DOCK ----------
-       Folded, the player is a square the size of the dock's squares, so it
-       can take a place among them. Carried towards the dock it opens a gap
-       there — the squares part, the bar gives up the room — and the gap
-       follows it along the row; let go there and it is locked in, one of
-       the row. Carried back out, the gap closes behind it. Pressed in the
-       row it opens the player just above itself, and folding the player
-       puts it back where it was. Pausing with the black play square takes
-       it out of the row altogether: it fades, and the row closes up.
-
-       The row keeps its length throughout — the bar flexes into whatever
-       the squares leave — so nothing but the squares beside the gap moves. */
-    let scDocked = false, scSlot = null, scBefore = null;
-    try {
-      const d = JSON.parse(localStorage.getItem('bmu-sc-dock') || 'null');
-      if (d){ scDocked = true; scBefore = d.before || null; }
-    } catch {}
-    const keepDock = () => { try {
-      if (scDocked) localStorage.setItem('bmu-sc-dock', JSON.stringify({ before:scBefore }));
-      else localStorage.removeItem('bmu-sc-dock');
-    } catch {} };
-    const scBeforeEl = () => (scBefore && document.getElementById(scBefore)) || null;
-    const rowSquares = () => [...dock.children].filter(el =>
-      el !== scSlot && el !== scMini && el.classList.contains('dock-sq') &&
-      el.id !== 'dockSearch' && el.id !== 'refsTools' && el.id !== 'dockExplore' &&
-      getComputedStyle(el).display !== 'none');
-    function nearDock(x, y){
-      const r = dock.getBoundingClientRect();
-      return x > r.left - 40 && x < r.right + 60 && y > r.top - 80 && y < r.bottom + 40;
-    }
-    // the square it would sit in front of, from where it is being carried; null is the end
-    function slotBefore(x){
-      return rowSquares().find(el => { const r = el.getBoundingClientRect(); return x < r.left + r.width / 2; }) || null;
-    }
-    function rowHolds(on){
-      dock.classList.toggle('has-sc', on);
-    }
-    // everything in the row that is not growing or shrinking slides to where it now belongs
-    function slide(fn){
-      const els = [...dock.children].filter(el => el !== scSlot && el !== scMini);
-      const before = new Map(els.map(el => [el, el.getBoundingClientRect().left]));
-      fn();
-      els.forEach(el => {
-        const a = before.get(el), b = el.getBoundingClientRect().left;
-        if (a == null || Math.abs(a - b) < 0.5) return;
-        el.style.transition = 'none';
-        el.style.transform = `translateX(${a - b}px)`;
-        void el.offsetWidth;
-        el.style.transition = 'transform .26s cubic-bezier(.4,0,.2,1)';
-        el.style.transform = '';
-        setTimeout(() => { el.style.transition = ''; }, 300);
-      });
-    }
-    function openGap(before){
-      if (!scSlot){
-        scSlot = Object.assign(document.createElement('div'), { id:'scSlot' });
-        scSlot.setAttribute('aria-hidden', 'true');
-        rowHolds(true);
-        dock.insertBefore(scSlot, before || dockMore.nextSibling);
-        scSlot.classList.add('sc-grow');
-      } else if (scSlot.nextElementSibling !== before){
-        slide(() => dock.insertBefore(scSlot, before || dockMore.nextSibling));
-      }
-    }
-    function closeGap(){
-      if (!scSlot) return;
-      const g = scSlot; scSlot = null;
-      g.classList.remove('sc-grow');
-      g.classList.add('sc-shrink');
-      setTimeout(() => {
-        g.remove();
-        if (!scMini.classList.contains('docked') && !scSlot) rowHolds(false);
-      }, 220);
-    }
-    // into the row: where the gap is, or (folding back) where it was last locked
-    function dockInto(before, fresh){
-      const from = scMini.getBoundingClientRect();
-      if (fresh) openGap(before);
-      const at = scSlot;
-      rowHolds(true);
-      dock.insertBefore(scMini, at);
-      scSlot = null;
-      at.remove();
-      scMini.classList.add('docked');
-      scMini.classList.toggle('sc-grow', !!fresh);
-      if (!fresh){
-        // it travels from where it was let go to its place
-        const to = scMini.getBoundingClientRect();
-        scMini.style.transition = 'none';
-        scMini.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px)`;
-        void scMini.offsetWidth;
-        scMini.style.transition = 'transform .3s cubic-bezier(.2,.8,.2,1)';
-        scMini.style.transform = '';
-        setTimeout(() => { scMini.style.transition = ''; }, 340);
-      } else setTimeout(() => scMini.classList.remove('sc-grow'), 300);
-      scDocked = true;
-      const next = scMini.nextElementSibling;
-      scBefore = next && next.id ? next.id : null;
-      keepDock();
-    }
-    // out of the row, leaving a gap that closes (unless the square is held over it)
-    function undock(closeNow, keepPos){
-      if (!scMini.classList.contains('docked')) return;
-      const r = scMini.getBoundingClientRect();
-      scSlot = Object.assign(document.createElement('div'), { id:'scSlot' });
-      dock.insertBefore(scSlot, scMini);
-      document.body.appendChild(scMini);
-      scMini.classList.remove('docked', 'sc-grow');
-      // carried out by hand it starts where it was; opened, the player's place is already set
-      if (!keepPos) scPos = { x:r.left, y:r.top };
-      scPlace();
-      if (closeNow) closeGap();
-    }
-    // pausing takes it out of the row altogether
-    function fadeFromRow(){
-      if (!scMini || !scMini.classList.contains('docked')) return false;
-      scMini.classList.add('sc-leaving');
-      setTimeout(() => {
-        scMini.classList.remove('sc-leaving');
-        undock(true);
-        scMini.classList.add('off');
-        scView = 'hidden';
-        scDocked = false; keepDock();
-      }, 240);
-      return true;
-    }
-
-    function miniDrag(){
-      let st = null;
-      scMini.addEventListener('pointerdown', e => {
-        if (e.button > 0) return;
-        st = { id:e.pointerId, sx:e.clientX, sy:e.clientY, moved:false, docked:scMini.classList.contains('docked') };
-        scMini.setPointerCapture(e.pointerId);
-        e.preventDefault();
-      });
-      scMini.addEventListener('pointermove', e => {
-        if (!st || e.pointerId !== st.id) return;
-        const dx = e.clientX - st.sx, dy = e.clientY - st.sy;
-        if (!st.moved){
-          if (Math.hypot(dx, dy) < 5) return;
-          st.moved = true;
-          if (st.docked){ undock(false); scDocked = false; keepDock(); }
-          st.x0 = scPos.x; st.y0 = scPos.y;
-          scMini.classList.add('dragging');
-        }
-        scPos = { x:st.x0 + dx, y:st.y0 + dy };
-        scPlace();
-        if (nearDock(e.clientX, e.clientY)) openGap(slotBefore(e.clientX));
-        else closeGap();
-      });
-      const up = e => {
-        if (!st || e.pointerId !== st.id) return;
-        const t = st; st = null;
-        scMini.classList.remove('dragging');
-        if (!t.moved){
-          if (e.type !== 'pointerup') return;
-          // pressed: the player opens; from the row, just above the square
-          if (scMini.classList.contains('docked')){
-            const r = scMini.getBoundingClientRect(), w = Math.min(SC_W, window.innerWidth - 32);
-            scPos = { x:r.right - w, y:r.top - (SC_H + SC_HEAD) - 12 };
-          }
-          scShow('open');
-          return;
-        }
-        if (scSlot && e.type === 'pointerup') dockInto(null, false);
-        else { closeGap(); scKeepPos(); }
-      };
-      scMini.addEventListener('pointerup', up);
-      scMini.addEventListener('pointercancel', up);
     }
     function scKeepPos(){ try { localStorage.setItem('bmu-sc-pos', JSON.stringify(scPos)); } catch {} }
 
-    /* Moved by its head, or the square by itself. A press that does not
-       travel is a press: on the square it opens the window. */
-    function scDraggable(handle, onPress){
+    // moved by its head; a press that does not travel is a press
+    function scDraggable(handle){
       let st = null;
       handle.addEventListener('pointerdown', e => {
         if (e.button > 0 || e.target.closest('.sc-act')) return;
@@ -8577,15 +8352,15 @@
         const dx = e.clientX - st.sx, dy = e.clientY - st.sy;
         if (!st.moved && Math.hypot(dx, dy) < 5) return;
         st.moved = true;
-        scBox.classList.add('dragging'); scMini.classList.add('dragging');
+        scBox.classList.add('dragging');
         scPos = { x:st.x0 + dx, y:st.y0 + dy };
         scPlace();
       });
       const up = e => {
         if (!st || e.pointerId !== st.id) return;
         const moved = st.moved; st = null;
-        scBox.classList.remove('dragging'); scMini.classList.remove('dragging');
-        if (moved) scKeepPos(); else if (onPress && e.type === 'pointerup') onPress();
+        scBox.classList.remove('dragging');
+        if (moved) scKeepPos();
       };
       handle.addEventListener('pointerup', up);
       handle.addEventListener('pointercancel', up);
@@ -8603,9 +8378,7 @@
       scBox.setAttribute('aria-label', 'The archive\u2019s music, on SoundCloud');
       scBox.innerHTML =
         '<div class="sc-head"><span class="sc-dot" aria-hidden="true"></span><span class="sc-name">SoundCloud</span>' +
-        '<button type="button" class="sc-act sc-fold" aria-label="Fold the player away">' +
-          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8 H12.6"/></svg></button>' +
-        '<button type="button" class="sc-act sc-shut" aria-label="Close the player into the dock">' +
+        '<button type="button" class="sc-act sc-shut" aria-label="Put the player away">' +
           '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.4 4.4 L11.6 11.6 M11.6 4.4 L4.4 11.6"/></svg></button></div>';
       scFrame = Object.assign(document.createElement('iframe'), {
         src: `${SC_ORIGIN}/player/?${q}`, title: 'The archive\u2019s music',
@@ -8617,24 +8390,11 @@
       scFrame.allow = 'autoplay; encrypted-media';
       scBox.appendChild(scFrame);
 
-      scMini = Object.assign(document.createElement('button'), { type:'button', id:'scMini', className:'off' });
-      scMini.setAttribute('aria-label', 'Open the SoundCloud player');
-      scMini.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true">' +
-        '<rect x="2.2" y="6.2" width="1.6" height="3.6"/><rect x="5.2" y="3.6" width="1.6" height="8.8"/>' +
-        '<rect x="8.2" y="5" width="1.6" height="6"/><rect x="11.2" y="2.6" width="1.6" height="10.8"/></svg>';
-      document.body.append(scBox, scMini);
+      document.body.appendChild(scBox);
 
-      scBox.querySelector('.sc-fold').addEventListener('click', () => scShow('min'));
-      /* Closing the player puts its square in the dock, where the reader
-         can find it again — not loose on the page, and not gone. The music
-         carries on; the dock's play pauses it, which takes the square out
-         of the row as well. */
-      scBox.querySelector('.sc-shut').addEventListener('click', () => {
-        scDocked = true;
-        scShow('min');
-      });
+      // put away, the music carries on: the dock's play square brings it back
+      scBox.querySelector('.sc-shut').addEventListener('click', () => scShow('hidden'));
       scDraggable(scBox.querySelector('.sc-head'));
-      miniDrag();
       window.addEventListener('resize', scPlace);
       scPlace();
     }
@@ -10512,62 +10272,6 @@
     setInterval(guardBlank, 300);
 
     window.addEventListener('resize', () => { if (!explore.hidden) fitSpiral(); });
-
-    /* ============================================================
-       DOCK DRAGGING — the three buttons can be put anywhere
-       ============================================================ */
-    (function makeDockDraggable(){
-      let id = null, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
-
-      /* Press and hold on any of the three buttons to pick the dock up.
-         A hold is what separates moving it from pressing it, so a plain
-         click still works and the middle button keeps its swipe. */
-      let armed = false, holdTimer = null;
-
-      dock.addEventListener('pointerdown', e => {
-        if (e.target.closest('input')) return;      // typing, not dragging
-        const r = dock.getBoundingClientRect();
-        id = e.pointerId; sx = e.clientX; sy = e.clientY;
-        ox = r.left; oy = r.top; moved = false; armed = false;
-        clearTimeout(holdTimer);
-        holdTimer = setTimeout(() => { armed = true; }, 280);
-        // NB: no pointer capture here. Capturing on pointerdown retargets
-        // the click to the dock, so the buttons inside stop responding.
-      });
-
-      dock.addEventListener('pointermove', e => {
-        if (e.pointerId !== id) return;
-        const dx = e.clientX - sx, dy = e.clientY - sy;
-        if (!armed){
-          // moved off before the hold registered — that is a swipe, not a lift
-          if (Math.hypot(dx, dy) > 8) clearTimeout(holdTimer);
-          return;
-        }
-        if (!moved){
-          moved = true;
-          dock.classList.add('moved','dragging');
-          dock.setPointerCapture(id);                   // only once dragging
-        }
-        const r = dock.getBoundingClientRect();
-        const nx = Math.max(6, Math.min(window.innerWidth  - r.width  - 6, ox + dx));
-        const ny = Math.max(6, Math.min(window.innerHeight - r.height - 6, oy + dy));
-        dock.style.setProperty('--dx', nx + 'px');
-        dock.style.setProperty('--dy', ny + 'px');
-      });
-
-      ['pointerup','pointercancel'].forEach(t => dock.addEventListener(t, e => {
-        if (e.pointerId !== id) return;
-        id = null;
-        clearTimeout(holdTimer);
-        armed = false;
-        dock.classList.remove('dragging');
-        if (moved){
-          // swallow the click that would otherwise fire on release
-          const kill = ev => { ev.stopPropagation(); ev.preventDefault(); };
-          dock.addEventListener('click', kill, { capture:true, once:true });
-        }
-      }));
-    })();
 
     /* ============================================================
        SITE HEADER — three ways off the archive
