@@ -64,7 +64,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   `untangle()` eases apart any two group members that overlap. Locking to a
   group meets its whole flush face (`faceOf`), fits the arrival to the face's
   length when within `FIT` (15%), and locks it to every face image and any
-  other neighbour it ends up flush with. Dragging snaps to nearby edges,
+  other neighbour it ends up flush with. Shift-press adds to / takes from a multi-pick (`picked`, `.picked`), Shift-drag on the board draws a box (`.rf-marquee`) that picks what it touches; dragging any picked image carries all of them (`unitOf`), Delete/arrows/Escape act on the pick. Dragging snaps to nearby edges,
   centres and gap-lines with hairline guides (`snapUnit`; Alt to place
   freely); resizing from the corner holds the opposite corner and snaps its
   far edges the same way. View 3's panel is sized to its words (`panelFit`:

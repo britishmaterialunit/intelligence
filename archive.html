@@ -3192,9 +3192,18 @@
     }
     /* Picked: a hairline round it and two handles, held at one size on the
        glass whatever the board is zoomed to. */
-    .rf-item.sel{
+    .rf-item.sel, .rf-item.picked{
       outline:calc(1.5px * var(--inv)) solid var(--line);
       outline-offset:calc(5px * var(--inv));
+    }
+    /* Shift held: the board draws a box instead of panning */
+    #refs.rf-shift{ cursor:crosshair; }
+    .rf-marquee{
+      position:absolute;
+      border:1px solid var(--line);
+      background:rgba(38, 38, 38, .05);
+      pointer-events:none;
+      z-index:5;
     }
     .rf-del, .rf-size, .rf-mode, .rf-cut{ display:none; position:absolute; padding:0; }
     .rf-item.sel .rf-del, .rf-item.sel .rf-size, .rf-item.sel .rf-mode, .rf-item.sel .rf-cut{ display:block; }
@@ -11243,6 +11252,22 @@
       }
       function boxW(ar, box){ return ar > 1 ? box / ar : box; }   // ar is height ÷ width
 
+      /* ---------- MORE THAN ONE ----------
+         Shift-press adds an image to the pick or takes it out; Shift-drag
+         on the board draws a box and picks everything it touches. A drag on
+         any picked image carries every picked image, and whatever is locked
+         to them, together. A plain press on the board lets them all go. */
+      let picked = new Set();
+      function paintPicked(){ items.forEach(it => it.el.classList.toggle('picked', picked.has(it.id))); }
+      function pickNone(){ if (!picked.size) return; picked.clear(); paintPicked(); }
+      function unitOf(list){
+        const seen = new Set(), from = [];
+        list.forEach(u => groupOf(u).forEach(o => {
+          if (!seen.has(o.id)){ seen.add(o.id); from.push([o, o.x, o.y]); }
+        }));
+        return from;
+      }
+
       function select(it){
         if (sel && sel.el) sel.el.classList.remove('sel');
         sel = it || null;
@@ -11256,6 +11281,7 @@
         if (cand && (cand.m === it || cand.o === it)) cand = null;
         URL.revokeObjectURL(it.url);
         it.el.remove();
+        picked.delete(it.id);
         items = items.filter(o => o !== it);
         locks = locks.filter(l => l.p !== it.id && l.c !== it.id);
         regroup();
@@ -11897,6 +11923,7 @@
         select(null);
         items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
         items = []; locks = []; before = null; clustered = false; cand = null;
+        picked.clear();
         joints(); fit(); sync(); save(); paintGarments();
       }
 
@@ -13250,13 +13277,32 @@
           return;
         }
         if (it){
-          select(it); front(it);
-          g = { mode:'move', item:it, sx:e.clientX, sy:e.clientY, moved:false,
-                from:groupOf(it).map(o => [o, o.x, o.y]) };
+          if (e.shiftKey){
+            // the one already picked on its own joins the pick
+            if (sel && sel !== it && !picked.size) picked.add(sel.id);
+            if (picked.has(it.id)) picked.delete(it.id); else picked.add(it.id);
+            select(null); paintPicked();
+            if (!picked.has(it.id)) return;          // taken out: nothing to carry
+          } else if (!picked.has(it.id)) pickNone();
+          const many = picked.size > 1 && picked.has(it.id);
+          if (many){ cand = null; picked.forEach(id => front(byId(id))); }
+          else { select(it); front(it); }
+          g = { mode:'move', item:it, many, sx:e.clientX, sy:e.clientY, moved:false,
+                from:unitOf(many ? [...picked].map(byId) : [it]) };
+          return;
+        }
+        if (e.shiftKey){
+          const base = new Set(picked);
+          if (sel) base.add(sel.id);
+          select(null);
+          const box = Object.assign(document.createElement('div'), { className:'rf-marquee' });
+          root.appendChild(box);
+          g = { mode:'box', sx:e.clientX, sy:e.clientY, base, box };
           return;
         }
         cand = null;
         select(null);
+        pickNone();
         root.classList.add('panning');
         g = { mode:'pan', sx:e.clientX, sy:e.clientY, vx0:vx, vy0:vy };
       });
@@ -13272,8 +13318,21 @@
           else hideGuides();
           g.from.forEach(([o, x, y]) => { o.x = x + dx; o.y = y + dy; place(o); });
           g.moved = true;
-          cand = findLock(g.item);
+          cand = g.many ? null : findLock(g.item);
           joints();
+        } else if (g.mode === 'box'){
+          const l = Math.min(g.sx, e.clientX), t = Math.min(g.sy, e.clientY);
+          const r = Math.max(g.sx, e.clientX), b = Math.max(g.sy, e.clientY);
+          const rr = root.getBoundingClientRect();
+          Object.assign(g.box.style, { left:(l - rr.left) + 'px', top:(t - rr.top) + 'px',
+                                       width:(r - l) + 'px', height:(b - t) + 'px' });
+          picked = new Set(g.base);
+          items.forEach(it => {
+            const q = it.el.getBoundingClientRect();
+            if (q.left < r && q.right > l && q.top < b && q.bottom > t) picked.add(it.id);
+          });
+          paintPicked();
+          g.moved = true;
         } else if (g.mode === 'pan'){
           vx = g.vx0 + e.clientX - g.sx;
           vy = g.vy0 + e.clientY - g.sy;
@@ -13349,6 +13408,13 @@
         pts.delete(e.pointerId);
         root.classList.remove('panning');
         hideGuides();
+        if (g && g.mode === 'box'){
+          g.box.remove();
+          // one picked by the box is simply the picked image, handles and all
+          if (picked.size === 1){ const only = byId([...picked][0]); pickNone(); if (only) select(only); }
+          g = null;
+          return;
+        }
         if (g && g.moved){ clustered = false; if (g.item) touch(g.item); }
         if (g && g.mode === 'move') joints(true);
         if (g) save();
@@ -13431,9 +13497,22 @@
         const t = e.target;
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
         const DIRS = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
+        if (e.key === 'Shift') root.classList.add('rf-shift');
         if (e.key === 'Escape'){
           e.stopPropagation();
-          if (sel) select(null); else close();
+          if (picked.size) pickNone(); else if (sel) select(null); else close();
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && picked.size){
+          e.preventDefault(); e.stopPropagation();
+          [...picked].map(byId).filter(Boolean).forEach(remove);
+          pickNone();
+        } else if (DIRS[e.key] && picked.size){
+          e.preventDefault(); e.stopPropagation();
+          const step = (e.shiftKey ? 40 : 8) / vs;
+          unitOf([...picked].map(byId).filter(Boolean)).forEach(([o]) => {
+            o.x += DIRS[e.key][0] * step; o.y += DIRS[e.key][1] * step; place(o);
+          });
+          clustered = false;
+          joints(); save();
         } else if ((e.key === 'Delete' || e.key === 'Backspace') && sel){
           e.preventDefault(); e.stopPropagation();
           remove(sel);
@@ -13448,6 +13527,9 @@
           joints(); save();
         }
       }, true);
+
+      window.addEventListener('keyup', e => { if (e.key === 'Shift') root.classList.remove('rf-shift'); });
+      window.addEventListener('blur', () => root.classList.remove('rf-shift'));
 
       /* ---------- THE BAR AND THE PLUS ---------- */
       document.getElementById('refsAddBig').addEventListener('click', () => fileIn.click());
