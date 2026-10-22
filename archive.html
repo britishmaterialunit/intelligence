@@ -3315,36 +3315,38 @@
       flex-direction:column;
       height:var(--ph, var(--ih));
       padding:calc(var(--w) * .07);
+      /* the panel's type: the photograph's measure, smaller only for a long record */
+      --t:calc(var(--w) * var(--ps, 1));
       border-left:calc(1px * var(--inv)) solid #ececec;
       overflow:hidden;
       color:var(--ink);
     }
     .rp-nation{
-      display:flex; align-items:center; gap:calc(var(--w) * .03);
-      font-size:calc(var(--w) * .04);
+      display:flex; align-items:center; gap:calc(var(--t) * .03);
+      font-size:calc(var(--t) * .04);
       letter-spacing:.18em;
       text-transform:uppercase;
       font-weight:bold;
     }
-    .rp-name{ margin-top:calc(var(--w) * .05); font-size:calc(var(--w) * .062); line-height:1.25; font-weight:bold; }
-    .rp-ref{ margin-top:calc(var(--w) * .02); font-size:calc(var(--w) * .036); letter-spacing:.2em; color:#9a9a9a; }
+    .rp-name{ margin-top:calc(var(--t) * .05); font-size:calc(var(--t) * .062); line-height:1.25; font-weight:bold; }
+    .rp-ref{ margin-top:calc(var(--t) * .02); font-size:calc(var(--t) * .036); letter-spacing:.2em; color:#9a9a9a; }
     /* the button always has air above it: the facts keep a margin below,
-       and the panel is sized to hold it (see panelFit) */
+       and the type is sized to hold it (see panelFit) */
     .rp-facts{
-      margin:calc(var(--w) * .06) 0 calc(var(--w) * .07);
+      margin:calc(var(--t) * .06) 0 calc(var(--t) * .07);
       display:grid;
       grid-template-columns:auto 1fr;
-      gap:calc(var(--w) * .012) calc(var(--w) * .05);
-      font-size:calc(var(--w) * .04);
+      gap:calc(var(--t) * .012) calc(var(--t) * .05);
+      font-size:calc(var(--t) * .04);
     }
     .rp-facts dt{ color:#9a9a9a; }
     .rp-facts dd{ margin:0; }
     .rp-open{
       margin-top:auto;
       align-self:flex-start;
-      padding:calc(var(--w) * .025) calc(var(--w) * .045);
+      padding:calc(var(--t) * .025) calc(var(--t) * .045);
       border:calc(1.5px * var(--inv)) solid var(--line);
-      font-size:calc(var(--w) * .034);
+      font-size:calc(var(--t) * .034);
       letter-spacing:.16em;
       text-transform:uppercase;
       text-decoration:none;
@@ -10702,14 +10704,14 @@
          of HDR × w above or a panel of PANEL × w beside. Every measurement
          below goes through wOf/hOf, so locking, the gap, clustering and
          sizing treat a garment in its tab exactly as they treat a picture. */
-      const HDR = 0.22, PANEL = 1;
+      const HDR = 0.22, PANEL = 1.25;
       const modeOf = it => (it.garment && it.mode) || 1;
-      /* View 3's panel is as wide and as tall as its words need. Everything
-         in it is measured in fractions of the photograph's width, so what a
-         garment needs is one fixed shape whatever size it is shown at —
-         measured once (panelFit) and kept. Wider first, by quarter steps up
-         to 1¾ times the photograph; only if it still does not fit beside the
-         photograph does the card grow taller than it. */
+      /* View 3 is one shape for every garment: the square photograph and,
+         beside it, a panel PANEL times its width, no taller than the
+         photograph — so two tabs shown the same size divide photograph from
+         record in the same place. The words fit the panel, not the other
+         way round: a record too long for it at the usual size has its type
+         set smaller (panelFit), measured once and kept. */
       const panelOf = it => modeOf(it) === 3 ? panelFit(it) : null;
       const wOf = it => { const f = panelOf(it); return it.w * (f ? 1 + f.k : 1); };
       const hOf = it => {
@@ -10809,6 +10811,7 @@
         if (m === 3){
           const f = panelFit(it);
           it.el.style.setProperty('--pk', String(f.k));
+          it.el.style.setProperty('--ps', String(f.s));
           it.el.style.setProperty('--ph', it.w * Math.max(it.ar, f.h) + 'px');
         }
         it.el.querySelectorAll('.rf-mode').forEach(sq =>
@@ -10888,12 +10891,12 @@
         });
         it.el.classList.add('rf-garment');
       }
-      const fits = new Map();          // garment id → { k: panel width, h: card height }, in photo widths
+      const fits = new Map();          // garment id → { k: panel width, h: card height, in photo widths; s: type scale }
       function panelFit(it){
         const key = it.garment;
         if (fits.has(key)) return fits.get(key);
         const panel = it.el && it.el.querySelector('.rf-panel');
-        let best = { k:PANEL, h:it.ar };
+        let best = { k:PANEL, h:it.ar, s:1 };
         if (panel){
           const probe = document.createElement('div');
           probe.className = 'rf-item rf-m3 rf-probe';
@@ -10902,12 +10905,12 @@
           copy.style.height = 'auto';
           probe.append(Object.assign(document.createElement('img'), { alt:'' }), copy);
           document.body.appendChild(probe);
-          best = null;
-          for (const k of [1, 1.25, 1.5, 1.75]){
-            probe.style.setProperty('--pk', String(k));
-            const need = copy.offsetHeight / 1000;
-            if (need <= it.ar){ best = { k, h:it.ar }; break; }
-            if (k === 1.75) best = { k, h:need };
+          probe.style.setProperty('--pk', String(PANEL));
+          // smaller by twentieths until the record fits beside the photograph
+          for (let s = 1; s >= 0.6 - 1e-9; s -= 0.05){
+            probe.style.setProperty('--ps', s.toFixed(2));
+            best.s = Number(s.toFixed(2));
+            if (copy.offsetHeight / 1000 <= it.ar) break;
           }
           probe.remove();
           fits.set(key, best);

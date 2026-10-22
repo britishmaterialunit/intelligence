@@ -66,8 +66,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   other neighbour it ends up flush with. Shift-press adds to / takes from a multi-pick (`picked`, `.picked`), Shift-drag on the board draws a box (`.rf-marquee`) that picks what it touches; dragging any picked image carries all of them (`unitOf`), Delete/arrows/Escape act on the pick. Dragging snaps to nearby edges,
   centres and gap-lines with hairline guides (`snapUnit`; Alt to place
   freely); resizing from the corner holds the opposite corner and snaps its
-  far edges the same way. View 3's panel is sized to its words (`panelFit`:
-  wider in quarter steps to 1.75×, then taller). Garments: no Cut out; extra photographs (`shots`) get dots in
+  far edges the same way. View 3 is one shape for every garment: square photo + panel `PANEL`
+  (1.25) × its width, same height, so tabs divide in the same place; a long
+  record has its panel type set smaller instead (`panelFit` → `--ps`). Garments: no Cut out; extra photographs (`shots`) get dots in
   views 2 and 3. Search is filtered as in the owner's `commons-filter.js`, ported
   inline: `obscenity` 0.4.6 (MIT, jsDelivr `+esm`, fetched when Search
   opens) plus `EXTRA_BLOCK_TERMS`/`WHITELIST`/`BLOCK_CATEGORY_PATTERNS`, and
