@@ -8563,6 +8563,7 @@
         // the back button has already put the address right; a link has not
         if (!fromHistory){ try { history.pushState(null, '', u ? here(u) : '/archive'); } catch {} }
         if (n) openNumber(n);
+        else if (u && /^#keep=/.test(u.hash)) arriveAtShelf();
       }
 
       /* Every page the frame arrives at: dressed with the square, its title
@@ -9170,13 +9171,42 @@
     let pendingNation = null;
 
     function wantedNation(){
+      if (keepFromUrl()) return 'saved';
       const m = location.hash.match(/^#nation=([a-z-]+)$/i);
       if (!m) return null;
       const key = m[1].toLowerCase();
       return NATIONS.some(n => n.key === key) ? key : null;
     }
 
+    /* /archive#keep=<id>,<id>…: Open Archive on a file in Files. The file's
+       garments are put on the reader's shelf — added to whatever is kept
+       already, never in place of it — and the field opens with the shelf
+       gathered, as the save button gathers it. The hash is taken off once
+       read, so a reload does not put back a garment since let go of. */
+    function keepFromUrl(){
+      const m = location.hash.match(/^#keep=(.*)$/);
+      if (!m) return false;
+      const real = new Set(ITEMS.map(p => `${p.n}/${slugBase(p.name)}`));
+      m[1].split(',').map(t => { try { return decodeURIComponent(t); } catch { return ''; } })
+        .forEach(id => { if (real.has(id) && !savedIds.includes(id)) savedIds.push(id); });
+      persistSaved();
+      try { history.replaceState(history.state, '', location.pathname + location.search); } catch {}
+      return true;
+    }
+    // a link that asked for a shelf, arriving on a page already open
+    function arriveAtShelf(){
+      const nat = wantedNation();
+      if (!nat) return;
+      pendingNation = nat;
+      openExplore();
+      if (!gateShut()) takePendingNation();
+    }
+
     function openNationFromUrl(key){
+      if (key === 'saved'){
+        if (savedIds.length){ gatherSaved(); syncLibraryMark(); }
+        return;
+      }
       const nat = NATIONS.find(n => n.key === key);
       if (!nat) return;
       const btn = key === 'british' ? dqFlag

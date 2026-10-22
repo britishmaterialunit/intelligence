@@ -2036,6 +2036,10 @@
     }
     @media (prefers-reduced-motion:reduce){ .cv-talk .talk-well{ transition:none; } }
     .cv-talk[disabled]{ opacity:.45; cursor:default; }
+    /* Open Archive runs the whole width, mark column and all; its well opens
+       at the far end, and the compass arrives there */
+    .cv-talk.cv-wide{ flex:1 1 auto; align-self:stretch; justify-content:space-between; }
+    .cv-talk .talk-star{ fill:currentColor; }
 
     /* the address beside it, which copies itself when pressed */
     .cv-mail{
@@ -2492,6 +2496,20 @@
                           data-mail="hello@britishmaterialunit.com">hello@britishmaterialunit.com</button>
                 </span>
                 <span class="cv-mark" id="cvBookMark" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><g class="cm-x"><path d="M4.6 4.6 L11.4 11.4"/><path d="M11.4 4.6 L4.6 11.4"/></g><g class="cm-tick"><path d="M3.6 8.5 L6.6 11.5 L12.4 5.2"/></g></svg></span>
+              </div>
+              <!-- Into the archive with the file: its garments kept on the
+                   reader's shelf and gathered on the field the moment it
+                   opens. The width of the steps, and what arrives in the
+                   room the box makes is explore's own mark. -->
+              <div class="cv-step" id="cvArchiveStep">
+                <a class="cv-talk cv-wide" id="cvArchive" href="/archive">
+                  <span>Open Archive</span>
+                  <span class="talk-well">
+                    <svg viewBox="-2 -2 104 104" aria-hidden="true" focusable="false">
+                      <path class="talk-star" d="M50 0 L59.3 41 L100 50 L59.3 59 L50 100 L40.7 59 L0 50 L40.7 41 Z"/>
+                    </svg>
+                  </span>
+                </a>
               </div>
             </div>
             <div class="cl-msg" id="cvMsg" role="status" aria-live="polite"></div>
@@ -3676,6 +3694,9 @@
         $('cvGrid').hidden = isBoard;
         document.querySelector('.cv-tools').hidden = isBoard;
         $('cvBoard').href = '/archive?board=' + encodeURIComponent(c.id);
+        // the archive keeps these on the reader's shelf and opens on them gathered
+        $('cvArchiveStep').hidden = isBoard || !shown.length;
+        $('cvArchive').href = '/archive#keep=' + shown.map(g => encodeURIComponent(g.id)).join(',');
         $('cvMissing').textContent = gone
           ? plural(gone, 'garment in this file is', 'garments in this file are') + ' no longer in the archive.'
           : '';

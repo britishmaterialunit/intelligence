@@ -92,7 +92,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   which the plus reads back. **Send** (`#refsSend`, admins only, checked
   against `bmu_admins`) puts that zip in the private Supabase bucket
   `bmu-boards` and names it in a file's `board_path`; `/archive?board=<file
-  id>` (Files' "Open reference board") lays it down. Plain fetch with the
+  id>` (Files' "Open reference board") lays it down. Files' **Open Archive** (`#cvArchive`, a
+  full-width step under the others, compass in its well) links to
+  `/archive#keep=<id>,<id>…`: `keepFromUrl` adds those garments to the saved
+  shelf (`bmu.archive.saved`), drops the hash, and the field opens with the
+  shelf gathered (`pendingNation = 'saved'`). Plain fetch with the
   session /files keeps — see `setup/collections.sql` for the rules. The `bank` source (an Instagram-fed reference
   bank under `/references/`) is in code only — `SOURCES.bank.live` false.
 - **Music across pages** (`carried` in `archive.html`): once the music has
