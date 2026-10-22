@@ -60,7 +60,7 @@
 
     :root{
       --ink:#222222;
-      --line:#000000;
+      --line:#262626;   /* the header's own dark: every filled button wears it */
       --bg:#ffffff;
       --faint:#f0f0f0;
       --font:'Inter Tight', Helvetica, Arial, sans-serif;
@@ -1467,8 +1467,8 @@
       background:var(--bg);
       cursor:not-allowed;
     }
-    .cl-btn.cl-solid{ background:#000; color:#fff; }
-    .cl-btn.cl-solid:hover{ background:#262626; color:#fff; }
+    .cl-btn.cl-solid{ background:#262626; color:#fff; }
+    .cl-btn.cl-solid:hover{ background:#3a3a3a; color:#fff; }
     a.cl-btn{ text-decoration:none; }
 
     .cl-row{
@@ -1614,8 +1614,8 @@
       letter-spacing:.12em;
       text-transform:uppercase;
     }
-    .cl-want[aria-pressed="true"]{ background:#000; color:#fff; }
-    .cl-want[aria-pressed="true"]:hover{ background:#262626; color:#fff; }
+    .cl-want[aria-pressed="true"]{ background:#262626; color:#fff; }
+    .cl-want[aria-pressed="true"]:hover{ background:#3a3a3a; color:#fff; }
     /* an admin reading a reply: what was wanted, marked, not pressable */
     .cl-picked{
       margin-top:auto;
@@ -1629,7 +1629,7 @@
       display:inline-block;
       width:8px; height:8px;
       margin-right:6px;
-      background:#000;
+      background:#262626;
       vertical-align:0;
     }
     .cl-reply{ margin-top:34px; max-width:640px; }
@@ -1693,7 +1693,7 @@
       top:6px; right:6px;
       min-width:18px; height:18px;
       padding:0 4px;
-      background:#000;
+      background:#262626;
       color:#fff;
       font-size:10px;
       line-height:18px;
@@ -2213,7 +2213,7 @@
       background:var(--line);
       transition:transform .32s cubic-bezier(.4,0,.2,1), background-color .3s cubic-bezier(.4,0,.2,1);
     }
-    .cv-switch[aria-checked="true"] .cv-sw-track{ background:#000; }
+    .cv-switch[aria-checked="true"] .cv-sw-track{ background:#262626; }
     .cv-switch[aria-checked="true"] .cv-sw-knob{ transform:translateX(21px); background:#fff; }
     /* on a card, the switch sits where the button used to */
     .cl-card .cv-switch{ margin-top:auto; padding-top:8px; }

@@ -93,7 +93,7 @@
        around them. One stroke, one weight, everywhere. */
     :root{
       --ink:#222222;
-      --line:#000000;
+      --line:#262626;   /* the header's own dark: every filled button wears it */
       --bg:#ffffff;
       --faint:#f0f0f0;
       --font:'Inter Tight', Helvetica, Arial, sans-serif;
@@ -11400,18 +11400,34 @@
         items.forEach(it => it.el && it.el.classList.toggle('rf-locked',
           locks.some(l => l.p === it.id || l.c === it.id)));
       }
-      const sideTaken = (it, side) =>
-        locks.some(l => (l.p === it.id && l.side === side) || (l.c === it.id && l.side === OPP[side]));
+      /* A side is taken where something is already locked along it — not
+         the whole side. Asked about one image (`by`), it is taken only if a
+         partner already there overlaps that image along the side, so a tall
+         garment can carry two pictures down its right, one under the other.
+         Asked about no image in particular, any lock on it counts. */
+      const partnersOn = (it, side) => locks
+        .filter(l => (l.p === it.id && l.side === side) || (l.c === it.id && l.side === OPP[side]))
+        .map(l => byId(l.p === it.id ? l.c : l.p)).filter(Boolean);
+      const sideTaken = (it, side, by) => {
+        const ps = partnersOn(it, side);
+        if (!by) return ps.length > 0;
+        const flat = side === 'left' || side === 'right';
+        const span = x => { const r = rect(x); return flat ? [r.t, r.b] : [r.l, r.r]; };
+        const [a0, a1] = span(by);
+        return ps.some(p => p !== by && Math.min(a1, span(p)[1]) - Math.max(a0, span(p)[0]) > 2);
+      };
 
       /* What is close enough to lock: two images facing each other across a
          small gap — or slightly overlapping — and sharing a good part of the
          edge between them. The nearest such pair wins.
 
          An offer already made is held on looser terms than a new one is
-         made on, so a pair at the edge of reach does not flick in and out,
-         and another image passing closer does not snatch it away. */
+         made on, so a pair at the edge of reach does not flick in and out —
+         but only until something else is clearly nearer: another side of
+         the same image, or another image, takes the offer over once it is
+         closer by a margin, so the first offer never pins the drag. */
       function lockFits(m, o, side, loose){
-        if (sideTaken(m, side) || sideTaken(o, OPP[side])) return null;
+        if (sideTaken(m, side, o) || sideTaken(o, OPP[side], m)) return null;
         const a = rect(m), b = rect(o);
         const flat = side === 'left' || side === 'right';
         const gap = { right:b.l - a.r, left:a.l - b.r, bottom:b.t - a.b, top:a.t - b.b }[side];
@@ -11425,8 +11441,8 @@
       }
       function findLock(moving){
         const group = groupOf(moving), mine = new Set(group.map(o => o.id));
-        if (cand && mine.has(cand.m.id) && !mine.has(cand.o.id) && items.includes(cand.o) &&
-            lockFits(cand.m, cand.o, cand.side, true) !== null) return cand;
+        const held = cand && mine.has(cand.m.id) && !mine.has(cand.o.id) && items.includes(cand.o)
+          ? lockFits(cand.m, cand.o, cand.side, true) : null;
         let best = null, bestD = Infinity;
         group.forEach(m => items.forEach(o => {
           if (mine.has(o.id)) return;
@@ -11435,7 +11451,9 @@
             if (d !== null && d < bestD){ bestD = d; best = { m, o, side }; }
           });
         }));
-        return best;
+        if (held === null) return best;
+        const same = best && best.m === cand.m && best.o === cand.o && best.side === cand.side;
+        return best && !same && bestD + 10 / vs < held ? best : cand;
       }
 
       /* ---------- LOCKING TO A BLOCK ----------
@@ -11505,7 +11523,7 @@
             return Math.abs(gap - gapOf(a, b)) < 2 && shared > Math.min(crossLen(a, sd), crossLen(b, sd)) * 0.15;
           };
           const lock = (a, b, sd) => {
-            if (already(a, b) || sideTaken(b, OPP[sd])) return;
+            if (already(a, b) || sideTaken(b, OPP[sd], a)) return;
             const l = { p:a.id, c:b.id, side:sd }; measureLock(l); locks.push(l);
           };
           lock(m, o, side);
