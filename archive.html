@@ -3270,6 +3270,9 @@
     .rf-item.rf-m2 img, .rf-item.rf-m3 img{ outline:none; }
     /* a garment in view 1 is the photograph alone: the hairline is views 2 and 3's */
     .rf-item.rf-garment:not(.rf-m2):not(.rf-m3) img{ outline:none; }
+    /* nor does a picture on a transparent ground — a badge, a cut-out — wear
+       one: the shape is its own edge, and a box round the air reads as a frame */
+    .rf-item.rf-clear img{ outline:none; }
     .rf-item.rf-m2 .rf-head{
       display:flex;
       flex-direction:column;
@@ -11000,12 +11003,27 @@
         clustered = false;
         joints(); save();
       }
+      /* Any of it see-through? Drawn small and read: a pixel well short of
+         opaque anywhere means the picture has a transparent ground. */
+      function seeThrough(img){
+        try {
+          const N = 48, c = document.createElement('canvas');
+          c.width = c.height = N;
+          const x = c.getContext('2d', { willReadFrequently:true });
+          x.drawImage(img, 0, 0, N, N);
+          const px = x.getImageData(0, 0, N, N).data;
+          for (let i = 3; i < px.length; i += 4) if (px[i] < 230) return true;
+        } catch {}
+        return false;
+      }
       function mount(it){
         it.url = URL.createObjectURL(it.blob);
         const el = document.createElement('div');
         el.className = 'rf-item';
         el.dataset.id = it.id;
         const img = document.createElement('img');
+        // every picture it shows is looked at for a transparent ground (rf-clear)
+        img.addEventListener('load', () => el.classList.toggle('rf-clear', seeThrough(img)));
         img.src = it.url;
         img.alt = it.name || '';
         img.draggable = false;
