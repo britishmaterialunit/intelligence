@@ -6754,11 +6754,18 @@
        A press during a run is not thrown away and it does not interrupt:
        it is held, and performed once the run has finished. Only the last
        one is kept, because pressing five times is asking for the thing
-       once, impatiently. */
-    function onceAtATime(el, ms, run){
+       once, impatiently.
+
+       Except on a switch. A flag or the shelf turns a cluster on and off,
+       so a held press played afterwards turned it straight back off: a
+       burst of presses gathered the garments and then sent them home
+       again. On a switch (`drop`) a press while the field is still moving
+       is let go — the burst is one gathering, played to its end. */
+    function onceAtATime(el, ms, run, drop){
       if (!el) return;
       let busy = false, queued = false;
       el.addEventListener('click', e => {
+        if (drop && (busy || performance.now() < moveUntil)){ e.stopImmediatePropagation(); e.preventDefault(); return; }
         if (busy){ e.stopImmediatePropagation(); e.preventDefault(); queued = true; return; }
         busy = true;
         el.classList.add('is-working');
@@ -7158,12 +7165,16 @@
       rasterTimer = setTimeout(() => spiral.classList.remove('gliding'), ms);
     }
 
+    /* The tidy-up belongs to its own glide. An earlier glide's timer used to
+       take the transition off in the middle of a later one, and a transform
+       with its transition removed jumps straight to where it was going. */
+    let glideId = 0;
     function glide(fn, ms){
-      const d = ms || 850;
+      const d = ms || 850, id = ++glideId;
       spiral.style.transition = `transform ${d}ms cubic-bezier(.4,0,.2,1)`;
       fn();
       promote(d + 160);                 // held for the whole move, then redrawn
-      setTimeout(() => { spiral.style.transition = ''; }, d + 60);
+      setTimeout(() => { if (id === glideId) spiral.style.transition = ''; }, d + 60);
     }
 
     function applyTransform(){
@@ -7371,6 +7382,8 @@
     function morphLayout(mode){
       if (morphing) return;
       morphing = true;
+      // a flag pressed meanwhile waits for this to finish (see clusterSearch)
+      moveUntil = performance.now() + 2000;
       unframe();
 
       if (REDUCED){
@@ -7583,24 +7596,48 @@
        things from the next keystroke — see the !gather branch. */
     let clusterGathered = false, reGather = null;
 
+    /* ---------- A GATHERING IS NEVER CUT SHORT ----------
+       A flag pressed again — or pressed five times — while the garments are
+       still on their way used to start a new move from wherever they were,
+       and the old move's tidy-up then took the transition off in the middle
+       of the new one: the field lurched, snapped, and went back and forth.
+       Now a move, once started, is always played to its end. Anything asked
+       for meanwhile waits, and only the last thing asked for is done — so a
+       burst of presses is one move, then (if it ends somewhere else) one
+       more, each at its own pace. */
+    const MOVE_MS = 1100;
+    let moveUntil = 0, moveId = 0, queuedMove = null, queueTimer = null;
     function clusterSearch(term, gather){
+      const wait = moveUntil - performance.now();
+      if (wait > 0){
+        queuedMove = [term, gather];
+        clearTimeout(queueTimer);
+        queueTimer = setTimeout(() => {
+          const q = queuedMove; queuedMove = null;
+          if (q) clusterSearch(q[0], q[1]);
+        }, wait + 20);
+        return;
+      }
       clearTimeout(clusterTimer);
       if (gather) clearTimeout(reGather);
       unframe();
       const els = [...spiral.children];
 
-      /* The move is 800ms. Clearing the transition at 60ms — which is what
-         this used to do, alongside the glide — took the property's
-         transition away mid-flight, and a property whose transition is
-         removed jumps straight to its final value. That was the cluster
-         appearing rather than gathering. The tidy-up now waits for the move
-         it is tidying up after. */
-      const MOVE_MS = 800;
-      const slide = () => els.forEach(el => {
-        el.style.transition = `left ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), top ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1)`;
-      });
-      const settle = () => setTimeout(
-        () => els.forEach(el => { el.style.transition = ''; }), MOVE_MS + 80);
+      /* Clearing the transition early took the property's transition away
+         mid-flight, and a property whose transition is removed jumps
+         straight to its final value. That was the cluster appearing rather
+         than gathering. The tidy-up waits for its own move, and only tidies
+         if no later move has begun. */
+      const id = ++moveId;
+      const slide = () => {
+        moveUntil = performance.now() + MOVE_MS + 140;
+        els.forEach(el => {
+          el.style.transition = `left ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), top ${MOVE_MS}ms cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1)`;
+        });
+      };
+      const settle = () => setTimeout(() => {
+        if (id === moveId) els.forEach(el => { el.style.transition = ''; });
+      }, MOVE_MS + 80);
 
       if (!term){
         clusterGathered = false;
@@ -7608,7 +7645,7 @@
         slide();
         layoutSpiral(spiralMode);
         clusterTimer = setTimeout(() => {
-          glide(() => fitSpiral(), 800);
+          glide(() => fitSpiral(), MOVE_MS);
           settle();
         }, 60);
         return;
@@ -7670,7 +7707,7 @@
       clusterGathered = true;
 
       clusterTimer = setTimeout(() => {
-        glide(() => fitTo(hit), 800);
+        glide(() => fitTo(hit), MOVE_MS);
         settle();
       }, 60);
     }
@@ -9097,7 +9134,7 @@
          move is already running, so pressing twice quickly filled the mark
          over a field that had not gone anywhere. Nothing is marked until
          the move has actually been taken. */
-      if (morphing) return;                 // the field is already moving
+      if (morphing || performance.now() < moveUntil) return;   // the field is already moving
       const entering = !savedOnly;
       if (entering && !hasJoined()){
         openJoinGate(() => dockLibrary.click());
@@ -9416,15 +9453,15 @@
 
     /* The controls that each start a run of their own. The lengths are the
        runs' own: the shelf's open, the field's morph, the dock's swap. */
-    onceAtATime(document.getElementById('dockLibrary'), 900);
-    onceAtATime(document.getElementById('savedBtn'), 900);
+    onceAtATime(document.getElementById('dockLibrary'), 900, null, true);
+    onceAtATime(document.getElementById('savedBtn'), 900, null, true);
     onceAtATime(document.getElementById('dqExplore'), 900);
     onceAtATime(document.getElementById('dockExplore'), 900);
     onceAtATime(document.getElementById('dockCircle'), 900);
     onceAtATime(document.getElementById('dockList'), 900);
-    onceAtATime(document.getElementById('dqFlag'), 1100);
-    onceAtATime(document.getElementById('dqFlagFR'), 1100);
-    onceAtATime(document.getElementById('flagBtn'), 1100);
+    onceAtATime(document.getElementById('dqFlag'), 1100, null, true);
+    onceAtATime(document.getElementById('dqFlagFR'), 1100, null, true);
+    onceAtATime(document.getElementById('flagBtn'), 1100, null, true);
     onceAtATime(document.getElementById('countInfo'), 220);
 
     /* ---------- zoom + pan ----------
