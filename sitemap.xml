@@ -1571,4 +1571,14 @@
       <image:caption>United States Army 2000s Grey PTU Track Jacket — United States military surplus jacket, archive ref USA2000GPTJ</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://britishmaterialunit.com/archive/south-korean/shirts/south-korean-army-1990s-rok-field-shirt/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/south-korean/shirts/south-korean-army-1990s-rok-field-shirt/KRA1990RFS.png</image:loc>
+      <image:title>South Korean Army 1990s ROK Field Shirt</image:title>
+      <image:caption>South Korean Army 1990s ROK Field Shirt — South Korean military surplus shirt, archive ref KRA1990RFS</image:caption>
+    </image:image>
+  </url>
 </urlset>
