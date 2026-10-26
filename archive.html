@@ -12053,25 +12053,32 @@
         sdGo.disabled = false;
         sdFile.innerHTML = '<option value="">New file…</option>';
         sdNew.hidden = false;
-        sb('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path&order=created_at.desc')
+        sb('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path,garments&order=created_at.desc')
           .then(r => r.json())
           .then(rows => {
             fileRows = Array.isArray(rows) ? rows : [];
             fileRows.forEach(c => {
               const o = document.createElement('option');
               o.value = c.id;
-              o.textContent = `${c.title} — ${c.reviewer_email}${c.board_path ? ' · has a board' : ''}`;
+              // a file of garments is never written over: the board goes beside it
+              o.textContent = `${c.title} — ${c.reviewer_email} · ${hasGarments(c) ? 'new board beside this file' : c.board_path ? 'replace its board' : 'add a board'}`;
               sdFile.appendChild(o);
             });
           })
           .catch(() => sdSay('Could not reach Files. Sign in again from the person icon.'));
       }
+      const hasGarments = c => !!(c && c.garments && c.garments.length);
       sdFile.addEventListener('change', () => { sdNew.hidden = !!sdFile.value; sdSay(''); });
       document.getElementById('sdCancel').addEventListener('click', () => toggleSend(false));
       sdGo.addEventListener('click', async () => {
-        const id = sdFile.value;
-        const prev = fileRows.find(c => c.id === id);
-        const title = sdTitle.value.trim(), email = sdEmail.value.trim().toLowerCase();
+        const chosen = fileRows.find(c => c.id === sdFile.value);
+        // sent to a file of garments, the board is a second file for the same
+        // designer, so the first keeps its garments and Verify File
+        const beside = hasGarments(chosen);
+        const id = beside ? '' : sdFile.value;
+        const prev = beside ? null : chosen;
+        const title = beside ? chosen.title : sdTitle.value.trim();
+        const email = beside ? String(chosen.reviewer_email).toLowerCase() : sdEmail.value.trim().toLowerCase();
         if (!id && (!title || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))){
           sdSay('A title and the designer’s email, please.'); return;
         }

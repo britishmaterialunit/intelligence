@@ -2454,7 +2454,7 @@
 
           <!-- the reviewer's side: what they want, and a note -->
           <div class="cl-reply" id="cvReplyBox" hidden>
-            <p class="cl-lede" id="cvBoardLede" hidden>A reference board, made for you. Download it as a zip, or open it on Maps just as it was sent.</p>
+            <p class="cl-lede" id="cvBoardLede" hidden>A reference board, made for you, sent after your file of garments, which stays in Files to verify. Download it as a zip, or open it on Maps just as it was sent; the garments from your files wait under its bookmark, ready to place.</p>
             <p class="cl-lede" id="cvReplyLede">Set each garment to negative or affirmative and send over. Leave a note if required—verify file and book a meeting to talk surplus. View more on <a href="/archive">archive</a> to build a new file.</p>
             <textarea class="cl-field cl-wide" id="cvReply" placeholder="What’s a worthwhile mention?" aria-label="Your note"></textarea>
 
@@ -3481,7 +3481,13 @@
          The row is written the moment the file is opened, so "opened" is a
          fact we hold rather than something inferred from silence. */
       const stateOf = (r, c) => !r ? 'Unopened'
-        : r.status === 'verified' ? (c && c.board_path ? 'Downloaded' : 'Verified') : 'Opened';
+        : r.status === 'verified' ? (c && boardOnly(c) ? 'Downloaded' : 'Verified') : 'Opened';
+
+      /* A reference board goes out as a file of its own, after the file of
+         garments, never in place of it. A file sent before that rule may
+         carry both; it keeps its garments and Verify File, and the board
+         rides alongside. */
+      const boardOnly = c => !!c.board_path && !(c.garments && c.garments.length);
 
       async function refresh(){
         list = await api.collections();
@@ -3538,7 +3544,8 @@
         } else {
           box.innerHTML = list.map(c => {
             const r = replyOf(c);
-            const n = c.board_path ? 'Reference board' : plural(c.garments.length, 'garment', 'garments');
+            const n = boardOnly(c) ? 'Reference board'
+              : plural(c.garments.length, 'garment', 'garments') + (c.board_path ? ' · Reference board' : '');
             const label = me.admin
               ? `For ${esc(c.reviewer_email)} · ${n} · ${stateOf(r, c)}`
               : `${n} · ${stateOf(r, c)}`;
@@ -3689,7 +3696,7 @@
         /* The line above the name says what this is, and types itself the
            way the page's own role line does. Who it is for is a separate
            fact and sits under the name, where it does not crowd the label. */
-        typeLabel($('cvLabel'), 'FILE/');
+        typeLabel($('cvLabel'), boardOnly(c) ? 'BOARD/' : 'FILE/');
         $('cvFor').textContent = me.admin ? 'For ' + c.reviewer_email : '';
         $('cvFor').hidden = !me.admin;
         $('cvTitle').textContent = c.title;
@@ -3703,7 +3710,7 @@
         const gone = c.garments.length - shown.length;
         $('cvMissing').hidden = !gone;
         $('cvBoardRow').hidden = !c.board_path;
-        const isBoard = !!c.board_path;
+        const isBoard = boardOnly(c);
         ['cvReplyLede', 'cvReply', 'cvVerifyStep'].forEach(k => { $(k).hidden = isBoard; });
         ['cvBoardLede', 'cvZipStep'].forEach(k => { $(k).hidden = !isBoard; });
         // a board is not shown here: it is downloaded, or opened on Maps
@@ -3742,7 +3749,7 @@
           countPicks();
         } else {
           $('cvTheirs').innerHTML = r
-            ? `<p class="cl-lede">${esc(stateOf(r, c))} · ${r.status === 'verified' && !c.board_path
+            ? `<p class="cl-lede">${esc(stateOf(r, c))} · ${r.status === 'verified' && !isBoard
                   ? plural(r.picks.length, 'garment', 'garments') + ' affirmative of ' + shown.length + ' · '
                   : ''}${esc(new Date(r.updated_at).toLocaleString('en-GB'))}</p>` +
               (r.note ? `<div class="cl-quote">${esc(r.note)}</div>` : '')
@@ -4069,6 +4076,24 @@
         if ($('cvSendMark').classList.contains('on')) keepShelf(ids.filter(id => picks.has(id)), ids.filter(id => !picks.has(id)));
         else keepShelf(ids, []);
       }
+
+      /* Open reference board: the board is shown as it was sent, and the
+         bookmark on it holds this reader's garments, from every file of
+         garments they have been sent (once verified, what they affirmed). */
+      function shelveAll(){
+        if (!current) return;
+        const email = String(current.reviewer_email).toLowerCase();
+        list.filter(f => String(f.reviewer_email).toLowerCase() === email && f.garments && f.garments.length)
+          .forEach(f => {
+            const ids = f.garments.filter(id => byId.has(id));
+            const r = replyOf(f);
+            if (r && r.status === 'verified'){
+              const yes = new Set(r.picks || []);
+              keepShelf(ids.filter(id => yes.has(id)), ids.filter(id => !yes.has(id)));
+            } else keepShelf(ids, []);
+          });
+      }
+      $('cvBoard').addEventListener('click', shelveAll);
 
       /* Open Archive the same way: the arrow turns up and away first, then
          the archive takes over. Back from the archive it points on again. */
