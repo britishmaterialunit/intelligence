@@ -3482,7 +3482,16 @@
          The row is written the moment the file is opened, so "opened" is a
          fact we hold rather than something inferred from silence. */
       const stateOf = (r, c) => !r ? 'Unopened'
+        // a board sent again since they last looked is news to them
+        : c && boardOnly(c) && verOf(c.board_path) > 1 && new Date(r.updated_at) < new Date(c.updated_at) ? 'New version'
         : r.status === 'verified' ? (c && boardOnly(c) ? 'Downloaded' : 'Verified') : 'Opened';
+
+      /* A board sent again goes to the same file, a version on: the version
+         is in the stored zip's name (<id>-v3.zip), and the file's
+         updated_at is when that version went. */
+      const verOf = path => Number((String(path || '').match(/-v(\d+)\.zip$/) || [])[1]) || 1;
+      const sentLine = c => `V${verOf(c.board_path)} · sent ${new Date(c.updated_at).toLocaleString('en-GB',
+        { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}`;
 
       /* A reference board goes out as a file of its own, after the file of
          garments, never in place of it. A file sent before that rule may
@@ -3605,7 +3614,7 @@
               `<span>${esc(person)}</span></div>` : '') +
             mine.map((c, i) => {
             const r = replyOf(c);
-            const n = boardOnly(c) ? 'Reference board'
+            const n = boardOnly(c) ? 'Reference board · V' + verOf(c.board_path)
               : plural(c.garments.length, 'garment', 'garments') + (c.board_path ? ' · Reference board' : '');
             const label = person
               ? `${String(i + 1).padStart(2, '0')} · ${n} · ${stateOf(r, c)}`
@@ -3776,6 +3785,8 @@
         const gone = c.garments.length - shown.length;
         $('cvMissing').hidden = !gone;
         $('cvBoardRow').hidden = !c.board_path;
+        // which version this is, and when it went
+        if (boardOnly(c)){ $('cvFor').hidden = false; $('cvFor').textContent = (me.admin ? 'For ' + c.reviewer_email + ' · ' : '') + sentLine(c); }
         const isBoard = boardOnly(c);
         ['cvReplyLede', 'cvReply', 'cvVerifyStep'].forEach(k => { $(k).hidden = isBoard; });
         ['cvBoardLede', 'cvZipStep'].forEach(k => { $(k).hidden = !isBoard; });
@@ -3783,6 +3794,8 @@
         $('cvGrid').hidden = isBoard;
         document.querySelector('.cv-tools').hidden = isBoard;
         $('cvBoard').href = '/archive?board=' + encodeURIComponent(c.id);
+        // the admin opens a board to add to it and send the next version
+        $('cvBoard').textContent = me.admin ? 'Open and update board' : 'Open reference board';
         // the archive opens on the reader's shelf, which Open Archive fills (keepShelf)
         $('cvArchiveStep').hidden = isBoard || !shown.length;
         $('cvArchive').href = '/archive#saved';
@@ -3797,6 +3810,12 @@
            reply — no picks, no note — so anything already written is left
            exactly as it is; only the absence of a row is filled in. */
         if (reviewing && !r) markOpened(c);
+        // a new version, looked at, is no longer new
+        else if (reviewing && r && boardOnly(c) && new Date(r.updated_at) < new Date(c.updated_at)){
+          const row = { ...r, updated_at:new Date().toISOString() };
+          delete row.id;
+          api.saveResponse(row).then(saved => replies.set(c.id + '|' + String(me.email).toLowerCase(), saved || row)).catch(() => {});
+        }
         $('cvGrid').innerHTML = shown.map(g =>
           card(g, reviewing ? 'switch' : (picks.has(g.id) ? 'picked' : ''))).join('');
 

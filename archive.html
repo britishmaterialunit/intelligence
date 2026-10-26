@@ -13458,43 +13458,74 @@
           ? `Signed in as ${who.replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c])} · <a href="/files">Files</a>`
           : '';
         sdGo.disabled = false;
-        sdFile.innerHTML = '<option value="">New file…</option>';
+        sdFile.innerHTML = '<option value="">Someone new…</option>';
         sdNew.hidden = false;
+        sdGo.textContent = 'Send';
         sb('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path,garments&order=created_at.desc')
           .then(r => r.json())
           .then(rows => {
             fileRows = Array.isArray(rows) ? rows : [];
+            /* One line per person. Somebody who has a board already has it
+               updated — the same file, a version on — so nobody is sent two;
+               somebody who has only files of garments is sent a first one. */
+            const seen = new Set();
             fileRows.forEach(c => {
+              const email = String(c.reviewer_email).toLowerCase();
               const o = document.createElement('option');
-              o.value = c.id;
-              // a file of garments is never written over: the board goes beside it
-              o.textContent = `${c.title} — ${c.reviewer_email} · ${hasGarments(c) ? 'new board beside this file' : c.board_path ? 'replace its board' : 'add a board'}`;
+              if (isBoard(c)){
+                o.value = c.id;
+                o.textContent = `Update “${c.title}” — ${c.reviewer_email} · ${verName(c.board_path)} → V${verOf(c.board_path) + 1}`;
+              } else {
+                if (seen.has(email) || fileRows.some(o2 => isBoard(o2) && String(o2.reviewer_email).toLowerCase() === email)) return;
+                o.value = 'new:' + c.id;
+                o.textContent = `First board for “${c.title}” — ${c.reviewer_email}`;
+              }
+              seen.add(email);
               sdFile.appendChild(o);
             });
+            // the board open is one already sent: it goes back to the same file
+            if (sentBoard != null && fileRows.some(c => c.id === sentBoard)) sdFile.value = sentBoard;
+            sdNew.hidden = !!sdFile.value;
+            paintGo();
           })
           .catch(() => sdSay('Could not reach Files. Sign in again from the person icon.'));
       }
       const hasGarments = c => !!(c && c.garments && c.garments.length);
-      sdFile.addEventListener('change', () => { sdNew.hidden = !!sdFile.value; sdSay(''); });
+      const isBoard = c => !!(c && c.board_path && !hasGarments(c));
+      /* The version lives in the stored zip's own name — <id>-v3.zip — so
+         Files can say V3 without a column of its own. A board sent before
+         versions is V1. */
+      const verOf = path => Number((String(path || '').match(/-v(\d+)\.zip$/) || [])[1]) || 1;
+      const verName = path => 'V' + verOf(path);
+      function paintGo(){
+        const c = fileRows.find(o => o.id === sdFile.value);
+        sdGo.textContent = c && isBoard(c) ? `Send V${verOf(c.board_path) + 1}` : 'Send';
+      }
+      sdFile.addEventListener('change', () => { sdNew.hidden = !!sdFile.value; sdSay(''); paintGo(); });
       document.getElementById('sdCancel').addEventListener('click', () => toggleSend(false));
       sdGo.addEventListener('click', async () => {
-        const chosen = fileRows.find(c => c.id === sdFile.value);
-        // sent to a file of garments, the board is a second file for the same
-        // designer, so the first keeps its garments and Verify File
-        const beside = hasGarments(chosen);
-        const id = beside ? '' : sdFile.value;
-        const prev = beside ? null : chosen;
-        const title = beside ? chosen.title : sdTitle.value.trim();
-        const email = beside ? String(chosen.reviewer_email).toLowerCase() : sdEmail.value.trim().toLowerCase();
-        if (!id && (!title || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))){
+        const v = sdFile.value;
+        // a person with files of garments only: their first board, a file of its own beside them
+        const first = v.startsWith('new:') ? fileRows.find(c => c.id === v.slice(4)) : null;
+        let chosen = first ? null : fileRows.find(c => c.id === v);
+        const title = first ? first.title : chosen ? chosen.title : sdTitle.value.trim();
+        const email = (first || chosen ? String((first || chosen).reviewer_email) : sdEmail.value.trim()).toLowerCase();
+        if (!first && !chosen && (!title || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))){
           sdSay('A title and the designer’s email, please.'); return;
         }
-        if (prev && prev.board_path && !window.confirm(`“${prev.title}” already has a board. Replace it with this one?`)) return;
+        // someone typed in afresh who has a board already has that one updated
+        if (!first && !chosen) chosen = fileRows.find(c => isBoard(c) && String(c.reviewer_email).toLowerCase() === email) || null;
+        const prev = chosen && isBoard(chosen) ? chosen : null;
+        const id = prev ? prev.id : '';
+        const ver = prev ? verOf(prev.board_path) + 1 : 1;
         sdGo.disabled = true;
-        sdSay('Sending…');
+        sdSay(prev ? `Sending V${ver}…` : 'Sending…');
         try {
           const { blob, count } = await boardZip();
-          const path = `${(crypto.randomUUID && crypto.randomUUID()) || uid()}.zip`;
+          // the same name a version on, so the file in Files is the one it always was
+          const stem = prev ? String(prev.board_path).replace(/(-v\d+)?\.zip$/, '')
+                            : ((crypto.randomUUID && crypto.randomUUID()) || uid());
+          const path = `${stem}-v${ver}.zip`;
           await sb(`/storage/v1/object/${BUCKET}/${path}`, {
             method:'POST', headers:{ 'Content-Type':'application/zip' }, body:blob });
           const now = new Date().toISOString();
@@ -13511,7 +13542,8 @@
           }
           toggleSend(false);
           sdTitle.value = ''; sdEmail.value = '';
-          say(`Sent ${String(count).padStart(2, '0')} to “${prev ? prev.title : title}”`);
+          if (sentBoard != null && prev && prev.id === sentBoard) sentVer = ver;
+          say(prev ? `Sent V${ver} to “${prev.title}”` : `Sent ${String(count).padStart(2, '0')} to “${title}”`);
         } catch (err){
           sdGo.disabled = false;
           // the database not yet set up for boards is the one cause worth naming
@@ -13528,8 +13560,10 @@
          the board is fetched and shown as it was sent — on its own, not
          laid over the reader's own board, which is left as it is in the
          browser and comes back when the sent board is closed. Changes to a
-         sent board are not kept: Export keeps them. */
-      let sentBoard = null;
+         sent board are not kept in the browser: the admin keeps them by
+         sending it again, which updates the same file a version on, and
+         anybody can Export them. */
+      let sentBoard = null, sentVer = 0;
       function emptyBoard(){
         select(null);
         items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
@@ -13543,7 +13577,7 @@
         sentBoard = id;
         open();
         try {
-          const rows = await (await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}&select=title,board_path`)).json();
+          const rows = await (await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}&select=title,board_path,updated_at`)).json();
           const c = rows && rows[0];
           if (!c || !c.board_path){ say('That board could not be found'); return; }
           const blob = await (await sb(`/storage/v1/object/authenticated/${BUCKET}/${c.board_path}`)).blob();
@@ -13552,7 +13586,9 @@
           emptyBoard();
           await addEntries(board.entries, board.locks);
           fit(); sync();
-          say(`“${c.title}”, as sent`);
+          sentVer = verOf(c.board_path);
+          say(admin ? `“${c.title}” ${verName(c.board_path)} — add to it, then Send for V${sentVer + 1}`
+                    : `“${c.title}” ${verName(c.board_path)}, as sent`);
         } catch (err){
           say(/signed out/.test(err.message) ? 'Sign in to Files to open this board' : 'That board could not be opened');
         }
