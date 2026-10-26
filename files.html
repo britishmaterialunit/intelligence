@@ -3466,6 +3466,7 @@
       let list = [];                  // collections this person may see
       const replies = new Map();      // `${collection}|${email}` → reply
       let current = null;             // the collection open in clView
+      let person = null;              // the admin's: whose files are listed, by email
       let picks = new Set();          // what the reviewer has marked
       let editing = null;             // the collection in clEdit
       let onlyChosen = false;
@@ -3491,10 +3492,34 @@
 
       async function refresh(){
         list = await api.collections();
+        if (me && me.admin && await unmerge(list)) list = await api.collections();
         window.__bmuList = list;          // what the hover reads to know a file is unopened
         replies.clear();
         (await api.responses()).forEach(r =>
           replies.set(r.collection_id + '|' + String(r.reviewer_email).toLowerCase(), r));
+      }
+
+      /* A board sent before boards were files of their own was written into
+         the file of garments it went to. Opened as the admin, each such file
+         is parted again: the board becomes a second file for the same
+         person, dated when it was sent, and the first is left with its
+         garments. The new row is written before the old one lets go, so the
+         designer never loses the board in between. */
+      async function unmerge(rows){
+        let parted = 0;
+        for (const c of rows){
+          if (!c.board_path || !(c.garments && c.garments.length)) continue;
+          try {
+            const sent = c.updated_at || new Date().toISOString();
+            const { error } = await sb.from('bmu_collections').insert({
+              title:c.title, note:'', reviewer_email:c.reviewer_email, garments:[],
+              board_path:c.board_path, created_at:sent, updated_at:sent });
+            if (error) continue;
+            const { error: e2 } = await sb.from('bmu_collections').update({ board_path:null }).eq('id', c.id);
+            if (!e2) parted++;
+          } catch {}
+        }
+        return parted;
       }
 
       /* ---------- sign in ---------- */
@@ -3523,7 +3548,7 @@
 
       $('clOut').addEventListener('click', async () => {
         try { await api.signOut(); } catch {}
-        me = null; list = []; replies.clear();
+        me = null; list = []; replies.clear(); person = null;
         history.replaceState(null, '', location.pathname);
         show('clSignIn');
       });
@@ -3537,17 +3562,53 @@
         if (!me.admin) $('clLoginPanel').hidden = true;
 
         const box = $('clList');
-        if (!list.length){
+        const key = e => String(e || '').toLowerCase();
+        if (person && !list.some(c => key(c.reviewer_email) === person)) person = null;
+        /* The admin's home is everyone files have gone to, one line each;
+           a person opens onto every file they have been sent — files of
+           garments and reference boards alike — in the order they went. */
+        if (me.admin && list.length && !person){
+          const people = new Map();
+          list.forEach(c => {
+            const k = key(c.reviewer_email);
+            if (!people.has(k)) people.set(k, []);
+            people.get(k).push(c);
+          });
+          box.innerHTML = [...people].map(([k, fs]) => {
+            const boards = fs.filter(boardOnly).length;
+            const files = fs.length - boards;
+            const fresh = fs.filter(c => !replyOf(c)).length;
+            const first = fs.reduce((a, b) => a.created_at < b.created_at ? a : b);
+            const label = [files && plural(files, 'file of garments', 'files of garments'),
+                           boards && plural(boards, 'reference board', 'reference boards'),
+                           fresh && fresh + ' unopened'].filter(Boolean).join(' · ');
+            return `<button type="button" class="news-item" data-person="${esc(k)}">` +
+                     `<span class="ni-date">${label}</span>` +
+                     `<span class="ni-title">${esc(first.title)}</span>` +
+                     `<span class="ni-sub">${esc(k)}</span>` +
+                   `</button>`;
+          }).join('');
+          show('clHome');
+          return;
+        }
+        const mine = person
+          ? list.filter(c => key(c.reviewer_email) === person)
+                .sort((a, b) => a.created_at < b.created_at ? -1 : 1)
+          : list;
+        if (!mine.length){
           box.innerHTML = `<p class="cl-empty">${me.admin
             ? 'No files yet. Start one with New file.'
             : 'Nothing has been shared with you yet.'}</p>`;
         } else {
-          box.innerHTML = list.map(c => {
+          box.innerHTML = (person
+            ? `<div class="cl-who"><button type="button" class="cl-link" data-people>All people</button>` +
+              `<span>${esc(person)}</span></div>` : '') +
+            mine.map((c, i) => {
             const r = replyOf(c);
             const n = boardOnly(c) ? 'Reference board'
               : plural(c.garments.length, 'garment', 'garments') + (c.board_path ? ' · Reference board' : '');
-            const label = me.admin
-              ? `For ${esc(c.reviewer_email)} · ${n} · ${stateOf(r, c)}`
+            const label = person
+              ? `${String(i + 1).padStart(2, '0')} · ${n} · ${stateOf(r, c)}`
               : `${n} · ${stateOf(r, c)}`;
             return `<button type="button" class="news-item" data-id="${esc(c.id)}">` +
                      `<span class="ni-date">${label}</span>` +
@@ -3559,8 +3620,11 @@
         show('clHome');
       }
       $('clList').addEventListener('click', e => {
+        if (e.target.closest('[data-people]')){ person = null; openHome(); return; }
         const b = e.target.closest('.news-item');
-        if (b) openView(b.dataset.id);
+        if (!b) return;
+        if (b.dataset.person){ person = b.dataset.person; openHome(); window.scrollTo(0, 0); }
+        else openView(b.dataset.id);
       });
 
       /* A file nobody has been into yet says so under the pointer: one word,
@@ -3689,6 +3753,8 @@
         const c = list.find(x => x.id === id);
         if (!c){ openHome(); return; }
         current = c;
+        // back from a file goes to that person's files
+        if (me.admin) person = String(c.reviewer_email).toLowerCase();
         history.replaceState(null, '', '#c=' + c.id);
         const r = replyOf(c);
         picks = new Set(r ? r.picks : []);
