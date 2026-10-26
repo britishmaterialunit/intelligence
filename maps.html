@@ -3577,8 +3577,23 @@
       background:var(--bg);
       cursor:default;
     }
+    /* Every tool stays inside the bar. Where they are more than it holds
+       they scroll along it — swiped, or with the wheel — and the edge with
+       more beyond it fades, to say so. */
+    #refsTools .rt-scroll{
+      flex:1 1 auto; min-width:0; height:100%;
+      display:flex; align-items:center; justify-content:space-between;
+      overflow-x:auto; overflow-y:hidden;
+      overscroll-behavior-x:contain;
+      scrollbar-width:none;
+      -webkit-overflow-scrolling:touch;
+    }
+    #refsTools .rt-scroll::-webkit-scrollbar{ display:none; }
+    #refsTools .rt-scroll.more-r{ -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
+    #refsTools .rt-scroll.more-l{ -webkit-mask-image:linear-gradient(90deg, transparent, #000 28px); mask-image:linear-gradient(90deg, transparent, #000 28px); }
+    #refsTools .rt-scroll.more-l.more-r{ -webkit-mask-image:linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image:linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
     #refsTools button{
-      flex:1 1 0;
+      flex:1 0 auto;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -3608,7 +3623,7 @@
       color:#c4c4c4;
     }
     /* export and its info read as one: the info sits a space after the word */
-    .rt-pair{ flex:1 1 0; display:flex; align-items:center; justify-content:center; gap:2px; }
+    .rt-pair{ flex:1 0 auto; display:flex; align-items:center; justify-content:center; gap:2px; }
     #refsTools .rt-pair button[data-act="export"]{ flex:none; }
     #refsTools .rt-info{ flex:none; width:22px; padding:0; color:#b4b4b4; }
     #refsTools .rt-info:hover{ background:none; color:var(--ink); }
@@ -4185,6 +4200,8 @@
     <!-- REFERENCES — the board's own bar. Hidden until the plus face is
          pressed, and then it stands exactly where the search bar was. -->
     <div id="refsTools" class="dock-sq" role="toolbar" aria-label="Reference board">
+      <!-- the tools scroll inside the bar when there are more than it holds -->
+      <div class="rt-scroll" id="refsToolsScroll">
       <span id="refsCount" class="rt-count" aria-label="Images on the board">00</span>
       <button type="button" data-act="add" aria-label="Add images">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M8 2.6 V13.4 M2.6 8 H13.4"/></svg><span>Add</span>
@@ -4218,6 +4235,7 @@
       <button type="button" data-act="clear" aria-label="Clear the board">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M4.4 4.4 L11.6 11.6 M11.6 4.4 L4.4 11.6"/></svg><span>Clear</span>
       </button>
+      </div>
     </div>
     <!-- one button holding several tools; scroll or swipe it to change -->
     <button type="button" id="dockExplore" class="dock-sq" aria-label="Explore the archive" aria-pressed="false">
@@ -14561,6 +14579,25 @@
         ({ add:() => fileIn.click(), search:toggleSearch, text:addText, draw:() => drawing ? endDraw() : startDraw(), cluster, reverse, export:exportBoard, clear:clearBoard,
            send:() => toggleSend() })[b.dataset.act]();
       });
+      (function scrollTools(){
+        const sc = document.getElementById('refsToolsScroll');
+        const paint = () => {
+          const over = sc.scrollWidth - sc.clientWidth > 1;
+          sc.classList.toggle('more-l', over && sc.scrollLeft > 1);
+          sc.classList.toggle('more-r', over && sc.scrollLeft < sc.scrollWidth - sc.clientWidth - 1);
+        };
+        sc.addEventListener('scroll', paint, { passive:true });
+        // a wheel turned up and down moves it along, when it has somewhere to go
+        sc.addEventListener('wheel', e => {
+          if (sc.scrollWidth - sc.clientWidth <= 1) return;
+          e.preventDefault(); e.stopPropagation();
+          sc.scrollLeft += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        }, { passive:false });
+        if (window.ResizeObserver) new ResizeObserver(paint).observe(sc);
+        window.addEventListener('resize', paint);
+        tools.addEventListener('focusin', e => { const b = e.target.closest('button'); if (b) b.scrollIntoView({ block:'nearest', inline:'nearest' }); });
+        paint();
+      })();
       wireInfoMark(document.getElementById('refsExportInfo'),
                    document.getElementById('refsExportPop'));
 
