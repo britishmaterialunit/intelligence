@@ -95,7 +95,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   `untangle()` eases apart any two group members that overlap. Locking to a
   group meets its whole flush face (`faceOf`), fits the arrival to the face's
   length when within `FIT` (15%), and locks it to every face image and any
-  other neighbour it ends up flush with. Shift-press adds to / takes from a multi-pick (`picked`, `.picked`), Shift-drag on the board draws a box (`.rf-marquee`) that picks what it touches; dragging any picked image carries all of them (`unitOf`), Delete/arrows/Escape act on the pick. With two or
+  other neighbour it ends up flush with. Shift-press adds to / takes from a multi-pick (`picked`, `.picked`), Shift-drag on the board draws a box (`.rf-marquee`) that picks what it touches; dragging any picked image carries all of them (`unitOf`), Delete/arrows/Escape act on the pick. **Every cluster is round** (`roundOffsets`, behind
+  `packOffsets`, so the archive's field too): 2–6 pieces on a ring, 7–19 on
+  rings about a middle one shared out so the outer ring is full, 20+ the
+  golden spiral (already a disc). The board's mixed path (groups, kept pieces)
+  lays on the same round slots, passing over the ones kept pieces cover. With two or
   more picked, **Cluster** is theirs alone (`clusterPicked`, the bar says
   `Cluster 05`): all fitted to one box (`CBOX`), laid on the archive's golden
   spiral (`packOffsets`) in the archive's own order (garments by `ITEMS`, then
