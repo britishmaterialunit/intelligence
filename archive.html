@@ -3173,8 +3173,8 @@
       pointer-events:none;
       z-index:5;
     }
-    .rf-del, .rf-size, .rf-mode, .rf-cut, .rf-stamp{ display:none; position:absolute; padding:0; }
-    .rf-item.sel .rf-del, .rf-item.sel .rf-size, .rf-item.sel .rf-mode, .rf-item.sel .rf-cut, .rf-item.sel .rf-stamp{ display:block; }
+    .rf-del, .rf-size, .rf-mode, .rf-cut, .rf-stamp, .rf-pen{ display:none; position:absolute; padding:0; }
+    .rf-item.sel .rf-del, .rf-item.sel .rf-size, .rf-item.sel .rf-mode, .rf-item.sel .rf-cut, .rf-item.sel .rf-stamp, .rf-item.sel .rf-pen{ display:block; }
     /* the scissors, beside the cross; once cut, the same square puts it back */
     .rf-cut{
       top:calc(-15px * var(--inv)); right:calc(10px * var(--inv));
@@ -3224,6 +3224,51 @@
       pointer-events:auto;
     }
     .rf-item.sel .rw-x{ display:block; }
+
+    /* a drawing: the pen, where a picture has its scissors, opens it again */
+    .rf-pen{
+      top:calc(-15px * var(--inv)); right:calc(10px * var(--inv));
+      width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
+      border:none;
+      background:var(--line) url('/pen-white.svg') center / 66% no-repeat;
+      cursor:pointer;
+      z-index:2;
+    }
+    .rf-dsvg svg{ display:block; width:100%; height:auto; overflow:visible; pointer-events:none; }
+    /* the paper: what is being drawn, over everything on the board */
+    #refsInk{ position:absolute; left:0; top:0; width:1px; height:1px; overflow:visible; pointer-events:none; z-index:100000; }
+    #refs.rf-drawing{ cursor:crosshair; }
+    #refs.rf-drawing.panning{ cursor:grabbing; }
+    #refs.rf-drawing .rf-item{ cursor:crosshair; }
+    #refsDraw{
+      position:absolute;
+      top:84px; right:24px;
+      width:236px;
+      box-sizing:border-box;
+      padding:14px 14px 12px;
+      display:flex; flex-direction:column;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      z-index:4;
+      cursor:default;
+      font-family:var(--font);
+    }
+    #refsDraw[hidden]{ display:none; }
+    #refsDraw .sd-row{ margin-top:8px; }
+    #refsDraw .sd-btn{ height:32px; }
+    @media (max-width:640px){
+      #refsDraw{ top:72px; right:16px; left:16px; width:auto; }
+      #refsDraw .sd-who{ display:none; }
+    }
+    .rf-label-in{
+      position:absolute; z-index:6;
+      height:36px; box-sizing:border-box; padding:0 10px;
+      border:1.5px solid var(--line); border-radius:0;
+      background:var(--bg); color:var(--ink);
+      font-family:var(--font); font-size:14px; text-align:center;
+      outline:none;
+    }
+    #refsTools button[aria-pressed="true"]{ background:var(--faint); }
 
     /* A text box, in the homepage's type. The type is sized by the box, as
        a picture is, so resizing, locking and Cluster treat it as one. */
@@ -3300,6 +3345,8 @@
       .rf-stamp{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
                  top:calc(-20px * var(--inv)); right:calc(48px * var(--inv)); }
       .rf-item.rf-text .rf-stamp{ right:calc(14px * var(--inv)); }
+      .rf-pen{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
+               top:calc(-20px * var(--inv)); right:calc(14px * var(--inv)); }
       .rf-fmt{ top:calc(-20px * var(--inv)); }
       .rf-fmt button{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv)); }
     }
@@ -4064,6 +4111,20 @@
         <button type="button" class="sd-btn sd-go" id="sdGo">Send</button>
       </div>
     </aside>
+    <!-- Draw: the paper's own panel, in the corner. Formulate reads the
+         strokes by their shapes and makes a graph of them. -->
+    <aside id="refsDraw" hidden aria-label="Drawing">
+      <span class="sd-head">Draw</span>
+      <p class="sd-who">Boxes, circles, lines, arrows, dashes. Formulate makes them true and lines them up. Double-tap a box to name it; hold Space to move about.</p>
+      <div class="sd-row">
+        <button type="button" class="sd-btn" id="drUndo">Undo</button>
+        <button type="button" class="sd-btn" id="drClear">Clear</button>
+      </div>
+      <div class="sd-row">
+        <button type="button" class="sd-btn sd-go" id="drForm">Formulate</button>
+        <button type="button" class="sd-btn" id="drDone">Done</button>
+      </div>
+    </aside>
     <!-- the reader's saved garments, opened from the square at the head of the tray -->
     <div id="refsSaved" hidden aria-label="Saved garments"></div>
     <input type="file" id="refsFile" multiple hidden
@@ -4130,6 +4191,9 @@
       </button>
       <button type="button" data-act="text" aria-label="Add a text box">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M3.4 3.6 H12.6 M8 3.6 V12.8 M6.2 12.8 H9.8"/></svg><span>Text</span>
+      </button>
+      <button type="button" data-act="draw" aria-label="Draw" aria-pressed="false">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M10.6 2.9 L13.1 5.4 L5.6 12.9 L2.6 13.4 L3.1 10.4 Z M9.1 4.4 L11.6 6.9"/></svg><span>Draw</span>
       </button>
       <button type="button" data-act="cluster" aria-label="Cluster the images">
         <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.2" r="1.7"/><circle cx="11.6" cy="6" r="1.35"/><circle cx="4.7" cy="10.9" r="1.35"/><circle cx="5.6" cy="4.5" r="1.15"/><circle cx="11.2" cy="11.7" r="1.15"/></svg><span>Cluster</span>
@@ -11159,6 +11223,7 @@
       }
       function mount(it){
         if (it.text != null){ mountText(it); return; }
+        if (it.draw){ mountDraw(it); return; }
         it.url = URL.createObjectURL(it.blob);
         const el = document.createElement('div');
         el.className = 'rf-item';
@@ -11356,6 +11421,648 @@
         sync();
       }
 
+      /* ---------- DRAWING, AND FORMULATING IT ----------
+         Draw on the bar turns the board into paper: a finger or the mouse
+         draws, Space-drag (or two fingers) moves about, the wheel zooms.
+         Formulate, in the panel in the corner, reads what was drawn by its
+         shape alone — nothing is generated, nothing leaves the page:
+
+           closed and full to its corners       a box
+           closed and round                     a circle or an oval
+           closed, corners at its sides' middles  a diamond
+           three corners                        a triangle
+           straight                             a line; with a hook or a V
+                                                at an end, an arrow
+           two or three straight runs           an elbowed line
+           short pieces on one line             a dashed (or dotted) line
+           anything else, and what is written   kept as drawn
+
+         and then makes a graph of it: boxes drawn near alike are made one
+         size, set in rows and columns, spaced evenly along a row; a line
+         that ends in a box is joined to it — straight if it was drawn
+         straight, elbowed if it was drawn with a corner, the way a company
+         structure is. Writing inside a box moves with it; a double-tap on a
+         box types its name in the homepage's type in place of the writing.
+         Done lays the whole of it on the board as one picture (`draw`:
+         its shapes, kept to be drawn again), and the pen on it opens it
+         back up. */
+      const SVGNS = 'http://www.w3.org/2000/svg';
+      const inkSvg = document.createElementNS(SVGNS, 'svg');
+      inkSvg.id = 'refsInk';
+      stage.appendChild(inkSvg);
+      const drawEl = document.getElementById('refsDraw');
+      let drawing = null;        // { shapes, sw, hist, editing, cur, taps }
+      let spaceDown = false;
+      let shapeN = 0;
+      const sid = () => 's' + Date.now().toString(36) + (shapeN++).toString(36);
+      const f1 = v => Math.round((Number(v) || 0) * 10) / 10;
+      const d2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+      const BOXES = ['rect', 'ellipse', 'diamond'];
+      const isBox = s => BOXES.includes(s.t);
+      const cxOf = s => s.x + s.w / 2, cyOf = s => s.y + s.h / 2;
+
+      function plen(P){ let L = 0; for (let i = 1; i < P.length; i++) L += d2(P[i - 1], P[i]); return L; }
+      function bboxOf(P){
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        P.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+        return { x:x0, y:y0, w:x1 - x0, h:y1 - y0 };
+      }
+      function resample(P, step){
+        if (P.length < 2) return P.slice();
+        const out = [P[0]];
+        let acc = 0;
+        for (let i = 1; i < P.length; i++){
+          let a = P[i - 1];
+          const b = P[i];
+          let seg = d2(a, b);
+          while (acc + seg >= step && seg > 0){
+            const t = (step - acc) / seg;
+            const q = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+            out.push(q); a = q; seg = d2(a, b); acc = 0;
+          }
+          acc += seg;
+        }
+        const last = P[P.length - 1];
+        if (d2(out[out.length - 1], last) > 0) out.push(last);
+        return out;
+      }
+      function segDist(p, a, b){
+        const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+        const t = l2 ? clamp(((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2, 0, 1) : 0;
+        return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+      }
+      function rdp(P, eps){
+        if (P.length < 3) return P.slice();
+        let dmax = 0, k = 0;
+        for (let i = 1; i < P.length - 1; i++){
+          const d = segDist(P[i], P[0], P[P.length - 1]);
+          if (d > dmax){ dmax = d; k = i; }
+        }
+        if (dmax <= eps) return [P[0], P[P.length - 1]];
+        return rdp(P.slice(0, k + 1), eps).slice(0, -1).concat(rdp(P.slice(k), eps));
+      }
+      function area(P){
+        let a = 0;
+        for (let i = 0; i < P.length; i++){ const p = P[i], q = P[(i + 1) % P.length]; a += p[0] * q[1] - q[0] * p[1]; }
+        return Math.abs(a) / 2;
+      }
+      // the corners of a closed stroke, wherever on it the pen began
+      function cornersClosed(P, eps){
+        let k = 0, far = 0;
+        P.forEach((p, i) => { const d = d2(p, P[0]); if (d > far){ far = d; k = i; } });
+        let V = rdp(P.slice(0, k + 1), eps).concat(rdp(P.slice(k).concat([P[0]]), eps).slice(1, -1));
+        // a corner that is not one — the pen's start partway along a side — goes
+        for (let pass = 0; pass < 3 && V.length > 3; pass++){
+          V = V.filter((v, i) => {
+            const a = V[(i - 1 + V.length) % V.length], b = V[(i + 1) % V.length];
+            const u = [v[0] - a[0], v[1] - a[1]], w = [b[0] - v[0], b[1] - v[1]];
+            const c = (u[0] * w[0] + u[1] * w[1]) / ((Math.hypot(...u) * Math.hypot(...w)) || 1);
+            return c < Math.cos(30 * Math.PI / 180);
+          });
+        }
+        return V;
+      }
+
+      /* One stroke, read by its shape. px is a screen pixel on the board,
+         so "small" means small as it was seen, at any zoom. */
+      function recognise(raw, px){
+        const P = resample(raw, 2.5 * px);
+        const bb = bboxOf(P), diag = Math.hypot(bb.w, bb.h);
+        if (diag < 7 * px) return { t:'dot', c:[bb.x + bb.w / 2, bb.y + bb.h / 2], diag };
+        const L = plen(P), a = P[0], z = P[P.length - 1], gap = d2(a, z);
+        const dev = Math.max(...P.map(p => segDist(p, a, z)));
+        if (gap > 0.75 * L && dev < Math.max(0.07 * gap, 3 * px))
+          return { t:'line', pts:[a, z], dash:'solid', diag };
+        const thin = Math.min(bb.w, bb.h) < 0.12 * Math.max(bb.w, bb.h);
+        if (!thin && gap < Math.max(0.25 * diag, 10 * px) && L > 1.6 * diag){
+          const box = { x:bb.x, y:bb.y, w:bb.w, h:bb.h, diag };
+          const ratio = area(P) / ((bb.w * bb.h) || 1);
+          const cx = bb.x + bb.w / 2, cy = bb.y + bb.h / 2, rx = bb.w / 2 || 1, ry = bb.h / 2 || 1;
+          const res = P.reduce((s, p) => s + Math.abs(Math.hypot((p[0] - cx) / rx, (p[1] - cy) / ry) - 1), 0) / P.length;
+          const V = cornersClosed(P, Math.max(0.06 * diag, 3 * px));
+          if (V.length === 3 && ratio < 0.68) return { t:'poly', pts:V, diag };
+          if (V.length === 4){
+            // measured against its own box: a diamond's corners sit on the middles of its sides
+            const onMids = V.every(v => Math.abs((v[0] - cx) / rx) + Math.abs((v[1] - cy) / ry) < 1.35);
+            if (onMids && ratio < 0.7) return { t:'diamond', ...box };
+            if (ratio > 0.75) return { t:'rect', ...box };
+          }
+          if (res < 0.12) return { t:'ellipse', ...box };
+          if (ratio > 0.85) return { t:'rect', ...box };
+          if (V.length <= 8) return { t:'poly', pts:V, diag };
+          return { t:'ink', diag };
+        }
+        const V = rdp(P, Math.max(0.05 * diag, 3 * px));
+        const segs = V.length - 1;
+        if (segs >= 2 && segs <= 4){
+          const lens = [];
+          for (let i = 0; i < segs; i++) lens.push(d2(V[i], V[i + 1]));
+          const tot = lens.reduce((s, l) => s + l, 0);
+          const back = (p, q, r) => {
+            const u = [q[0] - p[0], q[1] - p[1]], w = [r[0] - q[0], r[1] - q[1]];
+            return (u[0] * w[0] + u[1] * w[1]) / ((Math.hypot(...u) * Math.hypot(...w)) || 1) < -0.3;
+          };
+          // a line and a hook turned back at one end: an arrow
+          if (segs <= 3 && lens[0] > 0.6 * tot && back(V[0], V[1], V[2]))
+            return { t:'line', pts:[V[0], V[1]], dash:'solid', a1:true, diag };
+          if (segs <= 3 && lens[segs - 1] > 0.6 * tot && back(V[segs - 2], V[segs - 1], V[segs]))
+            return { t:'line', pts:[V[segs - 1], V[segs]], dash:'solid', a0:true, diag };
+          // straight runs meeting at real corners, not a curve that RDP has cut short
+          const fit = Math.max(...P.map(p => Math.min(...V.slice(1).map((v, i) => segDist(p, V[i], v)))));
+          const sharp = V.slice(1, -1).every((v, i) => {
+            const a = V[i], b = V[i + 2], u = [v[0] - a[0], v[1] - a[1]], w = [b[0] - v[0], b[1] - v[1]];
+            return (u[0] * w[0] + u[1] * w[1]) / ((Math.hypot(...u) * Math.hypot(...w)) || 1) < Math.cos(40 * Math.PI / 180);
+          });
+          if (tot > 0.88 * L && sharp && fit < Math.max(0.03 * diag, 3 * px))
+            return { t:'line', pts:V, dash:'solid', elbow:true, diag };
+        }
+        return { t:'ink', diag };
+      }
+
+      // a box's edge, on the way from its middle toward q
+      function edgeToward(s, q){
+        const cx = cxOf(s), cy = cyOf(s), dx = q[0] - cx, dy = q[1] - cy;
+        if (!dx && !dy) return [cx, cy];
+        const hw = s.w / 2 || 1, hh = s.h / 2 || 1;
+        const t = s.t === 'ellipse' ? 1 / Math.hypot(dx / hw, dy / hh)
+                : s.t === 'diamond' ? 1 / (Math.abs(dx) / hw + Math.abs(dy) / hh)
+                : Math.min(dx ? hw / Math.abs(dx) : Infinity, dy ? hh / Math.abs(dy) : Infinity);
+        return [cx + dx * t, cy + dy * t];
+      }
+      // a run within a few degrees of level or upright is made so
+      function squareUp(pts){
+        for (let i = 1; i < pts.length; i++){
+          const a = pts[i - 1], b = pts[i];
+          const ang = Math.abs(Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI);
+          if (ang < 9 || ang > 171) b[1] = a[1];
+          else if (Math.abs(ang - 90) < 9) b[0] = a[0];
+        }
+        return pts;
+      }
+
+      function formulate(){
+        if (!drawing) return;
+        const px = 1 / vs;
+        const S = drawing.shapes;
+        const raw = S.filter(s => s.t === 'ink' && !s.kept);
+        if (!raw.length && !S.some(s => s.t !== 'ink')){ say('Draw something first'); return; }
+        pushHist();
+        const made = raw.map(s => Object.assign(recognise(s.pts, px), { src:s }));
+        const used = new Set();
+        const lenOf = r => r.t === 'line' ? d2(r.pts[0], r.pts[r.pts.length - 1]) : 0;
+        const out = S.filter(s => s.t !== 'ink' || s.kept);
+
+        // short pieces on one line: a dashed line, or dots, a dotted one
+        const pieces = made.filter(r => r.t === 'dot' || (r.t === 'line' && r.pts.length === 2 && lenOf(r) < 40 * px));
+        const midOf = r => r.t === 'dot' ? r.c : [(r.pts[0][0] + r.pts[1][0]) / 2, (r.pts[0][1] + r.pts[1][1]) / 2];
+        const dirOf = r => { if (r.t === 'dot') return null; const l = lenOf(r) || 1;
+          return [(r.pts[1][0] - r.pts[0][0]) / l, (r.pts[1][1] - r.pts[0][1]) / l]; };
+        const up = pieces.map((_, i) => i);
+        const find = i => up[i] === i ? i : (up[i] = find(up[i]));
+        const SIN = Math.sin(16 * Math.PI / 180);
+        const crossOf = (u, v) => Math.abs(u[0] * v[1] - u[1] * v[0]);
+        for (let i = 0; i < pieces.length; i++) for (let j = i + 1; j < pieces.length; j++){
+          const A = pieces[i], B = pieces[j], ma = midOf(A), mb = midOf(B), d = d2(ma, mb);
+          if (!d || d > 3.2 * Math.max(lenOf(A), lenOf(B), 6 * px) + 14 * px) continue;
+          const v = [(mb[0] - ma[0]) / d, (mb[1] - ma[1]) / d];
+          const ua = dirOf(A), ub = dirOf(B);
+          if (ua && crossOf(ua, v) > SIN) continue;
+          if (ub && crossOf(ub, v) > SIN) continue;
+          if (ua && ub && crossOf(ua, ub) > SIN) continue;
+          up[find(i)] = find(j);
+        }
+        const groups = new Map();
+        pieces.forEach((r, i) => { const k = find(i); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
+        groups.forEach(g => {
+          const dots = g.filter(r => r.t === 'dot').length;
+          if (g.length < (dots > g.length / 2 ? 3 : 2)) return;
+          const P = [];
+          g.forEach(r => { if (r.t === 'dot') P.push(r.c); else P.push(...r.pts); });
+          let A = P[0], B = P[0], far = -1;
+          P.forEach(p => P.forEach(q => { const d = d2(p, q); if (d > far){ far = d; A = p; B = q; } }));
+          if (P.some(p => segDist(p, A, B) > Math.max(8 * px, 0.08 * far))) return;
+          g.forEach(r => used.add(r));
+          out.push({ t:'line', id:sid(), pts:squareUp([A.slice(), B.slice()]), dash: dots > g.length / 2 ? 'dot' : 'dash' });
+        });
+
+        // the shapes, the larger first; anything small inside a box is writing
+        const SMALL = 26 * px;
+        const big = made.filter(r => !used.has(r) && ['rect', 'ellipse', 'diamond', 'poly', 'line'].includes(r.t) && r.diag >= SMALL)
+                        .sort((a, b) => b.diag - a.diag);
+        const writing = [];
+        big.forEach(r => {
+          const rb = r.pts ? bboxOf(r.pts) : r;
+          const host = out.concat(big.filter(o => o !== r && isBox(o))).filter(isBox).find(o =>
+            o !== r && rb.x >= o.x && rb.y >= o.y && rb.x + rb.w <= o.x + o.w && rb.y + rb.h <= o.y + o.h &&
+            r.diag < 0.6 * Math.min(o.w, o.h));
+          if (host){ writing.push(r); return; }
+          used.add(r);
+          const s = { t:r.t, id:sid() };
+          if (r.pts){
+            s.pts = r.pts.map(p => p.slice());
+            if (r.t === 'line'){ s.dash = 'solid'; s.a0 = !!r.a0; s.a1 = !!r.a1; s.elbow = !!r.elbow; squareUp(s.pts); }
+          } else {
+            Object.assign(s, { x:r.x, y:r.y, w:r.w, h:r.h });
+            // round and near enough even is a circle
+            if (r.t === 'ellipse' && Math.abs(r.w - r.h) < 0.15 * Math.max(r.w, r.h)){
+              const m = (r.w + r.h) / 2; s.x += (r.w - m) / 2; s.y += (r.h - m) / 2; s.w = s.h = m;
+            }
+          }
+          out.push(s);
+        });
+
+        // a small mark at a line's end is its arrowhead
+        const lines = out.filter(s => s.t === 'line');
+        made.filter(r => !used.has(r) && !writing.includes(r)).forEach(r => {
+          const P = r.src.pts, rb = bboxOf(P), diag = Math.hypot(rb.w, rb.h);
+          const c = [rb.x + rb.w / 2, rb.y + rb.h / 2];
+          let best = null;
+          lines.forEach(l => {
+            const L = plen(l.pts);
+            [[0, 1], [l.pts.length - 1, l.pts.length - 2]].forEach(([e, n]) => {
+              const E = l.pts[e], N = l.pts[n];
+              const d = Math.min(...P.map(p => d2(p, E)));
+              const behind = (c[0] - E[0]) * (N[0] - E[0]) + (c[1] - E[1]) * (N[1] - E[1]) > 0;
+              if (d < Math.max(10 * px, 0.15 * L) && diag < 0.5 * L && diag < 60 * px && behind && (!best || d < best.d))
+                best = { d, l, end:e === 0 ? 'a0' : 'a1' };
+            });
+          });
+          if (best){ best.l[best.end] = true; used.add(r); }
+        });
+
+        // what is left is kept as it was drawn
+        made.filter(r => !used.has(r)).forEach(r => out.push({ t:'ink', id:sid(), pts:r.src.pts, kept:true }));
+        const n = made.filter(r => used.has(r)).length;
+        drawing.shapes = out;
+        tidy(out, px);
+        renderInk();
+        say(n ? `Formulated ${String(n).padStart(2, '0')}` : 'Tidied');
+      }
+
+      /* The graph: boxes alike made one size, rows and columns lined up,
+         a row of three or more spaced evenly, and every line that meets a
+         box joined to it. */
+      function tidy(S, px){
+        const boxes = S.filter(isBox);
+        const was = new Map(boxes.map(b => [b, [cxOf(b), cyOf(b)]]));
+        const median = a => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+        const sameSize = (key) => BOXES.forEach(t => {
+          const of = boxes.filter(b => b.t === t).sort((a, b) => a[key] - b[key]);
+          let run = [];
+          const flush = () => { if (run.length > 1){ const m = median(run.map(b => b[key]));
+            run.forEach(b => { const c = key === 'w' ? cxOf(b) : cyOf(b); b[key] = m; if (key === 'w') b.x = c - m / 2; else b.y = c - m / 2; }); } run = []; };
+          of.forEach(b => { if (run.length && b[key] > run[0][key] * 1.2) flush(); run.push(b); });
+          flush();
+        });
+        sameSize('w'); sameSize('h');
+        const line = (axis) => {
+          const c = axis === 'y' ? cyOf : cxOf, size = axis === 'y' ? 'h' : 'w';
+          const of = boxes.slice().sort((a, b) => c(a) - c(b));
+          let run = [];
+          const flush = () => { if (run.length > 1){ const m = run.reduce((s, b) => s + c(b), 0) / run.length;
+            run.forEach(b => { b[axis] = m - b[size] / 2; }); } run = []; };
+          of.forEach(b => {
+            if (run.length && Math.abs(c(b) - c(run[0])) > 0.45 * Math.min(...run.map(o => o[size]), b[size])) flush();
+            run.push(b);
+          });
+          flush();
+        };
+        line('y');
+        // a row of three or more, spaced near evenly, is spaced evenly
+        const rows = new Map();
+        boxes.forEach(b => { const k = Math.round(cyOf(b) * 10); if (!rows.has(k)) rows.set(k, []); rows.get(k).push(b); });
+        rows.forEach(r => {
+          if (r.length < 3) return;
+          r.sort((a, b) => a.x - b.x);
+          const gaps = r.slice(1).map((b, i) => b.x - (r[i].x + r[i].w));
+          const mean = gaps.reduce((s, g) => s + g, 0) / gaps.length;
+          if (gaps.some(g => g <= 0) || Math.max(...gaps) - Math.min(...gaps) > 0.6 * mean) return;
+          let x = r[0].x + r[0].w;
+          r.slice(1).forEach(b => { b.x = x + mean; x = b.x + b.w; });
+        });
+        // and a box under another is set under it, which can outrank the spacing
+        line('x');
+        // writing inside a box goes where its box went
+        boxes.forEach(b => {
+          const [ox, oy] = was.get(b), dx = cxOf(b) - ox, dy = cyOf(b) - oy;
+          S.forEach(s => {
+            if (s.t !== 'ink') return;
+            if (s.in == null){
+              const bb = bboxOf(s.pts), cx = bb.x + bb.w / 2, cy = bb.y + bb.h / 2;
+              if (cx > ox - b.w / 2 && cx < ox + b.w / 2 && cy > oy - b.h / 2 && cy < oy + b.h / 2) s.in = b.id;
+            }
+            if (s.in === b.id && (dx || dy)) s.pts = s.pts.map(p => [p[0] + dx, p[1] + dy]);
+          });
+        });
+        // lines that meet a box are joined to it
+        const boxAt = p => {
+          const hit = boxes.filter(b => { const t = Math.max(14 * px, 0.2 * Math.min(b.w, b.h));
+            return p[0] > b.x - t && p[0] < b.x + b.w + t && p[1] > b.y - t && p[1] < b.y + b.h + t; });
+          return hit.sort((a, b) => a.w * a.h - b.w * b.h)[0] || null;
+        };
+        const byIdS = id => boxes.find(b => b.id === id) || null;
+        S.filter(s => s.t === 'line').forEach(l => {
+          const end = l.pts.length - 1;
+          const A = byIdS(l.from) || boxAt(l.pts[0]);
+          const B = byIdS(l.to) || boxAt(l.pts[end]);
+          l.from = A ? A.id : null; l.to = B ? B.id : null;
+          if (A && B && A !== B){
+            const ax = cxOf(A), ay = cyOf(A), bx = cxOf(B), by = cyOf(B);
+            const sepY = Math.max(B.y - (A.y + A.h), A.y - (B.y + B.h));
+            if (Math.abs(ax - bx) < 0.5 || Math.abs(ay - by) < 0.5 || !l.elbow){
+              l.pts = Math.abs(ax - bx) < 0.5 ? [[ax, by > ay ? A.y + A.h : A.y], [bx, by > ay ? B.y : B.y + B.h]]
+                    : Math.abs(ay - by) < 0.5 ? [[bx > ax ? A.x + A.w : A.x, ay], [bx > ax ? B.x : B.x + B.w, by]]
+                    : [edgeToward(A, [bx, by]), edgeToward(B, [ax, ay])];
+            } else if (sepY > 0){
+              const p0 = [ax, by > ay ? A.y + A.h : A.y], p3 = [bx, by > ay ? B.y : B.y + B.h], my = (p0[1] + p3[1]) / 2;
+              l.pts = [p0, [ax, my], [bx, my], p3];
+            } else {
+              const p0 = [bx > ax ? A.x + A.w : A.x, ay], p3 = [bx > ax ? B.x : B.x + B.w, by], mx = (p0[0] + p3[0]) / 2;
+              l.pts = [p0, [mx, ay], [mx, by], p3];
+            }
+          } else {
+            squareUp(l.pts);
+            if (A && A !== B) l.pts[0] = edgeToward(A, l.pts[1]);
+            if (B && A !== B) l.pts[end] = edgeToward(B, l.pts[end - 1]);
+          }
+        });
+      }
+
+      /* ---------- DRAWN ----------
+         One way of drawing shapes, for the paper and for the picture Done
+         makes of them. Every number goes through f1 and every word through
+         escH, so a drawing read back from a file can only ever be shapes. */
+      const DASH = { solid:'', dash:'4 3', dot:'0 2.6' };
+      function smooth(P){
+        if (P.length < 3) return P.length ? `M${f1(P[0][0])} ${f1(P[0][1])}` + (P[1] ? ` L${f1(P[1][0])} ${f1(P[1][1])}` : ' l0.01 0') : '';
+        let d = `M${f1(P[0][0])} ${f1(P[0][1])}`;
+        for (let i = 1; i < P.length - 1; i++){
+          const m = [(P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2];
+          d += ` Q${f1(P[i][0])} ${f1(P[i][1])} ${f1(m[0])} ${f1(m[1])}`;
+        }
+        const z = P[P.length - 1];
+        return d + ` L${f1(z[0])} ${f1(z[1])}`;
+      }
+      function head(tip, from, sw){
+        const a = Math.atan2(tip[1] - from[1], tip[0] - from[0]), h = sw * 5.5, s = 0.45;
+        const l = [tip[0] - h * Math.cos(a - s), tip[1] - h * Math.sin(a - s)];
+        const r = [tip[0] - h * Math.cos(a + s), tip[1] - h * Math.sin(a + s)];
+        return `<path d="M${f1(l[0])} ${f1(l[1])} L${f1(tip[0])} ${f1(tip[1])} L${f1(r[0])} ${f1(r[1])}" fill="none"/>`;
+      }
+      function labelSvg(s){
+        const words = String(s.label || '').split(/\s+/).filter(Boolean);
+        if (!words.length) return '';
+        const inner = s.t === 'rect' ? 0.86 : 0.68, maxW = s.w * inner, maxH = s.h * (s.t === 'rect' ? 0.8 : 0.6);
+        let fs = Math.min(s.h * 0.3, maxW / 2), lines = [];
+        for (let k = 0; k < 40; k++, fs *= 0.92){
+          const per = Math.max(1, Math.floor(maxW / (0.56 * fs)));
+          lines = [];
+          let cur = '';
+          words.forEach(w => { const t = cur ? cur + ' ' + w : w; if (t.length > per && cur){ lines.push(cur); cur = w; } else cur = t; });
+          if (cur) lines.push(cur);
+          if (lines.length * fs * 1.2 <= maxH && Math.max(...lines.map(l => l.length)) * 0.56 * fs <= maxW) break;
+        }
+        const cx = cxOf(s), top = cyOf(s) - (lines.length - 1) * fs * 0.6;
+        return `<text font-family="'Inter Tight', Helvetica, Arial, sans-serif" font-size="${f1(fs)}" text-anchor="middle" ` +
+               `dominant-baseline="central" fill="#222222" stroke="none">` +
+               lines.map((l, i) => `<tspan x="${f1(cx)}" y="${f1(top + i * fs * 1.2)}">${escH(l)}</tspan>`).join('') + `</text>`;
+      }
+      function shapesSvg(S, sw){
+        const w = f1(sw);
+        const boxes = S.filter(s => isBox(s) || s.t === 'poly').map(s => {
+          const shape = s.t === 'rect' ? `<rect x="${f1(s.x)}" y="${f1(s.y)}" width="${f1(s.w)}" height="${f1(s.h)}"/>`
+            : s.t === 'ellipse' ? `<ellipse cx="${f1(cxOf(s))}" cy="${f1(cyOf(s))}" rx="${f1(s.w / 2)}" ry="${f1(s.h / 2)}"/>`
+            : s.t === 'diamond' ? `<polygon points="${f1(cxOf(s))},${f1(s.y)} ${f1(s.x + s.w)},${f1(cyOf(s))} ${f1(cxOf(s))},${f1(s.y + s.h)} ${f1(s.x)},${f1(cyOf(s))}"/>`
+            : `<polygon points="${s.pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}"/>`;
+          return shape + (isBox(s) ? labelSvg(s) : '');
+        }).join('');
+        const lines = S.filter(s => s.t === 'line').map(s => {
+          const P = s.pts, n = P.length - 1;
+          const dash = DASH[s.dash] ? ` stroke-dasharray="${DASH[s.dash].split(' ').map(v => f1(v * sw)).join(' ')}"` : '';
+          return `<polyline points="${P.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none"${dash}/>` +
+                 (s.a1 ? head(P[n], P[n - 1], sw) : '') + (s.a0 ? head(P[0], P[1], sw) : '');
+        }).join('');
+        const inks = S.filter(s => s.t === 'ink').map(s => `<path d="${smooth(s.pts)}" fill="none"/>`).join('');
+        return `<g fill="#ffffff" stroke="#222222" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">` +
+               boxes + lines + inks + `</g>`;
+      }
+      // a drawing read back from a file or a database: shapes, and only shapes
+      function cleanDraw(d){
+        const num = v => Number(v) || 0;
+        const pts = a => (Array.isArray(a) ? a : []).filter(Array.isArray).map(p => [num(p[0]), num(p[1])]);
+        const shapes = (d && Array.isArray(d.shapes) ? d.shapes : []).map(s => {
+          if (!s || typeof s !== 'object') return null;
+          const id = String(s.id || sid()).slice(0, 40);
+          if (BOXES.includes(s.t)) return { t:s.t, id, x:num(s.x), y:num(s.y), w:num(s.w), h:num(s.h),
+                                            label:typeof s.label === 'string' ? s.label.slice(0, 200) : '' };
+          if (s.t === 'poly') return { t:'poly', id, pts:pts(s.pts) };
+          if (s.t === 'line') return { t:'line', id, pts:pts(s.pts), dash:DASH[s.dash] != null ? s.dash : 'solid',
+                                       a0:!!s.a0, a1:!!s.a1, elbow:!!s.elbow,
+                                       from:s.from ? String(s.from).slice(0, 40) : null, to:s.to ? String(s.to).slice(0, 40) : null };
+          if (s.t === 'ink') return { t:'ink', id, pts:pts(s.pts), kept:!!s.kept, in:s.in ? String(s.in).slice(0, 40) : null };
+          return null;
+        }).filter(s => s && (s.pts ? s.pts.length : s.w > 0 && s.h > 0));
+        return { shapes, sw:num(d && d.sw) || 2, w0:num(d && d.w0) || 1, h0:num(d && d.h0) || 1 };
+      }
+      const drawSvg = (d, standalone) =>
+        `<svg xmlns="${SVGNS}" viewBox="0 0 ${f1(d.w0)} ${f1(d.h0)}"` +
+        (standalone ? ` width="${f1(d.w0)}" height="${f1(d.h0)}"` : ` width="100%"`) +
+        `>${shapesSvg(d.shapes, d.sw)}</svg>`;
+
+      function renderInk(){
+        if (!drawing){ inkSvg.innerHTML = ''; return; }
+        inkSvg.innerHTML = shapesSvg(drawing.shapes, drawing.sw) +
+          `<polyline id="rfCur" fill="none" stroke="#222222" stroke-width="${f1(drawing.sw)}" stroke-linecap="round" stroke-linejoin="round" points=""/>`;
+        paintCur();
+      }
+      function paintCur(){
+        const pl = inkSvg.querySelector('#rfCur');
+        if (pl) pl.setAttribute('points', drawing && drawing.cur ? drawing.cur.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ') : '');
+      }
+      function pushHist(){
+        drawing.hist.push(JSON.stringify(drawing.shapes));
+        if (drawing.hist.length > 60) drawing.hist.shift();
+      }
+      function undoDraw(){
+        if (!drawing || !drawing.hist.length){ say('Nothing to undo'); return; }
+        drawing.shapes = JSON.parse(drawing.hist.pop());
+        renderInk();
+      }
+
+      function mapShape(s, ox, oy, k){
+        const o = JSON.parse(JSON.stringify(s));
+        if (o.pts) o.pts = o.pts.map(p => [ox + p[0] * k, oy + p[1] * k]);
+        if (isBox(o)){ o.x = ox + o.x * k; o.y = oy + o.y * k; o.w *= k; o.h *= k; }
+        return o;
+      }
+      function startDraw(from){
+        if (drawing) return;
+        if (writing) editText(writing, false);
+        select(null); pickNone();
+        toggleSearch(false); toggleSend(false);
+        drawing = { shapes:[], sw:2.2 / vs, hist:[], editing:null, cur:null, taps:null };
+        if (from && from.draw){
+          const d = from.draw, k = from.w / d.w0;
+          drawing.shapes = d.shapes.map(s => mapShape(s, from.x - wOf(from) / 2, from.y - hOf(from) / 2, k));
+          drawing.sw = d.sw * k;
+          drawing.editing = from;
+          from.el.style.visibility = 'hidden';
+        }
+        root.classList.add('rf-drawing');
+        drawEl.hidden = false;
+        T('draw').setAttribute('aria-pressed', 'true');
+        renderInk(); sync();
+      }
+      function endDraw(){
+        if (!drawing) return;
+        closeLabel(true);
+        const d = drawing;
+        drawing = null;
+        root.classList.remove('rf-drawing');
+        drawEl.hidden = true;
+        T('draw').setAttribute('aria-pressed', 'false');
+        renderInk();
+        const stamp = d.editing ? d.editing.stamp : null;
+        if (d.editing) remove(d.editing);
+        if (!d.shapes.length){ sync(); return; }
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        d.shapes.forEach(s => {
+          const b = s.pts ? bboxOf(s.pts) : s;
+          x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.w); y1 = Math.max(y1, b.y + b.h);
+        });
+        const pad = d.sw * 7;
+        const w0 = x1 - x0 + pad * 2, h0 = y1 - y0 + pad * 2;
+        const it = { id:uid(), name:'Drawing', ar:h0 / w0, x:(x0 + x1) / 2, y:(y0 + y1) / 2, w:w0, z:++zTop,
+                     gid:null, garment:null, mode:1, credit:null, shot:0, stamp,
+                     draw:{ shapes:d.shapes.map(s => mapShape(s, pad - x0, pad - y0, 1)), sw:d.sw, w0, h0 } };
+        items.push(it); mount(it);
+        clustered = false;
+        select(it);
+        sync(); save();
+      }
+      function mountDraw(it){
+        const el = document.createElement('div');
+        el.className = 'rf-item rf-draw';
+        el.dataset.id = it.id;
+        const pic = Object.assign(document.createElement('div'), { className:'rf-dsvg' });
+        pic.innerHTML = drawSvg(it.draw);
+        const del = Object.assign(document.createElement('button'), { type:'button', className:'rf-del' });
+        del.setAttribute('aria-label', 'Remove this drawing');
+        const size = Object.assign(document.createElement('span'), { className:'rf-size' });
+        const pen = Object.assign(document.createElement('button'), { type:'button', className:'rf-pen' });
+        pen.setAttribute('aria-label', 'Draw on it again');
+        const stamp = Object.assign(document.createElement('button'), { type:'button', className:'rf-stamp' });
+        el.append(pic, del, size, pen, stamp);
+        it.el = el;
+        paintStamp(it);
+        place(it);
+        stage.appendChild(el);
+      }
+
+      // a stroke begun, carried and finished; a double-tap names a box
+      function drawDown(e){
+        root.setPointerCapture(e.pointerId);
+        pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+        if (pts.size === 2){
+          drawing.cur = null; paintCur();
+          const [a, b] = [...pts.values()];
+          g = { mode:'pinch', item:null, d0:dist(a, b), w0:0, vs0:vs, vx0:vx, vy0:vy, m0:mid(a, b) };
+          return;
+        }
+        if (pts.size > 2) return;
+        if (spaceDown || e.button === 1){
+          root.classList.add('panning');
+          g = { mode:'pan', sx:e.clientX, sy:e.clientY, vx0:vx, vy0:vy };
+          return;
+        }
+        const p = toWorld(e.clientX, e.clientY);
+        drawing.cur = [[p.x, p.y]];
+        g = { mode:'draw', t0:Date.now() };
+        paintCur();
+      }
+      function drawMove(e){
+        if (!drawing || !drawing.cur) return;
+        const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+        (evs.length ? evs : [e]).forEach(ev => {
+          const p = toWorld(ev.clientX, ev.clientY), last = drawing.cur[drawing.cur.length - 1];
+          if (Math.hypot(p.x - last[0], p.y - last[1]) * vs >= 1.5) drawing.cur.push([p.x, p.y]);
+        });
+        paintCur();
+      }
+      function drawUp(){
+        const cur = drawing && drawing.cur;
+        if (!cur) return;
+        drawing.cur = null;
+        const bb = bboxOf(cur), now = Date.now();
+        if (Math.hypot(bb.w, bb.h) * vs < 5 && now - g.t0 < 350){
+          const p = cur[0], prev = drawing.taps;
+          if (prev && now - prev.t < 420 && d2(p, prev.p) * vs < 14){
+            drawing.taps = null;
+            drawing.shapes = drawing.shapes.filter(s => s !== prev.added);
+            drawing.hist.pop();
+            renderInk();
+            editLabel(p);
+            return;
+          }
+          pushHist();
+          const dot = { t:'ink', id:sid(), pts:[p, [p[0] + 0.01, p[1]]] };
+          drawing.shapes.push(dot);
+          drawing.taps = { t:now, p, added:dot };
+          renderInk();
+          return;
+        }
+        drawing.taps = null;
+        pushHist();
+        drawing.shapes.push({ t:'ink', id:sid(), pts:cur.map(q => [f1(q[0]), f1(q[1])]) });
+        renderInk();
+      }
+
+      let labelIn = null;
+      function editLabel(p){
+        const s = drawing.shapes.filter(o => isBox(o) && p[0] >= o.x && p[0] <= o.x + o.w && p[1] >= o.y && p[1] <= o.y + o.h)
+                                .sort((a, b) => a.w * a.h - b.w * b.h)[0];
+        if (!s){ say('Formulate, then double-tap a box to name it'); return; }
+        closeLabel(true);
+        const a = toScreen(s.x, s.y), b = toScreen(s.x + s.w, s.y + s.h);
+        const w = Math.max(140, b.x - a.x);
+        const inp = Object.assign(document.createElement('input'), { type:'text', className:'rf-label-in', value:s.label || '' });
+        inp.setAttribute('aria-label', 'Name this box');
+        inp.placeholder = 'Name';
+        Object.assign(inp.style, { left:((a.x + b.x) / 2 - w / 2) + 'px', top:((a.y + b.y) / 2 - 18) + 'px', width:w + 'px' });
+        labelIn = { inp, id:s.id };
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter'){ e.preventDefault(); closeLabel(true); }
+          else if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeLabel(false); }
+        });
+        inp.addEventListener('blur', () => closeLabel(true));
+        inp.addEventListener('pointerdown', e => e.stopPropagation());
+        root.appendChild(inp);
+        inp.focus(); inp.select();
+      }
+      function closeLabel(keep){
+        if (!labelIn) return;
+        const { inp, id } = labelIn;
+        labelIn = null;
+        inp.remove();
+        if (!keep || !drawing) return;
+        const s = drawing.shapes.find(o => o.id === id);
+        const v = inp.value.trim().slice(0, 200);
+        if (!s || v === (s.label || '')) return;
+        pushHist();
+        s.label = v;
+        // the name typed takes the place of what was written there
+        if (v) drawing.shapes = drawing.shapes.filter(o => !(o.t === 'ink' && o.in === id));
+        renderInk();
+      }
+
+      document.getElementById('drUndo').addEventListener('click', undoDraw);
+      document.getElementById('drClear').addEventListener('click', () => {
+        if (!drawing || !drawing.shapes.length) return;
+        pushHist(); drawing.shapes = []; renderInk();
+      });
+      document.getElementById('drForm').addEventListener('click', formulate);
+      document.getElementById('drDone').addEventListener('click', endDraw);
+
       /* ---------- MORE THAN ONE ----------
          Shift-press adds an image to the pick or takes it out; Shift-drag
          on the board draws a box and picks everything it touches. A drag on
@@ -11394,7 +12101,7 @@
       }
 
       function sync(){
-        empty.hidden = items.length > 0;
+        empty.hidden = items.length > 0 || !!drawing;
         countEl.textContent = String(items.length).padStart(2, '0');
         T('cluster').disabled = items.length < 2;
         T('reverse').disabled = !before;
@@ -11847,7 +12554,8 @@
         const wasEmpty = !items.length;
         const ok = [];
         for (const en of entries){
-          try { ok.push({ ...en, ar: en.text != null ? (en.ar > 0 ? en.ar : 0.25) : await measure(en.blob) }); } catch {}
+          try { ok.push({ ...en, ar: en.draw ? en.draw.h0 / en.draw.w0
+                                   : en.text != null ? (en.ar > 0 ? en.ar : 0.25) : await measure(en.blob) }); } catch {}
         }
         if (!ok.length) return { added:0, refused:entries.length };
         const made = [], byKey = {};
@@ -11857,6 +12565,7 @@
                        gid:null, garment:en.garment || null, mode, credit:en.credit || null, shot:en.shot || 0,
                        stamp:en.stamp || null };
           if (en.text != null) it.text = cleanText(en.text);
+          if (en.draw) it.draw = en.draw;
           items.push(it); mount(it); made.push(it);
           if (en.key) byKey[en.key] = it;
           return it;
@@ -12164,7 +12873,9 @@
         const imgs = entries.filter(en => TYPES[extOfName(en.name)]);
         // text boxes are in references.json itself; their .txt is for reading outside
         const texts = Object.values(lay).filter(r => typeof r.text === 'string');
-        if (!imgs.length && !texts.length) throw new Error('no images');
+        // and so are drawings; their .svg is the picture, for anywhere else
+        const draws = Object.values(lay).filter(r => r.draw && typeof r.draw === 'object');
+        if (!imgs.length && !texts.length && !draws.length) throw new Error('no images');
         const layOf = r => r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0
           ? { x:r.x, y:r.y, w:r.w, z:r.z || 0, mode:[1, 2, 3].includes(r.mode) ? r.mode : 1 } : null;
         const got = imgs.map(en => {
@@ -12174,7 +12885,9 @@
                    credit:(r && r.credit) || null, shot:(r && r.shot) || 0,
                    stamp:(r && r.stamp) || null, lay:layOf(r) };
         }).concat(texts.filter(layOf).map(r => ({ key:r.file, text:r.text, ar:Number(r.ar) || 0.25,
-                   name:'Text', stamp:r.stamp || null, lay:layOf(r) })));
+                   name:'Text', stamp:r.stamp || null, lay:layOf(r) })))
+         .concat(draws.filter(layOf).map(r => ({ key:r.file, draw:cleanDraw(r.draw), name:'Drawing',
+                   stamp:r.stamp || null, lay:layOf(r) })));
         // in the order they were laid down, so the stacking comes back too
         got.sort((a, b) => ((a.lay || {}).z || 0) - ((b.lay || {}).z || 0));
         return { locks: lockSpec, entries: got };
@@ -12215,14 +12928,16 @@
         };
         for (let i = 0; i < order.length; i++){
           const it = order[i];
-          const isText = it.text != null;
-          const file = `${String(i + 1).padStart(pad, '0')}.${isText ? 'txt' : extOf(it)}`;
+          const isText = it.text != null, isDraw = !!it.draw;
+          const file = `${String(i + 1).padStart(pad, '0')}.${isText ? 'txt' : isDraw ? 'svg' : extOf(it)}`;
           fileOf[it.id] = file;
           files.push({ name:file, data:isText ? enc.encode(plainOf(it.text))
+                                     : isDraw ? enc.encode(drawSvg(it.draw, true))
                                               : new Uint8Array(await it.blob.arrayBuffer()) });
           const row = { file, name:it.name || file, x:Math.round(it.x * 10) / 10,
                         y:Math.round(it.y * 10) / 10, w:Math.round(it.w * 10) / 10, z:i + 1 };
           if (isText){ row.text = it.text; row.ar = Math.round(it.ar * 1e4) / 1e4; }
+          if (isDraw) row.draw = it.draw;
           if (it.stamp) row.stamp = it.stamp;
           if (it.garment) row.garment = it.garment;
           if (modeOf(it) > 1) row.mode = modeOf(it);
@@ -13351,8 +14066,8 @@
           try {
             const d = await db();
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
-              items: items.map(({ id, blob, text, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp }) =>
-                               ({ id, blob, text, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp })),
+              items: items.map(({ id, blob, text, draw, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp }) =>
+                               ({ id, blob, text, draw, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -13368,8 +14083,9 @@
           });
           if (!got || !Array.isArray(got.items) || items.length) return;
           got.items.forEach(s => {
-            if (!(s.blob instanceof Blob) && typeof s.text !== 'string') return;
+            if (!(s.blob instanceof Blob) && typeof s.text !== 'string' && !s.draw) return;
             const it = { ...s };
+            if (it.draw) it.draw = cleanDraw(it.draw);
             items.push(it); mount(it);
           });
           locks = (got.locks || []).filter(l => byId(l.p) && byId(l.c));
@@ -13400,7 +14116,12 @@
 
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
-        if (e.target.closest('.rf-del, .rf-cut, .rf-stamp, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
+        if (drawing){
+          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
+          drawDown(e);
+          return;
+        }
+        if (e.target.closest('.rf-del, .rf-cut, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -13470,6 +14191,7 @@
         if (!pts.has(e.pointerId)) return;
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
         if (!g) return;
+        if (g.mode === 'draw'){ drawMove(e); return; }
         if (g.mode === 'move'){
           let dx = (e.clientX - g.sx) / vs, dy = (e.clientY - g.sy) / vs;
           // lined up against what is near, unless Alt says place it freely
@@ -13567,6 +14289,8 @@
         pts.delete(e.pointerId);
         root.classList.remove('panning');
         hideGuides();
+        if (g && g.mode === 'draw'){ drawUp(); g = null; return; }
+        if (drawing){ g = null; return; }
         if (g && g.mode === 'box'){
           g.box.remove();
           // one picked by the box is simply the picked image, handles and all
@@ -13585,6 +14309,13 @@
       root.addEventListener('pointercancel', lift);
 
       root.addEventListener('click', e => {
+        if (drawing) return;
+        const penBtn = e.target.closest('.rf-pen');
+        if (penBtn){
+          const it = byId(penBtn.closest('.rf-item').dataset.id);
+          if (it) startDraw(it);
+          return;
+        }
         // a view changed or a lock undone resizes a box: clear what it leaves
         if (e.target.closest('.rf-del, .rf-dot, .rf-cut, .rf-mode, .rf-joint')) requestAnimationFrame(repaint);
         const del = e.target.closest('.rf-del');
@@ -13674,6 +14405,12 @@
         if (!isOpen) return;
         const t = e.target;
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+        if (drawing){
+          if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); endDraw(); }
+          else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); e.stopPropagation(); undoDraw(); }
+          else if (e.key === ' '){ e.preventDefault(); e.stopPropagation(); spaceDown = true; }
+          return;
+        }
         const DIRS = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
         if (e.key === 'Shift') root.classList.add('rf-shift');
         if (e.key === 'Escape'){
@@ -13706,7 +14443,7 @@
         }
       }, true);
 
-      window.addEventListener('keyup', e => { if (e.key === 'Shift') root.classList.remove('rf-shift'); });
+      window.addEventListener('keyup', e => { if (e.key === 'Shift') root.classList.remove('rf-shift'); if (e.key === ' ') spaceDown = false; });
       window.addEventListener('blur', () => root.classList.remove('rf-shift'));
 
       /* ---------- THE BAR AND THE PLUS ---------- */
@@ -13715,7 +14452,8 @@
       tools.addEventListener('click', e => {
         const b = e.target.closest('button[data-act]');
         if (!b || b.disabled) return;
-        ({ add:() => fileIn.click(), search:toggleSearch, text:addText, cluster, reverse, export:exportBoard, clear:clearBoard,
+        if (drawing && b.dataset.act !== 'draw') endDraw();
+        ({ add:() => fileIn.click(), search:toggleSearch, text:addText, draw:() => drawing ? endDraw() : startDraw(), cluster, reverse, export:exportBoard, clear:clearBoard,
            send:() => toggleSend() })[b.dataset.act]();
       });
       wireInfoMark(document.getElementById('refsExportInfo'),
@@ -13782,6 +14520,7 @@
       }
       function close(){
         if (!isOpen) return;
+        endDraw();
         isOpen = false;
         mapsUrl(false);
         cand = null;

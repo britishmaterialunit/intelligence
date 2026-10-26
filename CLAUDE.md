@@ -60,7 +60,19 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   writes in it. **The clock** (`.rf-stamp`, beside the scissors; not on
   garments) sets `stamp`: day and 24-hour time in italics on the top edge,
   pressed again it re-dates, its cross removes it. Both go in `references.json`
-  (text boxes also as a `.txt`). Originally the
+  (text boxes also as a `.txt`). **Draw** (bar button, `startDraw`/`endDraw`) turns the
+  board into paper (`#refsInk`, an SVG in the stage; `#refsDraw` panel top-right:
+  Undo, Clear, Formulate, Done; Space-drag or two fingers pan). **Formulate**
+  (`formulate` → `recognise` per stroke, then `tidy`) reads strokes by shape
+  only — no AI, no network: box, circle/oval, diamond, triangle, line, arrow
+  (hook or V at an end), elbowed line, dashed/dotted line (short collinear
+  pieces); small marks inside a box are writing and kept. `tidy` makes boxes
+  alike one size, aligns rows and columns, spaces rows of 3+ evenly, joins
+  line ends to boxes (straight if drawn straight, elbowed if drawn with a
+  corner). Double-tap a box to type its name (replaces the writing in it).
+  Done makes one item with `draw` ({shapes, sw, w0, h0}, read back through
+  `cleanDraw`); its pen (`.rf-pen`) reopens it. Exported as `.svg` plus
+  `draw` in `references.json`. Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** — **called Maps from now on**; while open the address reads `/maps` (`mapsUrl`: pushed on open, Back closes, `maps.html` is the archive itself re-addressed — **generated** by `tools/build_maps.py` (run by `seo_build.py`; `check.py` fails if it is stale), never edited; a redirect stub made iMessage's preview fall back to the tiled icon) — (and wears
