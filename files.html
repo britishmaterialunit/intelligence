@@ -3587,7 +3587,9 @@
             const boards = fs.filter(boardOnly).length;
             const files = fs.length - boards;
             const fresh = fs.filter(c => !replyOf(c)).length;
-            const first = fs.reduce((a, b) => a.created_at < b.created_at ? a : b);
+            // named by their own file, not by one of their projects' boards
+            const named = fs.filter(c => !boardOnly(c));
+            const first = (named.length ? named : fs).reduce((a, b) => a.created_at < b.created_at ? a : b);
             const label = [files && plural(files, 'file of garments', 'files of garments'),
                            boards && plural(boards, 'reference board', 'reference boards'),
                            fresh && fresh + ' unopened'].filter(Boolean).join(' · ');

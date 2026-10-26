@@ -3895,7 +3895,8 @@
       font-family:var(--font);
     }
     #refsSend[hidden], #sdNew[hidden]{ display:none; }
-    #sdNew{ display:flex; flex-direction:column; }
+    #sdNew, .sd-sub{ display:flex; flex-direction:column; }
+    .sd-sub[hidden]{ display:none; }
     .sd-head{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); margin-bottom:6px; }
     .sd-who{ margin:0 0 2px; font-size:11px; line-height:1.4; color:#8a8a8a; }
     .sd-who a{ color:var(--ink); }
@@ -4171,10 +4172,12 @@
       <label class="sd-lab" for="sdFile">File</label>
       <select id="sdFile" class="sd-field"></select>
       <div id="sdNew">
-        <label class="sd-lab" for="sdTitle">Title</label>
-        <input id="sdTitle" class="sd-field" type="text" autocomplete="off" placeholder="e.g. Spring references">
-        <label class="sd-lab" for="sdEmail">Designer’s email</label>
-        <input id="sdEmail" class="sd-field" type="email" autocomplete="off" spellcheck="false" placeholder="name@studio.com">
+        <label class="sd-lab" for="sdTitle">Project</label>
+        <input id="sdTitle" class="sd-field" type="text" autocomplete="off" placeholder="e.g. Spring 27 outerwear">
+        <div id="sdEmailRow" class="sd-sub">
+          <label class="sd-lab" for="sdEmail">Designer’s email</label>
+          <input id="sdEmail" class="sd-field" type="email" autocomplete="off" spellcheck="false" placeholder="name@studio.com">
+        </div>
       </div>
       <p class="sd-msg" id="sdMsg" role="status" aria-live="polite"></p>
       <div class="sd-row">
@@ -13468,27 +13471,36 @@
           .then(r => r.json())
           .then(rows => {
             fileRows = Array.isArray(rows) ? rows : [];
-            /* One line per person. Somebody who has a board already has it
-               updated — the same file, a version on — so nobody is sent two;
-               somebody who has only files of garments is sent a first one. */
-            const seen = new Set();
+            /* Grouped by person. A person can have any number of boards, one
+               per project — a consultant with several clients, a designer
+               with several lines — and each is updated on its own, the same
+               file a version on. Under them, a new project board for that
+               person, named when it is chosen. */
+            const people = new Map();
             fileRows.forEach(c => {
               const email = String(c.reviewer_email).toLowerCase();
-              const o = document.createElement('option');
-              if (isBoard(c)){
+              if (!people.has(email)) people.set(email, []);
+              people.get(email).push(c);
+            });
+            people.forEach((fs, email) => {
+              const g = document.createElement('optgroup');
+              const who = fs.filter(c => !isBoard(c))[0] || fs[fs.length - 1];
+              g.label = `${who.title} — ${email}`;
+              fs.filter(isBoard).forEach(c => {
+                const o = document.createElement('option');
                 o.value = c.id;
-                o.textContent = `Update “${c.title}” — ${c.reviewer_email} · ${verName(c.board_path)} → V${verOf(c.board_path) + 1}`;
-              } else {
-                if (seen.has(email) || fileRows.some(o2 => isBoard(o2) && String(o2.reviewer_email).toLowerCase() === email)) return;
-                o.value = 'new:' + c.id;
-                o.textContent = `First board for “${c.title}” — ${c.reviewer_email}`;
-              }
-              seen.add(email);
-              sdFile.appendChild(o);
+                o.textContent = `Update “${c.title}” · ${verName(c.board_path)} → V${verOf(c.board_path) + 1}`;
+                g.appendChild(o);
+              });
+              const o = document.createElement('option');
+              o.value = 'new:' + who.id;
+              o.textContent = fs.some(isBoard) ? 'New project board…' : 'First project board…';
+              g.appendChild(o);
+              sdFile.appendChild(g);
             });
             // the board open is one already sent: it goes back to the same file
             if (sentBoard != null && fileRows.some(c => c.id === sentBoard)) sdFile.value = sentBoard;
-            sdNew.hidden = !!sdFile.value;
+            paintNew();
             paintGo();
           })
           .catch(() => sdSay('Could not reach Files. Sign in again from the person icon.'));
@@ -13504,20 +13516,31 @@
         const c = fileRows.find(o => o.id === sdFile.value);
         sdGo.textContent = c && isBoard(c) ? `Send V${verOf(c.board_path) + 1}` : 'Send';
       }
-      sdFile.addEventListener('change', () => { sdNew.hidden = !!sdFile.value; sdSay(''); paintGo(); });
+      // a new board asks its project's name; someone new, their email too
+      function paintNew(){
+        const v = sdFile.value, fresh = v.startsWith('new:');
+        sdNew.hidden = !!v && !fresh;
+        document.getElementById('sdEmailRow').hidden = fresh;
+        if (fresh) sdTitle.focus();
+      }
+      sdFile.addEventListener('change', () => { paintNew(); sdSay(''); paintGo(); });
       document.getElementById('sdCancel').addEventListener('click', () => toggleSend(false));
       sdGo.addEventListener('click', async () => {
         const v = sdFile.value;
-        // a person with files of garments only: their first board, a file of its own beside them
+        // a new project board for somebody already in Files: a file of its own, beside theirs
         const first = v.startsWith('new:') ? fileRows.find(c => c.id === v.slice(4)) : null;
-        let chosen = first ? null : fileRows.find(c => c.id === v);
-        const title = first ? first.title : chosen ? chosen.title : sdTitle.value.trim();
+        const chosen = first ? null : fileRows.find(c => c.id === v);
+        const title = chosen ? chosen.title : sdTitle.value.trim();
         const email = (first || chosen ? String((first || chosen).reviewer_email) : sdEmail.value.trim()).toLowerCase();
-        if (!first && !chosen && (!title || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))){
-          sdSay('A title and the designer’s email, please.'); return;
+        if (!chosen && !title){ sdSay('The project’s name, please.'); sdTitle.focus(); return; }
+        if (!first && !chosen && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+          sdSay('The designer’s email, please.'); return;
         }
-        // someone typed in afresh who has a board already has that one updated
-        if (!first && !chosen) chosen = fileRows.find(c => isBoard(c) && String(c.reviewer_email).toLowerCase() === email) || null;
+        // one person's boards are told apart by their projects' names
+        if (!chosen && fileRows.some(c => isBoard(c) && String(c.reviewer_email).toLowerCase() === email &&
+                                      String(c.title).trim().toLowerCase() === title.toLowerCase())){
+          sdSay(`They already have a board called “${title}”: pick it above to update it, or name this one differently.`); return;
+        }
         const prev = chosen && isBoard(chosen) ? chosen : null;
         const id = prev ? prev.id : '';
         const ver = prev ? verOf(prev.board_path) + 1 : 1;

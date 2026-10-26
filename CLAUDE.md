@@ -122,7 +122,13 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   which the plus reads back. **Send** (`#refsSend`, admins only, checked
   against `bmu_admins`) puts that zip in the private Supabase bucket
   `bmu-boards` and names it in a file's `board_path`; `/archive?board=<file
-  id>` (Files' "Open reference board") lays it down. Files' **Open Archive** (`#cvArchive`, a
+  id>` (Files' "Open reference board") lays it down. A person can have any number of
+  **project boards** (one file each, titled by the project). Send groups its
+  list by person: Update a board (same file, `board_path` → `<stem>-v<n+1>.zip`,
+  the old zip deleted — the version lives in the name, `verOf`), or New project
+  board (asks the project's name; a name that person already has is refused).
+  An admin opening a sent board can add to it and Send it back as the next
+  version; Files shows `V<n> · sent <date>` and New version until looked at. Files' **Open Archive** (`#cvArchive`, a
   step under the others, compass in its well, an arrow `#cvArchiveMark` that
   turns -45° on press) writes the archive's keys itself (same origin,
   `keepShelf`): the file's garments onto `bmu.archive.saved` (once verified:
