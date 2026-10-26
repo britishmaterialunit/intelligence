@@ -95,7 +95,13 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   `untangle()` eases apart any two group members that overlap. Locking to a
   group meets its whole flush face (`faceOf`), fits the arrival to the face's
   length when within `FIT` (15%), and locks it to every face image and any
-  other neighbour it ends up flush with. Shift-press adds to / takes from a multi-pick (`picked`, `.picked`), Shift-drag on the board draws a box (`.rf-marquee`) that picks what it touches; dragging any picked image carries all of them (`unitOf`), Delete/arrows/Escape act on the pick. Dragging snaps to nearby edges,
+  other neighbour it ends up flush with. Shift-press adds to / takes from a multi-pick (`picked`, `.picked`), Shift-drag on the board draws a box (`.rf-marquee`) that picks what it touches; dragging any picked image carries all of them (`unitOf`), Delete/arrows/Escape act on the pick. With two or
+  more picked, **Cluster** is theirs alone (`clusterPicked`, the bar says
+  `Cluster 05`): all fitted to one box (`CBOX`), laid on the archive's golden
+  spiral (`packOffsets`) in the archive's own order (garments by `ITEMS`, then
+  the rest as they read), where they were or else beside the board; their
+  locks let go; Reverse restores. On touch, a half-second hold adds a piece to
+  the pick or takes it out (a tap elsewhere lets the pick go). Dragging snaps to nearby edges,
   centres and gap-lines with hairline guides (`snapUnit`; Alt to place
   freely); resizing from the corner holds the opposite corner and snaps its
   far edges the same way. View 3 is one shape for every garment: square photo + panel `PANEL`

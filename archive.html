@@ -12487,7 +12487,15 @@
          any picked image carries every picked image, and whatever is locked
          to them, together. A plain press on the board lets them all go. */
       let picked = new Set();
-      function paintPicked(){ items.forEach(it => it.el.classList.toggle('picked', picked.has(it.id))); }
+      function paintPicked(){ items.forEach(it => it.el.classList.toggle('picked', picked.has(it.id))); paintCluster(); }
+      // with two or more picked, Cluster is theirs alone, and says how many
+      function paintCluster(){
+        const b = T('cluster');
+        if (!b) return;
+        const n = [...picked].filter(byId).length;
+        b.querySelector('span').textContent = n > 1 ? `Cluster ${String(n).padStart(2, '0')}` : 'Cluster';
+        b.setAttribute('aria-label', n > 1 ? `Cluster the ${n} picked` : 'Cluster the images');
+      }
       function pickNone(){ if (!picked.size) return; picked.clear(); paintPicked(); }
       function unitOf(list){
         const seen = new Set(), from = [];
@@ -13083,7 +13091,54 @@
                  t:Math.min(...rs.map(r => r.t)), b:Math.max(...rs.map(r => r.b)) };
       };
 
+      /* ---------- A CLUSTER OF THE PICKED ----------
+         Shift-press (or Shift-drag a box round) two or more, then Cluster:
+         those alone are made one size and gathered the way the archive's
+         explore field gathers garments — the golden-angle spiral, garments
+         first in the archive's own order, then anything else as it reads on
+         the board. They gather where they were; if that would land on
+         something else, beside the board instead. Whatever they were locked
+         to lets them go, and Reverse puts everything back. */
+      function clusterPicked(){
+        const list = [...picked].map(byId).filter(Boolean);
+        if (list.length < 2) return false;
+        if (!clustered) before = snap();
+        const ids = new Set(list.map(it => it.id));
+        locks = locks.filter(l => !ids.has(l.p) && !ids.has(l.c));
+        regroup();
+        const at = new Map(ITEMS.map((x, i) => [`${x.n}/${slugBase(x.name)}`, i]));
+        const order = it => it.garment ? (at.get(RENAMED[it.garment] || it.garment) ?? 1e6) : 1e7 + it.y * 10 + it.x / 1000;
+        list.sort((a, b) => order(a) - order(b));
+        const box = boundsOf(list);
+        let ox = (box.l + box.r) / 2, oy = (box.t + box.b) / 2;
+        const pts = packOffsets(list.length), k = CSPACE / SPACING;
+        const reach = Math.max(...pts.map(([x, y]) => Math.hypot(x, y))) * k + CSPACE / 2;
+        const others = items.filter(o => !ids.has(o.id));
+        // somewhere clear: where they were, or else beside everything on the board
+        if (others.some(o => { const r = rect(o); return r.r > ox - reach && r.l < ox + reach && r.b > oy - reach && r.t < oy + reach; })){
+          ox = Math.max(...others.map(o => rect(o).r)) + reach + CSPACE / 2;
+          oy = (Math.min(...others.map(o => rect(o).t)) + Math.max(...others.map(o => rect(o).b))) / 2;
+        }
+        settle(() => {
+          list.forEach((it, i) => {
+            // one size: every piece fitted to the same box, whatever view it is in
+            it.w *= CBOX / Math.max(wOf(it), hOf(it));
+            it.x = ox + pts[i][0] * k; it.y = oy + pts[i][1] * k;
+            place(it);
+          });
+          fit();
+        });
+        select(null);
+        cand = null;
+        touched = list.map(it => it.id).slice(-KEEP);
+        clustered = false;
+        joints(); sync(); save();
+        say(`Clustered ${String(list.length).padStart(2, '0')}`);
+        return true;
+      }
+
       function cluster(){
+        if (picked.size > 1 && clusterPicked()) return;
         if (items.length < 2){ say('Add a few images first'); return; }
         if (!clustered) before = snap();
 
@@ -14645,13 +14700,33 @@
             if (picked.has(it.id)) picked.delete(it.id); else picked.add(it.id);
             select(null); paintPicked();
             if (!picked.has(it.id)) return;          // taken out: nothing to carry
-          } else if (!picked.has(it.id)) pickNone();
+          } else if (!picked.has(it.id)){
+            // a finger's pick is let go when it lifts, so a hold can add to it first
+            if (e.pointerType !== 'touch' || !picked.size) pickNone();
+          }
           const many = picked.size > 1 && picked.has(it.id);
           const again = sel === it && !e.shiftKey;     // a tap on a picked text box writes in it
           if (many){ cand = null; picked.forEach(id => front(byId(id))); }
           else { select(it); front(it); }
           g = { mode:'move', item:it, many, again, sx:e.clientX, sy:e.clientY, moved:false,
+                loose:e.pointerType === 'touch' && picked.size > 0 && !picked.has(it.id),
                 from:unitOf(many ? [...picked].map(byId) : [it]) };
+          /* A finger has no Shift: held still on a piece for half a second,
+             it adds that piece to the pick, or takes it out. */
+          if (e.pointerType === 'touch' && !e.shiftKey){
+            const held = g;
+            held.hold = setTimeout(() => {
+              const now = pts.get(e.pointerId);
+              if (g !== held || !now || Math.hypot(now.x - held.sx, now.y - held.sy) > 10) return;
+              held.from.forEach(([o, x, y]) => { o.x = x; o.y = y; place(o); });
+              if (sel && sel !== it && !picked.size) picked.add(sel.id);
+              if (picked.has(it.id)) picked.delete(it.id); else picked.add(it.id);
+              select(null); paintPicked();
+              if (navigator.vibrate) navigator.vibrate(12);
+              say(picked.size > 1 ? `${String(picked.size).padStart(2, '0')} picked` : picked.size ? 'Picked — hold another to add it' : 'Pick let go');
+              g = null;
+            }, 500);
+          }
           return;
         }
         if (e.shiftKey){
@@ -14784,6 +14859,9 @@
         if (g && g.moved){ clustered = false; if (g.item) touch(g.item); }
         if (g && g.mode === 'move') joints(true);
         if (g && g.mode === 'move' && !g.moved && g.again && g.item.text != null) editText(g.item, true);
+        // a finger that tapped or moved something outside the pick, rather than holding it, lets the pick go
+        if (g && g.mode === 'move' && g.loose){ clearTimeout(g.hold); pickNone(); }
+        if (g && g.hold) clearTimeout(g.hold);
         if (g) save();
         repaint();
         g = null;          // a pinch that loses a finger stops rather than jumping
