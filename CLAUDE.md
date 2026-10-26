@@ -53,7 +53,14 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   goes through U²-Net-p (`models/u2netp.onnx`, Apache-2.0, see
   `models/README.md`) on ONNX Runtime Web 1.22.0 from jsDelivr — **the one
   external script on the site, loaded only when a reader asks for a cut**.
-  The original is kept (`orig`) so the same button restores it. Originally the
+  The original is kept (`orig`) so the same button restores it. **Text** (bar button, `addText`) puts a text box on the board: an item with
+  `text` (markup cleaned by `cleanText` to b/i/u/br/div) in place of a blob, in
+  `--font`, type sized by the box so resizing keeps its shape; `ar` is read off
+  the box (`fitText`). B/I/U squares on its top edge; a tap on a picked box
+  writes in it. **The clock** (`.rf-stamp`, beside the scissors; not on
+  garments) sets `stamp`: day and 24-hour time in italics on the top edge,
+  pressed again it re-dates, its cross removes it. Both go in `references.json`
+  (text boxes also as a `.txt`). Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** — **called Maps from now on**; while open the address reads `/maps` (`mapsUrl`: pushed on open, Back closes, `maps.html` is the archive itself re-addressed — **generated** by `tools/build_maps.py` (run by `seo_build.py`; `check.py` fails if it is stale), never edited; a redirect stub made iMessage's preview fall back to the tiled icon) — (and wears
