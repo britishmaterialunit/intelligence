@@ -627,6 +627,12 @@
       font-weight:bold;
       line-height:1.4;
     }
+    /* The name gives way, not the marks beside it: a long name or a long
+       code wraps inside the tab, and the plus and the bookmark stay in it.
+       A code drops to its own line whole, and breaks only if even that line
+       is too short for it. */
+    .name-row .name{ flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+    .item .meta{ min-width:0; }
     .name-row{
       display:flex;
       align-items:flex-start;
@@ -682,12 +688,17 @@
        single-result rules that also reach .name. */
     .item .name .ref,
     body.single-result .item .name .ref{
-      margin-left:.55em;
+      /* the gap is a space now, so a code moved to its own line starts flush */
+      margin-left:.2em;
       font-size:9.5px !important;
       letter-spacing:.14em;
       color:#b4b4b4 !important;
       font-weight:400 !important;
-      white-space:nowrap;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      /* a box of its own, so the line can break before it and it moves down whole */
+      display:inline-block;
+      max-width:100%;
     }
     .item > .meta > .ref{
       display:block;
@@ -5224,7 +5235,7 @@
                      code's span out with it and left the code welded to the
                      last word in the name's own ink. Each has an element of
                      its own, so writing one cannot touch the other. -->
-                <div class="name"><span class="nm">${esc(p.name)}</span>${p.ref ? `<span class="ref">${esc(p.ref)}</span>` : ''}</div>
+                <div class="name"><span class="nm">${esc(p.name)}</span>${p.ref ? ` <span class="ref">${esc(p.ref)}</span>` : ''}</div>
                 <span class="name-marks">
                   <button type="button" class="btn-ref-inline" aria-pressed="false" aria-label="Add to references">
                     <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
