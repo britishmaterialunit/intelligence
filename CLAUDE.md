@@ -72,7 +72,16 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   corner). Double-tap a box to type its name (replaces the writing in it).
   Done makes one item with `draw` ({shapes, sw, w0, h0}, read back through
   `cleanDraw`); its pen (`.rf-pen`) reopens it. Exported as `.svg` plus
-  `draw` in `references.json`. Originally the
+  `draw` in `references.json`. **Links** (paste on the board, or bar
+  button Link → `askLink`; `addLink`/`parseLink`) become cards: YouTube
+  (nocookie embed, i.ytimg thumb), Vimeo, Instagram (`/p|reel/<code>/embed/`),
+  LinkedIn posts (`/embed/feed/update/urn:li:…`), TikTok (`/player/v1/`) show a
+  thumbnail (oEmbed where it answers with CORS, else the player's own preview,
+  pointer-events off) and play in place in the service's iframe — third-party
+  players, like SoundCloud's, no scripts. LinkedIn profiles and other pages are
+  plain cards that open in a new tab. Only `link.url` (+ title/thumb as text and
+  a picture) is kept; everything is rebuilt from the URL by `relink`. Exported as
+  a `.url` shortcut plus `link` in `references.json`. Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** — **called Maps from now on**; while open the address reads `/maps` (`mapsUrl`: pushed on open, Back closes, `maps.html` is the archive itself re-addressed — **generated** by `tools/build_maps.py` (run by `seo_build.py`; `check.py` fails if it is stale), never edited; a redirect stub made iMessage's preview fall back to the tiled icon) — (and wears
