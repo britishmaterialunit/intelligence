@@ -11344,6 +11344,9 @@
         del.setAttribute('aria-label', 'Remove this text');
         const size = Object.assign(document.createElement('span'), { className:'rf-size' });
         const stamp = Object.assign(document.createElement('button'), { type:'button', className:'rf-stamp' });
+        // dating it, even before a word is written, leaves the reader writing
+        stamp.addEventListener('mousedown', e => e.preventDefault());
+        stamp.addEventListener('pointerdown', e => e.preventDefault());
         el.append(txt, fmt, del, size, stamp);
         it.el = el;
         paintStamp(it);
@@ -11529,51 +11532,138 @@
         const P = resample(raw, 2.5 * px);
         const bb = bboxOf(P), diag = Math.hypot(bb.w, bb.h);
         if (diag < 7 * px) return { t:'dot', c:[bb.x + bb.w / 2, bb.y + bb.h / 2], diag };
+        const loop = loopOf(P, diag, px);
+        if (loop){ const r = closedShape(loop, px); if (r) return r; }
+        const arrow = arrowOf(P, px);
+        if (arrow) return arrow;
+        return openShape(P, px);
+      }
+
+      /* Closed: the pen came back near where it began — with an overshoot
+         past the start, or a gap short of it, at either end. The loop is
+         what lies between the two nearest points, start and finish. */
+      function loopOf(P, diag, px){
+        const n = P.length, span = Math.max(2, Math.floor(n * 0.35));
+        let best = null;
+        for (let i = 0; i < span; i++) for (let j = n - 1; j >= n - span && j > i + 6; j--){
+          const d = d2(P[i], P[j]);
+          if (!best || d < best.d) best = { d, i, j };
+        }
+        if (!best || best.d > Math.max(0.3 * diag, 14 * px)) return null;
+        const L = P.slice(best.i, best.j + 1), lb = bboxOf(L);
+        if (Math.min(lb.w, lb.h) < 0.12 * Math.max(lb.w, lb.h)) return null;
+        return plen(L) > 1.6 * Math.hypot(lb.w, lb.h) ? L : null;
+      }
+      /* Which shape the loop is, by how much of it lies along each: a box's
+         four sides, a circle's round, a diamond's four slants. Its box is
+         taken between the 4th and 96th of its points either way, so a spike
+         or a stray flick off a side does not count. */
+      function closedShape(P, px){
+        const n = P.length;
+        const xs = P.map(p => p[0]).sort((a, b) => a - b), ys = P.map(p => p[1]).sort((a, b) => a - b);
+        const lo = Math.floor(n * 0.04), hi = Math.max(lo, Math.ceil(n * 0.96) - 1);
+        const x0 = xs[lo], x1 = xs[hi], y0 = ys[lo], y1 = ys[hi];
+        const w = x1 - x0, h = y1 - y0;
+        if (w < 4 * px || h < 4 * px) return null;
+        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, diag = Math.hypot(w, h);
+        const tol = Math.max(0.12 * Math.min(w, h), 4 * px);
+        let onBox = 0, onRound = 0, onSlant = 0;
+        P.forEach(([x, y]) => {
+          const inX = x >= x0 - tol && x <= x1 + tol, inY = y >= y0 - tol && y <= y1 + tol;
+          const dx = Math.min(Math.abs(x - x0), Math.abs(x - x1)), dy = Math.min(Math.abs(y - y0), Math.abs(y - y1));
+          if ((inY && dx < tol) || (inX && dy < tol)) onBox++;
+          const u = (x - cx) / (w / 2), v = (y - cy) / (h / 2);
+          if (Math.abs(Math.hypot(u, v) - 1) < 0.14) onRound++;
+          if (Math.abs(Math.abs(u) + Math.abs(v) - 1) < 0.16) onSlant++;
+        });
+        const box = { x:x0, y:y0, w, h, diag };
+        const score = { rect:onBox / n + 0.05, ellipse:onRound / n, diamond:onSlant / n };
+        const V = cornersClosed(P, Math.max(0.06 * diag, 3 * px));
+        const top = Object.keys(score).reduce((a, b) => score[b] > score[a] ? b : a);
+        if (V.length === 3 && score[top] < 0.75) return { t:'poly', pts:V, diag };
+        if (score[top] >= 0.5 && top === 'rect') return { t:'rect', ...trueBox(P, box, px) };
+        if (score[top] >= 0.5) return { t:top, ...box };
+        if (V.length <= 8) return { t:'poly', pts:V, diag };
+        return null;
+      }
+
+      /* A box's four sides are where its points pile up along a line; a
+         spike or a flick off a side is a thin scatter, and is passed over.
+         Each side is the nearest run, from outside in, holding a tenth of
+         the stroke. */
+      function trueBox(P, box, px){
+        const side = (vals, fromLow) => {
+          const v = vals.slice().sort((a, b) => fromLow ? a - b : b - a);
+          const tw = Math.max(0.05 * Math.abs(v[v.length - 1] - v[0]), 3 * px), need = Math.max(3, P.length * 0.1);
+          for (let i = 0, j = 0; i < v.length; i++){
+            while (j < v.length && Math.abs(v[j] - v[i]) <= tw) j++;
+            if (j - i >= need) return v[i + Math.floor((j - i) / 2)];
+          }
+          return null;
+        };
+        const xs = P.map(p => p[0]), ys = P.map(p => p[1]);
+        const x0 = side(xs, true), x1 = side(xs, false), y0 = side(ys, true), y1 = side(ys, false);
+        if ([x0, x1, y0, y1].some(v => v == null) || x1 - x0 < 4 * px || y1 - y0 < 4 * px) return box;
+        return { x:x0, y:y0, w:x1 - x0, h:y1 - y0, diag:Math.hypot(x1 - x0, y1 - y0) };
+      }
+
+      /* An arrow, however it was drawn: a shaft, and at one end (or both) a
+         head folded back from the tip — one barb, two, or a scribble of
+         them. The tip is the point furthest from where that end began; what
+         comes after it is the head. It is made a perfect arrow, tip to tail,
+         straight — or elbowed, when the shaft was drawn with corners. */
+      function headAt(Q, px){
+        const s = Q[0];
+        let k = 0, far = -1;
+        Q.forEach((p, i) => { const d = d2(p, s); if (d > far){ far = d; k = i; } });
+        if (k >= Q.length - 2 || far < 30 * px) return -1;
+        const tip = Q[k], tail = plen(Q.slice(k));
+        if (tail < 0.05 * far || tail > 1.2 * far) return -1;
+        if (Q.slice(k).some(p => d2(p, tip) > 0.45 * far)) return -1;
+        return k;
+      }
+      function arrowOf(P, px){
+        const n = P.length;
+        const k1 = headAt(P, px);
+        const r0 = headAt(P.slice().reverse(), px);
+        const k0 = r0 < 0 ? -1 : n - 1 - r0;
+        if (k1 < 0 && k0 < 0) return null;
+        const i0 = k0 >= 0 ? k0 : 0, i1 = k1 >= 0 ? k1 : n - 1;
+        if (i1 - i0 < 2) return null;
+        const shaft = P.slice(i0, i1 + 1), a = shaft[0], z = shaft[shaft.length - 1];
+        const len = d2(a, z), bb = bboxOf(shaft), diag = Math.hypot(bb.w, bb.h);
+        const out = { t:'line', pts:[a, z], dash:'solid', a0:k0 >= 0, a1:k1 >= 0, diag };
+        // a shaft with corners keeps them; any other shaft is drawn straight
+        if (shaft.some(p => segDist(p, a, z) > 0.12 * len)){
+          const el = openShape(shaft, px);
+          if (el.t === 'line' && el.elbow){
+            // a run too short to be meant is the hand arriving at the tip
+            const min = Math.max(8 * px, 0.06 * plen(el.pts));
+            const V = el.pts.filter((v, i, A) => i === 0 || i === A.length - 1 || (d2(v, A[i - 1]) >= min && d2(v, A[i + 1]) >= min));
+            out.pts = squareUp(V.map(v => v.slice()));
+            out.elbow = out.pts.length > 2;
+          }
+        }
+        return out;
+      }
+
+      function openShape(P, px){
+        const bb = bboxOf(P), diag = Math.hypot(bb.w, bb.h);
         const L = plen(P), a = P[0], z = P[P.length - 1], gap = d2(a, z);
         const dev = Math.max(...P.map(p => segDist(p, a, z)));
         if (gap > 0.75 * L && dev < Math.max(0.07 * gap, 3 * px))
           return { t:'line', pts:[a, z], dash:'solid', diag };
-        const thin = Math.min(bb.w, bb.h) < 0.12 * Math.max(bb.w, bb.h);
-        if (!thin && gap < Math.max(0.25 * diag, 10 * px) && L > 1.6 * diag){
-          const box = { x:bb.x, y:bb.y, w:bb.w, h:bb.h, diag };
-          const ratio = area(P) / ((bb.w * bb.h) || 1);
-          const cx = bb.x + bb.w / 2, cy = bb.y + bb.h / 2, rx = bb.w / 2 || 1, ry = bb.h / 2 || 1;
-          const res = P.reduce((s, p) => s + Math.abs(Math.hypot((p[0] - cx) / rx, (p[1] - cy) / ry) - 1), 0) / P.length;
-          const V = cornersClosed(P, Math.max(0.06 * diag, 3 * px));
-          if (V.length === 3 && ratio < 0.68) return { t:'poly', pts:V, diag };
-          if (V.length === 4){
-            // measured against its own box: a diamond's corners sit on the middles of its sides
-            const onMids = V.every(v => Math.abs((v[0] - cx) / rx) + Math.abs((v[1] - cy) / ry) < 1.35);
-            if (onMids && ratio < 0.7) return { t:'diamond', ...box };
-            if (ratio > 0.75) return { t:'rect', ...box };
-          }
-          if (res < 0.12) return { t:'ellipse', ...box };
-          if (ratio > 0.85) return { t:'rect', ...box };
-          if (V.length <= 8) return { t:'poly', pts:V, diag };
-          return { t:'ink', diag };
-        }
         const V = rdp(P, Math.max(0.05 * diag, 3 * px));
         const segs = V.length - 1;
         if (segs >= 2 && segs <= 4){
-          const lens = [];
-          for (let i = 0; i < segs; i++) lens.push(d2(V[i], V[i + 1]));
-          const tot = lens.reduce((s, l) => s + l, 0);
-          const back = (p, q, r) => {
-            const u = [q[0] - p[0], q[1] - p[1]], w = [r[0] - q[0], r[1] - q[1]];
-            return (u[0] * w[0] + u[1] * w[1]) / ((Math.hypot(...u) * Math.hypot(...w)) || 1) < -0.3;
-          };
-          // a line and a hook turned back at one end: an arrow
-          if (segs <= 3 && lens[0] > 0.6 * tot && back(V[0], V[1], V[2]))
-            return { t:'line', pts:[V[0], V[1]], dash:'solid', a1:true, diag };
-          if (segs <= 3 && lens[segs - 1] > 0.6 * tot && back(V[segs - 2], V[segs - 1], V[segs]))
-            return { t:'line', pts:[V[segs - 1], V[segs]], dash:'solid', a0:true, diag };
+          const tot = V.slice(1).reduce((s, v, i) => s + d2(V[i], v), 0);
           // straight runs meeting at real corners, not a curve that RDP has cut short
           const fit = Math.max(...P.map(p => Math.min(...V.slice(1).map((v, i) => segDist(p, V[i], v)))));
           const sharp = V.slice(1, -1).every((v, i) => {
             const a = V[i], b = V[i + 2], u = [v[0] - a[0], v[1] - a[1]], w = [b[0] - v[0], b[1] - v[1]];
             return (u[0] * w[0] + u[1] * w[1]) / ((Math.hypot(...u) * Math.hypot(...w)) || 1) < Math.cos(40 * Math.PI / 180);
           });
-          if (tot > 0.88 * L && sharp && fit < Math.max(0.03 * diag, 3 * px))
+          if (tot > 0.88 * L && sharp && fit < Math.min(Math.max(0.03 * diag, 6 * px), 9 * px))
             return { t:'line', pts:V, dash:'solid', elbow:true, diag };
         }
         return { t:'ink', diag };
@@ -11645,8 +11735,29 @@
           out.push({ t:'line', id:sid(), pts:squareUp([A.slice(), B.slice()]), dash: dots > g.length / 2 ? 'dot' : 'dash' });
         });
 
-        // the shapes, the larger first; anything small inside a box is writing
+        // a small mark at a line's end is its arrowhead
+        // (looked for before the shapes, so a scribbled head is not taken for a box)
         const SMALL = 26 * px;
+        const lines = out.filter(s => s.t === 'line')
+          .concat(made.filter(r => !used.has(r) && r.t === 'line' && r.diag >= SMALL));
+        made.filter(r => !used.has(r) && !lines.includes(r) && r.diag < 120 * px).forEach(r => {
+          const P = r.src.pts, rb = bboxOf(P), diag = Math.hypot(rb.w, rb.h);
+          const c = [rb.x + rb.w / 2, rb.y + rb.h / 2];
+          let best = null;
+          lines.forEach(l => {
+            const L = plen(l.pts);
+            [[0, 1], [l.pts.length - 1, l.pts.length - 2]].forEach(([e, n]) => {
+              const E = l.pts[e], N = l.pts[n];
+              const d = Math.min(...P.map(p => d2(p, E)));
+              const behind = (c[0] - E[0]) * (N[0] - E[0]) + (c[1] - E[1]) * (N[1] - E[1]) > 0;
+              if (d < Math.max(18 * px, 0.25 * L) && diag < 0.6 * L && diag < 120 * px && behind && (!best || d < best.d))
+                best = { d, l, end:e === 0 ? 'a0' : 'a1' };
+            });
+          });
+          if (best){ best.l[best.end] = true; used.add(r); }
+        });
+
+        // the shapes, the larger first; anything small inside a box is writing
         const big = made.filter(r => !used.has(r) && ['rect', 'ellipse', 'diamond', 'poly', 'line'].includes(r.t) && r.diag >= SMALL)
                         .sort((a, b) => b.diag - a.diag);
         const writing = [];
@@ -11663,31 +11774,12 @@
             if (r.t === 'line'){ s.dash = 'solid'; s.a0 = !!r.a0; s.a1 = !!r.a1; s.elbow = !!r.elbow; squareUp(s.pts); }
           } else {
             Object.assign(s, { x:r.x, y:r.y, w:r.w, h:r.h });
-            // round and near enough even is a circle
-            if (r.t === 'ellipse' && Math.abs(r.w - r.h) < 0.15 * Math.max(r.w, r.h)){
+            // round and near enough even is a circle; a box near enough even, a square
+            if ((r.t === 'ellipse' || r.t === 'rect') && Math.abs(r.w - r.h) < 0.12 * Math.max(r.w, r.h)){
               const m = (r.w + r.h) / 2; s.x += (r.w - m) / 2; s.y += (r.h - m) / 2; s.w = s.h = m;
             }
           }
           out.push(s);
-        });
-
-        // a small mark at a line's end is its arrowhead
-        const lines = out.filter(s => s.t === 'line');
-        made.filter(r => !used.has(r) && !writing.includes(r)).forEach(r => {
-          const P = r.src.pts, rb = bboxOf(P), diag = Math.hypot(rb.w, rb.h);
-          const c = [rb.x + rb.w / 2, rb.y + rb.h / 2];
-          let best = null;
-          lines.forEach(l => {
-            const L = plen(l.pts);
-            [[0, 1], [l.pts.length - 1, l.pts.length - 2]].forEach(([e, n]) => {
-              const E = l.pts[e], N = l.pts[n];
-              const d = Math.min(...P.map(p => d2(p, E)));
-              const behind = (c[0] - E[0]) * (N[0] - E[0]) + (c[1] - E[1]) * (N[1] - E[1]) > 0;
-              if (d < Math.max(10 * px, 0.15 * L) && diag < 0.5 * L && diag < 60 * px && behind && (!best || d < best.d))
-                best = { d, l, end:e === 0 ? 'a0' : 'a1' };
-            });
-          });
-          if (best){ best.l[best.end] = true; used.add(r); }
         });
 
         // what is left is kept as it was drawn
@@ -11809,6 +11901,12 @@
         const r = [tip[0] - h * Math.cos(a + s), tip[1] - h * Math.sin(a + s)];
         return `<path d="M${f1(l[0])} ${f1(l[1])} L${f1(tip[0])} ${f1(tip[1])} L${f1(r[0])} ${f1(r[1])}" fill="none"/>`;
       }
+      // a head aims along the line, not along a last scrap of it
+      function aimFrom(P, end, sw){
+        const step = end === 0 ? 1 : -1, tip = P[end];
+        for (let i = end + step; i >= 0 && i < P.length; i += step) if (d2(P[i], tip) >= sw * 5.5) return P[i];
+        return P[end + step];
+      }
       function labelSvg(s){
         const words = String(s.label || '').split(/\s+/).filter(Boolean);
         if (!words.length) return '';
@@ -11840,7 +11938,7 @@
           const P = s.pts, n = P.length - 1;
           const dash = DASH[s.dash] ? ` stroke-dasharray="${DASH[s.dash].split(' ').map(v => f1(v * sw)).join(' ')}"` : '';
           return `<polyline points="${P.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none"${dash}/>` +
-                 (s.a1 ? head(P[n], P[n - 1], sw) : '') + (s.a0 ? head(P[0], P[1], sw) : '');
+                 (s.a1 ? head(P[n], aimFrom(P, n, sw), sw) : '') + (s.a0 ? head(P[0], aimFrom(P, 0, sw), sw) : '');
         }).join('');
         const inks = S.filter(s => s.t === 'ink').map(s => `<path d="${smooth(s.pts)}" fill="none"/>`).join('');
         return `<g fill="#ffffff" stroke="#222222" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">` +
@@ -14339,7 +14437,11 @@
         const clock = e.target.closest('.rf-stamp');
         if (clock){
           const it = byId(clock.closest('.rf-item').dataset.id);
-          if (it){ it.stamp = new Date().toISOString(); paintStamp(it); save(); }
+          if (it){
+            const wasWriting = writing === it;
+            it.stamp = new Date().toISOString(); paintStamp(it); save();
+            if (wasWriting && document.activeElement !== it.el.querySelector('.rf-txt')){ writing = null; editText(it, true); }
+          }
           return;
         }
         const unstamp = e.target.closest('.rw-x');
