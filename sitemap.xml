@@ -312,6 +312,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/british/bags/british-army-1990s-combat-arctic-liner-sleeping-bag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/british/bags/british-army-1990s-combat-arctic-liner-sleeping-bag/BA1990CALSB.png</image:loc>
+      <image:title>British Army 1990s Combat Arctic Liner Sleeping Bag</image:title>
+      <image:caption>British Army 1990s Combat Arctic Liner Sleeping Bag — British military surplus bag, archive ref BA1990CALSB</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/austrian/jackets/austrian-army-1990s-olive-drab-lightweight-ripstop-jacket/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
