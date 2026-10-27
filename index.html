@@ -912,6 +912,8 @@
       transition:background-color .3s cubic-bezier(.4,0,.2,1);
     }
     .news-item:hover{ background:var(--faint); }
+    .ni-parked{ cursor:pointer; user-select:none; }
+    .ni-parked.flash{ background:#e2e2e2; }
     /* The label over the line it names. It was written for the partner
        boxes and it is what the Mission and the Strategy are set in too, so
        it is no longer scoped to those boxes — one rule, one format, and the
@@ -2194,6 +2196,14 @@
                 <span class="ni-title">East West</span>
                 <span class="ni-sub">Industrialising operations and expanding sourcing network with archive, repository and open-studio build.</span>
               </a>
+              <!-- Ramco is shown but leads nowhere until they agree to be
+                   named: it answers a press and stays where it is. /ou is
+                   kept, unlinked. -->
+              <div class="news-item ni-parked" role="button" tabindex="0" aria-disabled="true">
+                <span class="ni-date">Research Partner</span>
+                <span class="ni-title">Ramco</span>
+                <span class="ni-sub">Operation Upcycle — remanufacturing surplus military textile waste via the reverse engineering of garments.</span>
+              </div>
               <a class="news-item" href="/soframa">
                 <span class="ni-date">Circular Partner</span>
                 <span class="ni-title">Soframa</span>
@@ -4800,6 +4810,19 @@
 
   </script>
 <script>
+  /* Ramco, parked: the box answers a press and goes nowhere */
+  document.querySelectorAll('.ni-parked').forEach(el => {
+    let t;
+    const press = () => {
+      clearTimeout(t);
+      el.classList.add('flash');
+      t = setTimeout(() => el.classList.remove('flash'), 300);
+    };
+    el.addEventListener('click', press);
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); press(); }
+    });
+  });
   /* Early Access, parked: the footer link shows its padlock and goes nowhere */
   document.querySelectorAll('.foot-locked').forEach(a => {
     let t;
