@@ -3195,8 +3195,8 @@
       pointer-events:none;
       z-index:5;
     }
-    .rf-del, .rf-size, .rf-mode, .rf-cut, .rf-stamp, .rf-pen{ display:none; position:absolute; padding:0; }
-    .rf-item.sel .rf-del, .rf-item.sel .rf-size, .rf-item.sel .rf-mode, .rf-item.sel .rf-cut, .rf-item.sel .rf-stamp, .rf-item.sel .rf-pen{ display:block; }
+    .rf-del, .rf-size, .rf-mode, .rf-cut, .rf-stamp, .rf-pen, .rf-crop{ display:none; position:absolute; padding:0; }
+    .rf-item.sel .rf-del, .rf-item.sel .rf-size, .rf-item.sel .rf-mode, .rf-item.sel .rf-cut, .rf-item.sel .rf-stamp, .rf-item.sel .rf-pen, .rf-item.sel .rf-crop{ display:block; }
     /* the scissors, beside the cross; once cut, the same square puts it back */
     .rf-cut{
       top:calc(-15px * var(--inv)); right:calc(10px * var(--inv));
@@ -3221,6 +3221,60 @@
       z-index:2;
     }
     .rf-item.rf-garment .rf-stamp{ display:none !important; }
+
+    /* The crop, beside the clock. Pressed, the whole photograph comes back
+       with a frame over it, its edges and corners pulled in; the same
+       square, now a tick, or Enter, or a press off it, keeps what is in
+       the frame. Escape leaves it as it was. Nothing is lost: the frame
+       can always be opened out again. */
+    .rf-crop{
+      top:calc(-15px * var(--inv)); right:calc(60px * var(--inv));
+      width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
+      border:none;
+      background:var(--line) url('/crop-white.svg') center / 66% no-repeat;
+      cursor:pointer;
+      z-index:3;
+    }
+    .rf-item.rf-garment .rf-crop{ display:none !important; }
+    .rf-item.cropping .rf-crop{ display:block; background-image:url('/tick-white.svg'); }
+    .rf-item.cropping{ outline:none; cursor:default; }
+    .rf-item.cropping .rf-del, .rf-item.cropping .rf-size, .rf-item.cropping .rf-cut,
+    .rf-item.cropping .rf-stamp, .rf-item.cropping .rf-when{ display:none !important; }
+    /* the handles sit on the picture's edge, so only the veil is clipped to it */
+    .rf-cropper{ position:absolute; left:0; top:0; width:100%; height:var(--ih); z-index:1; }
+    .rc-veil{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+    .rc-hole{ position:absolute; box-shadow:0 0 0 100000px rgba(255, 255, 255, .62); }
+    .rc-frame{
+      position:absolute;
+      outline:calc(1.5px * var(--inv)) solid var(--line);
+      cursor:move;
+      touch-action:none;
+    }
+    /* thirds, faint, to frame by */
+    .rc-frame::before, .rc-frame::after{ content:''; position:absolute; pointer-events:none; }
+    .rc-frame::before{ left:33.333%; right:33.333%; top:0; bottom:0;
+      border-left:calc(1px * var(--inv)) solid rgba(38, 38, 38, .25);
+      border-right:calc(1px * var(--inv)) solid rgba(38, 38, 38, .25); }
+    .rc-frame::after{ top:33.333%; bottom:33.333%; left:0; right:0;
+      border-top:calc(1px * var(--inv)) solid rgba(38, 38, 38, .25);
+      border-bottom:calc(1px * var(--inv)) solid rgba(38, 38, 38, .25); }
+    .rc-h{
+      position:absolute;
+      width:calc(12px * var(--inv)); height:calc(12px * var(--inv));
+      margin:calc(-6px * var(--inv)) 0 0 calc(-6px * var(--inv));
+      background:var(--bg);
+      border:calc(1.5px * var(--inv)) solid var(--line);
+      box-sizing:border-box;
+      z-index:1;
+    }
+    .rc-h[data-h="nw"]{ left:0; top:0; cursor:nwse-resize; }
+    .rc-h[data-h="n"]{ left:50%; top:0; cursor:ns-resize; }
+    .rc-h[data-h="ne"]{ left:100%; top:0; cursor:nesw-resize; }
+    .rc-h[data-h="e"]{ left:100%; top:50%; cursor:ew-resize; }
+    .rc-h[data-h="se"]{ left:100%; top:100%; cursor:nwse-resize; }
+    .rc-h[data-h="s"]{ left:50%; top:100%; cursor:ns-resize; }
+    .rc-h[data-h="sw"]{ left:0; top:100%; cursor:nesw-resize; }
+    .rc-h[data-h="w"]{ left:0; top:50%; cursor:ew-resize; }
     .rf-item.rf-text .rf-stamp{ right:calc(10px * var(--inv)); }
     .rf-when{
       position:absolute; left:0; top:0; z-index:1;
@@ -3419,6 +3473,10 @@
                top:calc(-20px * var(--inv)); right:calc(14px * var(--inv)); }
       .rf-stamp{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
                  top:calc(-20px * var(--inv)); right:calc(48px * var(--inv)); }
+      .rf-crop{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
+                top:calc(-20px * var(--inv)); right:calc(82px * var(--inv)); }
+      .rc-h{ width:calc(22px * var(--inv)); height:calc(22px * var(--inv));
+             margin:calc(-11px * var(--inv)) 0 0 calc(-11px * var(--inv)); }
       .rf-item.rf-text .rf-stamp{ right:calc(14px * var(--inv)); }
       .rf-pen{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
                top:calc(-20px * var(--inv)); right:calc(14px * var(--inv)); }
@@ -3437,6 +3495,7 @@
       letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
       pointer-events:none;
     }
+    .rf-item.rf-cropbusy::after{ content:'Cropping…'; }
     /* A garment's three views, one square each down its left edge — 1 at
        the top corner, 2 at the middle, 3 at the bottom corner. The one it
        is showing is filled; the other two are outlined. */
@@ -11333,11 +11392,13 @@
         items.forEach(it => { if (it.text != null) fitText(it); });
       });
 
+      let cropping = null;        // the picture whose frame is open (CROPPED, below)
       function showShot(it){
         const img = it.el && it.el.querySelector(':scope > img');
         if (!img) return;
         const k = it.shots && it.shots.length > 1 && modeOf(it) > 1 ? (it.shot || 0) % it.shots.length : 0;
-        const want = k ? it.shots[k] : it.url;
+        // being cropped, it shows the whole photograph it is framed in
+        const want = k ? it.shots[k] : (cropping && cropping.it === it && cropping.url) || it.url;
         if (img.getAttribute('src') !== want) img.src = want;
         it.el.querySelectorAll('.rf-dot').forEach(d => d.classList.toggle('on', Number(d.dataset.shot) === k));
       }
@@ -11385,7 +11446,9 @@
         const cut = Object.assign(document.createElement('button'), { type:'button', className:'rf-cut' });
         cut.setAttribute('aria-label', it.orig ? 'Put the background back' : 'Cut out the background');
         const stamp = Object.assign(document.createElement('button'), { type:'button', className:'rf-stamp' });
-        el.append(img, del, size, cut, stamp);
+        const crop = Object.assign(document.createElement('button'), { type:'button', className:'rf-crop' });
+        crop.setAttribute('aria-label', 'Crop');
+        el.append(img, del, size, cut, stamp, crop);
         el.classList.toggle('cut', !!it.orig);
         it.el = el;
         paintStamp(it);
@@ -12569,6 +12632,7 @@
       function front(it){ groupOf(it).forEach(o => { o.z = ++zTop; place(o); }); }
 
       function remove(it){
+        if (cropping && cropping.it === it) endCrop(false);
         if (sel === it) select(null);
         if (cand && (cand.m === it || cand.o === it)) cand = null;
         URL.revokeObjectURL(it.url);
@@ -14638,6 +14702,160 @@
         it.el.querySelector(':scope > img').src = it.url;
       }
 
+      /* ---------- CROPPED ----------
+         Never lost: a cropped picture keeps the photograph it came from
+         (`full`) and where in it the frame sits (`crop`, as fractions of
+         its width and height), so cropping it again opens the whole of it
+         with the frame where it was left. What is kept stays exactly where
+         it was on the board, at the size it was; only what is cut away
+         goes. A picture cut out of its background is cropped in what it
+         is, and the background it can be given back is cropped with it. */
+      const WHOLE = { x:0, y:0, w:1, h:1 };
+      /* A picture changing shape is read in full before it is put up, and
+         put up in the same moment as the new shape — never the old
+         picture stretched to the new one while the new one loads. */
+      async function readyImg(it, url){
+        const im = new Image();
+        im.src = url; im.alt = it.name || ''; im.draggable = false;
+        try { await im.decode(); } catch {}
+        return im;
+      }
+      function putImg(it, im){
+        const old = it.el.querySelector(':scope > img');
+        if (old) old.replaceWith(im); else it.el.prepend(im);
+        it.el.classList.toggle('rf-clear', seeThrough(im));
+      }
+      async function startCrop(it){
+        if (cropping) endCrop(true);
+        if (it.garment || cutting.has(it.id) || !it.blob || it.el.classList.contains('busy')) return;
+        // the whole photograph comes back to frame it in, unless it is cut out
+        const open = !!(it.full && it.crop && !it.orig);
+        const c = open ? it.crop : WHOLE;
+        let url = null, im = null;
+        if (open){
+          url = URL.createObjectURL(it.full);
+          im = await readyImg(it, url);
+          if (cropping || !items.includes(it)){ URL.revokeObjectURL(url); return; }
+        }
+        const was = { x:it.x, y:it.y, w:it.w, ar:it.ar };
+        if (open){
+          const l = it.x - it.w / 2, t = it.y - it.w * it.ar / 2;
+          const fw = it.w / c.w, far = it.ar * c.w / c.h;
+          it.w = fw; it.ar = far;
+          it.x = l - c.x * fw + fw / 2;
+          it.y = t - c.y * fw * far + fw * far / 2;
+          putImg(it, im);
+        }
+        const ui = Object.assign(document.createElement('div'), { className:'rf-cropper' });
+        const fr = Object.assign(document.createElement('div'), { className:'rc-frame' });
+        fr.dataset.h = 'move';
+        ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(h => {
+          const d = Object.assign(document.createElement('span'), { className:'rc-h' });
+          d.dataset.h = h;
+          fr.appendChild(d);
+        });
+        const veil = Object.assign(document.createElement('div'), { className:'rc-veil' });
+        const hole = Object.assign(document.createElement('div'), { className:'rc-hole' });
+        veil.appendChild(hole);
+        ui.append(veil, fr);
+        it.el.appendChild(ui);
+        it.el.classList.add('cropping');
+        it.el.querySelector('.rf-crop').setAttribute('aria-label', 'Keep what is in the frame');
+        cropping = { it, was, open, url, ui, frame:fr, hole, fr:{ ...c } };
+        select(it); front(it); place(it);
+        paintCrop();
+        say('Pull the edges in — Enter keeps it, Escape leaves it');
+      }
+      function paintCrop(){
+        const { frame, hole, fr } = cropping;
+        const at = { left:fr.x * 100 + '%', top:fr.y * 100 + '%', width:fr.w * 100 + '%', height:fr.h * 100 + '%' };
+        Object.assign(frame.style, at);
+        Object.assign(hole.style, at);
+      }
+      // a handle pulled by (dx, dy), as fractions of the picture
+      function pullCrop(h, f0, dx, dy){
+        const it = cropping.it, MIN = Math.min(0.5, 24 / it.w), MINH = Math.min(0.5, 24 / (it.w * it.ar));
+        let l = f0.x, t = f0.y, r = f0.x + f0.w, b = f0.y + f0.h;
+        if (h === 'move'){
+          const ox = clamp(dx, -l, 1 - r), oy = clamp(dy, -t, 1 - b);
+          l += ox; r += ox; t += oy; b += oy;
+        } else {
+          if (/w/.test(h)) l = clamp(l + dx, 0, r - MIN);
+          if (/e/.test(h)) r = clamp(r + dx, l + MIN, 1);
+          if (/n/.test(h)) t = clamp(t + dy, 0, b - MINH);
+          if (/s/.test(h)) b = clamp(b + dy, t + MINH, 1);
+        }
+        cropping.fr = { x:l, y:t, w:r - l, h:b - t };
+        paintCrop();
+      }
+      async function cropBlob(blob, c){
+        const bmp = await createImageBitmap(blob);
+        const W = bmp.width, H = bmp.height;
+        const x = Math.round(c.x * W), y = Math.round(c.y * H);
+        const w = Math.max(1, Math.round((c.x + c.w) * W) - x), h = Math.max(1, Math.round((c.y + c.h) * H) - y);
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        const g = cv.getContext('2d');
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(bmp, x, y, w, h, 0, 0, w, h);
+        bmp.close && bmp.close();
+        // a photograph stays a photograph; anything that may be clear stays clear
+        const type = /jpe?g/.test(blob.type) ? 'image/jpeg' : 'image/png';
+        const out = await new Promise(ok => cv.toBlob(ok, type, 0.94));
+        if (!out) throw new Error('encode');
+        return { blob:out, ar:h / w };
+      }
+      async function endCrop(keep){
+        if (!cropping) return;
+        const cr = cropping;
+        cropping = null;
+        const it = cr.it, f = cr.fr;
+        const tidy = () => {
+          cr.ui.remove();
+          it.el.classList.remove('cropping', 'busy', 'rf-cropbusy');
+          it.el.querySelector('.rf-crop').setAttribute('aria-label', 'Crop');
+          if (cr.url) URL.revokeObjectURL(cr.url);
+        };
+        const back = async () => {
+          if (cr.open && items.includes(it)) putImg(it, await readyImg(it, it.url));
+          tidy();
+          Object.assign(it, cr.was);
+          if (items.includes(it)) place(it);
+        };
+        const whole = f.x < 0.002 && f.y < 0.002 && f.w > 0.996 && f.h > 0.996;
+        if (!keep || (!cr.open && whole) || !items.includes(it)){ await back(); return; }
+        // where the kept part sits on the board: exactly where it was seen
+        const l = it.x - it.w / 2, t = it.y - it.w * it.ar / 2, sw = it.w, sh = it.w * it.ar;
+        it.el.classList.add('busy', 'rf-cropbusy');
+        try {
+          let blob, ar, full = it.full, crop = it.crop, orig = it.orig;
+          if (cr.open && whole){
+            // opened all the way out: the photograph as it came
+            blob = it.full; ar = it.ar; full = null; crop = null;
+          } else if (cr.open){
+            ({ blob, ar } = await cropBlob(it.full, f));
+            crop = f;
+          } else {
+            ({ blob, ar } = await cropBlob(it.blob, f));
+            if (orig) orig = (await cropBlob(orig, f)).blob;
+            if (full && crop) crop = { x:crop.x + f.x * crop.w, y:crop.y + f.y * crop.h, w:f.w * crop.w, h:f.h * crop.h };
+            else { full = it.orig || it.blob; crop = f; }          // the photograph before any cut
+          }
+          const url = URL.createObjectURL(blob), im = await readyImg(it, url);
+          if (!items.includes(it)){ URL.revokeObjectURL(url); return; }
+          URL.revokeObjectURL(it.url);
+          Object.assign(it, { blob, url, full, crop, orig });
+          const w = sw * (cr.open && whole ? 1 : f.w);
+          it.w = w; it.ar = ar;
+          it.x = l + sw * f.x + w / 2; it.y = t + sh * f.y + w * ar / 2;
+          putImg(it, im);
+          tidy();
+          place(it); relay(it); joints(); repaint(); save();
+        } catch {
+          await back();
+          say('That image could not be cropped');
+        }
+      }
+
       /* ---------- KEPT IN THIS BROWSER ----------
          Best effort, and never waited on: a private window, or a browser
          that refuses storage, simply starts with an empty board. The export
@@ -14660,8 +14878,10 @@
           try {
             const d = await db();
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
-              items: items.map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp }) =>
-                               ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp })),
+              // one being cropped is kept as it was until the crop is kept
+              items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -14717,7 +14937,18 @@
           return;
         }
         if (e.target.closest('.rf-lk-play, .rf-lk-stop, .rf-lk-open, .rf-link-in')) return;
-        if (e.target.closest('.rf-del, .rf-cut, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
+        if (cropping){
+          const h = e.target.closest('.rf-cropper [data-h]');
+          if (h && pts.size === 0){
+            root.setPointerCapture(e.pointerId);
+            pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+            g = { mode:'crop', h:h.dataset.h, sx:e.clientX, sy:e.clientY, f0:{ ...cropping.fr } };
+            return;
+          }
+          if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
+          endCrop(true);          // a press anywhere else keeps the frame
+        }
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -14808,6 +15039,12 @@
         pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
         if (!g) return;
         if (g.mode === 'draw'){ drawMove(e); return; }
+        if (g.mode === 'crop'){
+          if (!cropping){ g = null; return; }
+          const it = cropping.it;
+          pullCrop(g.h, g.f0, (e.clientX - g.sx) / vs / it.w, (e.clientY - g.sy) / vs / (it.w * it.ar));
+          return;
+        }
         if (g.mode === 'move'){
           let dx = (e.clientX - g.sx) / vs, dy = (e.clientY - g.sy) / vs;
           // lined up against what is near, unless Alt says place it freely
@@ -14907,6 +15144,7 @@
         hideGuides();
         if (g && g.mode === 'draw'){ drawUp(); g = null; return; }
         if (drawing){ g = null; return; }
+        if (g && g.mode === 'crop'){ g = null; return; }
         if (g && g.mode === 'box'){
           g.box.remove();
           // one picked by the box is simply the picked image, handles and all
@@ -14977,8 +15215,15 @@
           if (it){ it.stamp = null; paintStamp(it); save(); }
           return;
         }
+        const cropBtn = e.target.closest('.rf-crop');
+        if (cropBtn){
+          const it = byId(cropBtn.closest('.rf-item').dataset.id);
+          if (it){ if (cropping && cropping.it === it) endCrop(true); else startCrop(it); }
+          return;
+        }
         const cutBtn = e.target.closest('.rf-cut');
         if (cutBtn){
+          if (cropping) endCrop(true);
           const it = byId(cutBtn.closest('.rf-item').dataset.id);
           if (it) cutOut(it);
           return;
@@ -15043,6 +15288,10 @@
           if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); endDraw(); }
           else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); e.stopPropagation(); undoDraw(); }
           else if (e.key === ' '){ e.preventDefault(); e.stopPropagation(); spaceDown = true; }
+          return;
+        }
+        if (cropping){
+          if (e.key === 'Escape' || e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); endCrop(e.key === 'Enter'); }
           return;
         }
         const DIRS = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
@@ -15174,6 +15423,7 @@
       function close(){
         if (!isOpen) return;
         endDraw();
+        endCrop(true);
         isOpen = false;
         mapsUrl(false);
         cand = null;

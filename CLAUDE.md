@@ -53,7 +53,15 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   goes through U²-Net-p (`models/u2netp.onnx`, Apache-2.0, see
   `models/README.md`) on ONNX Runtime Web 1.22.0 from jsDelivr — **the one
   external script on the site, loaded only when a reader asks for a cut**.
-  The original is kept (`orig`) so the same button restores it. **Text** (bar button, `addText`) puts a text box on the board: an item with
+  The original is kept (`orig`) so the same button restores it. **Crop**
+  (`.rf-crop`, beside the clock; not on garments; `startCrop`/`endCrop`) opens a
+  frame with eight handles over the picture; tick, Enter or a press off it keeps
+  it, Escape leaves it. Non-destructive: `full` (the uncropped photograph) and
+  `crop` (fractions of it) are kept, so cropping again shows the whole photo
+  with the frame where it was. The kept part stays exactly where it sat on the
+  board. A cut-out picture is cropped as it is (only tighter), and its `orig`
+  is cropped with it. While the frame is open, `save()` writes the item's
+  pre-crop geometry and `showShot` shows `cropping.url`. **Text** (bar button, `addText`) puts a text box on the board: an item with
   `text` (markup cleaned by `cleanText` to b/i/u/br/div) in place of a blob, in
   `--font`, type sized by the box so resizing keeps its shape; `ar` is read off
   the box (`fitText`). B/I/U squares on its top edge; a tap on a picked box
