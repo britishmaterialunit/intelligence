@@ -84,8 +84,7 @@
           { "@type": "ListItem", "position": 2, "name": "Operations", "url": "https://britishmaterialunit.com/#operations" },
           { "@type": "ListItem", "position": 3, "name": "Repository", "url": "https://britishmaterialunit.com/repository" },
           { "@type": "ListItem", "position": 4, "name": "Archive", "url": "https://britishmaterialunit.com/archive" },
-          { "@type": "ListItem", "position": 5, "name": "Operation Upcycle", "url": "https://britishmaterialunit.com/ou" },
-          { "@type": "ListItem", "position": 6, "name": "East West", "url": "https://britishmaterialunit.com/ew" }
+          { "@type": "ListItem", "position": 5, "name": "East West", "url": "https://britishmaterialunit.com/ew" }
         ]
       }
     ]
@@ -2195,11 +2194,6 @@
                 <span class="ni-title">East West</span>
                 <span class="ni-sub">Industrialising operations and expanding sourcing network with archive, repository and open-studio build.</span>
               </a>
-              <a class="news-item" href="/ou">
-                <span class="ni-date">Research Partner</span>
-                <span class="ni-title">Ramco</span>
-                <span class="ni-sub">Operation Upcycle — remanufacturing surplus military textile waste via the reverse engineering of garments.</span>
-              </a>
               <a class="news-item" href="/soframa">
                 <span class="ni-date">Circular Partner</span>
                 <span class="ni-title">Soframa</span>
@@ -2291,9 +2285,9 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <!-- The capability the research partnership is, so it opens
-               Ramco's page. (Soframa is the circular partner.) -->
-          <a href="/ou">Research &amp; Development</a>
+          <!-- Plain like the rest until Ramco has agreed to be named: it
+               used to open /ou, which is kept but no longer linked. -->
+          <span>Research &amp; Development</span>
         </div>
 
         <div class="foot-col foot-id">
@@ -4368,7 +4362,7 @@
       /* read off the sheet rather than written down twice — if the order
          of the partnerships changes, the swipe follows it */
       const first = document.querySelector('#opsNews .news-item');
-      const href = (first && first.getAttribute('href')) || '/ou';
+      const href = (first && first.getAttribute('href')) || '/ew';
       /* This entry is what Back returns to. Restored from the cache it is
          the open box as it was; if the browser has dropped it, the address
          is what reloads, so it says Operations and the box is put up open. */

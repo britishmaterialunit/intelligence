@@ -47,7 +47,6 @@ STATIC = [
     ('/files',      '0.4', 'monthly'),
     ('/contact',    '0.7', 'monthly'),
     ('/ew',         '0.6', 'monthly'),
-    ('/ou',         '0.6', 'monthly'),
     ('/privacy',    '0.3', 'yearly'),
 ]
 

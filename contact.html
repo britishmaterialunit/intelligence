@@ -1748,7 +1748,7 @@
     <!-- which of the three this is, and the way through them -->
     <nav class="pg-index" aria-label="Partner pages">
       <button type="button" class="pg-arrow pg-back" data-href="/soframa" aria-label="Back to Soframa"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.2 2.6 L4.6 8 L10.2 13.4"/></svg></button>
-      <span class="pg-num">04</span>
+      <span class="pg-num">02</span>
     </nav>
     <div class="p-role" id="pRole" data-text="Book"></div>
     <!-- The fallback only: on this page the tabs own both lines and type
@@ -1851,9 +1851,9 @@
           <span>Waste Disposals</span>
           <span>Remanufacturing</span>
           <span>Product Development</span>
-          <!-- The capability the research partnership is, so it opens
-               Ramco's page. (Soframa is the circular partner.) -->
-          <a href="/ou">Research &amp; Development</a>
+          <!-- Plain like the rest until Ramco has agreed to be named: it
+               used to open /ou, which is kept but no longer linked. -->
+          <span>Research &amp; Development</span>
         </div>
 
         <div class="foot-col foot-id">
@@ -2856,6 +2856,16 @@
 
       const nextBtn = nav.querySelector('.pg-next');
       const backBtn = nav.querySelector('.pg-back');
+      /* Booking is the second page of every partner's run, so Back is
+         whichever partner the reader came from — Operations if neither. */
+      if (backBtn){
+        let from = '';
+        try { from = new URL(document.referrer).pathname.replace(/\.html$/, ''); } catch(_){}
+        const BACK = { '/ew':'East West', '/soframa':'Soframa' };
+        const to = BACK[from] ? from : '/#operations';
+        backBtn.dataset.href = to;
+        backBtn.setAttribute('aria-label', 'Back to ' + (BACK[from] || 'Operations'));
+      }
       if (nextBtn) nextBtn.addEventListener('click', () => go(nextBtn.dataset.href, 'next'));
       if (backBtn) backBtn.addEventListener('click', () => go(backBtn.dataset.href, 'back'));
 
