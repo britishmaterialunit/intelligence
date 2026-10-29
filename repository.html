@@ -2099,7 +2099,16 @@
     @media (prefers-reduced-motion:reduce){
       #camoField path.lit{ animation:none; }
     }
-</style>
+    /* A press on a phone draws nothing of the browser's own — no grey tap
+       box, no black focus ring — so a button answers only in its own way,
+       as the email address does. A keyboard on a computer still sees where
+       it is. */
+    a, button, summary, input, label, select, textarea, [role="button"], [tabindex]{ -webkit-tap-highlight-color:transparent; }
+    :focus:not(:focus-visible){ outline:none; }
+    @media (hover:none) and (pointer:coarse){
+      *:focus, *:focus-visible{ outline:none !important; }
+    }
+  </style>
   <noscript><style>
     /* nothing is going to let go of them, so they were never held */
     #partner > .ws-notice, #partner > .p-body, .ws-form > *{

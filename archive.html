@@ -4096,7 +4096,16 @@
       #refs, #refs.rf-moving #refsStage, #refs.rf-moving .rf-item{ transition:none; }
       .rf-badge, .rf-badge.on.pop, .rf-joint.rf-lock{ transition:none; animation:none; }
     }
-</style>
+    /* A press on a phone draws nothing of the browser's own — no grey tap
+       box, no black focus ring — so a button answers only in its own way,
+       as the email address does. A keyboard on a computer still sees where
+       it is. */
+    a, button, summary, input, label, select, textarea, [role="button"], [tabindex]{ -webkit-tap-highlight-color:transparent; }
+    :focus:not(:focus-visible){ outline:none; }
+    @media (hover:none) and (pointer:coarse){
+      *:focus, *:focus-visible{ outline:none !important; }
+    }
+  </style>
 </head>
 <body>
   <!-- The pattern that is already there — see #camoField in the stylesheet. -->
