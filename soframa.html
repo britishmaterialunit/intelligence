@@ -814,6 +814,10 @@
        it home, so nothing is left sitting in the gap. Grey, because it is a
        receipt rather than a thing to read. */
     .mail-copy{ display:inline-flex; align-items:center; max-width:100%; }
+    /* a tap on a phone drew the browser's own grey box over the address while
+       it copied; the tick is the answer, as it is under a mouse */
+    #footMail{ -webkit-tap-highlight-color:transparent; }
+    #footMail:focus:not(:focus-visible){ outline:none; }
     .mail-tick{
       width:0;
       overflow:hidden;
