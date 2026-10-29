@@ -1969,6 +1969,12 @@
         width:min(92vw, 400px);
         height:auto;
         min-height:clamp(118px, 34vw, 210px);
+        /* the copy is centred in that floor, not hung from its top, so when
+           the floor goes on entry the box closes in on the copy from both
+           sides and the typed lines stay exactly where they were typed */
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
       }
       /* Once the reader is inside, the mark has gone and the room kept for it
          is dead space. On the intro that floor is what the mark stands in;
