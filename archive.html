@@ -3651,6 +3651,29 @@
                top:calc(-20px * var(--inv)); right:calc(-20px * var(--inv)); }
       .rf-size{ width:calc(22px * var(--inv)); height:calc(22px * var(--inv));
                 right:calc(-16px * var(--inv)); bottom:calc(-16px * var(--inv)); }
+      .rf-gsize{ width:calc(22px * var(--inv)); height:calc(22px * var(--inv));
+                 right:calc(-16px * var(--inv)); bottom:calc(-16px * var(--inv)); }
+    }
+    /* Two or more picked: one frame round them all, with its own corner
+       square. Pulled, everything in it grows or shrinks together, held at
+       the frame's top left, so the layout keeps its shape. */
+    .rf-gbox{
+      position:absolute;
+      outline:calc(1px * var(--inv)) dashed var(--line);
+      outline-offset:calc(10px * var(--inv));
+      pointer-events:none;
+      z-index:2147483000;
+    }
+    .rf-gsize{
+      position:absolute;
+      right:calc(-16px * var(--inv)); bottom:calc(-16px * var(--inv));
+      width:calc(13px * var(--inv)); height:calc(13px * var(--inv));
+      background:var(--bg);
+      border:calc(1.5px * var(--inv)) solid var(--line);
+      box-sizing:content-box;
+      cursor:nwse-resize;
+      pointer-events:auto;
+      touch-action:none;
     }
 
     #refsEmpty{
@@ -11285,6 +11308,7 @@
           sq.classList.toggle('on', Number(sq.dataset.mode) === m));
         showShot(it);
         repaintSoon();
+        paintGroupSoon();
       }
 
       /* What the archive knows about a garment, read from the register the
@@ -12604,7 +12628,30 @@
          any picked image carries every picked image, and whatever is locked
          to them, together. A plain press on the board lets them all go. */
       let picked = new Set();
-      function paintPicked(){ items.forEach(it => it.el.classList.toggle('picked', picked.has(it.id))); paintCluster(); }
+      function paintPicked(){ items.forEach(it => it.el.classList.toggle('picked', picked.has(it.id))); paintCluster(); paintGroup(); }
+      // the frame round the pick, and its corner square, sized from what is in it
+      const gbox = Object.assign(document.createElement('div'), { className:'rf-gbox' });
+      gbox.appendChild(Object.assign(document.createElement('span'), { className:'rf-gsize' }));
+      gbox.hidden = true;
+      stage.appendChild(gbox);
+      function pickBounds(){
+        const unit = unitOf([...picked].map(byId).filter(Boolean));
+        if (unit.length < 2) return null;
+        let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+        unit.forEach(([o]) => { const q = rect(o); l = Math.min(l, q.l); t = Math.min(t, q.t); r = Math.max(r, q.r); b = Math.max(b, q.b); });
+        return { unit, l, t, r, b };
+      }
+      function paintGroup(){
+        const bx = picked.size > 1 && !cropping ? pickBounds() : null;
+        gbox.hidden = !bx;
+        if (bx) Object.assign(gbox.style, { left:bx.l + 'px', top:bx.t + 'px',
+                                            width:(bx.r - bx.l) + 'px', height:(bx.b - bx.t) + 'px' });
+      }
+      let groupT = 0;
+      function paintGroupSoon(){
+        if (groupT || picked.size < 2) return;
+        groupT = requestAnimationFrame(() => { groupT = 0; paintGroup(); });
+      }
       // with two or more picked, Cluster is theirs alone, and says how many
       function paintCluster(){
         const b = T('cluster');
@@ -14963,6 +15010,20 @@
         }
         if (pts.size > 2) return;
 
+        if (e.target.closest('.rf-gsize')){
+          /* The pick sized as one: every piece and every space between them
+             scales by the same amount from the frame's top left. The gap a
+             lock keeps is the lock's own, so locked pieces stay flush. */
+          const bx = pickBounds();
+          if (!bx){ g = null; return; }
+          const ids = new Set(bx.unit.map(([o]) => o.id));
+          g = { mode:'gsize', l:bx.l, t:bx.t, w0:bx.r - bx.l, h0:bx.b - bx.t,
+                from:bx.unit.map(([o, x, y]) => [o, x, y, o.w]),
+                locks:locks.filter(lk => ids.has(lk.p) && ids.has(lk.c)).map(lk => [lk, lk.d || 0]),
+                kmin:Math.max(...bx.unit.map(([o]) => 30 / o.w)),
+                kmax:Math.min(...bx.unit.map(([o]) => 6000 / o.w)) };
+          return;
+        }
         const hit = e.target.closest('.rf-item');
         const it = hit && byId(hit.dataset.id);
         if (it && e.target.closest('.rf-size')){
@@ -15112,6 +15173,22 @@
           g.moved = true;
           place(it);
           relay(it);
+          joints();
+        } else if (g.mode === 'gsize'){
+          const pt = toWorld(e.clientX, e.clientY);
+          const k = clamp(Math.max((pt.x - g.l) / g.w0, (pt.y - g.t) / g.h0), g.kmin, g.kmax);
+          g.from.forEach(([o, x, y, w]) => {
+            o.w = w * k;
+            o.x = g.l + (x - g.l) * k;
+            o.y = g.t + (y - g.t) * k;
+          });
+          g.locks.forEach(([lk, d]) => { lk.d = d * k; });
+          const laid = new Set();
+          g.from.forEach(([o]) => {
+            if (o.gid && !laid.has(o.gid)){ laid.add(o.gid); relay(o); }
+            else if (!o.gid) place(o);
+          });
+          g.moved = true;
           joints();
         } else if (g.mode === 'pinch' && pts.size >= 2){
           const [a, b] = [...pts.values()];
