@@ -51,8 +51,8 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   **Cut out** (scissors on a picked board image) lifts the background in the
   browser: a plain even ground is flood-filled from the edges; anything else
   goes through U²-Net-p (`models/u2netp.onnx`, Apache-2.0, see
-  `models/README.md`) on ONNX Runtime Web 1.22.0 from jsDelivr — **the one
-  external script on the site, loaded only when a reader asks for a cut**.
+  `models/README.md`) on ONNX Runtime Web 1.22.0 from jsDelivr — **external scripts are loaded only when a reader asks for them** (this,
+  PDF.js for a PDF link, obscenity for Search).
   The original is kept (`orig`) so the same button restores it. **Crop**
   (`.rf-crop`, beside the clock; not on garments; `startCrop`/`endCrop`) opens a
   frame with eight handles over the picture; tick, Enter or a press off it keeps
@@ -89,7 +89,13 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   players, like SoundCloud's, no scripts. LinkedIn profiles and other pages are
   plain cards that open in a new tab. Only `link.url` (+ title/thumb as text and
   a picture) is kept; everything is rebuilt from the URL by `relink`. Exported as
-  a `.url` shortcut plus `link` in `references.json`. Originally the
+  a `.url` shortcut plus `link` in `references.json`. No service chrome on a card: a
+  player shown as the face is cropped to its picture (`LINK_KIND[].crop` —
+  Instagram posts `instagram` 1:1, reels `igreel` 9:16, below the embed's 54px
+  header) with the site's own play square over it. A link ending `.pdf` is a
+  `pdf` card: its front page drawn by PDF.js 4.10.38 (jsDelivr, loaded on the
+  first PDF; `pdfCover`), title from the PDF's metadata else the filename. Only
+  PDFs served with CORS can be drawn; others keep a plain white PDF card. Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** — **called Maps from now on**; while open the address reads `/maps` (`mapsUrl`: pushed on open, Back closes, `maps.html` is the archive itself re-addressed — **generated** by `tools/build_maps.py` (run by `seo_build.py`; `check.py` fails if it is stale), never edited; a redirect stub made iMessage's preview fall back to the tiled icon) — (and wears

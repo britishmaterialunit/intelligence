@@ -3350,6 +3350,10 @@
     .rf-lk-media{ position:relative; height:var(--mh); overflow:hidden; background:#111; }
     .rf-item img.rf-lk-thumb{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; outline:none; }
     .rf-lk-media iframe{ position:absolute; left:0; top:0; border:0; transform-origin:0 0; pointer-events:none; background:#fff; }
+    /* a PDF: its front page, on white, from the top */
+    .rf-lk-pdf .rf-lk-media{ background:#fff; box-shadow:inset 0 0 0 calc(1px * var(--inv)) #e4e4e4; }
+    .rf-lk-pdf .rf-lk-blank{ color:#8f8f8f; }
+    .rf-item.rf-lk-pdf img.rf-lk-thumb{ object-position:top; }
     .rf-link.live .rf-lk-media iframe{ pointer-events:auto; }
     .rf-lk-live{ z-index:1; }
     .rf-lk-blank{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
@@ -3362,6 +3366,8 @@
       cursor:pointer; z-index:2;
     }
     .rf-lk-play:hover{ opacity:.88; }
+    /* Instagram draws its own play triangle in the picture: ours covers it */
+    .rf-lk-igreel .rf-lk-play{ width:max(calc(var(--w) * .26), calc(34px * var(--inv))); height:max(calc(var(--w) * .26), calc(34px * var(--inv))); }
     .rf-link.live .rf-lk-play{ display:none; }
     .rf-lk-bar, .rf-lk-site{
       box-sizing:border-box;
@@ -12404,10 +12410,16 @@
          ever hold the players named here; a title or a thumbnail fetched for
          it is only ever text or a picture. */
       const LINK_STRIP = 0.13;
+      /* `crop` is the part of a player, laid out `base` wide, that is the
+         picture — the rest is the service's own name, buttons and footer,
+         and is never shown. Instagram's embed is a 54px header over a 4:5
+         picture; a reel sits in that as 9:16, between black bars. */
       const LINK_KIND = {
         youtube:   { label:'YouTube',   ar:9 / 16, base:480 },
         vimeo:     { label:'Vimeo',     ar:9 / 16, base:480, face:true },
-        instagram: { label:'Instagram', ar:1.62,   base:400, face:true },
+        instagram: { label:'Instagram', ar:1,      base:400, face:true, crop:{ x:0, y:54, w:400 } },
+        igreel:    { label:'Instagram', ar:16 / 9, base:400, face:true, crop:{ x:60, y:54, w:280 } },
+        pdf:       { label:'PDF',       ar:1.414,  base:0,   still:true },
         linkedin:  { label:'LinkedIn',  ar:1.12,   base:504, face:true },
         tiktok:    { label:'TikTok',    ar:1.78,   base:340, face:true },
         page:      { label:'Link',      ar:0.32,   base:0 },
@@ -12435,7 +12447,7 @@
         if (host === 'instagram.com' && (m = path.match(/^\/(?:[\w.]+\/)?(p|reels?|tv)\/([\w-]{5,40})/))){
           const kind = /^reel/.test(m[1]) ? 'reel' : 'p';
           const face = `https://www.instagram.com/${kind}/${m[2]}/embed/`;
-          return out('instagram', m[2], face, { face });
+          return out(kind === 'reel' ? 'igreel' : 'instagram', m[2], face, { face });
         }
         if (host === 'linkedin.com'){
           m = href.match(/urn:li:(activity|ugcPost|share):(\d{10,25})/) || href.match(/-(activity|ugcPost|share)-(\d{10,25})(?:-|\/|$)/);
@@ -12451,6 +12463,10 @@
         if (/(^|\.)tiktok\.com$/.test(host) && (m = path.match(/\/video\/(\d{10,25})/)))
           return out('tiktok', m[1], `https://www.tiktok.com/player/v1/${m[1]}?autoplay=1`,
                      { face:`https://www.tiktok.com/player/v1/${m[1]}` });
+        if (/\.pdf$/i.test(path)){
+          const file = decodeURIComponent(path.split('/').pop()).replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim();
+          return out('pdf', null, null, { label:'PDF', title:file || host });
+        }
         return out('page', null, null, { label:host });
       }
       // a link read back from storage or a file: its address, worked through again
@@ -12506,6 +12522,7 @@
         media.querySelectorAll('.rf-lk-thumb, .rf-lk-face, .rf-lk-blank').forEach(n => n.remove());
         const l = it.link, k = kindOf(it);
         let face;
+        if (l.kind === 'pdf') pdfCover(it);
         if (l.thumb){
           face = Object.assign(document.createElement('img'), { className:'rf-lk-thumb', alt:'', draggable:false });
           face.referrerPolicy = 'no-referrer';
@@ -12519,11 +12536,60 @@
         const k = kindOf(it);
         it.el.style.setProperty('--mh', it.w * k.ar + 'px');
         if (!k.base) return;
+        const c = k.crop || { x:0, y:0, w:k.base }, sc = it.w / c.w;
         it.el.querySelectorAll('.rf-lk-media iframe').forEach(f => {
           f.style.width = k.base + 'px';
-          f.style.height = k.base * k.ar + 'px';
-          f.style.transform = `scale(${it.w / k.base})`;
+          f.style.height = c.y + c.w * k.ar + (k.crop ? 160 : 0) + 'px';
+          f.style.transform = `translate(${-c.x * sc}px, ${-c.y * sc}px) scale(${sc})`;
         });
+      }
+      /* A PDF's front page, drawn in the browser by PDF.js (jsDelivr,
+         fetched the first time a PDF is put down). Only a PDF its server
+         lets other sites read can be drawn; any other keeps the plain card,
+         its name and the arrow that opens it. Drawn again each time the
+         board is opened — the picture is never kept. */
+      const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/';
+      let pdfjsP = null;
+      const covers = new Map();
+      function pdfjs(){
+        return pdfjsP || (pdfjsP = import(PDFJS + 'pdf.min.mjs').then(P => {
+          // the worker is jsDelivr's, started from here so it counts as this page's
+          const src = URL.createObjectURL(new Blob([`import '${PDFJS}pdf.worker.min.mjs';`], { type:'text/javascript' }));
+          P.GlobalWorkerOptions.workerPort = new Worker(src, { type:'module' });
+          return P;
+        }).catch(e => { pdfjsP = null; throw e; }));
+      }
+      async function pdfCover(it){
+        const l = it.link;
+        try {
+          if (!covers.has(l.url)) covers.set(l.url, (async () => {
+            const P = await pdfjs();
+            const doc = await P.getDocument({ url:l.url, isEvalSupported:false }).promise;
+            const meta = await doc.getMetadata().catch(() => null);
+            const name = meta && meta.info && typeof meta.info.Title === 'string' ? meta.info.Title.trim() : '';
+            const page = await doc.getPage(1);
+            const v = page.getViewport({ scale:1 }), sc = 900 / v.width;
+            const cv = document.createElement('canvas');
+            cv.width = 900; cv.height = Math.round(v.height * sc);
+            const g = cv.getContext('2d');
+            g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+            await page.render({ canvasContext:g, viewport:page.getViewport({ scale:sc }) }).promise;
+            const blob = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', 0.9));
+            doc.destroy();
+            return { src:URL.createObjectURL(blob), name };
+          })());
+          const c = await covers.get(l.url);
+          if (!it.el || !it.el.isConnected) return;
+          const media = it.el.querySelector('.rf-lk-media');
+          media.querySelectorAll('.rf-lk-thumb, .rf-lk-blank').forEach(n => n.remove());
+          media.insertBefore(Object.assign(document.createElement('img'), { className:'rf-lk-thumb', alt:'', draggable:false, src:c.src }), media.firstChild);
+          if (c.name && c.name.length > 2 && !/^(untitled|microsoft word)/i.test(c.name) && c.name !== l.title){
+            l.title = c.name.slice(0, 300);
+            const t = it.el.querySelector('.rf-lk-title');
+            if (t) t.textContent = l.title;
+            save();
+          }
+        } catch { covers.delete(l.url); }
       }
       function playLink(it, on){
         const media = it.el.querySelector('.rf-lk-media');
@@ -12540,11 +12606,15 @@
         const el = document.createElement('div');
         el.className = `rf-item rf-link rf-lk-${l.kind}`;
         el.dataset.id = it.id;
+        // a card kept before its kind changed shape takes today's
+        it.ar = linkAr(l);
         if (k.ar && l.kind !== 'page'){
           const media = Object.assign(document.createElement('div'), { className:'rf-lk-media' });
-          const play = Object.assign(document.createElement('button'), { type:'button', className:'rf-lk-play' });
-          play.setAttribute('aria-label', `Play on the board — ${k.label}`);
-          media.appendChild(play);
+          if (!k.still){
+            const play = Object.assign(document.createElement('button'), { type:'button', className:'rf-lk-play' });
+            play.setAttribute('aria-label', `Play on the board — ${k.label}`);
+            media.appendChild(play);
+          }
           el.appendChild(media);
         } else {
           el.appendChild(Object.assign(document.createElement('div'), { className:'rf-lk-site', textContent:l.title || l.host }));
