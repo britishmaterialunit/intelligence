@@ -14918,9 +14918,10 @@
         g.imageSmoothingQuality = 'high';
         g.drawImage(bmp, x, y, w, h, 0, 0, w, h);
         bmp.close && bmp.close();
-        // a photograph stays a photograph; anything that may be clear stays clear
-        const type = /jpe?g/.test(blob.type) ? 'image/jpeg' : 'image/png';
-        const out = await new Promise(ok => cv.toBlob(ok, type, 0.94));
+        /* Kept as PNG, which loses nothing: every pixel of the photograph
+           inside the frame, at its own size, as it was. (It is always cut
+           from the photograph as it came, never from an earlier crop.) */
+        const out = await new Promise(ok => cv.toBlob(ok, 'image/png'));
         if (!out) throw new Error('encode');
         return { blob:out, ar:h / w };
       }
