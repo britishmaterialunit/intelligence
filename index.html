@@ -2458,19 +2458,18 @@
        typed at all. And if the tab goes into the background mid-way, the
        whole name is put straight back. Driven by the clock, not by a count
        of ticks, so it always takes the same time to write. */
-    /* And again every ten seconds while the tab is in front of somebody:
-       unwritten quickly, written back at the typing pace — the same gesture
-       every retyped heading on the site uses. Paused the moment the tab is
-       not on screen, and the whole name is put back as the page is left, so
-       the history list and a bookmark never keep a half-typed one. */
+    /* Once only. It used to be retyped every ten seconds, and the address
+       bar's "Switch to this tab" reads an open tab's title as it stands —
+       so it offered "British M". Whole from then on, wherever it is read;
+       and whole again if the tab is left mid-way. */
     (function typeTheTab(){
       const NAME = document.title;
       if (REDUCED || !NAME) return;
       const READER_NOT_A_PERSON = /bot|crawl|spider|slurp|googleother|google-inspectiontool|mediapartners|adsbot|bingpreview|yandex|baidu|duckduck|facebookexternalhit|twitterbot|slackbot|discordbot|whatsapp|telegram|linkedin|embedly|pinterest|headless|lighthouse|prerender/i;
       if (navigator.webdriver || READER_NOT_A_PERSON.test(navigator.userAgent || '')) return;
-      const EVERY = 10000, TYPE = 70, UNTYPE = 28;
-      let run = 0, again = null;
-      const whole = () => { run++; clearTimeout(again); document.title = NAME; };
+      const TYPE = 70, UNTYPE = 28;
+      let run = 0;
+      const whole = () => { run++; document.title = NAME; };
       // n(t) letters showing over the run: down from the whole name, then up again
       function cycle(first){
         if (document.hidden) return;
@@ -2485,13 +2484,10 @@
           else n = Math.ceil(Math.min(1, (t - down) / up) * NAME.length);
           document.title = n ? NAME.slice(0, n) : '\u200b';     // an empty tab shows the address; a blank does not
           if (t < down + up) setTimeout(step, 40);
-          else { document.title = NAME; again = setTimeout(() => cycle(false), EVERY); }
+          else document.title = NAME;
         })();
       }
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) whole();
-        else { clearTimeout(again); again = setTimeout(() => cycle(false), EVERY); }
-      });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) whole(); });
       window.addEventListener('pagehide', whole);
       const begin = () => setTimeout(() => cycle(true), 350);
       if (document.readyState === 'complete') begin();
