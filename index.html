@@ -451,6 +451,11 @@
     #opsBtn.join-solo{ letter-spacing:.04em; }
     #opsBtn.join-solo.sending{ color:#999; cursor:progress; }
     #opsBtn.join-solo.sent{ color:#999; cursor:default; }
+    /* Reading Access, the box already is the repository page's Access
+       button: its 13px and its plain spacing, on a phone as on a desktop,
+       so the word does not change size or width as one page hands it to
+       the other. It changes with the word, never between. */
+    #opsBtn.as-access{ font-size:13px; letter-spacing:normal; }
 
     /* ---------- ARCHIVE ----------
        The archive is the one button on this row that leads off the page, and
@@ -3615,7 +3620,7 @@
          animate home would play the departure backwards in front of a
          reader who has already left and returned. */
       opsBtn.style.transition = 'none';
-      opsBtn.classList.remove('expanding', 'join-solo', 'sending', 'sent', 'drift-off', 'settle-down');
+      opsBtn.classList.remove('expanding', 'join-solo', 'as-access', 'sending', 'sent', 'drift-off', 'settle-down');
       opsBtn.style.removeProperty('--drift');
       opsBtn.style.removeProperty('--settle');
       opsBtn.style.transform = '';
@@ -4079,7 +4084,7 @@
          word lands as the box finishes opening rather than part way
          through it. */
       later(() => {
-        opsBtn.classList.add('join-solo');
+        opsBtn.classList.add('join-solo', 'as-access');
         opsLabel.textContent = 'Access';
         opsBtn.setAttribute('aria-label', 'Access');
       }, 540);
@@ -4683,7 +4688,7 @@
       } else {
         opsBtn.classList.add('expanding');
       }
-      opsBtn.classList.add('join-solo');
+      opsBtn.classList.add('join-solo', 'as-access');
       opsLabel.textContent = 'Access';
       opsBtn.setAttribute('aria-label', 'Access');
       convergeButtons();
@@ -4707,6 +4712,7 @@
          420ms first, waiting for a widening that had already happened on
          the page before. */
       later(() => {
+        opsBtn.classList.remove('as-access');
         opsLabel.textContent = 'Operations';
         opsBtn.setAttribute('aria-label', 'Operations');
         const slot = estimateSlot();
