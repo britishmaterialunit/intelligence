@@ -95,7 +95,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   header) with the site's own play square over it. A link ending `.pdf` is a
   `pdf` card: its front page drawn by PDF.js 4.10.38 (jsDelivr, loaded on the
   first PDF; `pdfCover`), title from the PDF's metadata else the filename. Only
-  PDFs served with CORS can be drawn; others keep a plain white PDF card. Originally the
+  PDFs served with CORS can be drawn; any other shows page 1 of Google's viewer (`docs.google.com/viewer?…&embedded=true`) cropped to the page (`crop` x16 w368 at base 400). Originally the
   middle dock button had four faces: circle (explore), list, play,
   plus. Play is SoundCloud (`BMU_SOUND` in `archive.html`, driven by
   postMessage, no SoundCloud script). Plus opens **References** — **called Maps from now on**; while open the address reads `/maps` (`mapsUrl`: pushed on open, Back closes, `maps.html` is the archive itself re-addressed — **generated** by `tools/build_maps.py` (run by `seo_build.py`; `check.py` fails if it is stale), never edited; a redirect stub made iMessage's preview fall back to the tiled icon) — (and wears

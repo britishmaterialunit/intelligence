@@ -12423,7 +12423,8 @@
         vimeo:     { label:'Vimeo',     ar:9 / 16, base:480, face:true },
         instagram: { label:'Instagram', ar:1,      base:400, face:true, crop:{ x:0, y:54, w:400 } },
         igreel:    { label:'Instagram', ar:16 / 9, base:400, face:true, crop:{ x:60, y:54, w:280 } },
-        pdf:       { label:'PDF',       ar:1.414,  base:0,   still:true },
+        // Google's viewer, 400 wide, draws page 1 at 16px in, 368 across, from the top
+        pdf:       { label:'PDF',       ar:1.294,  base:400, still:true, crop:{ x:16, y:0, w:368 } },
         linkedin:  { label:'LinkedIn',  ar:1.12,   base:504, face:true },
         tiktok:    { label:'TikTok',    ar:1.78,   base:340, face:true },
         page:      { label:'Link',      ar:0.32,   base:0 },
@@ -12469,7 +12470,8 @@
                      { face:`https://www.tiktok.com/player/v1/${m[1]}` });
         if (/\.pdf$/i.test(path)){
           const file = decodeURIComponent(path.split('/').pop()).replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim();
-          return out('pdf', null, null, { label:'PDF', title:file || host });
+          return out('pdf', null, null, { label:'PDF', title:file || host,
+            face:`https://docs.google.com/viewer?url=${encodeURIComponent(u.href)}&embedded=true` });
         }
         return out('page', null, null, { label:host });
       }
@@ -12531,7 +12533,7 @@
           face = Object.assign(document.createElement('img'), { className:'rf-lk-thumb', alt:'', draggable:false });
           face.referrerPolicy = 'no-referrer';
           face.src = l.thumb;
-        } else if (k.face && l.face) face = frame(l.face, it, false);
+        } else if (k.face && l.face && l.kind !== 'pdf') face = frame(l.face, it, false);
         else face = Object.assign(document.createElement('div'), { className:'rf-lk-blank', textContent:k.label });
         media.insertBefore(face, media.firstChild);
         sizeLink(it);
@@ -12548,10 +12550,10 @@
         });
       }
       /* A PDF's front page, drawn in the browser by PDF.js (jsDelivr,
-         fetched the first time a PDF is put down). Only a PDF its server
-         lets other sites read can be drawn; any other keeps the plain card,
-         its name and the arrow that opens it. Drawn again each time the
-         board is opened — the picture is never kept. */
+         fetched the first time a PDF is put down) when its server lets other
+         sites read it; otherwise page 1 of Google's viewer, cropped to the
+         page. Drawn again each time the board is opened — the picture is
+         never kept. */
       const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/';
       let pdfjsP = null;
       const covers = new Map();
@@ -12585,7 +12587,7 @@
           const c = await covers.get(l.url);
           if (!it.el || !it.el.isConnected) return;
           const media = it.el.querySelector('.rf-lk-media');
-          media.querySelectorAll('.rf-lk-thumb, .rf-lk-blank').forEach(n => n.remove());
+          media.querySelectorAll('.rf-lk-thumb, .rf-lk-blank, .rf-lk-face').forEach(n => n.remove());
           media.insertBefore(Object.assign(document.createElement('img'), { className:'rf-lk-thumb', alt:'', draggable:false, src:c.src }), media.firstChild);
           if (c.name && c.name.length > 2 && !/^(untitled|microsoft word)/i.test(c.name) && c.name !== l.title){
             l.title = c.name.slice(0, 300);
@@ -12593,7 +12595,19 @@
             if (t) t.textContent = l.title;
             save();
           }
-        } catch { covers.delete(l.url); }
+        } catch {
+          covers.delete(l.url);
+          /* Most servers do not let another site read their PDFs, so this
+             one is shown by Google's viewer instead, cut to its first page */
+          if (!it.el || !it.el.isConnected || !l.face) return;
+          const media = it.el.querySelector('.rf-lk-media');
+          if (!media || media.querySelector('.rf-lk-thumb, .rf-lk-face')) return;
+          media.querySelectorAll('.rf-lk-blank').forEach(n => n.remove());
+          const f = frame(l.face, it, false);
+          f.loading = 'eager';          // put in after the card is up, a lazy frame was never asked for
+          media.insertBefore(f, media.firstChild);
+          sizeLink(it);
+        }
       }
       function playLink(it, on){
         const media = it.el.querySelector('.rf-lk-media');
