@@ -3162,15 +3162,10 @@
       cursor:grab;
     }
     /* Every image keeps its whole canvas — a garment shot on a transparent
-       ground is still its 1000px square, with the air round it — and the
-       square is drawn as a hairline, so two locked images read as two boxes
-       with the white between them. Nothing is filled: what is transparent
-       stays transparent, on the board and in the export. */
-    /* Drawn inside the image's own edge, not outside it: paint that spills
-       past a box is what browsers forget to clear when the box shrinks. */
+       ground is still its 1000px square, with the air round it. No line is
+       drawn round it (owner's call): the picture alone. Nothing is filled:
+       what is transparent stays transparent, on the board and in the export. */
     .rf-item img{
-      outline:calc(1px * var(--inv)) solid #e4e4e4;
-      outline-offset:calc(-1px * var(--inv));
       display:block;
       width:100%;
       height:auto;
