@@ -3349,8 +3349,17 @@
     .rf-item img.rf-lk-thumb{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; outline:none; }
     .rf-lk-media iframe{ position:absolute; left:0; top:0; border:0; transform-origin:0 0; pointer-events:none; background:#fff; }
     /* a PDF: its front page, on white, from the top */
-    .rf-lk-pdf .rf-lk-media{ background:#fff; box-shadow:inset 0 0 0 calc(1px * var(--inv)) #e4e4e4; }
-    .rf-lk-pdf .rf-lk-blank{ color:#8f8f8f; }
+    /* with no cover to show it is a white page, nothing written on it; and
+       the whole card, page and strip, is drawn round in the site's black */
+    .rf-lk-pdf .rf-lk-media{ background:#fff; }
+    .rf-lk-pdf .rf-lk-blank{ display:none; }
+    .rf-item.rf-lk-pdf::before{
+      content:'';
+      position:absolute; inset:0;
+      border:calc(1px * var(--inv)) solid var(--line);
+      pointer-events:none;
+      z-index:3;
+    }
     .rf-item.rf-lk-pdf img.rf-lk-thumb{ object-position:top; }
     .rf-link.live .rf-lk-media iframe{ pointer-events:auto; }
     .rf-lk-live{ z-index:1; }
