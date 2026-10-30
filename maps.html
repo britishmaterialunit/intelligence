@@ -15421,8 +15421,89 @@
         root.classList.remove('dropping');
         addFiles(e.dataTransfer && e.dataTransfer.files);
       });
+      /* ---------- COPY AND PASTE ----------
+         Cmd/Ctrl-C on the picked piece (or pieces) keeps them, everything
+         about them — a crop, a cut-out, a credit — and Cmd/Ctrl-V lays a
+         copy down where the pointer is, picked, ready to be moved. Cmd-X
+         takes them off as it keeps them. A single picture also goes on the
+         computer's clipboard as a picture, to paste into anything else; the
+         board knows its own by a mark carried with it, so pasting it back
+         here is a copy of the piece, not a new file. */
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop'];
+      let clip = null, lastAt = null, pastedAt = null;
+      root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
+      const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      async function asPng(blob){
+        if (blob.type === 'image/png') return blob;
+        const bmp = await createImageBitmap(blob);
+        const cv = document.createElement('canvas'); cv.width = bmp.width; cv.height = bmp.height;
+        cv.getContext('2d').drawImage(bmp, 0, 0);
+        bmp.close && bmp.close();
+        return new Promise(ok => cv.toBlob(ok, 'image/png'));
+      }
+      function keepPick(e){
+        if (!isOpen || drawing || cropping || writingIn(e.target) || String(getSelection() || '')) return false;
+        const list = (picked.size ? [...picked].map(byId) : sel ? [sel] : []).filter(Boolean);
+        if (!list.length) return false;
+        clip = { mark:'bmu-maps:' + uid(), items:list.map(o => {
+          const c = { x:o.x, y:o.y };
+          COPIED.forEach(k => { if (o[k] != null) c[k] = o[k]; });
+          return c;
+        }) };
+        e.preventDefault();
+        e.clipboardData.setData('text/plain', clip.mark);
+        const one = clip.items.length === 1 && clip.items[0].blob;
+        if (one && navigator.clipboard && navigator.clipboard.write && window.ClipboardItem){
+          try {
+            navigator.clipboard.write([new ClipboardItem({ 'image/png':asPng(one),
+              'text/plain':new Blob([clip.mark], { type:'text/plain' }) })]).catch(() => {});
+          } catch {}
+        }
+        return list;
+      }
+      window.addEventListener('copy', e => {
+        const list = keepPick(e);
+        if (list) say(list.length > 1 ? `${String(list.length).padStart(2, '0')} copied` : 'Copied');
+      });
+      window.addEventListener('cut', e => {
+        const list = keepPick(e);
+        if (!list) return;
+        list.forEach(remove);
+        pickNone();
+        save();
+      });
+      function pasteClip(){
+        const src = clip.items;
+        const mid = src.reduce((m, o) => ({ x:m.x + o.x / src.length, y:m.y + o.y / src.length }), { x:0, y:0 });
+        // under the pointer; pasted again without moving it, each a step on from the last
+        let to = lastAt ? toWorld(lastAt.x, lastAt.y) : { x:mid.x + 24 / vs, y:mid.y + 24 / vs };
+        if (pastedAt && Math.abs(pastedAt.x - to.x) < 1 && Math.abs(pastedAt.y - to.y) < 1){
+          to = { x:pastedAt.nx + 24 / vs, y:pastedAt.ny + 24 / vs };
+          pastedAt = { ...pastedAt, nx:to.x, ny:to.y };
+        } else pastedAt = { x:to.x, y:to.y, nx:to.x, ny:to.y };
+        const made = src.map(o => {
+          const it = { ...o, id:uid(), gid:null, z:++zTop, shot:o.shot || 0, mode:o.mode || 1,
+                       x:o.x - mid.x + to.x, y:o.y - mid.y + to.y };
+          if (o.link) it.link = relink(o.link);
+          if (o.draw) it.draw = cleanDraw(JSON.parse(JSON.stringify(o.draw)));
+          items.push(it); mount(it);
+          return it;
+        });
+        clustered = false;
+        pickNone(); select(null);
+        if (made.length === 1) select(made[0]);
+        else { made.forEach(it => picked.add(it.id)); paintPicked(); }
+        made.forEach(touch);
+        sync(); save(); joints(); repaint();
+        say(made.length > 1 ? `${String(made.length).padStart(2, '0')} pasted` : 'Pasted');
+      }
+
       window.addEventListener('paste', e => {
         if (!isOpen || !e.clipboardData) return;
+        // the board's own, copied here: a copy of the piece, not a new file
+        if (clip && !drawing && !writingIn(e.target) && (e.clipboardData.getData('text/plain') || '').trim() === clip.mark){
+          e.preventDefault(); pasteClip(); return;
+        }
         const files = [...e.clipboardData.files];
         if (files.length){ e.preventDefault(); addFiles(files); return; }
         // a link pasted on the board itself — not into a text box or a field
