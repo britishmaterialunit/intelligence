@@ -335,6 +335,8 @@
        the copy dims as the footer rises towards it instead of being cut off
        against the top of the screen. */
     .show-text{ opacity:var(--hero-fade, 1); pointer-events:auto; }
+    /* the copy still to be typed: laid out, so nothing moves, but unseen */
+    .tw-rest{ visibility:hidden; }
     /* the 1s cubic-bezier(.4,0,.2,1) belongs to the reveal; once the reader is in, the value is
        following a scroll and has to track it rather than lag a beat behind */
     body.entered .typewriter-text{ transition:opacity .25s cubic-bezier(.4,0,.2,1); }
@@ -2494,6 +2496,27 @@
       else window.addEventListener('load', begin, { once:true });
     })();
 
+    /* Typed so far, then the rest of it laid out but unseen. The copy is
+       centred, and with only the typed part on the page each line was
+       centred again at every letter, so the words already written slid
+       sideways as the line grew — far further across a desktop's long lines
+       than a phone's short ones. With the whole of it in place from the
+       start, every word is already where it will finish and only appears. */
+    function twShow(element, text, n){
+      let tw = element.__tw;
+      if (!tw || tw.shown.parentNode !== element){
+        tw = element.__tw = { shown:document.createTextNode(''),
+                              rest:Object.assign(document.createElement('span'), { className:'tw-rest' }) };
+        tw.rest.setAttribute('aria-hidden', 'true');
+        element.textContent = '';
+        element.append(tw.shown, tw.rest);
+      }
+      tw.shown.nodeValue = text.slice(0, n);
+      tw.rest.textContent = text.slice(n);
+      tw.n = n;
+    }
+    function twDone(element, text){ element.__tw = null; element.textContent = text; }
+
     function bmuType(text, element, delay, callback, guard){
       if (!element){ if (callback) callback(); return; }
       const run = ++typeSeq;
@@ -2505,15 +2528,15 @@
       }
       const total = Math.max(60, text.length * delay);
       const t0 = performance.now();
-      element.textContent = '';
+      twShow(element, text, 0);
       (function frame(now){
         if (element.__typeRun !== run) return;   // a newer run owns this element
         if (guard && !guard()) return;
         const p = Math.min(1, (now - t0) / total);
         const n = Math.round(p * text.length);
-        if (element.textContent.length !== n) element.textContent = text.slice(0, n);
-        if (p < 1) requestAnimationFrame(frame);
-        else if (callback) callback();
+        if (p >= 1){ twDone(element, text); if (callback) callback(); return; }
+        if (element.__tw.n !== n) twShow(element, text, n);
+        requestAnimationFrame(frame);
       })(performance.now());
     }
 
@@ -2570,22 +2593,24 @@
       if (!element){ if (callback) callback(); return; }
       const run = ++typeSeq;
       element.__typeRun = run;
-      const text = element.textContent;
+      // what is showing — not the unseen rest of a run that was cut short
+      const text = element.__tw && element.__tw.shown.parentNode === element ? element.__tw.shown.nodeValue : element.textContent;
       if (REDUCED || !text){
-        element.textContent = '';
+        twDone(element, '');
         if (callback) callback();
         return;
       }
       const total = Math.max(60, text.length * delay);
       const t0 = performance.now();
+      twShow(element, text, text.length);
       (function frame(now){
         if (element.__typeRun !== run) return;
         if (guard && !guard()) return;
         const p = Math.min(1, (now - t0) / total);
         const n = Math.round((1 - p) * text.length);
-        if (element.textContent.length !== n) element.textContent = text.slice(0, n);
-        if (p < 1) requestAnimationFrame(frame);
-        else if (callback) callback();
+        if (p >= 1){ twDone(element, ''); if (callback) callback(); return; }
+        if (element.__tw.n !== n) twShow(element, text, n);
+        requestAnimationFrame(frame);
       })(performance.now());
     }
 
