@@ -9,14 +9,17 @@ The user has given a photo and a name. Do these steps and nothing else: no
 research, no matching against other photos, no checking the live site.
 
 `<image>` is the path in the image's `[Image: source: ...]` line. `<name>` is
-the name given, with any stray trailing `_` or space dropped. If there is no
-name, ask for it; do not invent one.
+the name given, with any stray trailing `_` or space dropped. A name typed as a
+slug is written out first (`czech-peoples-army-1990s-mechanics-trousers` becomes
+`Czech Peoples Army 1990s Mechanics Trousers`). If there is no name, ask for it;
+do not invent one.
 
 ```bash
 cd /Users/tommwd/WEBBMU/intelligence
 cp "<image>" "_incoming/<name>.png"
 python3 tools/ingest.py --write
 python3 tools/check.py
+git add -u archive
 git add archive.html maps.html sitemap.xml robots.txt archive/*.html "archive/<nation-slug>/<type-slug>/<garment-slug>"
 git commit -m "Archive: <name>"
 git push origin main
