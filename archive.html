@@ -2379,7 +2379,8 @@
       left:14px;
       width:16px; height:16px;
       display:block;
-      transition:opacity .3s cubic-bezier(.4,0,.2,1);
+      transition:opacity .3s cubic-bezier(.4,0,.2,1),
+                 left .42s cubic-bezier(.65,0,.35,1);
     }
     #dockSearch .ico-b{ opacity:0; }
     #dock.open #dockSearch .ico-w{ opacity:0; }
@@ -2453,7 +2454,8 @@
     body.music-on #dock:not(.more) #dockPlay{ display:flex; }
     body.music-on #dock.open:not(.more) #dockSearch{ width:calc(var(--dock-w) - 168px); }
     body.music-on #dock.more-in #dockPlay,
-    body.music-on #dock.more-out #dockPlay{ animation:none !important; pointer-events:auto; }
+    body.music-on #dock.more-out #dockPlay,
+    body.music-on #dock.more-leave #dockPlay{ animation:none !important; pointer-events:auto; }
     /* rising in, a beat apart, left to right; dropping out, right to left */
     @keyframes dockRise{
       from{ opacity:0; transform:translateY(16px) scale(.92); }
@@ -2507,6 +2509,26 @@
       animation-delay:calc(var(--more-o, 0) * 60ms);
       pointer-events:none;
     }
+    /* Opening the bar puts the laid-out squares away as it goes: they shrink
+       and fall on any screen, one row throughout, while the row runs out to
+       its full measure and the bar fills whatever the squares leave. */
+    #dock.more-leave{
+      width:var(--dock-fix);
+      transition:width .42s cubic-bezier(.65,0,.35,1);
+    }
+    #dock.more-leave #dockSearch,
+    body.has-file.dock-list #dock.more-leave #dockSearch{
+      flex:1 1 0; width:auto !important; min-width:0;
+      transition:background-color .34s cubic-bezier(.4,0,.2,1);
+    }
+    #dock.more-leave #dockList, #dock.more-leave #dockPlay, #dock.more-leave #dockRefs,
+    #dock.more-leave #dockFile, #dock.more-leave #dockLibrary{
+      animation:dockFall .24s cubic-bezier(.4,0,1,1) both,
+                dockShrink .24s cubic-bezier(.4,0,.2,1) both;
+      animation-delay:calc(var(--more-o, 0) * 60ms);
+      overflow:hidden;
+      pointer-events:none;
+    }
     /* the bar holds its narrower width until the squares have gone */
     #dock.open.more-out #dockSearch{ width:calc(var(--dock-w) - 336px); }
     /* the plus turns as it becomes the minus */
@@ -2529,6 +2551,8 @@
       #dock{ gap:6px; --sq:40px; --gap-sq:6px; }
       #dock .dock-sq{ width:40px; height:40px; }
       #dock.open #dockSearch{ width:calc(var(--dock-w) - 92px); }      /* at rest: one row */
+      /* the icon in the middle of the smaller square */
+      #dock:not(.open) #dockSearch .ico{ left:11px; }
       body.music-on #dock.open:not(.more) #dockSearch{ width:calc(var(--dock-w) - 138px); }
       #dock.open.more{ flex-wrap:wrap; justify-content:flex-end; width:var(--dock-w); }
       #dock.open.more #dockSearch,
@@ -6791,6 +6815,9 @@
     }
 
     function openDock(){
+      if (!dock.classList.contains('open') && dock.classList.contains('more')){
+        setMore(false, true);    // the laid-out squares go as the bar comes
+      }
       dock.classList.add('open');
       document.body.classList.add('dock-open');
       setFace(0, true);        // never leave the exit under a searching finger
@@ -9186,8 +9213,15 @@
        does the row close up and the bar run out to full width again — so
        nothing is snatched off the screen. A press mid-way simply turns the
        motion round. */
-    const MORE_STEP = 60, MORE_RISE = 380, MORE_FALL = 240;
+    const MORE_STEP = 60, MORE_RISE = 380, MORE_FALL = 240, MORE_RUN = 420;
     let moreRun = 0;
+    let moreLeaving = [];        // squares kept showing while the opening bar puts them away
+    function leaveDone(){
+      dock.classList.remove('more-leave');
+      dock.style.removeProperty('--dock-fix');
+      moreLeaving.forEach(el => el.style.removeProperty('display'));
+      moreLeaving = [];
+    }
     function moreSquares(){
       return ['dockList', 'dockPlay', 'dockRefs', 'dockFile', 'dockLibrary']
         .map(id => document.getElementById(id))
@@ -9208,11 +9242,12 @@
         dock.style.removeProperty('--dock-fix');
       }
     }
-    function setMore(on){
+    function setMore(on, opening){
       const run = ++moreRun;
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      leaveDone();
       dock.classList.remove('more-in', 'more-out');
-      if (!reduced && dock.classList.contains('open')) holdDock(true);
+      if (!reduced && !opening && dock.classList.contains('open')) holdDock(true);
       if (on){
         dock.classList.add('more');
         if (!reduced){
@@ -9228,6 +9263,22 @@
       } else if (reduced || !dock.classList.contains('more')){
         dock.classList.remove('more');
         holdDock(false);
+      } else if (opening){
+        holdDock(false);
+        const stays = document.body.classList.contains('music-on') ? 'dockPlay' : '';
+        moreLeaving = moreSquares().filter(el => el.id !== stays);
+        moreLeaving.forEach((el, i) => {
+          el.style.setProperty('--more-o', moreLeaving.length - 1 - i);
+          el.style.display = 'flex';
+        });
+        dock.style.setProperty('--dock-fix', dock.getBoundingClientRect().width + 'px');
+        dock.classList.remove('more');
+        dock.classList.add('more-leave');
+        void dock.offsetWidth;
+        dock.style.setProperty('--dock-fix', 'var(--dock-w)');
+        setTimeout(() => {
+          if (run === moreRun) leaveDone();
+        }, Math.max(MORE_RUN, MORE_FALL + MORE_STEP * (moreLeaving.length - 1)));
       } else {
         const sq = moreSquares();
         sq.forEach((el, i) => el.style.setProperty('--more-o', sq.length - 1 - i));
