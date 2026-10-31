@@ -417,6 +417,16 @@
     </image:image>
   </url>
   <url>
+    <loc>https://britishmaterialunit.com/archive/czech/trousers/czech-peoples-army-1990s-mechanics-trousers/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://britishmaterialunit.com/archive/czech/trousers/czech-peoples-army-1990s-mechanics-trousers/CZPA1990MT.png</image:loc>
+      <image:title>Czech Peoples Army 1990s Mechanics Trousers</image:title>
+      <image:caption>Czech Peoples Army 1990s Mechanics Trousers — Czech military surplus trouser, archive ref CZPA1990MT</image:caption>
+    </image:image>
+  </url>
+  <url>
     <loc>https://britishmaterialunit.com/archive/czechoslovak/shirts/czechoslovak-army-1980s-orange-pyjama-shirt/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
