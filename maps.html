@@ -4162,6 +4162,67 @@
     .sh-top .sd-head{ margin:0; }
     .sh-acts{ display:flex; gap:8px; }
     .sh-acts .sd-btn{ flex:none; height:32px; padding:0 14px; }
+    .sh-acts .sh-ok{ width:32px; padding:0; background:var(--line) url('/tick-white.svg') center / 60% no-repeat; }
+
+    /* A sheet kept on the board: a landscape page, drawn round in black like
+       a PDF, with a strip that names it and a square that opens it again. */
+    .rf-sheet{
+      height:var(--ih);
+      display:flex; flex-direction:column;
+      background:var(--bg);
+      font-family:var(--font); color:var(--ink);
+    }
+    .rf-item.rf-sheet::before{
+      content:''; position:absolute; inset:0;
+      border:calc(1px * var(--inv)) solid var(--line);
+      pointer-events:none; z-index:3;
+    }
+    .rs-page{
+      flex:1 1 auto; min-height:0; overflow:hidden;
+      display:flex; flex-direction:column;
+      padding:calc(var(--w) * .035) calc(var(--w) * .04) calc(var(--w) * .025);
+      font-size:calc(var(--w) * .022);
+      font-variant-numeric:tabular-nums;
+    }
+    .rs-head{
+      display:flex; justify-content:space-between; align-items:baseline;
+      padding-bottom:calc(var(--w) * .014);
+      font-size:calc(var(--w) * .024); letter-spacing:.16em; text-transform:uppercase; font-weight:bold;
+    }
+    .rs-head span:last-child{ font-weight:400; color:#9a9a9a; }
+    .rs-grid{
+      display:grid;
+      grid-template-columns:calc(var(--w) * .055) minmax(0, 1fr) repeat(3, calc(var(--w) * .04)) calc(var(--w) * .055) calc(var(--w) * .1) calc(var(--w) * .115);
+      column-gap:calc(var(--w) * .016);
+      align-items:center;
+    }
+    .rs-grid > span{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .rs-grid > .n{ text-align:right; }
+    .rs-cols{
+      padding:calc(var(--w) * .008) 0;
+      border-top:calc(1px * var(--inv)) solid var(--line);
+      border-bottom:calc(1px * var(--inv)) solid #e4e4e4;
+      font-size:.8em; letter-spacing:.12em; text-transform:uppercase; color:#9a9a9a;
+    }
+    .rs-rows{ flex:1 1 auto; min-height:0; overflow:hidden; }
+    .rs-row{ padding:calc(var(--w) * .008) 0; border-bottom:calc(1px * var(--inv)) solid #ececec; }
+    .rs-row .b{ font-weight:bold; }
+    .rs-ph{ width:calc(var(--w) * .055); height:calc(var(--w) * .055); background:center / contain no-repeat; }
+    .rs-more{ padding-top:calc(var(--w) * .008); color:#9a9a9a; }
+    .rs-foot{
+      padding-top:calc(var(--w) * .012);
+      border-top:calc(1px * var(--inv)) solid var(--line);
+      font-weight:bold;
+    }
+    .rs-foot .t{ font-size:1.35em; }
+    .rs-foot .lead{ font-size:.8em; letter-spacing:.14em; text-transform:uppercase; }
+    .rf-sheet .rf-lk-bar{
+      flex:none;
+      height:calc(var(--w) * .08);
+      font-size:calc(var(--w) * .028);
+      border:none; border-top:calc(1px * var(--inv)) solid var(--line);
+    }
+    .rf-sheet .rf-lk-open{ width:calc(var(--w) * .052); height:calc(var(--w) * .052); }
     #refsSheet{ touch-action:pan-x pan-y; -webkit-user-select:text; user-select:text; }
     .sh-scroll{ flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
     .sh-table{ width:100%; border-collapse:collapse; font-size:12px; color:var(--ink); font-variant-numeric:tabular-nums; }
@@ -4489,7 +4550,8 @@
         <span class="sd-head">Costing sheet · <span id="shCount">00</span></span>
         <span class="sh-acts">
           <button type="button" class="sd-btn" id="shCsv">Download .csv</button>
-          <button type="button" class="sd-btn sd-go" id="shClose">Close</button>
+          <button type="button" class="sd-btn" id="shClose">Close</button>
+          <button type="button" class="sd-btn sd-go sh-ok" id="shOk" aria-label="Done — put the sheet on the board"></button>
         </span>
       </div>
       <div class="sh-scroll">
@@ -11666,6 +11728,7 @@
       const CURS = ['GBP', 'EUR', 'USD', 'JPY', 'CHF', 'SEK', 'DKK', 'NOK', 'AUD', 'CAD'];
       const CUR_KEY = 'bmu-refs-cur';
       const SIZE_NAMES = ['1', '2', '3'], SIZE_WORDS = ['Small', 'Medium', 'Large'];
+      const SHEET_AR = 210 / 297;              // a sheet on the board is a landscape A4 page
       const cleanPrice = p => p && Number.isFinite(Number(p.amount)) && Number(p.amount) >= 0 && CURS.includes(p.cur)
         ? { amount:Math.round(Number(p.amount) * 100) / 100, cur:p.cur } : null;
       function priceText(p){
@@ -11702,6 +11765,7 @@
         total.classList.toggle('none', !sum);
         total.textContent = sum ? priceText(sum) : '\u00a0';
         total.setAttribute('aria-label', sum ? `Total ${priceText(sum)}` : '');
+        paintSheetsOf(it);
       }
       /* the three sizes: it.sizes = [{ qty }] × 3, small to large */
       function cleanSizes(v){
@@ -11855,6 +11919,7 @@
         if (it.text != null){ mountText(it); return; }
         if (it.draw){ mountDraw(it); return; }
         if (it.link){ mountLink(it); return; }
+        if (it.sheet){ mountSheet(it); return; }
         it.url = URL.createObjectURL(it.blob);
         const el = document.createElement('div');
         el.className = 'rf-item';
@@ -13174,6 +13239,7 @@
         items = items.filter(o => o !== it);
         locks = locks.filter(l => l.p !== it.id && l.c !== it.id);
         regroup();
+        if (it.garment) paintSheetsOf(it);
         joints(); sync(); save(); paintGarments(); repaint();
       }
 
@@ -13631,7 +13697,7 @@
         const wasEmpty = !items.length;
         const ok = [];
         for (const en of entries){
-          try { ok.push({ ...en, ar: en.link ? linkAr(en.link) : en.draw ? en.draw.h0 / en.draw.w0
+          try { ok.push({ ...en, ar: en.sheet ? SHEET_AR : en.link ? linkAr(en.link) : en.draw ? en.draw.h0 / en.draw.w0
                                    : en.text != null ? (en.ar > 0 ? en.ar : 0.25) : await measure(en.blob) }); } catch {}
         }
         if (!ok.length) return { added:0, refused:entries.length };
@@ -13644,6 +13710,7 @@
           if (en.text != null) it.text = cleanText(en.text);
           if (en.draw) it.draw = en.draw;
           if (en.link) it.link = en.link;
+          if (en.sheet) it.sheet = { rows:en.sheet.rows.slice() };   // files for now; ids once all are made
           items.push(it); mount(it); made.push(it);
           if (en.key) byKey[en.key] = it;
           return it;
@@ -13673,6 +13740,12 @@
             make(en, c.x + pts[i][0] * k, c.y + pts[i][1] * k, boxW(en.ar, BOX), ++zTop));
         }
 
+        // a sheet names its garments by their files in the .zip: now they have ids
+        made.forEach(it => {
+          if (!it.sheet) return;
+          it.sheet.rows = it.sheet.rows.map(f => byKey[f] && byKey[f].id).filter(Boolean);
+          paintSheetCard(it);
+        });
         if (lockSpec && lockSpec.length){
           lockSpec.forEach(l => {
             const p = byKey[l.p], c = byKey[l.c];
@@ -14006,6 +14079,8 @@
         const draws = Object.values(lay).filter(r => r.draw && typeof r.draw === 'object');
         // and links, by their address alone
         const links = Object.values(lay).filter(r => r.link && relink(r.link));
+        // and sheets, by the files of the garments they hold; their .csv is for a spreadsheet
+        const sheets = Object.values(lay).filter(r => r.sheet && Array.isArray(r.sheet.rows));
         if (!imgs.length && !texts.length && !draws.length && !links.length) throw new Error('no images');
         const layOf = r => r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0
           ? { x:r.x, y:r.y, w:r.w, z:r.z || 0, mode:[1, 2, 3].includes(r.mode) ? r.mode : 1 } : null;
@@ -14021,7 +14096,9 @@
          .concat(draws.filter(layOf).map(r => ({ key:r.file, draw:cleanDraw(r.draw), name:'Drawing',
                    stamp:r.stamp || null, lay:layOf(r) })))
          .concat(links.filter(layOf).map(r => ({ key:r.file, link:relink(r.link), name:'Link',
-                   stamp:r.stamp || null, lay:layOf(r) })));
+                   stamp:r.stamp || null, lay:layOf(r) })))
+         .concat(sheets.filter(layOf).map(r => ({ key:r.file, sheet:{ rows:r.sheet.rows.filter(f => typeof f === 'string') },
+                   name:'Costing sheet', stamp:r.stamp || null, lay:layOf(r) })));
         // in the order they were laid down, so the stacking comes back too
         got.sort((a, b) => ((a.lay || {}).z || 0) - ((b.lay || {}).z || 0));
         return { locks: lockSpec, entries: got };
@@ -14062,10 +14139,11 @@
         };
         for (let i = 0; i < order.length; i++){
           const it = order[i];
-          const isText = it.text != null, isDraw = !!it.draw, isLink = !!it.link;
-          const file = `${String(i + 1).padStart(pad, '0')}.${isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url' : extOf(it)}`;
+          const isText = it.text != null, isDraw = !!it.draw, isLink = !!it.link, isSheet = !!it.sheet;
+          const file = `${String(i + 1).padStart(pad, '0')}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url' : extOf(it)}`;
           fileOf[it.id] = file;
-          files.push({ name:file, data:isLink ? enc.encode(`[InternetShortcut]\r\nURL=${it.link.url}\r\n`)
+          files.push({ name:file, data:isSheet ? enc.encode(sheetCsv(it.sheet.rows.map(byId).filter(isGarment)))
+                                     : isLink ? enc.encode(`[InternetShortcut]\r\nURL=${it.link.url}\r\n`)
                                      : isText ? enc.encode(plainOf(it.text))
                                      : isDraw ? enc.encode(drawSvg(it.draw, true))
                                               : new Uint8Array(await it.blob.arrayBuffer()) });
@@ -14074,6 +14152,7 @@
           if (isText){ row.text = it.text; row.ar = Math.round(it.ar * 1e4) / 1e4; }
           if (isDraw) row.draw = it.draw;
           if (isLink) row.link = { url:it.link.url, title:it.link.title || '', thumb:it.link.thumb || '' };
+          if (isSheet) row.sheet = { rows:it.sheet.rows };      // board ids, named by file below
           if (it.stamp) row.stamp = it.stamp;
           if (it.garment) row.garment = it.garment;
           if (modeOf(it) > 1) row.mode = modeOf(it);
@@ -14083,6 +14162,7 @@
           if (it.garment && sizesOrNull(it.sizes)) row.sizes = sizesOrNull(it.sizes);
           man.items.push(row);
         }
+        man.items.forEach(r => { if (r.sheet) r.sheet = { rows:r.sheet.rows.map(id => fileOf[id]).filter(Boolean) }; });
         man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
                          .filter(l => l.p && l.c);
         files.unshift({ name:'references.json', data:enc.encode(JSON.stringify(man, null, 2)) });
@@ -15417,8 +15497,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -15434,7 +15514,8 @@
           });
           if (!got || !Array.isArray(got.items) || items.length) return;
           got.items.forEach(s => {
-            if (!(s.blob instanceof Blob) && typeof s.text !== 'string' && !s.draw && !s.link) return;
+            if (!(s.blob instanceof Blob) && typeof s.text !== 'string' && !s.draw && !s.link
+                && !(s.sheet && Array.isArray(s.sheet.rows))) return;
             const it = { ...s };
             if (it.link && !(it.link = relink(it.link))) return;
             if (it.draw) it.draw = cleanDraw(it.draw);
@@ -15841,7 +15922,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
@@ -15897,6 +15978,7 @@
           const it = { ...o, id:uid(), gid:null, z:++zTop, shot:o.shot || 0, mode:o.mode || 1,
                        x:o.x - mid.x + to.x, y:o.y - mid.y + to.y };
           if (o.link) it.link = relink(o.link);
+          if (o.sheet) it.sheet = { rows:o.sheet.rows.slice() };
           if (o.draw) it.draw = cleanDraw(JSON.parse(JSON.stringify(o.draw)));
           items.push(it); mount(it);
           return it;
@@ -16073,6 +16155,81 @@
         applyView();
         sync();
       }
+      /* ---------- A SHEET ON THE BOARD ----------
+         it.sheet = { rows:[board ids of its garments] }. Drawn from the
+         garments themselves every time, so it never disagrees with them. */
+      function mountSheet(it){
+        it.ar = SHEET_AR;
+        const el = document.createElement('div');
+        el.className = 'rf-item rf-sheet';
+        el.dataset.id = it.id;
+        const page = Object.assign(document.createElement('div'), { className:'rs-page' });
+        const bar = Object.assign(document.createElement('div'), { className:'rf-lk-bar' });
+        bar.appendChild(Object.assign(document.createElement('span'), { className:'rf-lk-kind', textContent:'Sheet' }));
+        bar.appendChild(Object.assign(document.createElement('span'), { className:'rf-lk-title' }));
+        const open = Object.assign(document.createElement('button'), { type:'button', className:'rf-lk-open rs-open' });
+        open.setAttribute('aria-label', 'Open the sheet');
+        open.innerHTML = svgIcon('M10.6 2.9 L13.1 5.4 L5.6 12.9 L2.6 13.4 L3.1 10.4 Z M9.1 4.4 L11.6 6.9');
+        open.addEventListener('click', e => { e.stopPropagation(); toggleSheet(true, it); });
+        bar.appendChild(open);
+        el.addEventListener('dblclick', e => { e.stopPropagation(); toggleSheet(true, it); });
+        const del = Object.assign(document.createElement('button'), { type:'button', className:'rf-del' });
+        del.setAttribute('aria-label', 'Remove this sheet');
+        const size = Object.assign(document.createElement('span'), { className:'rf-size' });
+        const stamp = Object.assign(document.createElement('button'), { type:'button', className:'rf-stamp' });
+        el.append(page, bar, del, size, stamp);
+        it.el = el;
+        paintSheetCard(it);
+        paintStamp(it);
+        place(it);
+        stage.appendChild(el);
+      }
+      function paintSheetCard(it){
+        const page = it.el && it.el.querySelector('.rs-page');
+        if (!page) return;
+        const list = it.sheet.rows.map(byId).filter(o => o && o.garment && o.url && garmentInfo(o.garment));
+        let units = 0; const per = [0, 0, 0], by = {};
+        const rows = list.map(o => {
+          const g = garmentInfo(o.garment), sz = cleanSizes(o.sizes), p = cleanPrice(o.price);
+          const u = sz.reduce((n, c) => n + c.qty, 0);
+          units += u; sz.forEach((c, k) => { per[k] += c.qty; });
+          const line = p ? Math.round(p.amount * u * 100) / 100 : 0;
+          if (p && u) by[p.cur] = Math.round(((by[p.cur] || 0) + line) * 100) / 100;
+          return `<div class="rs-grid rs-row"><span class="rs-ph" style="background-image:url('${escH(o.url)}')"></span>` +
+            `<span class="b">${escH(g.name)}</span>` + sz.map(c => `<span class="n">${c.qty}</span>`).join('') +
+            `<span class="n b">${u}</span><span class="n">${p ? escH(priceText(p)) : '—'}</span>` +
+            `<span class="n b">${p ? escH(priceText({ amount:line, cur:p.cur })) : '—'}</span></div>`;
+        });
+        const grand = Object.keys(by).map(c => priceText({ amount:by[c], cur:c })).join(' + ') || '—';
+        page.innerHTML =
+          `<div class="rs-head"><span>Costing sheet</span><span>${String(list.length).padStart(2, '0')} garments</span></div>` +
+          `<div class="rs-grid rs-cols"><span></span><span>Garment</span>` +
+            SIZE_NAMES.map(n => `<span class="n">${n}</span>`).join('') +
+            `<span class="n">Units</span><span class="n">Per unit</span><span class="n">Total</span></div>` +
+          `<div class="rs-rows">${rows.join('') || '<div class="rs-more">No garments left on the board</div>'}</div>` +
+          `<div class="rs-grid rs-foot"><span></span><span class="lead">Total</span>` +
+            per.map(n => `<span class="n">${n}</span>`).join('') +
+            `<span class="n">${units}</span><span></span><span class="n t">${escH(grand)}</span></div>`;
+        const t = it.el.querySelector('.rf-lk-title');
+        t.textContent = `${units} unit${units === 1 ? '' : 's'} · ${grand}`;
+        // more rows than the page holds: say how many are under the fold
+        requestAnimationFrame(() => {
+          const box = page.querySelector('.rs-rows');
+          if (!box) return;
+          const hidden = [...box.children].filter(r => r.offsetTop + r.offsetHeight > box.offsetTop + box.clientHeight + 1).length;
+          if (hidden && hidden < list.length){
+            const last = [...box.children].filter(r => r.offsetTop + r.offsetHeight <= box.offsetTop + box.clientHeight + 1);
+            const keep = Math.max(0, last.length - 1);
+            [...box.children].slice(keep).forEach(r => r.remove());
+            box.insertAdjacentHTML('beforeend', `<div class="rs-more">+ ${list.length - keep} more — open the sheet</div>`);
+          }
+        });
+      }
+      // a garment's numbers changed, or it left: every sheet holding it is drawn again
+      function paintSheetsOf(g){
+        items.forEach(o => { if (o.sheet && o.el && o.sheet.rows.includes(g.id)) paintSheetCard(o); });
+      }
+
       /* ---------- THE COSTING SHEET ----------
          Pick garments (Shift-press, or Shift-drag a box) and press Sheet —
          or press it with none picked for every garment on the board. One row
@@ -16083,7 +16240,7 @@
          and sums are formulas, so they keep adding up in a spreadsheet. */
       const sheetEl = document.getElementById('refsSheet');
       const shBody = document.getElementById('shBody'), shFoot = document.getElementById('shFoot');
-      let sheetList = [];
+      let sheetList = [], sheetCard = null;     // sheetCard: the board's sheet this panel is showing, if any
       const lastCur = () => { try { const c = localStorage.getItem(CUR_KEY); if (CURS.includes(c)) return c; } catch {} return 'GBP'; };
       const isGarment = it => it && it.garment && it.url && garmentInfo(it.garment);
       function sheetItems(){
@@ -16091,10 +16248,11 @@
         const list = pickedG.length ? pickedG : items.filter(isGarment);
         return list.sort((a, b) => (Math.round(a.y / 40) - Math.round(b.y / 40)) || (a.x - b.x));
       }
-      function toggleSheet(on){
+      function toggleSheet(on, card){
         on = on == null ? sheetEl.hidden : on;
-        if (!on){ sheetEl.hidden = true; return; }
-        sheetList = sheetItems();
+        if (!on){ sheetEl.hidden = true; sheetCard = null; return; }
+        sheetCard = card || null;
+        sheetList = card ? card.sheet.rows.map(byId).filter(isGarment) : sheetItems();
         if (!sheetList.length){ say('Put garments on the board first'); return; }
         toggleSearch(false);
         toggleSend(false);
@@ -16182,22 +16340,53 @@
         e.stopPropagation();
       });
       document.getElementById('shClose').addEventListener('click', () => toggleSheet(false));
-      document.getElementById('shCsv').addEventListener('click', () => {
+      // the tick keeps it: on the board as a page of its own, to be moved,
+      // sized and opened again — the one it came from, or a new one
+      document.getElementById('shOk').addEventListener('click', () => {
+        const rows = sheetList.map(o => o.id);
+        let it = sheetCard && items.includes(sheetCard) ? sheetCard : null;
+        toggleSheet(false);
+        if (it){
+          it.sheet = { rows };
+          paintSheetCard(it);
+        } else {
+          const list = sheetList.slice(), b = list.length ? boundsOf(list) : null;
+          const w = clamp(460 / vs, 40, 6000);
+          const c = toWorld(W() / 2, H() / 2 - 20);
+          it = { id:uid(), sheet:{ rows }, name:'Costing sheet', ar:SHEET_AR, x:c.x, y:c.y, w, z:++zTop,
+                 gid:null, garment:null, mode:1, credit:null, shot:0, stamp:null };
+          // beside the garments it is made of, where there is room
+          if (b){ it.x = b.r + CSPACE / 2 + w / 2; it.y = (b.t + b.b) / 2; }
+          const r0 = rect(it);
+          if (items.some(o => { const r = rect(o); return r.l < r0.r && r.r > r0.l && r.t < r0.b && r.b > r0.t; }))
+            it.x = Math.max(...items.map(o => rect(o).r)) + CSPACE / 2 + w / 2;
+          items.push(it); mount(it);
+          clustered = false;
+          settle(fit);
+        }
+        pickNone(); select(it);
+        sync(); save();
+        say('Sheet kept on the board');
+      });
+      function sheetCsv(list){
         const q = v => { const t = String(v == null ? '' : v); return /[",\r\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
         // a name never starts a formula; only the sheet's own sums do
         const txt = v => /^[=+\-@]/.test(String(v || '')) ? `'${v}` : (v || '');
         const rows = [['Garment', 'Nation', 'Type', 'Archive ref', 'Era', 'Material',
                        'Size 1 (Small)', 'Size 2 (Medium)', 'Size 3 (Large)', 'Units', 'Currency', 'Per unit', 'Total']];
-        sheetList.forEach((it, i) => {
+        list.forEach((it, i) => {
           const g = garmentInfo(it.garment), sz = cleanSizes(it.sizes), p = cleanPrice(it.price), r = i + 2;
           rows.push([txt(g.name), txt(g.nation), txt(g.cat), txt(g.ref), txt(g.era), txt(g.mat),
                      sz[0].qty, sz[1].qty, sz[2].qty, `=SUM(G${r}:I${r})`,
                      p ? p.cur : '', p ? p.amount : '', `=J${r}*L${r}`]);
         });
-        const n = sheetList.length + 1, curs = Object.keys(sheetTotals().by);
+        const n = list.length + 1, curs = [...new Set(list.map(it => cleanPrice(it.price)).filter(p => p).map(p => p.cur))];
         rows.push(['Total', '', '', '', '', '', `=SUM(G2:G${n})`, `=SUM(H2:H${n})`, `=SUM(I2:I${n})`, `=SUM(J2:J${n})`,
                    curs.length === 1 ? curs[0] : '', '', curs.length > 1 ? 'mixed currencies' : `=SUM(M2:M${n})`]);
-        const csv = '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n') + '\r\n';
+        return '\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n') + '\r\n';
+      }
+      document.getElementById('shCsv').addEventListener('click', () => {
+        const csv = sheetCsv(sheetList);
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
         a.download = `BMU-Costing-${new Date().toISOString().slice(0, 10)}.csv`;
