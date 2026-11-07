@@ -3749,6 +3749,24 @@
       color:var(--ink);
       cursor:text;
     }
+    /* Prices are set by BMU's admins. Anyone else sees the price with a lock,
+       and pointing at it says why it will not open. */
+    .rp-price.locked{ position:relative; display:inline-flex; align-items:center; gap:.35em; cursor:not-allowed; }
+    .rp-price.locked:hover{ border-bottom-color:transparent; }
+    .rp-lock{ flex:none; display:inline-block; width:.9em; height:.9em; color:#9a9a9a; }
+    .rp-lock svg{ display:block; width:100%; height:100%; }
+    .rp-price.locked::after{
+      content:'Access denied · admin only';
+      position:absolute; right:0; bottom:calc(100% + .5em);
+      padding:.35em .6em;
+      background:var(--line); color:#fff;
+      font-size:.75em; font-weight:400; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
+      opacity:0; pointer-events:none; transition:opacity .15s;
+      z-index:4;
+    }
+    .rp-price.locked:hover::after{ opacity:1; }
+    .sh-locked{ color:var(--ink); cursor:not-allowed; }
+    .sh-locked .rp-lock{ margin-left:6px; vertical-align:-1px; }
     .rp-cur, .rp-amt{
       font:inherit; color:inherit; background:transparent;
       border:0; border-radius:0; padding:0; margin:0; outline:none;
@@ -11728,7 +11746,8 @@
       const CURS = ['GBP', 'EUR', 'USD', 'JPY', 'CHF', 'SEK', 'DKK', 'NOK', 'AUD', 'CAD'];
       const CUR_KEY = 'bmu-refs-cur';
       const SIZE_NAMES = ['1', '2', '3'], SIZE_WORDS = ['Small', 'Medium', 'Large'];
-      const SHEET_AR = 210 / 297;              // a sheet on the board is a landscape A4 page
+      const SHEET_AR = 210 / 297;
+      const LOCK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.6 7.2 V5.4 A3.4 3.4 0 0 1 11.4 5.4 V7.2 M3.4 7.2 H12.6 V13.6 H3.4 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';              // a sheet on the board is a landscape A4 page
       const cleanPrice = p => p && Number.isFinite(Number(p.amount)) && Number(p.amount) >= 0 && CURS.includes(p.cur)
         ? { amount:Math.round(Number(p.amount) * 100) / 100, cur:p.cur } : null;
       function priceText(p){
@@ -11745,9 +11764,12 @@
         const sz = cleanSizes(it.sizes), units = sz.reduce((n, c) => n + c.qty, 0);
         box.classList.remove('editing');
         box.classList.toggle('set', !!p);
-        if (p) box.innerHTML = escH(priceText(p)) + ' <span class="rp-per">per unit</span>';
-        else box.textContent = 'Add price';
-        box.setAttribute('aria-label', p ? `Price ${priceText(p)} per unit — press to change` : 'Add a price');
+        box.classList.toggle('locked', !admin);
+        const lock = admin ? '' : `<span class="rp-lock">${LOCK_SVG}</span>`;
+        if (p) box.innerHTML = escH(priceText(p)) + ' <span class="rp-per">per unit</span>' + lock;
+        else box.innerHTML = admin ? 'Add price' : 'Price' + lock;
+        box.setAttribute('aria-label', !admin ? (p ? `Price ${priceText(p)} per unit — locked, admin only` : 'Price locked — admin only')
+          : p ? `Price ${priceText(p)} per unit — press to change` : 'Add a price');
         // the sizes' counts, their sum, and the sum at the price
         const panel = box.closest('.rf-panel');
         panel.querySelectorAll('.rp-size').forEach(el => {
@@ -11809,6 +11831,7 @@
       function editPrice(it){
         const box = it.el && it.el.querySelector('.rp-price');
         if (!box || box.classList.contains('editing')) return;
+        if (!admin){ say('Access denied — prices are set by BMU admins'); return; }
         const p = cleanPrice(it.price);
         let cur = p ? p.cur : 'GBP';
         if (!p){ try { const c = localStorage.getItem(CUR_KEY); if (CURS.includes(c)) cur = c; } catch {} }
@@ -14241,6 +14264,9 @@
           admin = Array.isArray(rows) && rows.length > 0;
         } catch {}
         T('send').hidden = !admin;
+        // the prices lock or open to match
+        items.forEach(it => { if (it.garment) paintPrice(it); });
+        if (!sheetEl.hidden) paintSheet();
       }
 
       const sendEl = document.getElementById('refsSend');
@@ -16270,10 +16296,13 @@
             sz.map((c, k) => `<td class="sh-n"><input type="text" data-f="q${k}" inputmode="numeric" autocomplete="off" ` +
               `placeholder="0" value="${c.qty || ''}" aria-label="${SIZE_WORDS[k]}"></td>`).join('') +
             `<td class="sh-n sh-units"></td>` +
-            `<td class="sh-n sh-pp"><select data-f="cur" aria-label="Currency">` +
-              CURS.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('') +
-            `</select><input type="text" data-f="price" inputmode="decimal" autocomplete="off" placeholder="0" ` +
-              `value="${p ? p.amount : ''}" aria-label="Price per unit"></td>` +
+            (admin
+              ? `<td class="sh-n sh-pp"><select data-f="cur" aria-label="Currency">` +
+                CURS.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('') +
+                `</select><input type="text" data-f="price" inputmode="decimal" autocomplete="off" placeholder="0" ` +
+                `value="${p ? p.amount : ''}" aria-label="Price per unit"></td>`
+              : `<td class="sh-n sh-locked" title="Access denied · admin only">${p ? escH(priceText(p)) : '—'}` +
+                `<span class="rp-lock">${LOCK_SVG}</span></td>`) +
             `<td class="sh-n sh-line"></td></tr>`;
         }).join('');
         document.getElementById('shCount').textContent = String(sheetList.length).padStart(2, '0');
@@ -16309,6 +16338,7 @@
         const tr = f && e.target.closest('tr[data-r]');
         const it = tr && sheetList[Number(tr.dataset.r)];
         if (!it) return;
+        if (f[0] !== 'q' && !admin) return;       // a price is an admin's to change
         if (f[0] === 'q'){
           const now = cleanSizes(it.sizes);
           now[Number(f[1])].qty = parseInt(e.target.value.replace(/[^\d]/g, ''), 10) || 0;
