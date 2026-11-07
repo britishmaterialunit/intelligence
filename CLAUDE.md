@@ -124,7 +124,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   freely); resizing from the corner holds the opposite corner and snaps its
   far edges the same way. View 3 is one shape for every garment: square photo + panel `PANEL`
   (1.25) × its width, same height, so tabs divide in the same place; a long
-  record has its panel type set smaller instead (`panelFit` → `--ps`). Garments: no Cut out; extra photographs (`shots`) get dots in
+  record has its panel type set smaller instead (`panelFit` → `--ps`). The panel's foot (`.rp-foot`) holds Open in the archive (left) and the reader's **price** (right, `.rp-price`): pressed, it opens a currency select + amount field (`editPrice`; Enter or leaving it keeps, Escape drops, empty clears); kept, it reads as plain bold type (`paintPrice`, `Intl` en-GB), pressed again to change. `it.price = { amount, cur }` (`CURS`, last currency in localStorage `bmu-refs-cur`) goes with the piece everywhere — IndexedDB, copy/paste, and `references.json` in the .zip. Unpriced, "Add price" shows only on hover or when picked, and keeps its room so `panelFit` is unchanged. Garments: no Cut out; extra photographs (`shots`) get dots in
   views 2 and 3. Search is filtered as in the owner's `commons-filter.js`, ported
   inline: `obscenity` 0.4.6 (MIT, jsDelivr `+esm`, fetched when Search
   opens) plus `EXTRA_BLOCK_TERMS`/`WHITELIST`/`BLOCK_CATEGORY_PATTERNS`, and

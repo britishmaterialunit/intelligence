@@ -3657,8 +3657,15 @@
     }
     .rp-facts dt{ color:#9a9a9a; }
     .rp-facts dd{ margin:0; }
-    .rp-open{
+    /* the panel's foot: the archive button left, the reader's price right */
+    .rp-foot{
       margin-top:auto;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:calc(var(--t) * .04);
+    }
+    .rp-open{
       align-self:flex-start;
       padding:calc(var(--t) * .025) calc(var(--t) * .045);
       border:calc(1.5px * var(--inv)) solid var(--line);
@@ -3669,6 +3676,50 @@
       color:var(--ink);
     }
     .rp-open:hover{ background:var(--faint); }
+    /* A price of the reader's own. Typed, it reads as part of the record;
+       pressed, it opens again to be changed. Unpriced, the offer to add one
+       shows only on the garment being looked at, and keeps its room. */
+    .rp-price{
+      margin-left:auto;
+      padding:calc(var(--t) * .012) 0;
+      border-bottom:calc(1px * var(--inv)) solid transparent;
+      font-size:calc(var(--t) * .05);
+      line-height:1.2;
+      font-weight:bold;
+      font-variant-numeric:tabular-nums;
+      white-space:nowrap;
+      color:var(--ink);
+      cursor:text;
+    }
+    .rp-price.set:hover{ border-bottom-color:#d6d6d6; }
+    .rp-price:not(.set){
+      font-size:calc(var(--t) * .034);
+      font-weight:400;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+      cursor:pointer;
+      visibility:hidden;
+    }
+    .rf-item:hover .rp-price, .rf-item.sel .rp-price{ visibility:visible; }
+    .rp-price.editing{
+      display:flex; align-items:baseline; gap:calc(var(--t) * .02);
+      visibility:visible;
+      border-bottom-color:var(--line);
+      font-size:calc(var(--t) * .05);
+      font-weight:bold;
+      letter-spacing:0;
+      text-transform:none;
+      color:var(--ink);
+      cursor:text;
+    }
+    .rp-cur, .rp-amt{
+      font:inherit; color:inherit; background:transparent;
+      border:0; border-radius:0; padding:0; margin:0; outline:none;
+    }
+    .rp-cur{ font-size:.66em; letter-spacing:.12em; cursor:pointer; }
+    .rp-amt{ width:4.5em; text-align:right; }
+    .rp-amt::placeholder{ color:#c4c4c4; }
     .rf-del{
       top:calc(-15px * var(--inv)); right:calc(-15px * var(--inv));
       width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
@@ -11433,9 +11484,17 @@
           `<div class="rp-name">${escH(g.name)}</div>` +
           `<div class="rp-ref">${escH(g.ref)}</div>` +
           `<dl class="rp-facts">${facts}</dl>` +
-          (g.no ? `<a class="rp-open" href="/archive/${g.no}">Open in the archive</a>` : '');
+          `<div class="rp-foot">` +
+          (g.no ? `<a class="rp-open" href="/archive/${g.no}">Open in the archive</a>` : '') +
+          `<div class="rp-price" role="button" tabindex="0"></div></div>`;
         it.el.insertBefore(head, it.el.firstChild);
         it.el.insertBefore(panel, it.el.querySelector('.rf-del'));
+        const price = panel.querySelector('.rp-price');
+        paintPrice(it);
+        price.addEventListener('click', e => { e.stopPropagation(); editPrice(it); });
+        price.addEventListener('keydown', e => {
+          if ((e.key === 'Enter' || e.key === ' ') && e.target === price){ e.preventDefault(); editPrice(it); }
+        });
         /* A garment with more than one photograph turns over the way its tab
            in the archive does — a dot per view, under the picture. Only in
            views 2 and 3, where it is being looked at as the garment; in
@@ -11460,6 +11519,71 @@
           it.el.appendChild(sq);
         });
         it.el.classList.add('rf-garment');
+      }
+      /* ---------- A GARMENT'S PRICE ----------
+         The reader's own figure for a garment, kept with it on the board
+         (it.price = { amount, cur }), in the saved board and in its .zip. */
+      const CURS = ['GBP', 'EUR', 'USD', 'JPY', 'CHF', 'SEK', 'DKK', 'NOK', 'AUD', 'CAD'];
+      const CUR_KEY = 'bmu-refs-cur';
+      const cleanPrice = p => p && Number.isFinite(Number(p.amount)) && Number(p.amount) >= 0 && CURS.includes(p.cur)
+        ? { amount:Math.round(Number(p.amount) * 100) / 100, cur:p.cur } : null;
+      function priceText(p){
+        const whole = Number.isInteger(p.amount);
+        try {
+          return new Intl.NumberFormat('en-GB', { style:'currency', currency:p.cur,
+            minimumFractionDigits:whole ? 0 : 2, maximumFractionDigits:whole ? 0 : 2 }).format(p.amount);
+        } catch { return `${p.cur} ${p.amount}`; }
+      }
+      function paintPrice(it){
+        const box = it.el && it.el.querySelector('.rp-price');
+        if (!box) return;
+        const p = cleanPrice(it.price);
+        box.classList.remove('editing');
+        box.classList.toggle('set', !!p);
+        box.textContent = p ? priceText(p) : 'Add price';
+        box.setAttribute('aria-label', p ? `Price ${priceText(p)} — press to change` : 'Add a price');
+      }
+      function editPrice(it){
+        const box = it.el && it.el.querySelector('.rp-price');
+        if (!box || box.classList.contains('editing')) return;
+        const p = cleanPrice(it.price);
+        let cur = p ? p.cur : 'GBP';
+        if (!p){ try { const c = localStorage.getItem(CUR_KEY); if (CURS.includes(c)) cur = c; } catch {} }
+        const sel = Object.assign(document.createElement('select'), { className:'rp-cur' });
+        sel.setAttribute('aria-label', 'Currency');
+        CURS.forEach(c => sel.appendChild(Object.assign(document.createElement('option'), { value:c, textContent:c })));
+        sel.value = cur;
+        const inp = Object.assign(document.createElement('input'),
+          { type:'text', className:'rp-amt', inputMode:'decimal', placeholder:'0', autocomplete:'off',
+            value:p ? String(p.amount) : '' });
+        inp.setAttribute('aria-label', 'Price');
+        box.classList.add('editing');
+        box.textContent = '';
+        box.append(sel, inp);
+        inp.focus(); inp.select();
+        let done = false;
+        const finish = keep => {
+          if (done) return;
+          done = true;
+          if (keep){
+            const raw = inp.value.trim().replace(/,(?=\d{1,2}$)/, '.').replace(/[^\d.]/g, '');
+            it.price = raw ? cleanPrice({ amount:parseFloat(raw), cur:sel.value }) : null;
+            if (it.price){ try { localStorage.setItem(CUR_KEY, it.price.cur); } catch {} }
+            save();
+          }
+          paintPrice(it);
+        };
+        const keys = e => {
+          if (e.key === 'Enter'){ e.preventDefault(); finish(true); }
+          else if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); finish(false); }
+          e.stopPropagation();
+        };
+        inp.addEventListener('keydown', keys);
+        sel.addEventListener('keydown', keys);
+        sel.addEventListener('change', () => inp.focus());
+        box.addEventListener('focusout', () => setTimeout(() => {
+          if (!box.contains(document.activeElement)) finish(true);
+        }, 0));
       }
       const fits = new Map();          // garment id → { k: panel width, h: card height, in photo widths; s: type scale }
       function panelFit(it){
@@ -13311,7 +13435,7 @@
           const mode = en.lay && en.lay.mode ? en.lay.mode : 1;
           const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar, x, y, w, z,
                        gid:null, garment:en.garment || null, mode, credit:en.credit || null, shot:en.shot || 0,
-                       stamp:en.stamp || null };
+                       stamp:en.stamp || null, price:en.price || null };
           if (en.text != null) it.text = cleanText(en.text);
           if (en.draw) it.draw = en.draw;
           if (en.link) it.link = en.link;
@@ -13685,6 +13809,7 @@
           return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
                    name:(r && r.name) || en.name, garment:(r && r.garment) || null,
                    credit:(r && r.credit) || null, shot:(r && r.shot) || 0,
+                   price:(r && cleanPrice(r.price)) || null,
                    stamp:(r && r.stamp) || null, lay:layOf(r) };
         }).concat(texts.filter(layOf).map(r => ({ key:r.file, text:r.text, ar:Number(r.ar) || 0.25,
                    name:'Text', stamp:r.stamp || null, lay:layOf(r) })))
@@ -13749,6 +13874,7 @@
           if (modeOf(it) > 1) row.mode = modeOf(it);
           if (it.credit) row.credit = it.credit;
           if (it.shot) row.shot = it.shot;
+          if (it.garment && cleanPrice(it.price)) row.price = cleanPrice(it.price);
           man.items.push(row);
         }
         man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
@@ -15085,8 +15211,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -15153,7 +15279,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, .rp-price, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -15509,7 +15635,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
@@ -15599,7 +15725,7 @@
       window.addEventListener('keydown', e => {
         if (!isOpen) return;
         const t = e.target;
-        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
         if (drawing){
           if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); endDraw(); }
           else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); e.stopPropagation(); undoDraw(); }
