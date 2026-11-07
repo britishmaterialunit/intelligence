@@ -3645,8 +3645,17 @@
     .rp-ref{ margin-top:calc(var(--t) * .02); font-size:calc(var(--t) * .036); letter-spacing:.2em; color:#9a9a9a; }
     /* the button always has air above it: the facts keep a margin below,
        and the type is sized to hold it (see panelFit) */
-    .rp-facts{
+    /* the facts on the left, the reader's sizes and price on the right,
+       in the same type: a second list beside the first */
+    .rp-body{
       margin:calc(var(--t) * .06) 0 calc(var(--t) * .07);
+      display:flex;
+      align-items:flex-start;
+      gap:calc(var(--t) * .06);
+    }
+    .rp-facts{
+      flex:1 1 auto; min-width:0;
+      margin:0;
       display:grid;
       grid-template-columns:auto 1fr;
       gap:calc(var(--t) * .012) calc(var(--t) * .05);
@@ -3654,81 +3663,58 @@
     }
     .rp-facts dt{ color:#9a9a9a; }
     .rp-facts dd{ margin:0; }
-    /* the panel's foot: the archive button left, the reader's price right */
-    /* the panel's foot: the size calculator on the right, then the archive
-       button left and the reader's price right */
-    .rp-foot{
-      margin-top:auto;
-      display:flex;
-      flex-direction:column;
-      gap:calc(var(--t) * .03);
-    }
-    .rp-base{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:calc(var(--t) * .04);
-    }
-    /* Three sizes, a circle each holding how many; the label under it is the
-       size's own name (1 2 3 until changed). Their tally times the price is
-       the total. Nothing counted, it shows only on the garment looked at. */
+    .rp-foot{ margin-top:auto; display:flex; }
+    /* Three sizes, each its name and a circle holding how many — filled once
+       it holds any. Over a row the name says what it stands for (Small,
+       Medium, Large). Under them their sum, then the price per unit and the
+       sum times the price. Nothing set, the list shows only on the garment
+       being looked at, and always keeps its room. */
     .rp-calc{
-      align-self:flex-end;
-      display:flex; flex-direction:column; align-items:flex-end;
-      gap:calc(var(--t) * .014);
+      flex:none;
+      display:flex; flex-direction:column;
+      gap:calc(var(--t) * .012);
+      font-size:calc(var(--t) * .04);
+      font-variant-numeric:tabular-nums;
     }
     .rf-item:not(:hover):not(.sel) .rp-calc:not(.set){ visibility:hidden; }
-    .rp-sizes{ display:flex; gap:calc(var(--t) * .024); }
-    .rp-size{ display:flex; flex-direction:column; align-items:center; gap:calc(var(--t) * .008); }
+    .rp-row{ display:flex; align-items:center; justify-content:space-between; gap:calc(var(--t) * .04); }
+    .rp-lab{ display:grid; color:#9a9a9a; white-space:nowrap; cursor:default; }
+    /* the number and the word share one cell, so the row is as wide as the
+       word and nothing shifts when they swap */
+    .rp-lab > span{ grid-area:1 / 1; }
+    .rp-lab .l{ visibility:hidden; }
+    .rp-size:hover .rp-lab .s{ visibility:hidden; }
+    .rp-size:hover .rp-lab .l{ visibility:visible; color:var(--ink); }
     .rp-qty{
-      width:calc(var(--t) * .078); height:calc(var(--t) * .078);
+      width:1.75em; height:1.75em;
       box-sizing:border-box;
+      flex:none;
       border-radius:50%;
       border:calc(1.5px * var(--inv)) solid var(--line);
       background:var(--bg);
       display:flex; align-items:center; justify-content:center;
-      font-size:calc(var(--t) * .03);
+      padding:0;
+      font-size:.8em;
+      line-height:1;
       font-weight:bold;
-      font-variant-numeric:tabular-nums;
+      text-align:center;
       color:var(--ink);
       cursor:pointer;
       overflow:hidden;
     }
     .rp-qty:hover{ background:var(--faint); }
     .rp-qty.has{ background:var(--line); color:#fff; }
-    .rp-lab{
-      min-width:calc(var(--t) * .078);
-      text-align:center;
-      font-size:calc(var(--t) * .026);
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color:#9a9a9a;
-      cursor:text;
-      white-space:nowrap;
-    }
-    .rp-qty input, .rp-lab input{
-      width:100%; min-width:0;
-      font:inherit; color:inherit; letter-spacing:inherit; text-transform:inherit; text-align:center;
-      background:transparent; border:0; border-radius:0; padding:0; margin:0; outline:none;
-    }
     .rp-qty.editing{ background:var(--bg); color:var(--ink); }
-    .rp-lab.editing{ color:var(--ink); border-bottom:calc(1px * var(--inv)) solid var(--line); }
-    .rp-tally{
-      font-size:calc(var(--t) * .026);
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:#9a9a9a;
-      font-variant-numeric:tabular-nums;
+    .rp-qty input{
+      width:100%; min-width:0; height:100%;
+      font:inherit; line-height:1; color:inherit; text-align:center;
+      background:transparent; border:0; border-radius:0; padding:0; margin:0; outline:none;
+      caret-color:transparent;
     }
-    .rp-sum{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; }
-    .rp-each{ font-weight:400; color:#9a9a9a; font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
-    .rp-total{
-      font-size:calc(var(--t) * .062);
-      line-height:1.2;
-      font-weight:bold;
-      font-variant-numeric:tabular-nums;
-      white-space:nowrap;
-    }
+    .rp-units{ font-weight:bold; }
+    .rp-tally.none{ visibility:hidden; }
+    .rp-per{ font-weight:400; color:#9a9a9a; }
+    .rp-total{ align-self:flex-end; font-size:1.25em; line-height:1.2; font-weight:bold; white-space:nowrap; }
     .rp-total.none{ visibility:hidden; }
     .rp-open{
       align-self:flex-start;
@@ -3741,48 +3727,31 @@
       color:var(--ink);
     }
     .rp-open:hover{ background:var(--faint); }
-    /* A price of the reader's own. Typed, it reads as part of the record;
-       pressed, it opens again to be changed. Unpriced, the offer to add one
-       shows only on the garment being looked at, and keeps its room. */
+    /* A price of the reader's own. Typed, it reads as part of the list;
+       pressed, it opens again to be changed. */
     .rp-price{
-      margin-left:auto;
-      padding:calc(var(--t) * .012) 0;
+      align-self:flex-end;
       border-bottom:calc(1px * var(--inv)) solid transparent;
-      font-size:calc(var(--t) * .05);
-      line-height:1.2;
       font-weight:bold;
-      font-variant-numeric:tabular-nums;
       white-space:nowrap;
       color:var(--ink);
       cursor:text;
     }
     .rp-price.set:hover{ border-bottom-color:#d6d6d6; }
-    .rp-price:not(.set){
-      font-size:calc(var(--t) * .034);
-      font-weight:400;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:#9a9a9a;
-      cursor:pointer;
-      visibility:hidden;
-    }
-    .rf-item:hover .rp-price, .rf-item.sel .rp-price{ visibility:visible; }
+    .rp-price:not(.set){ font-weight:400; color:#9a9a9a; cursor:pointer; }
     .rp-price.editing{
-      display:flex; align-items:baseline; gap:calc(var(--t) * .02);
-      visibility:visible;
+      display:flex; align-items:baseline; gap:.4em;
       border-bottom-color:var(--line);
-      font-size:calc(var(--t) * .05);
       font-weight:bold;
-      letter-spacing:0;
-      text-transform:none;
       color:var(--ink);
       cursor:text;
     }
     .rp-cur, .rp-amt{
       font:inherit; color:inherit; background:transparent;
       border:0; border-radius:0; padding:0; margin:0; outline:none;
+      caret-color:transparent;
     }
-    .rp-cur{ font-size:.66em; letter-spacing:.12em; cursor:pointer; }
+    .rp-cur{ font-size:.8em; cursor:pointer; }
     .rp-amt{ width:4.5em; text-align:right; }
     .rp-amt::placeholder{ color:#c4c4c4; }
     .rf-del{
@@ -11548,15 +11517,14 @@
           `<div class="rp-nation">${flag}<span>${escH(g.nation)}</span></div>` +
           `<div class="rp-name">${escH(g.name)}</div>` +
           `<div class="rp-ref">${escH(g.ref)}</div>` +
-          `<dl class="rp-facts">${facts}</dl>` +
-          `<div class="rp-foot"><div class="rp-calc"><div class="rp-sizes">` +
-          [0, 1, 2].map(k => `<div class="rp-size" data-k="${k}">` +
-            `<div class="rp-qty" role="button" tabindex="0"></div>` +
-            `<div class="rp-lab" role="button" tabindex="0"></div></div>`).join('') +
-          `</div><div class="rp-tally"></div></div><div class="rp-base">` +
-          (g.no ? `<a class="rp-open" href="/archive/${g.no}">Open in the archive</a>` : '') +
-          `<div class="rp-sum"><div class="rp-price" role="button" tabindex="0"></div>` +
-          `<div class="rp-total none">\u00a0</div></div></div></div>`;
+          `<div class="rp-body"><dl class="rp-facts">${facts}</dl><div class="rp-calc">` +
+          SIZE_NAMES.map((n, k) => `<div class="rp-row rp-size" data-k="${k}">` +
+            `<span class="rp-lab"><span class="s">${n}</span><span class="l">${SIZE_WORDS[k]}</span></span>` +
+            `<div class="rp-qty" role="button" tabindex="0"></div></div>`).join('') +
+          `<div class="rp-row rp-tally none"><span class="rp-lab">=</span><span class="rp-units"></span></div>` +
+          `<div class="rp-price" role="button" tabindex="0"></div>` +
+          `<div class="rp-total none">\u00a0</div></div></div>` +
+          (g.no ? `<div class="rp-foot"><a class="rp-open" href="/archive/${g.no}">Open in the archive</a></div>` : '');
         it.el.insertBefore(head, it.el.firstChild);
         it.el.insertBefore(panel, it.el.querySelector('.rf-del'));
         const price = panel.querySelector('.rp-price');
@@ -11565,11 +11533,11 @@
         price.addEventListener('keydown', e => {
           if ((e.key === 'Enter' || e.key === ' ') && e.target === price){ e.preventDefault(); editPrice(it); }
         });
-        panel.querySelectorAll('.rp-qty, .rp-lab').forEach(cell => {
-          const k = Number(cell.closest('.rp-size').dataset.k), field = cell.classList.contains('rp-qty') ? 'qty' : 'label';
-          cell.addEventListener('click', e => { e.stopPropagation(); editSize(it, k, field); });
+        panel.querySelectorAll('.rp-qty').forEach(cell => {
+          const k = Number(cell.closest('.rp-size').dataset.k);
+          cell.addEventListener('click', e => { e.stopPropagation(); editSize(it, k); });
           cell.addEventListener('keydown', e => {
-            if ((e.key === 'Enter' || e.key === ' ') && e.target === cell){ e.preventDefault(); editSize(it, k, field); }
+            if ((e.key === 'Enter' || e.key === ' ') && e.target === cell){ e.preventDefault(); editSize(it, k); }
           });
         });
         /* A garment with more than one photograph turns over the way its tab
@@ -11602,7 +11570,7 @@
          (it.price = { amount, cur }), in the saved board and in its .zip. */
       const CURS = ['GBP', 'EUR', 'USD', 'JPY', 'CHF', 'SEK', 'DKK', 'NOK', 'AUD', 'CAD'];
       const CUR_KEY = 'bmu-refs-cur';
-      const SIZE_NAMES = ['1', '2', '3'];      // the three sizes' names until a reader changes them
+      const SIZE_NAMES = ['1', '2', '3'], SIZE_WORDS = ['Small', 'Medium', 'Large'];
       const cleanPrice = p => p && Number.isFinite(Number(p.amount)) && Number(p.amount) >= 0 && CURS.includes(p.cur)
         ? { amount:Math.round(Number(p.amount) * 100) / 100, cur:p.cur } : null;
       function priceText(p){
@@ -11619,51 +11587,42 @@
         const sz = cleanSizes(it.sizes), units = sz.reduce((n, c) => n + c.qty, 0);
         box.classList.remove('editing');
         box.classList.toggle('set', !!p);
-        if (p) box.innerHTML = escH(priceText(p)) + (units ? ' <span class="rp-each">each</span>' : '');
+        if (p) box.innerHTML = escH(priceText(p)) + ' <span class="rp-per">per unit</span>';
         else box.textContent = 'Add price';
-        box.setAttribute('aria-label', p ? `Price ${priceText(p)} each — press to change` : 'Add a price');
-        // the calculator: each size's count, its name, the tally and the total
+        box.setAttribute('aria-label', p ? `Price ${priceText(p)} per unit — press to change` : 'Add a price');
+        // the sizes' counts, their sum, and the sum at the price
         const panel = box.closest('.rf-panel');
         panel.querySelectorAll('.rp-size').forEach(el => {
-          const c = sz[Number(el.dataset.k)], q = el.querySelector('.rp-qty'), l = el.querySelector('.rp-lab');
-          if (!q.classList.contains('editing')){
-            q.textContent = String(c.qty);
-            q.classList.toggle('has', c.qty > 0);
-            q.setAttribute('aria-label', `Size ${c.label}: ${c.qty} — press to change`);
-          }
-          if (!l.classList.contains('editing')){
-            l.textContent = c.label;
-            l.setAttribute('aria-label', `Size name ${c.label} — press to rename`);
-          }
+          const k = Number(el.dataset.k), q = el.querySelector('.rp-qty');
+          if (q.classList.contains('editing')) return;
+          q.textContent = String(sz[k].qty);
+          q.classList.toggle('has', sz[k].qty > 0);
+          q.setAttribute('aria-label', `${SIZE_WORDS[k]}: ${sz[k].qty} — press to change`);
         });
-        panel.querySelector('.rp-calc').classList.toggle('set', units > 0 || sz.some((c, k) => c.label !== SIZE_NAMES[k]));
-        panel.querySelector('.rp-tally').textContent = `${units} unit${units === 1 ? '' : 's'}`;
+        panel.querySelector('.rp-calc').classList.toggle('set', units > 0 || !!p);
+        panel.querySelector('.rp-tally').classList.toggle('none', !units);
+        panel.querySelector('.rp-units').textContent = `${units} unit${units === 1 ? '' : 's'}`;
         const total = panel.querySelector('.rp-total');
         const sum = p && units ? { amount:Math.round(p.amount * units * 100) / 100, cur:p.cur } : null;
         total.classList.toggle('none', !sum);
         total.textContent = sum ? priceText(sum) : '\u00a0';
         total.setAttribute('aria-label', sum ? `Total ${priceText(sum)}` : '');
       }
-      /* the three sizes: it.sizes = [{ label, qty }] × 3 */
+      /* the three sizes: it.sizes = [{ qty }] × 3, small to large */
       function cleanSizes(v){
         return SIZE_NAMES.map((d, k) => {
           const c = Array.isArray(v) && v[k] && typeof v[k] === 'object' ? v[k] : {};
-          const label = String(c.label == null ? d : c.label).trim().slice(0, 6) || d;
-          const qty = Math.min(99999, Math.max(0, Math.floor(Number(c.qty)) || 0));
-          return { label, qty };
+          return { qty:Math.min(99999, Math.max(0, Math.floor(Number(c.qty)) || 0)) };
         });
       }
-      const sizesOrNull = v => { const sz = cleanSizes(v);
-        return sz.some((c, k) => c.qty || c.label !== SIZE_NAMES[k]) ? sz : null; };
-      function editSize(it, k, field){
-        const cell = it.el && it.el.querySelector(`.rp-size[data-k="${k}"] .rp-${field === 'qty' ? 'qty' : 'lab'}`);
+      const sizesOrNull = v => { const sz = cleanSizes(v); return sz.some(c => c.qty) ? sz : null; };
+      function editSize(it, k){
+        const cell = it.el && it.el.querySelector(`.rp-size[data-k="${k}"] .rp-qty`);
         if (!cell || cell.classList.contains('editing')) return;
         const sz = cleanSizes(it.sizes);
         const inp = Object.assign(document.createElement('input'), { type:'text', autocomplete:'off',
-          value:field === 'qty' ? (sz[k].qty ? String(sz[k].qty) : '') : sz[k].label,
-          placeholder:field === 'qty' ? '0' : SIZE_NAMES[k] });
-        if (field === 'qty') inp.inputMode = 'numeric'; else inp.maxLength = 6;
-        inp.setAttribute('aria-label', field === 'qty' ? `How many in size ${sz[k].label}` : 'Size name');
+          inputMode:'numeric', placeholder:'0', value:sz[k].qty ? String(sz[k].qty) : '' });
+        inp.setAttribute('aria-label', `How many in ${SIZE_WORDS[k]}`);
         cell.classList.add('editing');
         cell.textContent = '';
         cell.appendChild(inp);
@@ -11675,8 +11634,7 @@
           cell.classList.remove('editing');
           if (keep){
             const now = cleanSizes(it.sizes);
-            if (field === 'qty') now[k].qty = parseInt(inp.value.replace(/[^\d]/g, ''), 10) || 0;
-            else now[k].label = inp.value;
+            now[k].qty = parseInt(inp.value.replace(/[^\d]/g, ''), 10) || 0;
             it.sizes = sizesOrNull(now);
             save();
           }
