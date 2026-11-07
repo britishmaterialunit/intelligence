@@ -4143,6 +4143,69 @@
     .sd-go:hover{ background:var(--line); opacity:.85; }
     .sd-btn:disabled{ opacity:.4; cursor:default; }
     @media (max-width:640px){ #refsSend{ bottom:88px; } }
+    #refsSheet{
+      position:absolute;
+      left:50%; top:24px; bottom:96px;
+      transform:translateX(-50%);
+      width:min(1040px, calc(100vw - 32px));
+      box-sizing:border-box;
+      display:flex; flex-direction:column;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      z-index:4;
+      cursor:default;
+      font-family:var(--font);
+    }
+    #refsSheet[hidden]{ display:none; }
+    @media (max-width:640px){ #refsSheet{ top:12px; bottom:88px; } }
+    .sh-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-bottom:1.5px solid var(--line); }
+    .sh-top .sd-head{ margin:0; }
+    .sh-acts{ display:flex; gap:8px; }
+    .sh-acts .sd-btn{ flex:none; height:32px; padding:0 14px; }
+    #refsSheet{ touch-action:pan-x pan-y; -webkit-user-select:text; user-select:text; }
+    .sh-scroll{ flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+    .sh-table{ width:100%; border-collapse:collapse; font-size:12px; color:var(--ink); font-variant-numeric:tabular-nums; }
+    .sh-table th{
+      position:sticky; top:0; z-index:1;
+      background:var(--bg);
+      padding:10px;
+      border-bottom:1px solid #e4e4e4;
+      text-align:left; white-space:nowrap;
+      font-weight:400; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#9a9a9a;
+    }
+    .sh-table td{ padding:8px 10px; border-bottom:1px solid #ececec; vertical-align:middle; }
+    .sh-table .sh-n{ text-align:right; white-space:nowrap; }
+    /* the sizes' numbers say what they stand for when pointed at, in place */
+    .sh-sw{ display:inline-grid; justify-items:end; }
+    .sh-sw > span{ grid-area:1 / 1; }
+    .sh-sw .l{ visibility:hidden; }
+    th:hover .sh-sw .s{ visibility:hidden; }
+    th:hover .sh-sw .l{ visibility:visible; color:var(--ink); }
+    .sh-ph{ width:60px; padding-right:4px !important; }
+    .sh-ph img{ display:block; width:56px; height:56px; object-fit:contain; }
+    .sh-name{ font-weight:bold; line-height:1.3; min-width:180px; }
+    .sh-meta{ margin-top:3px; font-size:10.5px; line-height:1.4; color:#9a9a9a; }
+    .sh-table input, .sh-table select{
+      height:30px; box-sizing:border-box; margin:0; padding:0 8px;
+      font:inherit; color:inherit; text-align:right;
+      background:transparent; border:1.5px solid #e4e4e4; border-radius:0;
+      caret-color:transparent;
+    }
+    .sh-table input{ width:56px; }
+    .sh-table input:focus, .sh-table select:focus{ outline:none; border-color:var(--line); }
+    .sh-table input::placeholder{ color:#c4c4c4; }
+    .sh-pp input{ width:80px; }
+    .sh-pp select{ margin-right:4px; padding:0 2px; border-color:transparent; text-align:left; font-size:10.5px; letter-spacing:.1em; cursor:pointer; }
+    .sh-units, .sh-line{ font-weight:bold; }
+    .sh-table tfoot td{
+      position:sticky; bottom:0;
+      background:var(--bg);
+      padding-top:12px; padding-bottom:12px;
+      border-top:1.5px solid var(--line); border-bottom:none;
+      font-weight:bold;
+    }
+    .sh-table tfoot .sh-lead{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
+    .sh-grand{ font-size:15px; }
     /* the reader's saved garments: the bookmark square beside play opens
        them in a row of their own, just above the bar, and the tray steps up */
     #refsTray{ transition:bottom .3s cubic-bezier(.4,0,.2,1); }
@@ -4417,6 +4480,32 @@
         <button type="button" class="sd-btn sd-go" id="sdGo">Send</button>
       </div>
     </aside>
+    <!-- The costing sheet: the picked garments (or every garment on the
+         board) as rows — photograph, record, sizes, units, price, total.
+         Its cells are the garments' own: a change here is a change on
+         the tab, and the other way round. -->
+    <aside id="refsSheet" hidden aria-label="Costing sheet">
+      <div class="sh-top">
+        <span class="sd-head">Costing sheet · <span id="shCount">00</span></span>
+        <span class="sh-acts">
+          <button type="button" class="sd-btn" id="shCsv">Download .csv</button>
+          <button type="button" class="sd-btn sd-go" id="shClose">Close</button>
+        </span>
+      </div>
+      <div class="sh-scroll">
+        <table class="sh-table">
+          <thead><tr>
+            <th class="sh-ph"></th><th>Garment</th>
+            <th class="sh-n"><span class="sh-sw"><span class="s">1</span><span class="l">Small</span></span></th>
+            <th class="sh-n"><span class="sh-sw"><span class="s">2</span><span class="l">Medium</span></span></th>
+            <th class="sh-n"><span class="sh-sw"><span class="s">3</span><span class="l">Large</span></span></th>
+            <th class="sh-n">Units</th><th class="sh-n">Per unit</th><th class="sh-n">Total</th>
+          </tr></thead>
+          <tbody id="shBody"></tbody>
+          <tfoot id="shFoot"></tfoot>
+        </table>
+      </div>
+    </aside>
     <!-- Draw: the paper's own panel, in the corner. Formulate reads the
          strokes by their shapes and makes a graph of them. -->
     <aside id="refsDraw" hidden aria-label="Drawing">
@@ -4508,6 +4597,9 @@
       </button>
       <button type="button" data-act="cluster" aria-label="Cluster the images">
         <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.2" r="1.7"/><circle cx="11.6" cy="6" r="1.35"/><circle cx="4.7" cy="10.9" r="1.35"/><circle cx="5.6" cy="4.5" r="1.15"/><circle cx="11.2" cy="11.7" r="1.15"/></svg><span>Cluster</span>
+      </button>
+      <button type="button" data-act="sheet" aria-label="Make a costing sheet of the garments">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M2.8 3.2 H13.2 V12.8 H2.8 Z M2.8 6.4 H13.2 M2.8 9.6 H13.2 M6.4 3.2 V12.8"/></svg><span>Sheet</span>
       </button>
       <button type="button" data-act="reverse" aria-label="Put them back as they were">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M3.6 6.4 A5 5 0 1 1 3.3 9.8 M3.2 2.9 V6.5 H6.8"/></svg><span>Reverse</span>
@@ -13047,6 +13139,12 @@
         const n = [...picked].filter(byId).length;
         b.querySelector('span').textContent = n > 1 ? `Cluster ${String(n).padStart(2, '0')}` : 'Cluster';
         b.setAttribute('aria-label', n > 1 ? `Cluster the ${n} picked` : 'Cluster the images');
+        const sh = T('sheet');
+        if (sh){
+          const g = [...picked].map(byId).filter(it => it && it.garment).length;
+          sh.querySelector('span').textContent = g ? `Sheet ${String(g).padStart(2, '0')}` : 'Sheet';
+          sh.setAttribute('aria-label', g ? `Make a costing sheet of the ${g} picked garments` : 'Make a costing sheet of the garments');
+        }
       }
       function pickNone(){ if (!picked.size) return; picked.clear(); paintPicked(); }
       function unitOf(list){
@@ -15371,7 +15469,7 @@
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
         if (drawing){
-          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
+          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet')) return;
           drawDown(e);
           return;
         }
@@ -15387,7 +15485,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -15710,7 +15808,7 @@
       });
 
       root.addEventListener('wheel', e => {
-        if (e.target.closest('#refsSearch')){ e.stopPropagation(); return; }   // the results scroll
+        if (e.target.closest('#refsSearch, #refsSheet')){ e.stopPropagation(); return; }   // the results scroll
         e.preventDefault();
         e.stopPropagation();          // the list underneath must not hear it
         const cx = e.clientX - W() / 2, cy = e.clientY - H() / 2;
@@ -15833,6 +15931,11 @@
       window.addEventListener('keydown', e => {
         if (!isOpen) return;
         const t = e.target;
+        // the sheet's keys are its own: Escape closes it, nothing reaches the board
+        if (!sheetEl.hidden){
+          if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); toggleSheet(false); }
+          return;
+        }
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
         if (drawing){
           if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); endDraw(); }
@@ -15887,7 +15990,7 @@
         if (!b || b.disabled) return;
         if (drawing && b.dataset.act !== 'draw') endDraw();
         ({ add:() => fileIn.click(), search:toggleSearch, text:addText, link:askLink, draw:() => drawing ? endDraw() : startDraw(), cluster, reverse, export:exportBoard, clear:clearBoard,
-           send:() => toggleSend() })[b.dataset.act]();
+           send:() => toggleSend(), sheet:() => toggleSheet() })[b.dataset.act]();
       });
       (function scrollTools(){
         const sc = document.getElementById('refsToolsScroll');
@@ -15970,6 +16073,141 @@
         applyView();
         sync();
       }
+      /* ---------- THE COSTING SHEET ----------
+         Pick garments (Shift-press, or Shift-drag a box) and press Sheet —
+         or press it with none picked for every garment on the board. One row
+         each, in reading order: photograph, record, the three sizes, their
+         units, the price per unit and the line's total; the foot adds them
+         up. The cells are the garments' own sizes and price, so the tab and
+         the sheet always agree. Download gives a .csv whose units, totals
+         and sums are formulas, so they keep adding up in a spreadsheet. */
+      const sheetEl = document.getElementById('refsSheet');
+      const shBody = document.getElementById('shBody'), shFoot = document.getElementById('shFoot');
+      let sheetList = [];
+      const lastCur = () => { try { const c = localStorage.getItem(CUR_KEY); if (CURS.includes(c)) return c; } catch {} return 'GBP'; };
+      const isGarment = it => it && it.garment && it.url && garmentInfo(it.garment);
+      function sheetItems(){
+        const pickedG = [...picked].map(byId).filter(isGarment);
+        const list = pickedG.length ? pickedG : items.filter(isGarment);
+        return list.sort((a, b) => (Math.round(a.y / 40) - Math.round(b.y / 40)) || (a.x - b.x));
+      }
+      function toggleSheet(on){
+        on = on == null ? sheetEl.hidden : on;
+        if (!on){ sheetEl.hidden = true; return; }
+        sheetList = sheetItems();
+        if (!sheetList.length){ say('Put garments on the board first'); return; }
+        toggleSearch(false);
+        toggleSend(false);
+        paintSheet();
+        sheetEl.hidden = false;
+      }
+      function paintSheet(){
+        shBody.innerHTML = sheetList.map((it, r) => {
+          const g = garmentInfo(it.garment), p = cleanPrice(it.price), sz = cleanSizes(it.sizes);
+          const cur = p ? p.cur : lastCur();
+          const meta = [g.nation, g.cat, g.ref, g.era, g.mat].filter(Boolean).map(escH).join(' · ');
+          return `<tr data-r="${r}">` +
+            `<td class="sh-ph"><img src="${escH(it.url)}" alt="" draggable="false"></td>` +
+            `<td><div class="sh-name">${escH(g.name)}</div><div class="sh-meta">${meta}</div></td>` +
+            sz.map((c, k) => `<td class="sh-n"><input type="text" data-f="q${k}" inputmode="numeric" autocomplete="off" ` +
+              `placeholder="0" value="${c.qty || ''}" aria-label="${SIZE_WORDS[k]}"></td>`).join('') +
+            `<td class="sh-n sh-units"></td>` +
+            `<td class="sh-n sh-pp"><select data-f="cur" aria-label="Currency">` +
+              CURS.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('') +
+            `</select><input type="text" data-f="price" inputmode="decimal" autocomplete="off" placeholder="0" ` +
+              `value="${p ? p.amount : ''}" aria-label="Price per unit"></td>` +
+            `<td class="sh-n sh-line"></td></tr>`;
+        }).join('');
+        document.getElementById('shCount').textContent = String(sheetList.length).padStart(2, '0');
+        sumSheet();
+      }
+      function sheetTotals(){
+        const per = [0, 0, 0], by = {};
+        let units = 0;
+        sheetList.forEach(it => {
+          const sz = cleanSizes(it.sizes), p = cleanPrice(it.price);
+          sz.forEach((c, k) => { per[k] += c.qty; });
+          const u = sz.reduce((n, c) => n + c.qty, 0);
+          units += u;
+          if (p && u) by[p.cur] = Math.round(((by[p.cur] || 0) + p.amount * u) * 100) / 100;
+        });
+        return { per, units, by };
+      }
+      function sumSheet(){
+        shBody.querySelectorAll('tr').forEach(tr => {
+          const it = sheetList[Number(tr.dataset.r)];
+          const u = cleanSizes(it.sizes).reduce((n, c) => n + c.qty, 0), p = cleanPrice(it.price);
+          tr.querySelector('.sh-units').textContent = String(u);
+          tr.querySelector('.sh-line').textContent = p ? priceText({ amount:Math.round(p.amount * u * 100) / 100, cur:p.cur }) : '—';
+        });
+        const t = sheetTotals();
+        const grand = Object.keys(t.by).map(c => priceText({ amount:t.by[c], cur:c })).join(' + ') || '—';
+        shFoot.innerHTML = `<tr><td></td><td class="sh-lead">Total</td>` +
+          t.per.map(n => `<td class="sh-n">${n}</td>`).join('') +
+          `<td class="sh-n">${t.units}</td><td></td><td class="sh-n sh-grand">${escH(grand)}</td></tr>`;
+      }
+      function sheetEdit(e){
+        const f = e.target.dataset && e.target.dataset.f;
+        const tr = f && e.target.closest('tr[data-r]');
+        const it = tr && sheetList[Number(tr.dataset.r)];
+        if (!it) return;
+        if (f[0] === 'q'){
+          const now = cleanSizes(it.sizes);
+          now[Number(f[1])].qty = parseInt(e.target.value.replace(/[^\d]/g, ''), 10) || 0;
+          it.sizes = sizesOrNull(now);
+        } else {
+          const raw = tr.querySelector('[data-f="price"]').value.trim().replace(/,(?=\d{1,2}$)/, '.').replace(/[^\d.]/g, '');
+          const cur = tr.querySelector('[data-f="cur"]').value;
+          it.price = raw ? cleanPrice({ amount:parseFloat(raw), cur }) : null;
+          try { localStorage.setItem(CUR_KEY, cur); } catch {}
+        }
+        paintPrice(it);
+        sumSheet();
+        save();
+      }
+      sheetEl.addEventListener('input', sheetEdit);
+      sheetEl.addEventListener('change', sheetEdit);
+      sheetEl.addEventListener('focusin', e => { if (e.target.tagName === 'INPUT') e.target.select(); });
+      sheetEl.addEventListener('click', e => e.stopPropagation());
+      // Enter goes down the column, the way a spreadsheet does; Escape closes
+      sheetEl.addEventListener('keydown', e => {
+        if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); toggleSheet(false); return; }
+        const f = e.target.dataset && e.target.dataset.f;
+        if (e.key === 'Enter' && f && e.target.tagName === 'INPUT'){
+          e.preventDefault();
+          const tr = e.target.closest('tr');
+          const next = tr.nextElementSibling && tr.nextElementSibling.querySelector(`[data-f="${f}"]`);
+          if (next) next.focus(); else e.target.blur();
+        }
+        e.stopPropagation();
+      });
+      document.getElementById('shClose').addEventListener('click', () => toggleSheet(false));
+      document.getElementById('shCsv').addEventListener('click', () => {
+        const q = v => { const t = String(v == null ? '' : v); return /[",\r\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+        // a name never starts a formula; only the sheet's own sums do
+        const txt = v => /^[=+\-@]/.test(String(v || '')) ? `'${v}` : (v || '');
+        const rows = [['Garment', 'Nation', 'Type', 'Archive ref', 'Era', 'Material',
+                       'Size 1 (Small)', 'Size 2 (Medium)', 'Size 3 (Large)', 'Units', 'Currency', 'Per unit', 'Total']];
+        sheetList.forEach((it, i) => {
+          const g = garmentInfo(it.garment), sz = cleanSizes(it.sizes), p = cleanPrice(it.price), r = i + 2;
+          rows.push([txt(g.name), txt(g.nation), txt(g.cat), txt(g.ref), txt(g.era), txt(g.mat),
+                     sz[0].qty, sz[1].qty, sz[2].qty, `=SUM(G${r}:I${r})`,
+                     p ? p.cur : '', p ? p.amount : '', `=J${r}*L${r}`]);
+        });
+        const n = sheetList.length + 1, curs = Object.keys(sheetTotals().by);
+        rows.push(['Total', '', '', '', '', '', `=SUM(G2:G${n})`, `=SUM(H2:H${n})`, `=SUM(I2:I${n})`, `=SUM(J2:J${n})`,
+                   curs.length === 1 ? curs[0] : '', '', curs.length > 1 ? 'mixed currencies' : `=SUM(M2:M${n})`]);
+        const csv = '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n') + '\r\n';
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+        a.download = `BMU-Costing-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        say('Sheet downloaded');
+      });
+
       function close(){
         if (!isOpen) return;
         endDraw();
@@ -15980,6 +16218,7 @@
         select(null);
         toggleSearch(false);
         toggleSend(false);
+        toggleSheet(false);
         root.classList.remove('in');
         document.body.classList.remove('refs-on');
         root.setAttribute('aria-hidden', 'true');
