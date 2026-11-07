@@ -337,6 +337,13 @@
     .show-text{ opacity:var(--hero-fade, 1); pointer-events:auto; }
     /* the copy still to be typed: laid out, so nothing moves, but unseen */
     .tw-rest{ visibility:hidden; }
+    /* the caret at the typing point: no width of its own, so the laid-out
+       copy around it does not move as it travels */
+    .tw-caret{ position:relative; display:inline-block; width:0; height:1em; vertical-align:-0.12em; }
+    .tw-caret::after{
+      content:''; position:absolute; left:0; top:0; bottom:0;
+      width:1px; background:currentColor;
+    }
     /* the 1s cubic-bezier(.4,0,.2,1) belongs to the reveal; once the reader is in, the value is
        following a scroll and has to track it rather than lag a beat behind */
     body.entered .typewriter-text{ transition:opacity .25s cubic-bezier(.4,0,.2,1); }
@@ -2511,16 +2518,47 @@
       let tw = element.__tw;
       if (!tw || tw.shown.parentNode !== element){
         tw = element.__tw = { shown:document.createTextNode(''),
+                              caret:Object.assign(document.createElement('span'), { className:'tw-caret' }),
                               rest:Object.assign(document.createElement('span'), { className:'tw-rest' }) };
+        tw.caret.setAttribute('aria-hidden', 'true');
         tw.rest.setAttribute('aria-hidden', 'true');
         element.textContent = '';
-        element.append(tw.shown, tw.rest);
+        element.append(tw.shown, tw.caret, tw.rest);
       }
       tw.shown.nodeValue = text.slice(0, n);
       tw.rest.textContent = text.slice(n);
       tw.n = n;
     }
     function twDone(element, text){ element.__tw = null; element.textContent = text; }
+
+    /* When each letter lands. An even letter per frame on copy that is
+       already laid out reads as a wipe sliding across it, not as typing —
+       so the keys come in a typist's rhythm instead: uneven strokes, a
+       breath at a space, a longer one after a full stop or a comma. The
+       run still takes the time it was given; only the beat within it
+       changes. at[i] is the moment letter i+1 appears. */
+    function twBeats(text, total){
+      const w = [];
+      for (let i = 0; i < text.length; i++){
+        const c = text[i], prev = text[i - 1];
+        let k = 0.45 + Math.random() * 1.1;              // one key, never the same twice
+        if (c === ' ') k *= 1.6;
+        if (c === '\n') k *= 3;
+        if (prev && /[.,;:!?—]/.test(prev)) k *= 4;     // the pause after punctuation
+        w.push(k);
+      }
+      const sum = w.reduce((a, b) => a + b, 0) || 1;
+      const at = [];
+      let t = 0;
+      for (const k of w){ t += k / sum * total; at.push(t); }
+      return at;
+    }
+    // how many letters have landed by elapsed time t
+    function twCount(at, t, from){
+      let n = from;
+      while (n < at.length && at[n] <= t) n++;
+      return n;
+    }
 
     function bmuType(text, element, delay, callback, guard){
       if (!element){ if (callback) callback(); return; }
@@ -2532,14 +2570,14 @@
         return;
       }
       const total = Math.max(60, text.length * delay);
+      const at = twBeats(text, total);
       const t0 = performance.now();
       twShow(element, text, 0);
       (function frame(now){
         if (element.__typeRun !== run) return;   // a newer run owns this element
         if (guard && !guard()) return;
-        const p = Math.min(1, (now - t0) / total);
-        const n = Math.round(p * text.length);
-        if (p >= 1){ twDone(element, text); if (callback) callback(); return; }
+        const n = twCount(at, now - t0, element.__tw.n);
+        if (n >= text.length){ twDone(element, text); if (callback) callback(); return; }
         if (element.__tw.n !== n) twShow(element, text, n);
         requestAnimationFrame(frame);
       })(performance.now());
@@ -2570,14 +2608,17 @@
 
       const chars = runs.reduce((n, r) => n + r.text.length, 0);
       const total = Math.max(60, chars * delay);
+      const at = twBeats(runs.map(r => r.text).join(''), total);
       const t0 = performance.now();
       const own = ++typeSeq;
       element.__typeRun = own;
+      let typed = 0;
       (function frame(now){
         if (element.__typeRun !== own) return;
         if (guard && !guard()) return;
-        const p = Math.min(1, (now - t0) / total);
-        let left = Math.round(p * chars);
+        typed = twCount(at, now - t0, typed);
+        const p = typed >= chars ? 1 : 0;
+        let left = typed;
         // each run takes as much of the budget as it can and passes the rest on
         for (const r of runs){
           const take = Math.max(0, Math.min(r.text.length, left));
