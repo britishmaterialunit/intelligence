@@ -3658,13 +3658,81 @@
     .rp-facts dt{ color:#9a9a9a; }
     .rp-facts dd{ margin:0; }
     /* the panel's foot: the archive button left, the reader's price right */
+    /* the panel's foot: the size calculator on the right, then the archive
+       button left and the reader's price right */
     .rp-foot{
       margin-top:auto;
+      display:flex;
+      flex-direction:column;
+      gap:calc(var(--t) * .03);
+    }
+    .rp-base{
       display:flex;
       align-items:flex-end;
       justify-content:space-between;
       gap:calc(var(--t) * .04);
     }
+    /* Three sizes, a circle each holding how many; the label under it is the
+       size's own name (1 2 3 until changed). Their tally times the price is
+       the total. Nothing counted, it shows only on the garment looked at. */
+    .rp-calc{
+      align-self:flex-end;
+      display:flex; flex-direction:column; align-items:flex-end;
+      gap:calc(var(--t) * .014);
+    }
+    .rf-item:not(:hover):not(.sel) .rp-calc:not(.set){ visibility:hidden; }
+    .rp-sizes{ display:flex; gap:calc(var(--t) * .024); }
+    .rp-size{ display:flex; flex-direction:column; align-items:center; gap:calc(var(--t) * .008); }
+    .rp-qty{
+      width:calc(var(--t) * .078); height:calc(var(--t) * .078);
+      box-sizing:border-box;
+      border-radius:50%;
+      border:calc(1.5px * var(--inv)) solid var(--line);
+      background:var(--bg);
+      display:flex; align-items:center; justify-content:center;
+      font-size:calc(var(--t) * .03);
+      font-weight:bold;
+      font-variant-numeric:tabular-nums;
+      color:var(--ink);
+      cursor:pointer;
+      overflow:hidden;
+    }
+    .rp-qty:hover{ background:var(--faint); }
+    .rp-qty.has{ background:var(--line); color:#fff; }
+    .rp-lab{
+      min-width:calc(var(--t) * .078);
+      text-align:center;
+      font-size:calc(var(--t) * .026);
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+      cursor:text;
+      white-space:nowrap;
+    }
+    .rp-qty input, .rp-lab input{
+      width:100%; min-width:0;
+      font:inherit; color:inherit; letter-spacing:inherit; text-transform:inherit; text-align:center;
+      background:transparent; border:0; border-radius:0; padding:0; margin:0; outline:none;
+    }
+    .rp-qty.editing{ background:var(--bg); color:var(--ink); }
+    .rp-lab.editing{ color:var(--ink); border-bottom:calc(1px * var(--inv)) solid var(--line); }
+    .rp-tally{
+      font-size:calc(var(--t) * .026);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:#9a9a9a;
+      font-variant-numeric:tabular-nums;
+    }
+    .rp-sum{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; }
+    .rp-each{ font-weight:400; color:#9a9a9a; font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+    .rp-total{
+      font-size:calc(var(--t) * .062);
+      line-height:1.2;
+      font-weight:bold;
+      font-variant-numeric:tabular-nums;
+      white-space:nowrap;
+    }
+    .rp-total.none{ visibility:hidden; }
     .rp-open{
       align-self:flex-start;
       padding:calc(var(--t) * .025) calc(var(--t) * .045);
@@ -11484,9 +11552,14 @@
           `<div class="rp-name">${escH(g.name)}</div>` +
           `<div class="rp-ref">${escH(g.ref)}</div>` +
           `<dl class="rp-facts">${facts}</dl>` +
-          `<div class="rp-foot">` +
+          `<div class="rp-foot"><div class="rp-calc"><div class="rp-sizes">` +
+          [0, 1, 2].map(k => `<div class="rp-size" data-k="${k}">` +
+            `<div class="rp-qty" role="button" tabindex="0"></div>` +
+            `<div class="rp-lab" role="button" tabindex="0"></div></div>`).join('') +
+          `</div><div class="rp-tally"></div></div><div class="rp-base">` +
           (g.no ? `<a class="rp-open" href="/archive/${g.no}">Open in the archive</a>` : '') +
-          `<div class="rp-price" role="button" tabindex="0"></div></div>`;
+          `<div class="rp-sum"><div class="rp-price" role="button" tabindex="0"></div>` +
+          `<div class="rp-total none">\u00a0</div></div></div></div>`;
         it.el.insertBefore(head, it.el.firstChild);
         it.el.insertBefore(panel, it.el.querySelector('.rf-del'));
         const price = panel.querySelector('.rp-price');
@@ -11494,6 +11567,13 @@
         price.addEventListener('click', e => { e.stopPropagation(); editPrice(it); });
         price.addEventListener('keydown', e => {
           if ((e.key === 'Enter' || e.key === ' ') && e.target === price){ e.preventDefault(); editPrice(it); }
+        });
+        panel.querySelectorAll('.rp-qty, .rp-lab').forEach(cell => {
+          const k = Number(cell.closest('.rp-size').dataset.k), field = cell.classList.contains('rp-qty') ? 'qty' : 'label';
+          cell.addEventListener('click', e => { e.stopPropagation(); editSize(it, k, field); });
+          cell.addEventListener('keydown', e => {
+            if ((e.key === 'Enter' || e.key === ' ') && e.target === cell){ e.preventDefault(); editSize(it, k, field); }
+          });
         });
         /* A garment with more than one photograph turns over the way its tab
            in the archive does — a dot per view, under the picture. Only in
@@ -11525,6 +11605,7 @@
          (it.price = { amount, cur }), in the saved board and in its .zip. */
       const CURS = ['GBP', 'EUR', 'USD', 'JPY', 'CHF', 'SEK', 'DKK', 'NOK', 'AUD', 'CAD'];
       const CUR_KEY = 'bmu-refs-cur';
+      const SIZE_NAMES = ['1', '2', '3'];      // the three sizes' names until a reader changes them
       const cleanPrice = p => p && Number.isFinite(Number(p.amount)) && Number(p.amount) >= 0 && CURS.includes(p.cur)
         ? { amount:Math.round(Number(p.amount) * 100) / 100, cur:p.cur } : null;
       function priceText(p){
@@ -11538,10 +11619,78 @@
         const box = it.el && it.el.querySelector('.rp-price');
         if (!box) return;
         const p = cleanPrice(it.price);
+        const sz = cleanSizes(it.sizes), units = sz.reduce((n, c) => n + c.qty, 0);
         box.classList.remove('editing');
         box.classList.toggle('set', !!p);
-        box.textContent = p ? priceText(p) : 'Add price';
-        box.setAttribute('aria-label', p ? `Price ${priceText(p)} — press to change` : 'Add a price');
+        if (p) box.innerHTML = escH(priceText(p)) + (units ? ' <span class="rp-each">each</span>' : '');
+        else box.textContent = 'Add price';
+        box.setAttribute('aria-label', p ? `Price ${priceText(p)} each — press to change` : 'Add a price');
+        // the calculator: each size's count, its name, the tally and the total
+        const panel = box.closest('.rf-panel');
+        panel.querySelectorAll('.rp-size').forEach(el => {
+          const c = sz[Number(el.dataset.k)], q = el.querySelector('.rp-qty'), l = el.querySelector('.rp-lab');
+          if (!q.classList.contains('editing')){
+            q.textContent = String(c.qty);
+            q.classList.toggle('has', c.qty > 0);
+            q.setAttribute('aria-label', `Size ${c.label}: ${c.qty} — press to change`);
+          }
+          if (!l.classList.contains('editing')){
+            l.textContent = c.label;
+            l.setAttribute('aria-label', `Size name ${c.label} — press to rename`);
+          }
+        });
+        panel.querySelector('.rp-calc').classList.toggle('set', units > 0 || sz.some((c, k) => c.label !== SIZE_NAMES[k]));
+        panel.querySelector('.rp-tally').textContent = `${units} unit${units === 1 ? '' : 's'}`;
+        const total = panel.querySelector('.rp-total');
+        const sum = p && units ? { amount:Math.round(p.amount * units * 100) / 100, cur:p.cur } : null;
+        total.classList.toggle('none', !sum);
+        total.textContent = sum ? priceText(sum) : '\u00a0';
+        total.setAttribute('aria-label', sum ? `Total ${priceText(sum)}` : '');
+      }
+      /* the three sizes: it.sizes = [{ label, qty }] × 3 */
+      function cleanSizes(v){
+        return SIZE_NAMES.map((d, k) => {
+          const c = Array.isArray(v) && v[k] && typeof v[k] === 'object' ? v[k] : {};
+          const label = String(c.label == null ? d : c.label).trim().slice(0, 6) || d;
+          const qty = Math.min(99999, Math.max(0, Math.floor(Number(c.qty)) || 0));
+          return { label, qty };
+        });
+      }
+      const sizesOrNull = v => { const sz = cleanSizes(v);
+        return sz.some((c, k) => c.qty || c.label !== SIZE_NAMES[k]) ? sz : null; };
+      function editSize(it, k, field){
+        const cell = it.el && it.el.querySelector(`.rp-size[data-k="${k}"] .rp-${field === 'qty' ? 'qty' : 'lab'}`);
+        if (!cell || cell.classList.contains('editing')) return;
+        const sz = cleanSizes(it.sizes);
+        const inp = Object.assign(document.createElement('input'), { type:'text', autocomplete:'off',
+          value:field === 'qty' ? (sz[k].qty ? String(sz[k].qty) : '') : sz[k].label,
+          placeholder:field === 'qty' ? '0' : SIZE_NAMES[k] });
+        if (field === 'qty') inp.inputMode = 'numeric'; else inp.maxLength = 6;
+        inp.setAttribute('aria-label', field === 'qty' ? `How many in size ${sz[k].label}` : 'Size name');
+        cell.classList.add('editing');
+        cell.textContent = '';
+        cell.appendChild(inp);
+        inp.focus(); inp.select();
+        let done = false;
+        const finish = keep => {
+          if (done) return;
+          done = true;
+          cell.classList.remove('editing');
+          if (keep){
+            const now = cleanSizes(it.sizes);
+            if (field === 'qty') now[k].qty = parseInt(inp.value.replace(/[^\d]/g, ''), 10) || 0;
+            else now[k].label = inp.value;
+            it.sizes = sizesOrNull(now);
+            save();
+          }
+          paintPrice(it);
+        };
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter'){ e.preventDefault(); finish(true); }
+          else if (e.key === 'Escape'){ e.preventDefault(); finish(false); }
+          e.stopPropagation();
+        });
+        inp.addEventListener('blur', () => finish(true));
       }
       function editPrice(it){
         const box = it.el && it.el.querySelector('.rp-price');
@@ -13435,7 +13584,7 @@
           const mode = en.lay && en.lay.mode ? en.lay.mode : 1;
           const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar, x, y, w, z,
                        gid:null, garment:en.garment || null, mode, credit:en.credit || null, shot:en.shot || 0,
-                       stamp:en.stamp || null, price:en.price || null };
+                       stamp:en.stamp || null, price:en.price || null, sizes:en.sizes || null };
           if (en.text != null) it.text = cleanText(en.text);
           if (en.draw) it.draw = en.draw;
           if (en.link) it.link = en.link;
@@ -13809,7 +13958,7 @@
           return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
                    name:(r && r.name) || en.name, garment:(r && r.garment) || null,
                    credit:(r && r.credit) || null, shot:(r && r.shot) || 0,
-                   price:(r && cleanPrice(r.price)) || null,
+                   price:(r && cleanPrice(r.price)) || null, sizes:(r && sizesOrNull(r.sizes)) || null,
                    stamp:(r && r.stamp) || null, lay:layOf(r) };
         }).concat(texts.filter(layOf).map(r => ({ key:r.file, text:r.text, ar:Number(r.ar) || 0.25,
                    name:'Text', stamp:r.stamp || null, lay:layOf(r) })))
@@ -13875,6 +14024,7 @@
           if (it.credit) row.credit = it.credit;
           if (it.shot) row.shot = it.shot;
           if (it.garment && cleanPrice(it.price)) row.price = cleanPrice(it.price);
+          if (it.garment && sizesOrNull(it.sizes)) row.sizes = sizesOrNull(it.sizes);
           man.items.push(row);
         }
         man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
@@ -15211,8 +15361,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -15279,7 +15429,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, .rp-price, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -15635,7 +15785,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
