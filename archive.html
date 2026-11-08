@@ -14147,8 +14147,27 @@
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         say(`Exported ${String(count).padStart(2, '0')}`);
       }
-      // the board as its .zip: what Export downloads and Send puts in a file
-      async function boardZip(){
+      /* A picture made smaller for sending: at most `max` pixels on its long
+         side, as WebP (which keeps a cut-out's transparency), else PNG where
+         the browser cannot write WebP. Whichever of it and the original is
+         lighter is the one kept, so nothing is ever made heavier. */
+      async function smaller(blob, max){
+        if (!/^image\/(png|jpeg|webp|gif|avif)$/.test(blob.type)) return blob;
+        try {
+          const bmp = await createImageBitmap(blob);
+          const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(bmp.width * k));
+          c.height = Math.max(1, Math.round(bmp.height * k));
+          c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+          bmp.close && bmp.close();
+          const out = await new Promise(ok => c.toBlob(ok, 'image/webp', 0.86));
+          return out && out.size < blob.size ? out : blob;
+        } catch { return blob; }
+      }
+      // the board as its .zip: what Export downloads and Send puts in a file.
+      // shrink, when given, makes each picture lighter on the way in (Send only)
+      async function boardZip(shrink){
         const order = items.slice().sort((a, b) => a.z - b.z);
         const pad = Math.max(2, String(order.length).length);
         const fileOf = {};
@@ -14160,13 +14179,14 @@
         for (let i = 0; i < order.length; i++){
           const it = order[i];
           const isText = it.text != null, isDraw = !!it.draw, isLink = !!it.link, isSheet = !!it.sheet;
-          const file = `${String(i + 1).padStart(pad, '0')}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url' : extOf(it)}`;
+          const pic = isText || isDraw || isLink || isSheet ? null : shrink ? await shrink(it.blob) : it.blob;
+          const file = `${String(i + 1).padStart(pad, '0')}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url' : extOf({ ...it, blob:pic })}`;
           fileOf[it.id] = file;
           files.push({ name:file, data:isSheet ? enc.encode(sheetCsv(it.sheet.rows.map(byId).filter(isGarment)))
                                      : isLink ? enc.encode(`[InternetShortcut]\r\nURL=${it.link.url}\r\n`)
                                      : isText ? enc.encode(plainOf(it.text))
                                      : isDraw ? enc.encode(drawSvg(it.draw, true))
-                                              : new Uint8Array(await it.blob.arrayBuffer()) });
+                                              : new Uint8Array(await pic.arrayBuffer()) });
           const row = { file, name:it.name || file, x:Math.round(it.x * 10) / 10,
                         y:Math.round(it.y * 10) / 10, w:Math.round(it.w * 10) / 10, z:i + 1 };
           if (isText){ row.text = it.text; row.ar = Math.round(it.ar * 1e4) / 1e4; }
@@ -14205,6 +14225,8 @@
       const FILES = window.BMU_FILES || {};
       const SB = String(FILES.url || '').replace(/\/$/, '');
       const BUCKET = 'bmu-boards';
+      const SEND_MAX = 45e6;                     // under Supabase's 50 MB, with room to spare
+      const mb = n => (n / 1e6).toFixed(n < 1e7 ? 1 : 0) + ' MB';
       function storedSession(){
         try {
           for (let i = 0; i < localStorage.length; i++){
@@ -14371,7 +14393,18 @@
         sdGo.disabled = true;
         sdSay(prev ? `Sending V${ver}…` : 'Sending…');
         try {
-          const { blob, count } = await boardZip();
+          /* Supabase takes nothing over 50 MB, and says so only after the
+             whole upload has gone up. So the board is weighed first, and a
+             heavy one is sent with its pictures made smaller, a step at a
+             time, until it fits. The reader's own board is not touched. */
+          let { blob, count } = await boardZip();
+          for (const max of [2400, 1800, 1400, 1000]){
+            if (blob.size <= SEND_MAX) break;
+            sdSay(`Making the board lighter to send (${mb(blob.size)})…`);
+            ({ blob, count } = await boardZip(b => smaller(b, max)));
+          }
+          if (blob.size > SEND_MAX) throw new Error(`too large ${blob.size}`);
+          sdSay(prev ? `Sending V${ver} (${mb(blob.size)})…` : `Sending (${mb(blob.size)})…`);
           // the same name a version on, so the file in Files is the one it always was
           const stem = prev ? String(prev.board_path).replace(/(-v\d+)?\.zip$/, '')
                             : ((crypto.randomUUID && crypto.randomUUID()) || uid());
@@ -14398,6 +14431,8 @@
           sdGo.disabled = false;
           // the database not yet set up for boards is the one cause worth naming
           sdSay(/signed out/.test(err.message) ? 'Signed out. Sign in again from the person icon.'
+              : /too large|413|EntityTooLarge|exceeded the maximum/i.test(err.message)
+                ? 'This board is too large to send (the limit is 50 MB). Take a few pictures off, or Export it instead.'
               : /board_path|bucket not found|Bucket not found|404/i.test(err.message)
                 ? 'Boards are not switched on in the database yet: run setup/collections.sql in Supabase’s SQL Editor once.'
                 : 'That did not send. Try again in a moment.');
