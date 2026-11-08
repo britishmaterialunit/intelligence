@@ -61,7 +61,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   with the frame where it was. The kept part stays exactly where it sat on the
   board. A cut-out picture is cropped as it is (only tighter), and its `orig`
   is cropped with it. While the frame is open, `save()` writes the item's
-  pre-crop geometry and `showShot` shows `cropping.url`. **Text** (bar button, `addText`) puts a text box on the board: an item with
+  pre-crop geometry and `showShot` shows `cropping.url`. **Layers**: a press does not lift a piece (`front` is not called on press); a picked piece's `.rf-up`/`.rf-down` squares (bottom left) and Cmd/Ctrl-]/[ move it one step past the next overlapping piece, Shift to the very front/back (`layer`, then `restack` renumbers z 1..n). **Turning**: `.rf-rot` above the top edge sets `it.rot` (degrees, `--rot` in the transform; `setTurn`), snapping to right angles within 4°, Shift 15° steps, double-click straightens. A turned piece drops its locks (`unlockOf`), is never offered one (`lockFits`), and sizes about its middle (`tsize`). `rot` is saved, copied and in `references.json`. **Text** (bar button, `addText`) puts a text box on the board: an item with
   `text` (markup cleaned by `cleanText` to b/i/u/br/div) in place of a blob, in
   `--font`, type sized by the box so resizing keeps its shape; `ar` is read off
   the box (`fitText`). B/I/U squares on its top edge; a tap on a picked box
@@ -151,7 +151,7 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   list by person: Update a board (same file, `board_path` → `<stem>-v<n+1>.zip`,
   the old zip deleted — the version lives in the name, `verOf`), or New project
   board (asks the project's name; a name that person already has is refused).
-  An admin opening a sent board can add to it and Send it back as the next
+  **Shared boards (phase 1)**: a sent board is one board both sides open; whoever may change it (admin always, the designer when `board_edit`) has changes saved into the same zip (`sharedSave`: claim via `bmu_board_claim`, then PUT), label `#refsShare` top left. Send and shared saves are light: garments are named (`row.remote`, `row.src`) and fetched from the archive by `readBoard`, not packed. An admin opening a sent board can add to it and Send it back as the next
   version; Files shows `V<n> · sent <date>` and New version until looked at. Files' **Open Archive** (`#cvArchive`, a
   step under the others, compass in its well, an arrow `#cvArchiveMark` that
   turns -45° on press) writes the archive's keys itself (same origin,
