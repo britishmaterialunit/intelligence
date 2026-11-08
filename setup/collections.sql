@@ -155,6 +155,65 @@ create policy "bmu boards remove" on storage.objects
   using (bucket_id = 'bmu-boards' and public.bmu_is_admin());
 
 -- ============================================================
+-- SHARED BOARDS (phase 1)
+-- A sent board is one board that the admin and its designer both open,
+-- not a copy. Whoever may change it saves back into the same .zip:
+--   board_edit      the designer may change it (the admin always can).
+--                   Off by default: a board goes out view only.
+--   board_saved_at  when it was last saved, and
+--   board_saved_by  by whom (their email).
+-- A save first claims the board with bmu_board_claim, which goes through
+-- only if nobody has saved since the saver loaded it — so two people
+-- cannot quietly write over each other. Safe to run again.
+-- ============================================================
+alter table public.bmu_collections
+  add column if not exists board_edit     boolean not null default false,
+  add column if not exists board_saved_at timestamptz,
+  add column if not exists board_saved_by text;
+
+-- the designer may write over their own board's .zip, when they may change it
+drop policy if exists "bmu boards designer saves" on storage.objects;
+create policy "bmu boards designer saves" on storage.objects
+  for update to authenticated
+  using (
+    bucket_id = 'bmu-boards'
+    and exists (select 1 from public.bmu_collections c
+                where c.board_path = objects.name and c.board_edit
+                  and lower(c.reviewer_email) = public.bmu_email())
+  )
+  with check (
+    bucket_id = 'bmu-boards'
+    and exists (select 1 from public.bmu_collections c
+                where c.board_path = objects.name and c.board_edit
+                  and lower(c.reviewer_email) = public.bmu_email())
+  );
+
+-- A save's claim: stamps the board as saved now, by the caller, only if
+-- they may change it and it is still as they last saw it (seen = the
+-- board_saved_at they loaded). Returns the new stamp, or null if not.
+-- Security definer because a designer cannot update bmu_collections
+-- itself; it touches only the two save columns.
+create or replace function public.bmu_board_claim(fid uuid, seen timestamptz)
+returns timestamptz
+language plpgsql security definer set search_path = public as $$
+declare
+  stamp timestamptz := now();
+  n int;
+begin
+  update public.bmu_collections
+     set board_saved_at = stamp, board_saved_by = public.bmu_email()
+   where id = fid
+     and board_path is not null
+     and (public.bmu_is_admin()
+          or (board_edit and lower(reviewer_email) = public.bmu_email()))
+     and board_saved_at is not distinct from seen;
+  get diagnostics n = row_count;
+  return case when n = 1 then stamp else null end;
+end $$;
+revoke all on function public.bmu_board_claim(uuid, timestamptz) from public, anon;
+grant execute on function public.bmu_board_claim(uuid, timestamptz) to authenticated;
+
+-- ============================================================
 -- MAKE YOURSELF THE ADMIN — run once, after you have created your own
 -- login (Authentication → Users → Add user). Put your email in the quotes.
 -- ============================================================

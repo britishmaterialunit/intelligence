@@ -4133,6 +4133,26 @@
       font-family:var(--font);
     }
     #refsSend[hidden], #sdNew[hidden]{ display:none; }
+    .sd-check{ display:flex; align-items:center; gap:8px; margin:12px 0 0; font-size:11px; color:var(--ink); cursor:pointer; }
+    .sd-check input{ margin:0; accent-color:var(--line); }
+    /* A shared board says so, top left: who it is shared with, whether
+       this reader can change it, and when it was last saved and by whom. */
+    #refsShare{
+      position:absolute; top:84px; left:24px; z-index:4;
+      max-width:min(320px, calc(100vw - 48px));
+      padding:8px 11px 9px;
+      background:var(--bg); border:1.5px solid var(--line);
+      font-family:var(--font); font-size:11px; line-height:1.45; color:#8a8a8a;
+      cursor:default;
+    }
+    #refsShare[hidden]{ display:none; }
+    #refsShare .rs-who{ display:flex; align-items:center; gap:7px; color:var(--ink); }
+    #refsShare .rs-dot{ width:7px; height:7px; border-radius:50%; background:#2e9d5b; flex:none; }
+    #refsShare.view .rs-dot{ background:#b5b5b5; }
+    #refsShare.stale .rs-dot, #refsShare.err .rs-dot{ background:#d0752e; }
+    #refsShare .rs-who span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #refsShare button{ margin-left:6px; padding:0; border:0; background:none; font:inherit; color:var(--ink); text-decoration:underline; cursor:pointer; }
+    @media (max-width:640px){ #refsShare{ top:72px; left:16px; } }
     #sdNew, .sd-sub{ display:flex; flex-direction:column; }
     .sd-sub[hidden]{ display:none; }
     .sd-head{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); margin-bottom:6px; }
@@ -4511,6 +4531,7 @@
        middle button; see the REFERENCES script. -->
   <section id="refs" hidden aria-hidden="true" aria-label="References">
     <div id="refsStage"></div>
+    <div id="refsShare" hidden role="status" aria-live="polite"></div>
     <div id="refsEmpty">
       <button type="button" id="refsAddBig" aria-label="Add images">
         <img src="/plus-white.svg" alt="" aria-hidden="true" width="18" height="18">
@@ -4550,6 +4571,7 @@
           <input id="sdEmail" class="sd-field" type="email" autocomplete="off" spellcheck="false" placeholder="name@studio.com">
         </div>
       </div>
+      <label class="sd-check" for="sdEdit"><input type="checkbox" id="sdEdit"> They can change the board (otherwise view only)</label>
       <p class="sd-msg" id="sdMsg" role="status" aria-live="polite"></p>
       <div class="sd-row">
         <button type="button" class="sd-btn" id="sdCancel">Cancel</button>
@@ -14093,6 +14115,15 @@
           } catch {}
         }
         const imgs = entries.filter(en => TYPES[extOfName(en.name)]);
+        // garments sent light: their photographs are fetched from the archive itself
+        const away = Object.values(lay).filter(r => r.remote && r.garment && !imgs.some(en => en.name === r.file));
+        (await Promise.all(away.map(async r => {
+          const g = garmentInfo(r.garment);
+          try {
+            const res = await fetch((g && g.shots[0]) || r.src);
+            return res.ok ? { name:r.file, data:new Uint8Array(await res.arrayBuffer()) } : null;
+          } catch { return null; }
+        }))).forEach(en => { if (en) imgs.push(en); });
         // text boxes are in references.json itself; their .txt is for reading outside
         const texts = Object.values(lay).filter(r => typeof r.text === 'string');
         // and so are drawings; their .svg is the picture, for anywhere else
@@ -14166,8 +14197,10 @@
         } catch { return blob; }
       }
       // the board as its .zip: what Export downloads and Send puts in a file.
-      // shrink, when given, makes each picture lighter on the way in (Send only)
-      async function boardZip(shrink){
+      // shrink, when given, makes each picture lighter on the way in (Send only).
+      // light leaves a garment's photograph out: it is the archive's own, and
+      // the board fetches it from the archive when it is opened (Send and shared saves)
+      async function boardZip(shrink, light){
         const order = items.slice().sort((a, b) => a.z - b.z);
         const pad = Math.max(2, String(order.length).length);
         const fileOf = {};
@@ -14179,10 +14212,13 @@
         for (let i = 0; i < order.length; i++){
           const it = order[i];
           const isText = it.text != null, isDraw = !!it.draw, isLink = !!it.link, isSheet = !!it.sheet;
-          const pic = isText || isDraw || isLink || isSheet ? null : shrink ? await shrink(it.blob) : it.blob;
-          const file = `${String(i + 1).padStart(pad, '0')}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url' : extOf({ ...it, blob:pic })}`;
+          const g = light && it.garment && !isText && !isDraw && !isLink && !isSheet ? garmentInfo(it.garment) : null;
+          const src = g && g.shots[0];
+          const pic = isText || isDraw || isLink || isSheet || src ? null : shrink ? await shrink(it.blob) : it.blob;
+          const file = `${String(i + 1).padStart(pad, '0')}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url'
+                        : src ? (extOfName(src) || 'png') : extOf({ ...it, blob:pic })}`;
           fileOf[it.id] = file;
-          files.push({ name:file, data:isSheet ? enc.encode(sheetCsv(it.sheet.rows.map(byId).filter(isGarment)))
+          if (!src) files.push({ name:file, data:isSheet ? enc.encode(sheetCsv(it.sheet.rows.map(byId).filter(isGarment)))
                                      : isLink ? enc.encode(`[InternetShortcut]\r\nURL=${it.link.url}\r\n`)
                                      : isText ? enc.encode(plainOf(it.text))
                                      : isDraw ? enc.encode(drawSvg(it.draw, true))
@@ -14195,6 +14231,7 @@
           if (isSheet) row.sheet = { rows:it.sheet.rows };      // board ids, named by file below
           if (it.stamp) row.stamp = it.stamp;
           if (it.garment) row.garment = it.garment;
+          if (src){ row.remote = 1; row.src = src; }      // the photograph is at src, not in the .zip
           if (modeOf(it) > 1) row.mode = modeOf(it);
           if (it.credit) row.credit = it.credit;
           if (it.shot) row.shot = it.shot;
@@ -14227,6 +14264,31 @@
       const BUCKET = 'bmu-boards';
       const SEND_MAX = 45e6;                     // under Supabase's 50 MB, with room to spare
       const mb = n => (n / 1e6).toFixed(n < 1e7 ? 1 : 0) + ' MB';
+      /* The board as it goes up: garments by name only, and the reader's own
+         pictures made lighter, a step at a time, if it is still too heavy. */
+      async function sendableZip(tell){
+        let z = await boardZip(null, true);
+        for (const max of [2400, 1800, 1400, 1000]){
+          if (z.blob.size <= SEND_MAX) break;
+          if (tell) tell(`Making the board lighter to send (${mb(z.blob.size)})…`);
+          z = await boardZip(b => smaller(b, max), true);
+        }
+        if (z.blob.size > SEND_MAX) throw new Error(`too large ${z.blob.size}`);
+        return z;
+      }
+      // columns the board-sharing setup adds: asked for, and done without if it has not been run
+      const SHARE_COLS = 'board_edit,board_saved_at,board_saved_by';
+      async function rowsWith(path, extra){
+        try {
+          const rows = await (await sb(path.replace('select=', `select=${extra},`))).json();
+          shareReady = true;
+          return rows;
+        } catch (err){
+          if (!/board_edit|board_saved|column/i.test(err.message)) throw err;
+          shareReady = false;
+          return await (await sb(path)).json();
+        }
+      }
       function storedSession(){
         try {
           for (let i = 0; i < localStorage.length; i++){
@@ -14286,6 +14348,8 @@
         // the prices lock or open to match
         items.forEach(it => { if (it.garment) paintPrice(it); });
         if (!sheetEl.hidden) paintSheet();
+        // and the shared board's label: what this reader may do on it
+        try { paintShare(); } catch {}
       }
 
       const sendEl = document.getElementById('refsSend');
@@ -14295,8 +14359,15 @@
       const sdEmail = document.getElementById('sdEmail');
       const sdMsg = document.getElementById('sdMsg');
       const sdGo = document.getElementById('sdGo');
+      const sdEdit = document.getElementById('sdEdit');
       let fileRows = [];
       const sdSay = t => { sdMsg.textContent = t || ''; };
+      /* Who may change the board, and the save it now is. Sent to a
+         database without the sharing columns, they are left off, and the
+         board goes as a plain sent board did. */
+      let shareReady = true;
+      const shareFields = now => shareReady
+        ? { board_edit:sdEdit.checked, board_saved_at:now, board_saved_by:signedInAs().toLowerCase() } : {};
       function toggleSend(on){
         on = on == null ? sendEl.hidden : on;
         sendEl.hidden = !on;
@@ -14313,8 +14384,8 @@
         sdFile.innerHTML = '<option value="">Someone new…</option>';
         sdNew.hidden = false;
         sdGo.textContent = 'Send';
-        sb('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path,garments&order=created_at.desc')
-          .then(r => r.json())
+        sdEdit.checked = false;
+        rowsWith('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path,garments&order=created_at.desc', 'board_edit')
           .then(rows => {
             fileRows = Array.isArray(rows) ? rows : [];
             /* Grouped by person. A person can have any number of boards, one
@@ -14348,6 +14419,7 @@
             if (sentBoard != null && fileRows.some(c => c.id === sentBoard)) sdFile.value = sentBoard;
             paintNew();
             paintGo();
+            paintEdit();
           })
           .catch(() => sdSay('Could not reach Files. Sign in again from the person icon.'));
       }
@@ -14369,7 +14441,9 @@
         document.getElementById('sdEmailRow').hidden = fresh;
         if (fresh) sdTitle.focus();
       }
-      sdFile.addEventListener('change', () => { paintNew(); sdSay(''); paintGo(); });
+      // an existing board shows who may change it now; a new one starts view only
+      const paintEdit = () => { const c = fileRows.find(o => o.id === sdFile.value); sdEdit.checked = !!(c && isBoard(c) && c.board_edit); };
+      sdFile.addEventListener('change', () => { paintNew(); sdSay(''); paintGo(); paintEdit(); });
       document.getElementById('sdCancel').addEventListener('click', () => toggleSend(false));
       sdGo.addEventListener('click', async () => {
         const v = sdFile.value;
@@ -14397,13 +14471,7 @@
              whole upload has gone up. So the board is weighed first, and a
              heavy one is sent with its pictures made smaller, a step at a
              time, until it fits. The reader's own board is not touched. */
-          let { blob, count } = await boardZip();
-          for (const max of [2400, 1800, 1400, 1000]){
-            if (blob.size <= SEND_MAX) break;
-            sdSay(`Making the board lighter to send (${mb(blob.size)})…`);
-            ({ blob, count } = await boardZip(b => smaller(b, max)));
-          }
-          if (blob.size > SEND_MAX) throw new Error(`too large ${blob.size}`);
+          const { blob, count } = await sendableZip(sdSay);
           sdSay(prev ? `Sending V${ver} (${mb(blob.size)})…` : `Sending (${mb(blob.size)})…`);
           // the same name a version on, so the file in Files is the one it always was
           const stem = prev ? String(prev.board_path).replace(/(-v\d+)?\.zip$/, '')
@@ -14415,17 +14483,17 @@
           if (id){
             await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}`, {
               method:'PATCH', headers:{ 'Content-Type':'application/json' },
-              body:JSON.stringify({ board_path:path, updated_at:now }) });
+              body:JSON.stringify({ board_path:path, updated_at:now, ...shareFields(now) }) });
             // the board it replaced is not left behind in the bucket
             if (prev && prev.board_path) sb(`/storage/v1/object/${BUCKET}/${prev.board_path}`, { method:'DELETE' }).catch(() => {});
           } else {
             await sb('/rest/v1/bmu_collections', {
               method:'POST', headers:{ 'Content-Type':'application/json', Prefer:'return=minimal' },
-              body:JSON.stringify({ title, reviewer_email:email, note:'', garments:[], board_path:path, updated_at:now }) });
+              body:JSON.stringify({ title, reviewer_email:email, note:'', garments:[], board_path:path, updated_at:now, ...shareFields(now) }) });
           }
           toggleSend(false);
           sdTitle.value = ''; sdEmail.value = '';
-          if (sentBoard != null && prev && prev.id === sentBoard) sentVer = ver;
+          if (sentBoard != null && prev && prev.id === sentBoard){ sentVer = ver; refreshShared(); }
           say(prev ? `Sent V${ver} to “${prev.title}”` : `Sent ${String(count).padStart(2, '0')} to “${title}”`);
         } catch (err){
           sdGo.disabled = false;
@@ -14433,7 +14501,7 @@
           sdSay(/signed out/.test(err.message) ? 'Signed out. Sign in again from the person icon.'
               : /too large|413|EntityTooLarge|exceeded the maximum/i.test(err.message)
                 ? 'This board is too large to send (the limit is 50 MB). Take a few pictures off, or Export it instead.'
-              : /board_path|bucket not found|Bucket not found|404/i.test(err.message)
+              : /board_path|board_edit|board_saved|bucket not found|Bucket not found|404/i.test(err.message)
                 ? 'Boards are not switched on in the database yet: run setup/collections.sql in Supabase’s SQL Editor once.'
                 : 'That did not send. Try again in a moment.');
         }
@@ -14456,36 +14524,184 @@
         picked.clear();
         joints();
       }
-      async function openSent(id){
+      async function openSent(id, quiet){
         // the reader's own board is not read: the sent one is shown alone
         loaded = true;
         sentBoard = id;
         open();
         try {
-          const rows = await (await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}&select=title,board_path,updated_at`)).json();
+          const rows = await rowsWith(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}&select=title,reviewer_email,board_path,updated_at`, SHARE_COLS);
           const c = rows && rows[0];
           if (!c || !c.board_path){ say('That board could not be found'); return; }
           const blob = await (await sb(`/storage/v1/object/authenticated/${BUCKET}/${c.board_path}`)).blob();
           const board = await readBoard(blob);
           if (sentBoard !== id) return;
+          clearTimeout(shareT);
+          shared = null;                    // nothing laid down from here on is a change of the reader's
           emptyBoard();
           await addEntries(board.entries, board.locks);
           fit(); sync();
           sentVer = verOf(c.board_path);
-          say(admin ? `“${c.title}” ${verName(c.board_path)} — add to it, then Send for V${sentVer + 1}`
-                    : `“${c.title}” ${verName(c.board_path)}, as sent`);
+          const s = shared = { id, title:c.title, email:String(c.reviewer_email || ''), path:c.board_path,
+                               edit:!!c.board_edit, seen:c.board_saved_at || null,
+                               by:c.board_saved_by || '', at:c.board_saved_at || c.updated_at,
+                               sharing:'board_edit' in c, ready:false, stale:false, err:'' };
+          shareDirty = false;
+          // what settles in the moments after it is laid down is not an edit
+          setTimeout(() => { if (shared === s) s.ready = true; }, 900);
+          paintShare();
+          watchShared();
+          if (!quiet) say(canEdit() ? `“${c.title}” — changes save for everyone on it`
+                                    : `“${c.title}” ${verName(c.board_path)} — view only`);
         } catch (err){
           say(/signed out/.test(err.message) ? 'Sign in to Files to open this board' : 'That board could not be opened');
         }
       }
       // closing a sent board puts the reader's own back for the next opening
-      function leaveSent(){
+      async function leaveSent(){
         if (sentBoard == null) return;
+        // a last change goes up before the board is cleared, from the board as it is
+        if (shareDirty && canEdit()){
+          clearTimeout(shareT);
+          const id = sentBoard;
+          await sharedSave();
+          if (sentBoard !== id || isOpen) return;    // opened again meanwhile: it is still in use
+        }
         sentBoard = null;
+        shared = null;
+        paintShare();
+        watchShared();
         emptyBoard();
         loaded = false;
         sync();
       }
+
+      /* ---------- A SHARED BOARD ----------
+         One board, in the database, that the admin and the designer it is
+         for both open. Whoever may change it (the admin always; the designer
+         when the board was sent with "They can change the board") has their
+         changes saved back to the same file a moment after they stop, so the
+         next person to open it sees them. Not live yet — two people at once
+         do not see each other's hands — so a save is a claim: it goes up
+         only if nobody has saved since this reader last loaded it
+         (bmu_board_claim, setup/collections.sql). If somebody has, the label
+         says who, and Reload brings their version in. While the board is
+         open and the page is in view, it looks for a newer save every 20s
+         and takes it in when this reader has nothing unsaved. */
+      let shared = null, shareT = null, shareBusy = false, shareAgain = false, shareDirty = false, shareWatch = null;
+      const canEdit = () => !!shared && shared.sharing && (admin || shared.edit);
+      const shareEl = document.getElementById('refsShare');
+      const sameAt = (a, b) => (a || null) === (b || null) || (!!a && !!b && Date.parse(a) === Date.parse(b));
+      const me = () => signedInAs().toLowerCase();
+      function whenOf(t){
+        const d = new Date(t);
+        if (isNaN(d)) return '';
+        const hm = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:false });
+        return d.toDateString() === new Date().toDateString() ? hm
+             : `${d.toLocaleDateString([], { day:'numeric', month:'short' })} ${hm}`;
+      }
+      function paintShare(){
+        const s = shared;
+        shareEl.hidden = !s;
+        if (!s) return;
+        const mine = s.by && s.by === me();
+        const who = admin ? `Shared with ${s.email}` : 'Shared with you by BMU';
+        const role = !s.sharing ? 'as sent' : canEdit() ? (admin ? (s.edit ? 'they can change it' : 'view only for them') : 'you can change it')
+                   : 'view only';
+        let state = '';
+        if (s.stale) state = `Changed by ${s.by && s.by !== me() ? s.by : 'someone else'} since you opened it`;
+        else if (s.err) state = s.err;
+        else if (shareBusy) state = 'Saving…';
+        else if (shareDirty) state = 'Not saved yet';
+        else if (s.at) state = `Saved ${whenOf(s.at)}${s.by ? ` by ${mine ? 'you' : s.by}` : ''}`;
+        shareEl.className = !canEdit() ? 'view' : s.stale ? 'stale' : s.err ? 'err' : '';
+        shareEl.innerHTML = `<div class="rs-who"><i class="rs-dot"></i><span>${escH(who)}</span></div>` +
+          `<div>${escH(role)}${state ? ` · ${escH(state)}` : ''}${s.stale ? '<button type="button" data-act="reload">Reload</button>' : ''}</div>`;
+      }
+      shareEl.addEventListener('click', e => {
+        if (e.target.closest('[data-act="reload"]') && shared){ shareDirty = false; openSent(shared.id, true); }
+      });
+      shareEl.addEventListener('pointerdown', e => e.stopPropagation());
+      // a change on the shared board: saved a moment after the last of them
+      function sharedSoon(){
+        if (!canEdit() || !shared.ready || shared.stale) return;
+        shareDirty = true;
+        shared.err = '';
+        paintShare();
+        clearTimeout(shareT);
+        shareT = setTimeout(sharedSave, 1500);
+      }
+      async function sharedSave(){
+        const s = shared;
+        if (!s || !shareDirty || !canEdit() || s.stale) return;
+        if (cropping){ clearTimeout(shareT); shareT = setTimeout(sharedSave, 1500); return; }
+        if (shareBusy){ shareAgain = true; return; }
+        shareBusy = true; shareDirty = false;
+        paintShare();
+        try {
+          const stamp = await (await sb('/rest/v1/rpc/bmu_board_claim', {
+            method:'POST', headers:{ 'Content-Type':'application/json' },
+            body:JSON.stringify({ fid:s.id, seen:s.seen }) })).json();
+          if (!stamp){ shareDirty = true; await sharedCheck(s); return; }
+          s.seen = stamp;                   // the claim is this reader's now, whatever the upload does
+          const { blob } = await sendableZip();
+          await sb(`/storage/v1/object/${BUCKET}/${s.path}`, {
+            method:'PUT', headers:{ 'Content-Type':'application/zip' }, body:blob });
+          s.at = stamp; s.by = me(); s.err = '';
+        } catch (err){
+          shareDirty = true;
+          s.err = /too large/.test(err.message) ? 'Too large to save — take a few pictures off'
+                : /signed out/.test(err.message) ? 'Signed out — sign in again to save'
+                : 'Not saved — trying again';
+          if (!/too large|signed out/.test(err.message)){ clearTimeout(shareT); shareT = setTimeout(sharedSave, 10000); }
+        } finally {
+          shareBusy = false;
+          paintShare();
+          if (shareAgain){ shareAgain = false; sharedSave(); }
+        }
+      }
+      /* Has somebody saved since? Either way the row says who may change it
+         now. Taken in at once when there is nothing unsaved here. */
+      async function sharedCheck(s, take){
+        try {
+          const rows = await (await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(s.id)}&select=board_path,${SHARE_COLS}`)).json();
+          const c = rows && rows[0];
+          if (!c || shared !== s) return;
+          s.edit = !!c.board_edit;
+          const moved = c.board_path !== s.path || !sameAt(c.board_saved_at, s.seen);
+          if (moved){
+            s.by = c.board_saved_by || '';
+            if (take && !shareDirty && !shareBusy){ openSent(s.id, true); return; }
+            s.stale = true;
+          }
+          paintShare();
+        } catch {}
+      }
+      // after this reader's own Send to the board that is open: the new version is the one to save onto
+      async function refreshShared(){
+        const s = shared;
+        if (!s) return;
+        try {
+          const rows = await (await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(s.id)}&select=board_path,${SHARE_COLS}`)).json();
+          const c = rows && rows[0];
+          if (!c || shared !== s) return;
+          Object.assign(s, { path:c.board_path, edit:!!c.board_edit, seen:c.board_saved_at || null,
+                             at:c.board_saved_at, by:c.board_saved_by || '', stale:false, err:'' });
+          shareDirty = false;
+          paintShare();
+        } catch {}
+      }
+      function watchShared(){
+        clearInterval(shareWatch);
+        shareWatch = shared && shared.sharing ? setInterval(() => {
+          if (shared && !document.hidden) sharedCheck(shared, true);
+        }, 20000) : null;
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (!shared) return;
+        if (document.hidden){ if (shareDirty) sharedSave(); }
+        else sharedCheck(shared, true);
+      });
 
       /* ---------- FROM THE ARCHIVE ----------
          The plus on a garment's tab puts it in the tray, not on the board:
@@ -15546,8 +15762,8 @@
       }
       let saveT = null;
       function save(){
-        // a sent board is never written over the reader's own
-        if (sentBoard != null) return;
+        // a sent board is never written over the reader's own: a shared one saves to itself
+        if (sentBoard != null){ sharedSoon(); return; }
         clearTimeout(saveT);
         saveT = setTimeout(async () => {
           try {
