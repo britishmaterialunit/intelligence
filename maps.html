@@ -14616,6 +14616,7 @@
         else if (s.err) state = s.err;
         else if (shareBusy) state = 'Saving…';
         else if (shareDirty) state = 'Not saved yet';
+        else if (s.at && !s.sharing) state = `Sent ${whenOf(s.at)}`;
         else if (s.at) state = `Saved ${whenOf(s.at)}${s.by ? ` by ${mine ? 'you' : s.by}` : ''}`;
         shareEl.className = !canEdit() ? 'view' : s.stale ? 'stale' : s.err ? 'err' : '';
         shareEl.innerHTML = `<div class="rs-who"><i class="rs-dot"></i><span>${escH(who)}</span></div>` +
