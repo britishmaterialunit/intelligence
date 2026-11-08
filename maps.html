@@ -3185,8 +3185,47 @@
     }
     .rf-item{
       position:absolute;
-      transform:translate(-50%, -50%);
+      transform:translate(-50%, -50%) rotate(var(--rot, 0deg));
       cursor:grab;
+    }
+    /* Layers and turning, on the picked piece. Bottom left, two squares:
+       forward and back (Shift: to the very front, the very back). Above
+       the top edge, on a hairline, the handle that turns it. */
+    .rf-up, .rf-down, .rf-rot{ display:none; position:absolute; padding:0; }
+    .rf-item.sel .rf-up, .rf-item.sel .rf-down, .rf-item.sel .rf-rot{ display:block; }
+    .rf-item.cropping .rf-up, .rf-item.cropping .rf-down, .rf-item.cropping .rf-rot{ display:none !important; }
+    .rf-up, .rf-down{
+      bottom:calc(-15px * var(--inv));
+      width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
+      border:none;
+      background:var(--line) center / 66% no-repeat;
+      cursor:pointer;
+      z-index:3;
+    }
+    .rf-up{ left:calc(-15px * var(--inv)); background-image:url('/layer-up-white.svg'); }
+    .rf-down{ left:calc(10px * var(--inv)); background-image:url('/layer-down-white.svg'); }
+    .rf-rot{
+      left:50%; top:calc(-38px * var(--inv));
+      width:calc(13px * var(--inv)); height:calc(13px * var(--inv));
+      margin-left:calc(-6.5px * var(--inv));
+      border:calc(1.5px * var(--inv)) solid var(--line);
+      border-radius:50%;
+      background:var(--bg);
+      cursor:grab;
+      z-index:3;
+    }
+    .rf-rot::after{
+      content:''; position:absolute; left:50%; top:100%;
+      width:calc(1.5px * var(--inv)); height:calc(16px * var(--inv));
+      margin-left:calc(-.75px * var(--inv));
+      background:var(--line);
+    }
+    #refs.rf-turning, #refs.rf-turning .rf-item, #refs.rf-turning .rf-rot{ cursor:grabbing; }
+    @media (pointer:coarse){
+      .rf-up, .rf-down{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv)); bottom:calc(-20px * var(--inv)); }
+      .rf-up{ left:calc(-20px * var(--inv)); }
+      .rf-down{ left:calc(12px * var(--inv)); }
+      .rf-rot{ width:calc(22px * var(--inv)); height:calc(22px * var(--inv)); margin-left:calc(-11px * var(--inv)); top:calc(-48px * var(--inv)); }
     }
     /* Every image keeps its whole canvas — a garment shot on a transparent
        ground is still its 1000px square, with the air round it. No line is
@@ -11653,6 +11692,7 @@
         it.el.style.top = it.y + 'px';
         it.el.style.width = wOf(it) + 'px';
         it.el.style.zIndex = it.z;
+        if (it.rot) it.el.style.setProperty('--rot', it.rot + 'deg'); else it.el.style.removeProperty('--rot');
         it.el.style.setProperty('--w', it.w + 'px');
         it.el.style.setProperty('--ih', it.w * it.ar + 'px');
         if (it.link) sizeLink(it);
@@ -11961,10 +12001,20 @@
         return false;
       }
       function mount(it){
-        if (it.text != null){ mountText(it); return; }
-        if (it.draw){ mountDraw(it); return; }
-        if (it.link){ mountLink(it); return; }
-        if (it.sheet){ mountSheet(it); return; }
+        if (it.text != null) mountText(it);
+        else if (it.draw) mountDraw(it);
+        else if (it.link) mountLink(it);
+        else if (it.sheet) mountSheet(it);
+        else mountPicture(it);
+        const up = Object.assign(document.createElement('button'), { type:'button', className:'rf-up' });
+        up.setAttribute('aria-label', 'Bring forward (Shift: to the front)');
+        const down = Object.assign(document.createElement('button'), { type:'button', className:'rf-down' });
+        down.setAttribute('aria-label', 'Send backward (Shift: to the back)');
+        const rot = Object.assign(document.createElement('span'), { className:'rf-rot' });
+        rot.setAttribute('aria-label', 'Turn (double-click to straighten)');
+        it.el.append(up, down, rot);
+      }
+      function mountPicture(it){
         it.url = URL.createObjectURL(it.blob);
         const el = document.createElement('div');
         el.className = 'rf-item';
@@ -13274,6 +13324,63 @@
       }
       function front(it){ groupOf(it).forEach(o => { o.z = ++zTop; place(o); }); }
 
+      /* ---------- LAYERS ----------
+         A press does not lift a piece any more: what is in front stays in
+         front until it is sent back, so a picture laid over a garment stays
+         over it when the garment is moved. Forward and back go one step
+         past the next piece that overlaps (so a step always shows); Shift
+         goes all the way. The pieces are counted 1, 2, 3… after each move,
+         so z stays small and in order. */
+      function restack(){
+        items.slice().sort((a, b) => a.z - b.z).forEach((o, i) => { o.z = i + 1; place(o); });
+        zTop = items.length;
+      }
+      const overlaps = (a, b) => { const p = rect(a), q = rect(b); return p.l < q.r && p.r > q.l && p.t < q.b && p.b > q.t; };
+      function layer(list, dir, all){
+        list = list.filter(Boolean);
+        if (!list.length) return;
+        const mine = new Set(list.map(o => o.id));
+        const ordered = list.slice().sort((a, b) => dir > 0 ? b.z - a.z : a.z - b.z);
+        let moved = false;
+        ordered.forEach(it => {
+          const others = items.filter(o => !mine.has(o.id));
+          if (all){
+            const edge = dir > 0 ? Math.max(0, ...others.map(o => o.z)) : Math.min(Infinity, ...others.map(o => o.z));
+            if (dir > 0 ? it.z <= edge : it.z >= edge){ it.z = edge + dir * (0.5 + 0.001 * it.z); moved = true; }
+            return;
+          }
+          const near = others.filter(o => overlaps(o, it) && (dir > 0 ? o.z > it.z : o.z < it.z));
+          if (!near.length) return;
+          const next = dir > 0 ? Math.min(...near.map(o => o.z)) : Math.max(...near.map(o => o.z));
+          it.z = next + dir * 0.5;
+          moved = true;
+        });
+        restack();
+        if (!moved){ say(dir > 0 ? 'Already in front' : 'Already at the back'); return; }
+        say(all ? (dir > 0 ? 'To the front' : 'To the back') : (dir > 0 ? 'Forward' : 'Back'));
+        save();
+      }
+      const layerTargets = it => picked.size > 1 && it && picked.has(it.id) ? [...picked].map(byId)
+                               : picked.size > 1 && !it ? [...picked].map(byId) : [it || sel];
+
+      /* ---------- TURNING ----------
+         The round handle above the top edge turns the piece about its
+         middle. It settles on upright and the right angles when it comes
+         within 4° of them; Shift turns in steps of 15°. A double-click on
+         the handle stands it straight again. A turned piece lets go of its
+         locks — locks are edge to edge, and a turned edge has no edge to
+         meet — and is not offered new ones until it is straight. */
+      const normDeg = d => { d = ((d % 360) + 360) % 360; return d > 180 ? d - 360 : d; };
+      function setTurn(it, deg){
+        it.rot = Math.abs(deg) < 0.05 ? 0 : Math.round(normDeg(deg) * 10) / 10;
+        place(it);
+      }
+      function unlockOf(it){
+        if (!locks.some(l => l.p === it.id || l.c === it.id)) return;
+        locks = locks.filter(l => l.p !== it.id && l.c !== it.id);
+        regroup();
+      }
+
       function remove(it){
         if (cropping && cropping.it === it) endCrop(false);
         if (sel === it) select(null);
@@ -13469,6 +13576,7 @@
          the same image, or another image, takes the offer over once it is
          closer by a margin, so the first offer never pins the drag. */
       function lockFits(m, o, side, loose){
+        if (m.rot || o.rot) return null;
         if (sideTaken(m, side, o) || sideTaken(o, OPP[side], m)) return null;
         const a = rect(m), b = rect(o);
         const flat = side === 'left' || side === 'right';
@@ -13752,6 +13860,7 @@
           const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar, x, y, w, z,
                        gid:null, garment:en.garment || null, mode, credit:en.credit || null, shot:en.shot || 0,
                        stamp:en.stamp || null, price:en.price || null, sizes:en.sizes || null };
+          if (en.lay && en.lay.rot) it.rot = en.lay.rot;
           if (en.text != null) it.text = cleanText(en.text);
           if (en.draw) it.draw = en.draw;
           if (en.link) it.link = en.link;
@@ -14137,7 +14246,8 @@
         const sheets = Object.values(lay).filter(r => r.sheet && Array.isArray(r.sheet.rows));
         if (!imgs.length && !texts.length && !draws.length && !links.length) throw new Error('no images');
         const layOf = r => r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0
-          ? { x:r.x, y:r.y, w:r.w, z:r.z || 0, mode:[1, 2, 3].includes(r.mode) ? r.mode : 1 } : null;
+          ? { x:r.x, y:r.y, w:r.w, z:r.z || 0, mode:[1, 2, 3].includes(r.mode) ? r.mode : 1,
+              rot:Number.isFinite(r.rot) ? normDeg(r.rot) : 0 } : null;
         const got = imgs.map(en => {
           const r = lay[en.name];
           return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
@@ -14233,6 +14343,7 @@
           if (isLink) row.link = { url:it.link.url, title:it.link.title || '', thumb:it.link.thumb || '' };
           if (isSheet) row.sheet = { rows:it.sheet.rows };      // board ids, named by file below
           if (it.stamp) row.stamp = it.stamp;
+          if (it.rot) row.rot = it.rot;
           if (it.garment) row.garment = it.garment;
           if (src){ row.remote = 1; row.src = src; }      // the photograph is at src, not in the .zip
           if (modeOf(it) > 1) row.mode = modeOf(it);
@@ -15775,8 +15886,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -15844,7 +15955,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -15875,6 +15986,21 @@
         }
         const hit = e.target.closest('.rf-item');
         const it = hit && byId(hit.dataset.id);
+        if (it && e.target.closest('.rf-rot')){
+          const q = it.el.getBoundingClientRect();
+          const cx = q.left + q.width / 2, cy = q.top + q.height / 2;
+          unlockOf(it);
+          root.classList.add('rf-turning');
+          g = { mode:'turn', item:it, cx, cy, a0:Math.atan2(e.clientY - cy, e.clientX - cx), r0:it.rot || 0, moved:false };
+          return;
+        }
+        if (it && it.rot && e.target.closest('.rf-size')){
+          // a turned piece is sized about its middle: its corner is not where the board's axes are
+          const q = it.el.getBoundingClientRect();
+          const cx = q.left + q.width / 2, cy = q.top + q.height / 2;
+          g = { mode:'tsize', item:it, cx, cy, d0:Math.hypot(e.clientX - cx, e.clientY - cy) || 1, w0:it.w, moved:false };
+          return;
+        }
         if (it && e.target.closest('.rf-size')){
           /* Sized from its corner with the opposite corner held, so what it
              lines up against stays where it is. What it can line up against
@@ -15905,8 +16031,8 @@
           }
           const many = picked.size > 1 && picked.has(it.id);
           const again = sel === it && !e.shiftKey;     // a tap on a picked text box writes in it
-          if (many){ cand = null; picked.forEach(id => front(byId(id))); }
-          else { select(it); front(it); }
+          if (many) cand = null;
+          else select(it);
           g = { mode:'move', item:it, many, again, sx:e.clientX, sy:e.clientY, moved:false,
                 loose:e.pointerType === 'touch' && picked.size > 0 && !picked.has(it.id),
                 from:unitOf(many ? [...picked].map(byId) : [it]) };
@@ -15952,7 +16078,31 @@
         if (g.mode === 'crop'){
           if (!cropping){ g = null; return; }
           const it = cropping.it;
-          pullCrop(g.h, g.f0, (e.clientX - g.sx) / vs / it.w, (e.clientY - g.sy) / vs / (it.w * it.ar));
+          // the frame's edges are the picture's own: a turned picture's are turned with it
+          let dx = (e.clientX - g.sx) / vs, dy = (e.clientY - g.sy) / vs;
+          if (it.rot){
+            const r = -it.rot * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+            [dx, dy] = [dx * c - dy * sn, dx * sn + dy * c];
+          }
+          pullCrop(g.h, g.f0, dx / it.w, dy / (it.w * it.ar));
+          return;
+        }
+        if (g.mode === 'turn'){
+          let deg = g.r0 + (Math.atan2(e.clientY - g.cy, e.clientX - g.cx) - g.a0) * 180 / Math.PI;
+          if (e.shiftKey) deg = Math.round(deg / 15) * 15;
+          else {
+            const right = Math.round(deg / 90) * 90;
+            if (Math.abs(deg - right) < 4) deg = right;
+          }
+          setTurn(g.item, deg);
+          g.moved = true;
+          return;
+        }
+        if (g.mode === 'tsize'){
+          const it = g.item;
+          it.w = clamp(g.w0 * Math.hypot(e.clientX - g.cx, e.clientY - g.cy) / g.d0, 30, 6000);
+          place(it);
+          g.moved = true;
           return;
         }
         if (g.mode === 'move'){
@@ -16071,6 +16221,16 @@
         if (g && g.mode === 'draw'){ drawUp(); g = null; return; }
         if (drawing){ g = null; return; }
         if (g && g.mode === 'crop'){ g = null; return; }
+        if (g && (g.mode === 'turn' || g.mode === 'tsize')){
+          root.classList.remove('rf-turning');
+          if (g.moved){
+            clustered = false; touch(g.item);
+            if (g.mode === 'turn') say(g.item.rot ? `Turned ${Math.round(g.item.rot)}°` : 'Straight');
+            save(); repaint();
+          }
+          g = null;
+          return;
+        }
         if (g && g.mode === 'box'){
           g.box.remove();
           // one picked by the box is simply the picked image, handles and all
@@ -16090,6 +16250,13 @@
       }
       root.addEventListener('pointerup', lift);
       root.addEventListener('pointercancel', lift);
+      root.addEventListener('dblclick', e => {
+        const h = e.target.closest('.rf-rot');
+        if (!h) return;
+        e.stopPropagation();
+        const it = byId(h.closest('.rf-item').dataset.id);
+        if (it && it.rot){ setTurn(it, 0); say('Straight'); save(); repaint(); }
+      }, true);
 
       root.addEventListener('click', e => {
         if (drawing) return;
@@ -16103,6 +16270,12 @@
         if (penBtn){
           const it = byId(penBtn.closest('.rf-item').dataset.id);
           if (it) startDraw(it);
+          return;
+        }
+        const lay = e.target.closest('.rf-up, .rf-down');
+        if (lay){
+          const it = byId(lay.closest('.rf-item').dataset.id);
+          if (it) layer(layerTargets(it), lay.classList.contains('rf-up') ? 1 : -1, e.shiftKey);
           return;
         }
         // a view changed or a lock undone resizes a box: clear what it leaves
@@ -16200,7 +16373,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet', 'rot'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
@@ -16309,6 +16482,12 @@
         }
         const DIRS = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
         if (e.key === 'Shift') root.classList.add('rf-shift');
+        // forward and back: Cmd/Ctrl-] and [, with Shift to the front and back
+        if ((e.metaKey || e.ctrlKey) && (e.code === 'BracketRight' || e.code === 'BracketLeft') && (sel || picked.size)){
+          e.preventDefault(); e.stopPropagation();
+          layer(layerTargets(null), e.code === 'BracketRight' ? 1 : -1, e.shiftKey);
+          return;
+        }
         if (e.key === 'Escape'){
           e.stopPropagation();
           if (picked.size) pickNone(); else if (sel) select(null); else close();
