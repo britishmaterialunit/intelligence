@@ -4175,6 +4175,36 @@
       font-family:var(--font);
     }
     #refsSend[hidden], #sdNew[hidden]{ display:none; }
+    #refsAddMenu, #refsMake{
+      position:absolute; left:50%; bottom:96px; transform:translateX(-50%);
+      width:min(400px, calc(100vw - 32px)); box-sizing:border-box;
+      max-height:calc(100% - 120px); overflow:auto;
+      padding:16px 16px 14px; display:flex; flex-direction:column;
+      background:var(--bg); border:1.5px solid var(--line);
+      z-index:5; cursor:default; font-family:var(--font);
+    }
+    #refsAddMenu[hidden], #refsMake[hidden]{ display:none; }
+    .am-opt{
+      display:flex; flex-direction:column; align-items:flex-start; gap:3px;
+      margin-top:8px; padding:11px 12px; text-align:left;
+      border:1.5px solid #e4e4e4; background:var(--bg); color:var(--ink);
+      font-family:var(--font); cursor:pointer;
+    }
+    .am-opt:hover, .am-opt:focus-visible{ border-color:var(--line); outline:none; }
+    .am-opt b{ font-weight:400; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; }
+    .am-opt span{ font-size:11px; line-height:1.4; color:#8a8a8a; }
+    .mk-pick{
+      margin-top:12px; height:150px; display:flex; align-items:center; justify-content:center;
+      border:1.5px dashed #cfcfcf; background:var(--faint); cursor:pointer; padding:8px;
+      font-family:var(--font); font-size:11px; color:#8a8a8a;
+    }
+    .mk-pick:hover{ border-color:var(--line); }
+    .mk-pick img{ max-width:100%; max-height:100%; object-fit:contain; }
+    .mk-pick img:not([hidden]) + span{ display:none; }
+    .mk-two{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .mk-two > div{ display:flex; flex-direction:column; min-width:0; }
+    .rp-own{ font-size:calc(var(--t) * .034); letter-spacing:.16em; text-transform:uppercase; color:#9a9a9a; }
+    @media (max-width:640px){ #refsAddMenu, #refsMake{ bottom:88px; } .mk-pick{ height:110px; } }
     .sd-check{ display:flex; align-items:center; gap:8px; margin:12px 0 0; font-size:11px; color:var(--ink); cursor:pointer; }
     .sd-check input{ margin:0; accent-color:var(--line); }
     /* A shared board says so, top left: who it is shared with, whether
@@ -4618,6 +4648,43 @@
       <div class="sd-row">
         <button type="button" class="sd-btn" id="sdCancel">Cancel</button>
         <button type="button" class="sd-btn sd-go" id="sdGo">Send</button>
+      </div>
+    </aside>
+    <!-- Add: a file, a garment from the archive, or a garment of the
+         reader's own — a photograph named and placed as an archive garment
+         is, on this board only. -->
+    <aside id="refsAddMenu" hidden aria-label="Add to the board">
+      <span class="sd-head">Add</span>
+      <button type="button" class="am-opt" data-add="file"><b>Add a file</b><span>Images, or a board’s .zip</span></button>
+      <button type="button" class="am-opt" data-add="archive"><b>Add a garment from the archive</b><span>From your saved garments</span></button>
+      <button type="button" class="am-opt" data-add="make"><b>Create a garment</b><span>Your own photograph, named as a garment — on this board only, not in the archive</span></button>
+    </aside>
+    <aside id="refsMake" hidden aria-label="Create a garment">
+      <span class="sd-head">Create a garment</span>
+      <p class="sd-who">One you have found, or one of your own. It stays on this board, and goes wherever the board goes; it is not added to the archive.</p>
+      <button type="button" id="mkPick" class="mk-pick" aria-label="Choose a photograph">
+        <img id="mkShot" alt="" hidden><span id="mkPickSay">Choose a photograph · PNG or JPEG</span>
+      </button>
+      <input type="file" id="mkFile" hidden accept="image/*">
+      <label class="sd-lab" for="mkName">Name</label>
+      <input id="mkName" class="sd-field" type="text" autocomplete="off" placeholder="e.g. Swiss Army 1970s Alpenflage Smock">
+      <div class="mk-two">
+        <div><label class="sd-lab" for="mkNation">Nation</label>
+          <input id="mkNation" class="sd-field" type="text" autocomplete="off" list="mkNations" placeholder="British"></div>
+        <div><label class="sd-lab" for="mkCat">Type</label>
+          <input id="mkCat" class="sd-field" type="text" autocomplete="off" list="mkCats" placeholder="Jackets"></div>
+      </div>
+      <div class="mk-two">
+        <div><label class="sd-lab" for="mkEra">Era</label>
+          <input id="mkEra" class="sd-field" type="text" autocomplete="off" placeholder="1980s"></div>
+        <div><label class="sd-lab" for="mkMat">Material</label>
+          <input id="mkMat" class="sd-field" type="text" autocomplete="off" placeholder="Cotton"></div>
+      </div>
+      <datalist id="mkNations"></datalist><datalist id="mkCats"></datalist>
+      <p class="sd-msg" id="mkMsg" role="status" aria-live="polite"></p>
+      <div class="sd-row">
+        <button type="button" class="sd-btn" id="mkCancel">Cancel</button>
+        <button type="button" class="sd-btn sd-go" id="mkGo">Add to board</button>
       </div>
     </aside>
     <!-- The costing sheet: the picked garments (or every garment on the
@@ -11720,7 +11787,28 @@
         'united-states/united-states-air-force-1990s-tri-colour-desert-coffee-stain-camouflage-ripstop-combat-jacket':
           'united-states/united-states-air-force-1990s-tri-colour-desert-camouflage-ripstop-combat-jacket',
       };
+      /* A garment of the reader's own: made on the board with Add → Create a
+         garment — their photograph, named and placed by nation and type as
+         an archive garment is. It is not in the archive and is never sent to
+         it: it lives on the board alone (IndexedDB, the .zip, a sent board),
+         keyed `own:<id>`, its record carried with it as `it.own`. */
+      const OWN = new Map();
+      const cleanOwn = o => {
+        if (!o || typeof o !== 'object') return null;
+        const s = (v, n) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n);
+        const out = { name:s(o.name, 120), nation:s(o.nation, 40), cat:s(o.cat, 40),
+                      era:s(o.era, 20), mat:s(o.mat, 40), ref:s(o.ref, 24) };
+        return out.name ? out : null;
+      };
+      function ownInfo(o){
+        const nat = NATIONS.find(n => n.label.toLowerCase() === o.nation.toLowerCase()
+                                   || n.key === o.nation.toLowerCase());
+        return { name:o.name, ref:o.ref || '', cat:o.cat || 'Unclassified', mat:o.mat || '',
+                 nation:nat ? nat.label : (o.nation || 'Unlisted'), flag:nat && nat.flag ? `/flags/${nat.flag}` : '',
+                 era:o.era || (o.name.match(/\b(?:1[89]|20)\d0s\b/) || [''])[0], no:0, shots:[], own:true };
+      }
       function garmentInfo(id){
+        if (typeof id === 'string' && id.startsWith('own:')) return OWN.has(id) ? ownInfo(OWN.get(id)) : null;
         id = RENAMED[id] || id;
         const p = ITEMS.find(x => `${x.n}/${slugBase(x.name)}` === id);
         if (!p) return null;
@@ -11761,7 +11849,8 @@
           `<div class="rp-row rp-tally none"><span class="rp-lab">=</span><span class="rp-units"></span></div>` +
           `<div class="rp-price" role="button" tabindex="0"></div>` +
           `<div class="rp-total none">\u00a0</div></div></div>` +
-          (g.no ? `<div class="rp-foot"><a class="rp-open" href="/archive/${g.no}">Open in the archive</a></div>` : '');
+          (g.no ? `<div class="rp-foot"><a class="rp-open" href="/archive/${g.no}">Open in the archive</a></div>`
+                : g.own ? `<div class="rp-foot"><span class="rp-own">Own garment · not in the archive</span></div>` : '');
         it.el.insertBefore(head, it.el.firstChild);
         it.el.insertBefore(panel, it.el.querySelector('.rf-del'));
         const price = panel.querySelector('.rp-price');
@@ -12015,6 +12104,10 @@
         it.el.append(up, down, rot);
       }
       function mountPicture(it){
+        if (it.own && (it.own = cleanOwn(it.own))){
+          if (!(typeof it.garment === 'string' && it.garment.startsWith('own:'))) it.garment = 'own:' + uid();
+          OWN.set(it.garment, it.own);
+        } else if (typeof it.garment === 'string' && it.garment.startsWith('own:')) it.garment = null;
         it.url = URL.createObjectURL(it.blob);
         const el = document.createElement('div');
         el.className = 'rf-item';
@@ -13865,6 +13958,7 @@
           if (en.draw) it.draw = en.draw;
           if (en.link) it.link = en.link;
           if (en.sheet) it.sheet = { rows:en.sheet.rows.slice() };   // files for now; ids once all are made
+          if (en.own) it.own = en.own;
           items.push(it); mount(it); made.push(it);
           if (en.key) byKey[en.key] = it;
           return it;
@@ -14251,7 +14345,7 @@
         const got = imgs.map(en => {
           const r = lay[en.name];
           return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
-                   name:(r && r.name) || en.name, garment:(r && r.garment) || null,
+                   name:(r && r.name) || en.name, garment:(r && r.garment) || null, own:(r && cleanOwn(r.own)) || null,
                    credit:(r && r.credit) || null, shot:(r && r.shot) || 0,
                    price:(r && cleanPrice(r.price)) || null, sizes:(r && sizesOrNull(r.sizes)) || null,
                    stamp:(r && r.stamp) || null, lay:layOf(r) };
@@ -14345,6 +14439,7 @@
           if (it.stamp) row.stamp = it.stamp;
           if (it.rot) row.rot = it.rot;
           if (it.garment) row.garment = it.garment;
+          if (it.own) row.own = it.own;                    // its record travels with it; it has no archive page
           if (src){ row.remote = 1; row.src = src; }      // the photograph is at src, not in the .zip
           if (modeOf(it) > 1) row.mode = modeOf(it);
           if (it.credit) row.credit = it.credit;
@@ -15886,8 +15981,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -15939,7 +16034,7 @@
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
         if (drawing){
-          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet')) return;
+          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake')) return;
           drawDown(e);
           return;
         }
@@ -15955,7 +16050,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -16373,7 +16468,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet', 'rot'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'own', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet', 'rot'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
@@ -16522,13 +16617,98 @@
       window.addEventListener('blur', () => root.classList.remove('rf-shift'));
 
       /* ---------- THE BAR AND THE PLUS ---------- */
-      document.getElementById('refsAddBig').addEventListener('click', () => fileIn.click());
+      /* Add asks first: a file, a garment from the archive, or one of the
+         reader's own (Create a garment). */
+      const addMenu = document.getElementById('refsAddMenu');
+      const makeEl  = document.getElementById('refsMake');
+      const mk = id => document.getElementById(id);
+      let mkBlob = null, mkUrl = null;
+      function toggleAddMenu(on){
+        on = on == null ? addMenu.hidden : on;
+        if (on) closeMake();
+        addMenu.hidden = !on;
+        if (on) addMenu.querySelector('.am-opt').focus();
+      }
+      function openMake(){
+        addMenu.hidden = true;
+        if (!mk('mkNations').children.length){
+          mk('mkNations').innerHTML = NATIONS.map(n => `<option value="${escH(n.label)}">`).join('');
+          mk('mkCats').innerHTML = CATS.map(c => `<option value="${escH(c)}">`).join('');
+        }
+        mk('mkMsg').textContent = '';
+        makeEl.hidden = false;
+        (mkBlob ? mk('mkName') : mk('mkPick')).focus();
+      }
+      function closeMake(clear){
+        makeEl.hidden = true;
+        if (clear){
+          ['mkName', 'mkNation', 'mkCat', 'mkEra', 'mkMat'].forEach(id => { mk(id).value = ''; });
+          if (mkUrl) URL.revokeObjectURL(mkUrl);
+          mkBlob = mkUrl = null;
+          mk('mkShot').hidden = true; mk('mkShot').removeAttribute('src');
+        }
+      }
+      function mkTake(f){
+        if (!f || !isImage(f)){ mk('mkMsg').textContent = 'That is not a photograph this can read'; return; }
+        if (mkUrl) URL.revokeObjectURL(mkUrl);
+        mkBlob = f; mkUrl = URL.createObjectURL(f);
+        mk('mkShot').src = mkUrl; mk('mkShot').hidden = false;
+        mk('mkMsg').textContent = '';
+        // a photograph named as its garment names the garment too
+        if (!mk('mkName').value.trim() && f.name)
+          mk('mkName').value = f.name.replace(/\.[a-z0-9]+$/i, '').replace(/\s*[\[{].*?[\]}]\s*/g, ' ').replace(/[_]+/g, ' ').trim();
+        mk('mkName').focus();
+      }
+      async function mkGo(){
+        const own = cleanOwn({ name:mk('mkName').value, nation:mk('mkNation').value, cat:mk('mkCat').value,
+                               era:mk('mkEra').value, mat:mk('mkMat').value });
+        if (!mkBlob){ mk('mkMsg').textContent = 'Choose a photograph first'; return; }
+        if (!own){ mk('mkMsg').textContent = 'Give it a name'; mk('mkName').focus(); return; }
+        const res = await addEntries([{ blob:mkBlob, name:mkBlob.name || `${own.name}.png`, own,
+                                        garment:'own:' + uid(), at:toWorld(W() / 2, H() / 2 - 40) }]);
+        if (!res.added){ mk('mkMsg').textContent = 'That photograph could not be read'; return; }
+        const it = items[items.length - 1];
+        closeMake(true);
+        if (it && it.own){ setMode(it, 3); select(it); }
+        say('Garment added');
+      }
+      addMenu.addEventListener('click', e => {
+        const b = e.target.closest('[data-add]');
+        if (!b) return;
+        addMenu.hidden = true;
+        if (b.dataset.add === 'file') fileIn.click();
+        else if (b.dataset.add === 'make') openMake();
+        else {
+          if (savedIds.map(savedGarment).filter(Boolean).length){ shelfOpen = true; drawTray(); }
+          else say('Nothing saved yet — the + on any garment in the archive keeps it for here');
+        }
+      });
+      mk('mkPick').addEventListener('click', () => mk('mkFile').click());
+      mk('mkFile').addEventListener('change', () => { mkTake(mk('mkFile').files[0]); mk('mkFile').value = ''; });
+      mk('mkPick').addEventListener('dragover', e => e.preventDefault());
+      mk('mkPick').addEventListener('drop', e => {
+        e.preventDefault(); e.stopPropagation();
+        mkTake(e.dataTransfer && e.dataTransfer.files[0]);
+      });
+      mk('mkCancel').addEventListener('click', () => closeMake(true));
+      mk('mkGo').addEventListener('click', mkGo);
+      makeEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT'){ e.preventDefault(); mkGo(); }
+      });
+      [addMenu, makeEl].forEach(p => p.addEventListener('keydown', e => {
+        if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); p === makeEl ? closeMake() : toggleAddMenu(false); }
+      }, true));
+      // a press anywhere else puts the menu away (the form stays until Cancel)
+      document.addEventListener('pointerdown', e => {
+        if (!addMenu.hidden && !e.target.closest('#refsAddMenu, [data-act="add"], #refsAddBig')) addMenu.hidden = true;
+      }, true);
+      document.getElementById('refsAddBig').addEventListener('click', () => toggleAddMenu());
       fileIn.addEventListener('change', () => { addFiles(fileIn.files); fileIn.value = ''; });
       tools.addEventListener('click', e => {
         const b = e.target.closest('button[data-act]');
         if (!b || b.disabled) return;
         if (drawing && b.dataset.act !== 'draw') endDraw();
-        ({ add:() => fileIn.click(), search:toggleSearch, text:addText, link:askLink, draw:() => drawing ? endDraw() : startDraw(), cluster, reverse, export:exportBoard, clear:clearBoard,
+        ({ add:() => toggleAddMenu(), search:toggleSearch, text:addText, link:askLink, draw:() => drawing ? endDraw() : startDraw(), cluster, reverse, export:exportBoard, clear:clearBoard,
            send:() => toggleSend(), sheet:() => toggleSheet() })[b.dataset.act]();
       });
       (function scrollTools(){

@@ -42,6 +42,16 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   play square too. The dock itself does not move — it cannot be dragged. The old stacked button
   `#dockExplore` is hidden but kept, because the script still speaks to it.
   On a phone the open search bar takes its own row under the squares.
+  **Add** on the board (bar button, and the empty board's big plus) opens
+  `#refsAddMenu`: Add a file, Add a garment from the archive (opens the saved
+  shelf), or **Create a garment** (`#refsMake`): the reader's own photograph
+  with name, nation, type, era, material. It becomes a board garment keyed
+  `own:<id>` with its record in `it.own` (`cleanOwn`, registered in `OWN` by
+  `mountPicture`; `garmentInfo` answers for it via `ownInfo`, flag matched from
+  `NATIONS`). It is never in `ITEMS` or the archive: it lives on that board only
+  and travels with it (IndexedDB, copy/paste, `row.own` in `references.json`,
+  photograph always packed since it has no archive `src`). Its tab's foot reads
+  "Own garment · not in the archive".
   Board garments have three views (squares 1/2/3 down the left edge: photo,
   header, landscape tab); geometry goes through `wOf`/`hOf`. The board's
   Search (`#refsSearch`) asks Wikimedia Commons and Openverse in parallel —
