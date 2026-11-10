@@ -3188,7 +3188,8 @@
       transform:translate(-50%, -50%) rotate(var(--rot, 0deg));
       cursor:grab;
     }
-    /* Layers and turning, on the picked piece. Bottom left, two squares:
+    /* Layers and turning, on the picked piece. Bottom centre, two squares
+       (clear of a garment's view squares down the left edge):
        forward and back (Shift: to the very front, the very back). Above
        the top edge, on a hairline, the handle that turns it. */
     .rf-up, .rf-down, .rf-rot{ display:none; position:absolute; padding:0; }
@@ -3202,8 +3203,8 @@
       cursor:pointer;
       z-index:3;
     }
-    .rf-up{ left:calc(-15px * var(--inv)); background-image:url('/layer-up-white.svg'); }
-    .rf-down{ left:calc(10px * var(--inv)); background-image:url('/layer-down-white.svg'); }
+    .rf-up{ left:50%; margin-left:calc(-22.5px * var(--inv)); background-image:url('/layer-up-white.svg'); }
+    .rf-down{ left:50%; margin-left:calc(2.5px * var(--inv)); background-image:url('/layer-down-white.svg'); }
     .rf-rot{
       left:50%; top:calc(-38px * var(--inv));
       width:calc(13px * var(--inv)); height:calc(13px * var(--inv));
@@ -3223,8 +3224,8 @@
     #refs.rf-turning, #refs.rf-turning .rf-item, #refs.rf-turning .rf-rot{ cursor:grabbing; }
     @media (pointer:coarse){
       .rf-up, .rf-down{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv)); bottom:calc(-20px * var(--inv)); }
-      .rf-up{ left:calc(-20px * var(--inv)); }
-      .rf-down{ left:calc(12px * var(--inv)); }
+      .rf-up{ margin-left:calc(-31px * var(--inv)); }
+      .rf-down{ margin-left:calc(3px * var(--inv)); }
       .rf-rot{ width:calc(22px * var(--inv)); height:calc(22px * var(--inv)); margin-left:calc(-11px * var(--inv)); top:calc(-48px * var(--inv)); }
     }
     /* Every image keeps its whole canvas — a garment shot on a transparent
