@@ -52,6 +52,12 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   and travels with it (IndexedDB, copy/paste, `row.own` in `references.json`,
   photograph always packed since it has no archive `src`). Its tab's foot reads
   "Own garment · not in the archive".
+  **Yes / no** on a garment: a picked garment has one square on its right
+  edge (`.rf-out-btn`). A cross greys it out (`it.out`, `.rf-out`: picture,
+  header, panel and dots fade to .28 opacity and grayscale over .45s); on a
+  greyed one the square is a tick that brings it back (`paintOut`). `out` is
+  saved, copied, and `row.out` in `references.json`. It does not change the
+  costing sheet.
   Board garments have three views (squares 1/2/3 down the left edge: photo,
   header, landscape tab); geometry goes through `wOf`/`hOf`. The board's
   Search (`#refsSearch`) asks Wikimedia Commons and Openverse in parallel —

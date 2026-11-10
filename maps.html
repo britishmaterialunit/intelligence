@@ -3588,6 +3588,28 @@
       z-index:2;
     }
     .rf-mode.on{ background:var(--line); color:#fff; }
+    /* Yes or no on a garment: one square on the right edge. A cross greys
+       the garment out (it stays on the board, faded); on a greyed one the
+       square is a tick that brings it back. */
+    .rf-out-btn{
+      display:none; position:absolute; padding:0;
+      right:calc(-15px * var(--inv)); top:50%; margin-top:calc(-10px * var(--inv));
+      width:calc(20px * var(--inv)); height:calc(20px * var(--inv));
+      border:none; background:var(--line) url('/close-white.svg') center / 62% no-repeat;
+      cursor:pointer; z-index:2;
+    }
+    .rf-item.sel .rf-out-btn{ display:block; }
+    .rf-item.rf-out .rf-out-btn{ background-image:url('/tick-white.svg'); }
+    .rf-item.rf-garment > img, .rf-item.rf-garment .rf-head, .rf-item.rf-garment .rf-panel, .rf-item.rf-garment .rf-dots{
+      transition:opacity .45s ease, filter .45s ease;
+    }
+    .rf-item.rf-out > img, .rf-item.rf-out .rf-head, .rf-item.rf-out .rf-panel, .rf-item.rf-out .rf-dots{
+      opacity:.28; filter:grayscale(1);
+    }
+    @media (pointer:coarse){
+      .rf-out-btn{ width:calc(28px * var(--inv)); height:calc(28px * var(--inv));
+                   right:calc(-20px * var(--inv)); margin-top:calc(-14px * var(--inv)); }
+    }
     .rf-mode:not(.on):hover{ background:var(--faint); }
     .rf-mode.m1{ top:calc(-15px * var(--inv)); }
     .rf-mode.m2{ top:50%; margin-top:calc(-10px * var(--inv)); }
@@ -11825,6 +11847,11 @@
         };
       }
       const escH = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
+      function paintOut(it){
+        it.el.classList.toggle('rf-out', !!it.out);
+        const b = it.el.querySelector('.rf-out-btn');
+        if (b) b.setAttribute('aria-label', it.out ? 'Yes — bring this garment back' : 'No — grey this garment out');
+      }
       function dressGarment(it){
         const g = garmentInfo(it.garment);
         if (!g) return;
@@ -11890,7 +11917,10 @@
           sq.setAttribute('aria-label', `View ${n}: ${say}`);
           it.el.appendChild(sq);
         });
+        const out = Object.assign(document.createElement('button'), { type:'button', className:'rf-out-btn' });
+        it.el.appendChild(out);
         it.el.classList.add('rf-garment');
+        paintOut(it);
       }
       /* ---------- A GARMENT'S PRICE ----------
          The reader's own figure for a garment, kept with it on the board
@@ -13960,6 +13990,7 @@
           if (en.link) it.link = en.link;
           if (en.sheet) it.sheet = { rows:en.sheet.rows.slice() };   // files for now; ids once all are made
           if (en.own) it.own = en.own;
+          if (en.out) it.out = true;
           items.push(it); mount(it); made.push(it);
           if (en.key) byKey[en.key] = it;
           return it;
@@ -14346,7 +14377,7 @@
         const got = imgs.map(en => {
           const r = lay[en.name];
           return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
-                   name:(r && r.name) || en.name, garment:(r && r.garment) || null, own:(r && cleanOwn(r.own)) || null,
+                   name:(r && r.name) || en.name, garment:(r && r.garment) || null, own:(r && cleanOwn(r.own)) || null, out:!!(r && r.out),
                    credit:(r && r.credit) || null, shot:(r && r.shot) || 0,
                    price:(r && cleanPrice(r.price)) || null, sizes:(r && sizesOrNull(r.sizes)) || null,
                    stamp:(r && r.stamp) || null, lay:layOf(r) };
@@ -14440,7 +14471,8 @@
           if (it.stamp) row.stamp = it.stamp;
           if (it.rot) row.rot = it.rot;
           if (it.garment) row.garment = it.garment;
-          if (it.own) row.own = it.own;                    // its record travels with it; it has no archive page
+          if (it.own) row.own = it.own;
+          if (it.garment && it.out) row.out = 1;           // greyed out: a no                    // its record travels with it; it has no archive page
           if (src){ row.remote = 1; row.src = src; }      // the photograph is at src, not in the .zip
           if (modeOf(it) > 1) row.mode = modeOf(it);
           if (it.credit) row.credit = it.credit;
@@ -15982,8 +16014,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -16051,7 +16083,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -16423,6 +16455,12 @@
           if (it) cutOut(it);
           return;
         }
+        const yn = e.target.closest('.rf-out-btn');
+        if (yn){
+          const it = byId(yn.closest('.rf-item').dataset.id);
+          if (it){ it.out = !it.out || null; paintOut(it); save(); }
+          return;
+        }
         const sq = e.target.closest('.rf-mode');
         if (sq){
           const it = byId(sq.closest('.rf-item').dataset.id);
@@ -16469,7 +16507,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'own', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet', 'rot'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'own', 'out', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet', 'rot'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
