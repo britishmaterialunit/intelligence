@@ -4322,7 +4322,7 @@
     .rs-head span:last-child{ font-weight:400; color:#9a9a9a; }
     .rs-grid{
       display:grid;
-      grid-template-columns:calc(var(--w) * .055) minmax(0, 1fr) repeat(3, calc(var(--w) * .04)) calc(var(--w) * .055) calc(var(--w) * .1) calc(var(--w) * .115);
+      grid-template-columns:calc(var(--w) * .055) minmax(0, 1fr) calc(var(--w) * .1) repeat(3, calc(var(--w) * .04)) calc(var(--w) * .055) calc(var(--w) * .1) calc(var(--w) * .115);
       column-gap:calc(var(--w) * .016);
       align-items:center;
     }
@@ -4386,6 +4386,9 @@
     .sh-table input:focus, .sh-table select:focus{ outline:none; border-color:var(--line); }
     .sh-table input::placeholder{ color:#c4c4c4; }
     .sh-pp input{ width:80px; }
+    /* the garment's own product code: typed, kept, one to a garment on the board */
+    .sh-code input{ width:120px; text-align:left; caret-color:auto; text-transform:uppercase; letter-spacing:.06em; }
+    .sh-code input.dup{ border-color:#c0392b; color:#c0392b; }
     .sh-pp select{ margin-right:4px; padding:0 2px; border-color:transparent; text-align:left; font-size:10.5px; letter-spacing:.1em; cursor:pointer; }
     .sh-units, .sh-line{ font-weight:bold; }
     .sh-table tfoot td{
@@ -4726,7 +4729,7 @@
       <div class="sh-scroll">
         <table class="sh-table">
           <thead><tr>
-            <th class="sh-ph"></th><th>Garment</th>
+            <th class="sh-ph"></th><th>Garment</th><th class="sh-code">Code</th>
             <th class="sh-n"><span class="sh-sw"><span class="s">1</span><span class="l">Small</span></span></th>
             <th class="sh-n"><span class="sh-sw"><span class="s">2</span><span class="l">Medium</span></span></th>
             <th class="sh-n"><span class="sh-sw"><span class="s">3</span><span class="l">Large</span></span></th>
@@ -11979,6 +11982,8 @@
         });
       }
       const sizesOrNull = v => { const sz = cleanSizes(v); return sz.some(c => c.qty) ? sz : null; };
+      /* a garment's product code: it.code, the reader's own, upper case, one line */
+      const cleanCode = v => typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().toUpperCase().slice(0, 40) || null : null;
       function editSize(it, k){
         const cell = it.el && it.el.querySelector(`.rp-size[data-k="${k}"] .rp-qty`);
         if (!cell || cell.classList.contains('editing')) return;
@@ -13983,7 +13988,7 @@
           const mode = en.lay && en.lay.mode ? en.lay.mode : 1;
           const it = { id:uid(), blob:en.blob, name:en.name, ar:en.ar, x, y, w, z,
                        gid:null, garment:en.garment || null, mode, credit:en.credit || null, shot:en.shot || 0,
-                       stamp:en.stamp || null, price:en.price || null, sizes:en.sizes || null };
+                       stamp:en.stamp || null, price:en.price || null, sizes:en.sizes || null, code:en.code || null };
           if (en.lay && en.lay.rot) it.rot = en.lay.rot;
           if (en.text != null) it.text = cleanText(en.text);
           if (en.draw) it.draw = en.draw;
@@ -14379,7 +14384,7 @@
           return { key:en.name, blob:new Blob([en.data], { type:TYPES[extOfName(en.name)] }),
                    name:(r && r.name) || en.name, garment:(r && r.garment) || null, own:(r && cleanOwn(r.own)) || null, out:!!(r && r.out),
                    credit:(r && r.credit) || null, shot:(r && r.shot) || 0,
-                   price:(r && cleanPrice(r.price)) || null, sizes:(r && sizesOrNull(r.sizes)) || null,
+                   price:(r && cleanPrice(r.price)) || null, sizes:(r && sizesOrNull(r.sizes)) || null, code:(r && cleanCode(r.code)) || null,
                    stamp:(r && r.stamp) || null, lay:layOf(r) };
         }).concat(texts.filter(layOf).map(r => ({ key:r.file, text:r.text, ar:Number(r.ar) || 0.25,
                    name:'Text', stamp:r.stamp || null, lay:layOf(r) })))
@@ -14479,6 +14484,7 @@
           if (it.shot) row.shot = it.shot;
           if (it.garment && cleanPrice(it.price)) row.price = cleanPrice(it.price);
           if (it.garment && sizesOrNull(it.sizes)) row.sizes = sizesOrNull(it.sizes);
+          if (it.garment && cleanCode(it.code)) row.code = cleanCode(it.code);
           man.items.push(row);
         }
         man.items.forEach(r => { if (r.sheet) r.sheet = { rows:r.sheet.rows.map(id => fileOf[id]).filter(Boolean) }; });
@@ -16014,8 +16020,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, sheet, rot })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, rot }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, rot })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -16507,7 +16513,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'own', 'out', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'sheet', 'rot'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'own', 'out', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'code', 'sheet', 'rot'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
@@ -16872,18 +16878,18 @@
           const line = p ? Math.round(p.amount * u * 100) / 100 : 0;
           if (p && u) by[p.cur] = Math.round(((by[p.cur] || 0) + line) * 100) / 100;
           return `<div class="rs-grid rs-row"><span class="rs-ph" style="background-image:url('${escH(o.url)}')"></span>` +
-            `<span class="b">${escH(g.name)}</span>` + sz.map(c => `<span class="n">${c.qty}</span>`).join('') +
+            `<span class="b">${escH(g.name)}</span><span>${escH(cleanCode(o.code) || '—')}</span>` + sz.map(c => `<span class="n">${c.qty}</span>`).join('') +
             `<span class="n b">${u}</span><span class="n">${p ? escH(priceText(p)) : '—'}</span>` +
             `<span class="n b">${p ? escH(priceText({ amount:line, cur:p.cur })) : '—'}</span></div>`;
         });
         const grand = Object.keys(by).map(c => priceText({ amount:by[c], cur:c })).join(' + ') || '—';
         page.innerHTML =
           `<div class="rs-head"><span>Costing sheet</span><span>${String(list.length).padStart(2, '0')} garments</span></div>` +
-          `<div class="rs-grid rs-cols"><span></span><span>Garment</span>` +
+          `<div class="rs-grid rs-cols"><span></span><span>Garment</span><span>Code</span>` +
             SIZE_NAMES.map(n => `<span class="n">${n}</span>`).join('') +
             `<span class="n">Units</span><span class="n">Per unit</span><span class="n">Total</span></div>` +
           `<div class="rs-rows">${rows.join('') || '<div class="rs-more">No garments left on the board</div>'}</div>` +
-          `<div class="rs-grid rs-foot"><span></span><span class="lead">Total</span>` +
+          `<div class="rs-grid rs-foot"><span></span><span class="lead">Total</span><span></span>` +
             per.map(n => `<span class="n">${n}</span>`).join('') +
             `<span class="n">${units}</span><span></span><span class="n t">${escH(grand)}</span></div>`;
         const t = it.el.querySelector('.rf-lk-title');
@@ -16943,6 +16949,8 @@
           return `<tr data-r="${r}">` +
             `<td class="sh-ph"><img src="${escH(it.url)}" alt="" draggable="false"></td>` +
             `<td><div class="sh-name">${escH(g.name)}</div><div class="sh-meta">${meta}</div></td>` +
+            `<td class="sh-code"><input type="text" data-f="code" autocomplete="off" spellcheck="false" maxlength="40" ` +
+              `placeholder="Add code" value="${escH(cleanCode(it.code) || '')}" aria-label="Product code"></td>` +
             sz.map((c, k) => `<td class="sh-n"><input type="text" data-f="q${k}" inputmode="numeric" autocomplete="off" ` +
               `placeholder="0" value="${c.qty || ''}" aria-label="${SIZE_WORDS[k]}"></td>`).join('') +
             `<td class="sh-n sh-units"></td>` +
@@ -16957,6 +16965,7 @@
         }).join('');
         document.getElementById('shCount').textContent = String(sheetList.length).padStart(2, '0');
         sumSheet();
+        dupCodes();
       }
       function sheetTotals(){
         const per = [0, 0, 0], by = {};
@@ -16979,7 +16988,7 @@
         });
         const t = sheetTotals();
         const grand = Object.keys(t.by).map(c => priceText({ amount:t.by[c], cur:c })).join(' + ') || '—';
-        shFoot.innerHTML = `<tr><td></td><td class="sh-lead">Total</td>` +
+        shFoot.innerHTML = `<tr><td></td><td class="sh-lead">Total</td><td></td>` +
           t.per.map(n => `<td class="sh-n">${n}</td>`).join('') +
           `<td class="sh-n">${t.units}</td><td></td><td class="sh-n sh-grand">${escH(grand)}</td></tr>`;
       }
@@ -16988,6 +16997,14 @@
         const tr = f && e.target.closest('tr[data-r]');
         const it = tr && sheetList[Number(tr.dataset.r)];
         if (!it) return;
+        if (f === 'code'){                       // open to everyone, like the sizes
+          it.code = cleanCode(e.target.value);
+          if (e.type === 'change') e.target.value = it.code || '';
+          dupCodes();
+          paintSheetsOf(it);
+          save();
+          return;
+        }
         if (f[0] !== 'q' && !admin) return;       // a price is an admin's to change
         if (f[0] === 'q'){
           const now = cleanSizes(it.sizes);
@@ -17002,6 +17019,17 @@
         paintPrice(it);
         sumSheet();
         save();
+      }
+      // a code is one garment's: the same code on two garments on the board is marked on both
+      function dupCodes(){
+        const seen = {};
+        items.filter(isGarment).forEach(o => { const c = cleanCode(o.code); if (c) (seen[c] = seen[c] || []).push(o); });
+        shBody.querySelectorAll('[data-f="code"]').forEach(inp => {
+          const it = sheetList[Number(inp.closest('tr').dataset.r)], c = cleanCode(it.code);
+          const others = c ? seen[c].filter(o => o !== it) : [];
+          inp.classList.toggle('dup', others.length > 0);
+          inp.title = others.length ? `Already used on ${others.map(o => garmentInfo(o.garment).name).join(', ')}` : '';
+        });
       }
       sheetEl.addEventListener('input', sheetEdit);
       sheetEl.addEventListener('change', sheetEdit);
@@ -17052,17 +17080,17 @@
         const q = v => { const t = String(v == null ? '' : v); return /[",\r\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
         // a name never starts a formula; only the sheet's own sums do
         const txt = v => /^[=+\-@]/.test(String(v || '')) ? `'${v}` : (v || '');
-        const rows = [['Garment', 'Nation', 'Type', 'Archive ref', 'Era', 'Material',
+        const rows = [['Garment', 'Code', 'Nation', 'Type', 'Archive ref', 'Era', 'Material',
                        'Size 1 (Small)', 'Size 2 (Medium)', 'Size 3 (Large)', 'Units', 'Currency', 'Per unit', 'Total']];
         list.forEach((it, i) => {
           const g = garmentInfo(it.garment), sz = cleanSizes(it.sizes), p = cleanPrice(it.price), r = i + 2;
-          rows.push([txt(g.name), txt(g.nation), txt(g.cat), txt(g.ref), txt(g.era), txt(g.mat),
-                     sz[0].qty, sz[1].qty, sz[2].qty, `=SUM(G${r}:I${r})`,
-                     p ? p.cur : '', p ? p.amount : '', `=J${r}*L${r}`]);
+          rows.push([txt(g.name), txt(cleanCode(it.code)), txt(g.nation), txt(g.cat), txt(g.ref), txt(g.era), txt(g.mat),
+                     sz[0].qty, sz[1].qty, sz[2].qty, `=SUM(H${r}:J${r})`,
+                     p ? p.cur : '', p ? p.amount : '', `=K${r}*M${r}`]);
         });
         const n = list.length + 1, curs = [...new Set(list.map(it => cleanPrice(it.price)).filter(p => p).map(p => p.cur))];
-        rows.push(['Total', '', '', '', '', '', `=SUM(G2:G${n})`, `=SUM(H2:H${n})`, `=SUM(I2:I${n})`, `=SUM(J2:J${n})`,
-                   curs.length === 1 ? curs[0] : '', '', curs.length > 1 ? 'mixed currencies' : `=SUM(M2:M${n})`]);
+        rows.push(['Total', '', '', '', '', '', '', `=SUM(H2:H${n})`, `=SUM(I2:I${n})`, `=SUM(J2:J${n})`, `=SUM(K2:K${n})`,
+                   curs.length === 1 ? curs[0] : '', '', curs.length > 1 ? 'mixed currencies' : `=SUM(N2:N${n})`]);
         return '\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n') + '\r\n';
       }
       document.getElementById('shCsv').addEventListener('click', () => {
