@@ -4225,6 +4225,38 @@
     .mk-two > div{ display:flex; flex-direction:column; min-width:0; }
     .rp-own{ font-size:calc(var(--t) * .034); letter-spacing:.16em; text-transform:uppercase; color:#9a9a9a; }
     @media (max-width:640px){ #refsAddMenu, #refsMake{ bottom:88px; } .mk-pick{ height:110px; } }
+    /* ---------- CLUSTER BY NATION ----------
+       Over Cluster (pointed at, or pressed) a row of the flags on the board.
+       Each is a switch: down, that nation's garments gather into a cluster
+       of their own; up, they go back. The empty flag is everything in one. */
+    #refsNations{
+      position:absolute; left:50%; bottom:96px; transform:translateX(-50%);
+      width:max-content; max-width:calc(100vw - 32px); box-sizing:border-box;
+      padding:12px 14px 10px; background:var(--bg); border:1.5px solid var(--line);
+      z-index:5; cursor:default; font-family:var(--font);
+    }
+    #refsNations[hidden]{ display:none; }
+    #refsNations::after{ content:''; position:absolute; left:0; right:0; top:100%; height:24px; }
+    .nt-flags{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:520px; margin-top:4px; }
+    .nt-flag{
+      position:relative; display:flex; flex-direction:column; align-items:center; gap:4px;
+      padding:6px 6px 4px; border:1.5px solid transparent; background:none; cursor:pointer;
+      font-family:var(--font); color:var(--ink); min-width:48px;
+    }
+    .nt-flag:hover, .nt-flag:focus-visible{ border-color:#e4e4e4; outline:none; }
+    .nt-flag[aria-pressed="true"]{ border-color:var(--line); background:var(--faint); }
+    .nt-flag img, .nt-flag .nt-blank, .nt-flag .nt-abbr{
+      width:33px; height:22px; object-fit:cover; display:block; box-sizing:border-box;
+      border:1px solid #d8d8d8;
+    }
+    .nt-flag .nt-blank{ background:#fff; border:1.5px dashed #9a9a9a; }
+    .nt-flag[aria-pressed="true"] .nt-blank{ border-style:solid; border-color:var(--line); }
+    .nt-flag .nt-abbr{ display:flex; align-items:center; justify-content:center; font-size:9px; letter-spacing:.1em; background:var(--faint); }
+    .nt-flag .nt-n{ font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:#8a8a8a; }
+    .nt-flag[aria-pressed="true"] .nt-n{ color:var(--ink); }
+    .nt-sep{ width:1.5px; align-self:stretch; background:#e4e4e4; margin:4px 4px; }
+    .nt-say{ margin:8px 0 0; font-size:11px; color:#8a8a8a; text-align:center; }
+    @media (max-width:640px){ #refsNations{ bottom:88px; } }
     .sd-check{ display:flex; align-items:center; gap:8px; margin:12px 0 0; font-size:11px; color:var(--ink); cursor:pointer; }
     .sd-check input{ margin:0; accent-color:var(--line); }
     /* A shared board says so, top left: who it is shared with, whether
@@ -4681,6 +4713,11 @@
       <button type="button" class="am-opt" data-add="file"><b>Add a file</b><span>Images, or a board’s .zip</span></button>
       <button type="button" class="am-opt" data-add="archive"><b>Add a garment from the archive</b><span>From your saved garments</span></button>
       <button type="button" class="am-opt" data-add="make"><b>Create a garment</b><span>Your own photograph, named as a garment — on this board only, not in the archive</span></button>
+    </aside>
+    <aside id="refsNations" hidden aria-label="Cluster by nation">
+      <span class="sd-head">Cluster by nation</span>
+      <div id="ntFlags" class="nt-flags" role="group" aria-label="Nations on the board"></div>
+      <p id="ntSay" class="nt-say"></p>
     </aside>
     <aside id="refsMake" hidden aria-label="Create a garment">
       <span class="sd-head">Create a garment</span>
@@ -14230,7 +14267,149 @@
           fit();
         });
         before = null; clustered = false; cand = null;
+        natBase = null; natOn.clear(); natAll = false; paintNations();
         sync(); save();
+      }
+
+      /* ---------- CLUSTER BY NATION ----------
+         The flags of the nations on the board, each a switch. The first one
+         pressed remembers the board as it was (natBase); every press after
+         puts the board back to that and gathers each nation still down into
+         a round cluster of its own, laid side by side beside everything
+         else. The empty flag gathers the whole board into one. With every
+         flag up the board is as it was. Reverse does the same. */
+      let natBase = null, natAll = false;
+      const natOn = new Set();
+      const natPanel = document.getElementById('refsNations');
+      const natFlags = document.getElementById('ntFlags');
+      const natSay = document.getElementById('ntSay');
+      const nationOf = it => (it.garment && garmentInfo(it.garment)) || null;
+      function nationsOnBoard(){
+        const m = new Map();
+        items.forEach(it => {
+          const g = nationOf(it);
+          if (!g) return;
+          if (!m.has(g.nation)) m.set(g.nation, { nation:g.nation, flag:g.flag, list:[] });
+          m.get(g.nation).list.push(it);
+        });
+        return [...m.values()].sort((a, b) => b.list.length - a.list.length || a.nation.localeCompare(b.nation));
+      }
+      function garmentOrder(){
+        const at = new Map(ITEMS.map((x, i) => [`${x.n}/${slugBase(x.name)}`, i]));
+        return it => it.garment ? (at.get(RENAMED[it.garment] || it.garment) ?? 1e6) : 1e7 + it.y * 10 + it.x / 1000;
+      }
+      const pad2 = n => String(n).padStart(2, '0');
+      function paintNations(){
+        if (natPanel.hidden) return;
+        const nats = nationsOnBoard();
+        [...natOn].forEach(k => { if (!nats.some(n => n.nation === k)) natOn.delete(k); });
+        natFlags.innerHTML = nats.map(n => {
+          const face = n.flag ? `<img src="${escH(n.flag)}" alt="" draggable="false">`
+                              : `<span class="nt-abbr">${escH(n.nation.slice(0, 2).toUpperCase())}</span>`;
+          return `<button type="button" class="nt-flag" data-nat="${escH(n.nation)}" aria-pressed="${natOn.has(n.nation)}" ` +
+                 `aria-label="Cluster the ${escH(n.nation)} garments (${n.list.length})" title="${escH(n.nation)}">` +
+                 `${face}<span class="nt-n">${pad2(n.list.length)}</span></button>`;
+        }).join('') +
+          (nats.length ? '<span class="nt-sep" aria-hidden="true"></span>' : '') +
+          `<button type="button" class="nt-flag" data-nat="" aria-pressed="${natAll}" ` +
+          `aria-label="Everything in one cluster (${items.length})" title="Everything in one cluster">` +
+          `<span class="nt-blank"></span><span class="nt-n">All ${pad2(items.length)}</span></button>`;
+        natSay.textContent = !nats.length ? 'No garments on the board yet · the empty flag gathers everything into one'
+          : natAll ? 'Everything in one cluster · press again to put it back'
+          : natOn.size ? `${natOn.size} ${natOn.size === 1 ? 'nation' : 'nations'} clustered · press a flag again to let it go`
+          : 'Pick flags to cluster each nation · the empty flag makes one cluster';
+      }
+      function pressNation(key){
+        if (key === ''){ natAll = !natAll; natOn.clear(); }
+        else { natAll = false; natOn.has(key) ? natOn.delete(key) : natOn.add(key); }
+        applyNations();
+        paintNations();
+      }
+      function applyNations(){
+        if (!items.length) return;
+        if (!natBase){ natBase = { pos:snap(), locks:locks.slice() }; before = natBase.pos; }
+        const base = natBase;
+        const nats = nationsOnBoard();
+        const order = garmentOrder();
+        let groups;
+        if (natAll){
+          // one cluster, nation by nation, then anything that is not a garment
+          const rank = new Map(nats.map((n, i) => [n.nation, i]));
+          const key = it => { const g = nationOf(it); return g ? rank.get(g.nation) : 1e4; };
+          groups = [items.slice().sort((a, b) => key(a) - key(b) || order(a) - order(b))];
+        } else {
+          groups = nats.filter(n => natOn.has(n.nation)).map(n => n.list.slice().sort((a, b) => order(a) - order(b)));
+        }
+        const ids = new Set(groups.flat().map(it => it.id));
+        settle(() => {
+          // the board as it was before the first flag
+          base.pos.forEach(s => { const it = byId(s.id); if (it){ it.x = s.x; it.y = s.y; it.w = s.w; place(it); } });
+          locks = base.locks.filter(l => byId(l.p) && byId(l.c) && !ids.has(l.p) && !ids.has(l.c));
+          regroup();
+          const done = new Set();
+          items.forEach(it => { if (it.gid && !done.has(it.gid)){ done.add(it.gid); relay(it); } });
+          if (groups.length){
+            const others = items.filter(o => !ids.has(o.id));
+            const k = CSPACE / SPACING;
+            let cursor = 0, oy = 0;
+            if (others.length){ const b = boundsOf(others); cursor = b.r + CSPACE; oy = (b.t + b.b) / 2; }
+            groups.forEach(list => {
+              const pts = packOffsets(list.length);
+              const reach = Math.max(0, ...pts.map(([x, y]) => Math.hypot(x, y))) * k + CSPACE / 2;
+              const cx = cursor + reach;
+              list.forEach((it, i) => {
+                it.w *= CBOX / Math.max(wOf(it), hOf(it));
+                it.x = cx + pts[i][0] * k; it.y = oy + pts[i][1] * k;
+                place(it);
+              });
+              cursor = cx + reach + CSPACE;
+            });
+          }
+          fit();
+        });
+        if (!natAll && !natOn.size){ natBase = null; before = null; }
+        select(null);
+        cand = null; touched = []; clustered = false;
+        joints(); sync(); save();
+        const n = ids.size;
+        say(natAll ? `One cluster · ${pad2(n)}` : natOn.size ? `Clustered ${pad2(n)} by nation` : 'Put back');
+      }
+      function showNations(on){
+        natPanel.hidden = !on;
+        T('cluster').setAttribute('aria-expanded', String(!!on));
+        if (on){ document.getElementById('refsAddMenu').hidden = true; paintNations(); }
+      }
+      natFlags.addEventListener('click', e => {
+        const b = e.target.closest('.nt-flag');
+        if (b) pressNation(b.dataset.nat);
+      });
+      natPanel.addEventListener('keydown', e => {
+        if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); showNations(false); T('cluster').focus(); }
+      }, true);
+      // pointed at with a mouse the flags come up; leaving both lets them go
+      let natHideT = 0;
+      const natStay = () => clearTimeout(natHideT);
+      const natLeave = e => {
+        if (e.pointerType !== 'mouse') return;
+        natHideT = setTimeout(() => showNations(false), 380);
+      };
+      T('cluster').addEventListener('pointerenter', e => {
+        if (e.pointerType !== 'mouse' || T('cluster').disabled || picked.size > 1) return;
+        natStay(); showNations(true);
+      });
+      T('cluster').addEventListener('pointerleave', natLeave);
+      natPanel.addEventListener('pointerenter', natStay);
+      natPanel.addEventListener('pointerleave', natLeave);
+      document.addEventListener('pointerdown', e => {
+        if (!natPanel.hidden && !e.target.closest('#refsNations, [data-act="cluster"]')) showNations(false);
+      }, true);
+      // with two or more picked Cluster is still theirs alone; otherwise it is the flags
+      function clusterPress(){
+        if (picked.size > 1 && clusterPicked()){ showNations(false); return; }
+        if (items.length < 2){ say('Add a few images first'); return; }
+        natStay();
+        // the mouse has already opened it by pointing; a press keeps it, a tap toggles
+        showNations(natPanel.hidden || matchMedia('(hover:hover)').matches);
       }
 
       function clearBoard(){
@@ -14239,6 +14418,7 @@
         select(null);
         items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
         items = []; locks = []; before = null; clustered = false; cand = null;
+        natBase = null; natOn.clear(); natAll = false; showNations(false);
         picked.clear();
         joints(); fit(); sync(); save(); paintGarments();
       }
@@ -14766,6 +14946,7 @@
         select(null);
         items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
         items = []; locks = []; before = null; clustered = false; cand = null;
+        natBase = null; natOn.clear(); natAll = false; showNations(false);
         picked.clear();
         joints();
       }
@@ -15097,7 +15278,7 @@
         if (!t.moved){ landGarment(t.id); return; }
         // back over the tray or the bar is a change of mind
         const over = document.elementFromPoint(e.clientX, e.clientY);
-        if (over && over.closest('#refsTray, #refsSaved, #dock')) return;
+        if (over && over.closest('#refsTray, #refsSaved, #refsNations, #dock')) return;
         landGarment(t.id, e.clientX, e.clientY);
       };
       [tray, shelf].forEach(strip => {
@@ -16070,7 +16251,7 @@
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
         if (drawing){
-          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake')) return;
+          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations')) return;
           drawDown(e);
           return;
         }
@@ -16086,7 +16267,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -16750,7 +16931,7 @@
         const b = e.target.closest('button[data-act]');
         if (!b || b.disabled) return;
         if (drawing && b.dataset.act !== 'draw') endDraw();
-        ({ add:() => toggleAddMenu(), search:toggleSearch, text:addText, link:askLink, draw:() => drawing ? endDraw() : startDraw(), cluster, reverse, export:exportBoard, clear:clearBoard,
+        ({ add:() => toggleAddMenu(), search:toggleSearch, text:addText, link:askLink, draw:() => drawing ? endDraw() : startDraw(), cluster:clusterPress, reverse, export:exportBoard, clear:clearBoard,
            send:() => toggleSend(), sheet:() => toggleSheet() })[b.dataset.act]();
       });
       (function scrollTools(){
