@@ -4195,7 +4195,7 @@
       font-family:var(--font);
     }
     #refsSend[hidden], #sdNew[hidden]{ display:none; }
-    #refsAddMenu, #refsMake{
+    #refsAddMenu, #refsMake, #refsMine{
       position:absolute; left:50%; bottom:96px; transform:translateX(-50%);
       width:min(400px, calc(100vw - 32px)); box-sizing:border-box;
       max-height:calc(100% - 120px); overflow:auto;
@@ -4203,7 +4203,27 @@
       background:var(--bg); border:1.5px solid var(--line);
       z-index:5; cursor:default; font-family:var(--font);
     }
-    #refsAddMenu[hidden], #refsMake[hidden]{ display:none; }
+    #refsAddMenu[hidden], #refsMake[hidden], #refsMine[hidden]{ display:none; }
+    /* the garments made on Maps, kept in the reader's account (an admin sees everybody's) */
+    #refsMine{ width:min(460px, calc(100vw - 32px)); }
+    .mn-list{ display:flex; flex-direction:column; margin-top:6px; }
+    .mn-who{ margin:14px 0 2px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#9a9a9a; }
+    .mn-who:first-child{ margin-top:4px; }
+    .mn-row{
+      display:grid; grid-template-columns:52px 1fr auto; align-items:center; gap:12px;
+      margin-top:6px; padding:6px 10px 6px 6px; text-align:left;
+      border:1.5px solid #e4e4e4; background:var(--bg); color:var(--ink);
+      font-family:var(--font); cursor:pointer;
+    }
+    .mn-row:hover, .mn-row:focus-visible{ border-color:var(--line); outline:none; }
+    .mn-row[aria-disabled="true"]{ cursor:default; opacity:.5; }
+    .mn-row[aria-disabled="true"]:hover{ border-color:#e4e4e4; }
+    .mn-shot{ width:52px; height:52px; background:var(--faint); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .mn-shot img{ max-width:100%; max-height:100%; object-fit:contain; }
+    .mn-text{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+    .mn-text b{ font-weight:400; font-size:12px; line-height:1.3; }
+    .mn-text span{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#8a8a8a; }
+    .mn-act{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#8a8a8a; white-space:nowrap; }
     .am-opt{
       display:flex; flex-direction:column; align-items:flex-start; gap:3px;
       margin-top:8px; padding:11px 12px; text-align:left;
@@ -4224,7 +4244,7 @@
     .mk-two{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .mk-two > div{ display:flex; flex-direction:column; min-width:0; }
     .rp-own{ font-size:calc(var(--t) * .034); letter-spacing:.16em; text-transform:uppercase; color:#9a9a9a; }
-    @media (max-width:640px){ #refsAddMenu, #refsMake{ bottom:88px; } .mk-pick{ height:110px; } }
+    @media (max-width:640px){ #refsAddMenu, #refsMake, #refsMine{ bottom:88px; } .mk-pick{ height:110px; } }
     /* ---------- CLUSTER BY NATION ----------
        Over Cluster (pointed at, or pressed) a row of the flags on the board.
        Each is a switch: down, that nation's garments gather into a cluster
@@ -4712,7 +4732,15 @@
       <span class="sd-head">Add</span>
       <button type="button" class="am-opt" data-add="file"><b>Add a file</b><span>Images, or a board’s .zip</span></button>
       <button type="button" class="am-opt" data-add="archive"><b>Add a garment from the archive</b><span>From your saved garments</span></button>
-      <button type="button" class="am-opt" data-add="make"><b>Create a garment</b><span>Your own photograph, named as a garment — on this board only, not in the archive</span></button>
+      <button type="button" class="am-opt" data-add="make"><b>Create a garment</b><span>Your own photograph, named as a garment — kept in your created garments, not in the archive</span></button>
+      <button type="button" class="am-opt" data-add="mine"><b id="amMineHead">Your created garments</b><span id="amMineSay">The garments you have made on Maps, for any of your boards</span></button>
+    </aside>
+    <aside id="refsMine" hidden aria-label="Created garments">
+      <span class="sd-head" id="mnHead">Your created garments</span>
+      <p class="sd-who" id="mnWho"></p>
+      <div id="mnList" class="mn-list"></div>
+      <p id="mnMsg" class="sd-msg"></p>
+      <div class="sd-row"><button type="button" id="mnClose" class="sd-btn">Close</button></div>
     </aside>
     <aside id="refsNations" hidden aria-label="Cluster by nation">
       <span class="sd-head">Cluster by nation</span>
@@ -11858,6 +11886,8 @@
         const s = (v, n) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n);
         const out = { name:s(o.name, 120), nation:s(o.nation, 40), cat:s(o.cat, 40),
                       era:s(o.era, 20), mat:s(o.mat, 40), ref:s(o.ref, 24) };
+        // the garment's row in the reader's created garments, once it is kept there
+        if (o.cloud && /^[0-9a-f-]{36}$/i.test(String(o.cloud))) out.cloud = String(o.cloud).toLowerCase();
         return out.name ? out : null;
       };
       function ownInfo(o){
@@ -16251,7 +16281,7 @@
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
         if (drawing){
-          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations')) return;
+          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine')) return;
           drawDown(e);
           return;
         }
@@ -16267,7 +16297,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -16848,7 +16878,11 @@
       let mkBlob = null, mkUrl = null;
       function toggleAddMenu(on){
         on = on == null ? addMenu.hidden : on;
-        if (on) closeMake();
+        if (on){ closeMake(); document.getElementById('refsMine').hidden = true; }
+        document.getElementById('amMineHead').textContent = admin ? 'Created garments' : 'Your created garments';
+        document.getElementById('amMineSay').textContent = admin
+          ? 'Everybody’s, by who made them — add one to any board or project'
+          : 'The garments you have made on Maps, for any of your boards';
         addMenu.hidden = !on;
         if (on) addMenu.querySelector('.am-opt').focus();
       }
@@ -16891,16 +16925,143 @@
                                         garment:'own:' + uid(), at:toWorld(W() / 2, H() / 2 - 40) }]);
         if (!res.added){ mk('mkMsg').textContent = 'That photograph could not be read'; return; }
         const it = items[items.length - 1];
+        const blob = mkBlob;
         closeMake(true);
         if (it && it.own){ setMode(it, 3); select(it); }
         say('Garment added');
+        if (it && it.own) keepCreated(it, blob);
       }
+
+      /* ---------- CREATED GARMENTS ----------
+         A garment made on Maps is kept in the maker's account as well as on
+         the board: its photograph in the private bucket bmu-garments, under
+         the maker's own folder, and its record in bmu_garments. The
+         database's rules (setup/collections.sql) let a person read and add
+         only their own; an admin reads everybody's, so an admin can lay
+         anyone's garment on any board — a project board they have opened
+         from Files is saved back to that person as it always is. Signed
+         out, or before the setup has been run, a garment stays on its
+         board only, as it did before. */
+      const GBUCKET = 'bmu-garments';
+      const mineEl = document.getElementById('refsMine');
+      const mnList = document.getElementById('mnList');
+      const mnMsg = document.getElementById('mnMsg');
+      const mnThumbs = new Map();
+      let mineRows = [];
+      const mnSay = t => { mnMsg.textContent = t || ''; };
+      const picExt = b => ({ 'image/jpeg':'jpg', 'image/webp':'webp', 'image/gif':'gif', 'image/avif':'avif' })[b.type] || 'png';
+      async function keepCreated(it, blob){
+        const got = storedSession();
+        const me = got && got.ses.user;
+        if (!me || !me.id || !(await token())){ say('Garment added · sign in on Files to keep it in your garments'); return; }
+        try {
+          const id = crypto.randomUUID();
+          const pic = await smaller(blob, 2400);
+          const path = `${me.id}/${id}.${picExt(pic)}`;
+          await sb(`/storage/v1/object/${GBUCKET}/${path}`, { method:'POST',
+            headers:{ 'Content-Type':pic.type || 'image/png', 'x-upsert':'false' }, body:pic });
+          const o = it.own;
+          await sb('/rest/v1/bmu_garments', { method:'POST',
+            headers:{ 'Content-Type':'application/json', Prefer:'return=minimal' },
+            body:JSON.stringify({ id, owner_id:me.id, owner_email:(me.email || '').toLowerCase(),
+              name:o.name, nation:o.nation, cat:o.cat, era:o.era, mat:o.mat, ref:o.ref, photo_path:path }) });
+          if (byId(it.id)){ it.own.cloud = id; save(); }
+          say('Garment added · kept in your created garments');
+        } catch (err){
+          console.warn('[BMU] created garment not kept', err);
+          say('Garment added · on this board only for now');
+        }
+      }
+      async function mnThumb(path){
+        if (mnThumbs.has(path)) return mnThumbs.get(path);
+        const p = sb(`/storage/v1/object/authenticated/${GBUCKET}/${path.split('/').map(encodeURIComponent).join('/')}`)
+          .then(r => r.blob()).then(b => ({ blob:b, url:URL.createObjectURL(b) }));
+        mnThumbs.set(path, p);
+        p.catch(() => mnThumbs.delete(path));
+        return p;
+      }
+      const onBoard = id => items.some(it => it.own && it.own.cloud === id);
+      function paintMine(){
+        document.getElementById('mnHead').textContent = admin ? 'Created garments' : 'Your created garments';
+        document.getElementById('mnWho').textContent = admin
+          ? 'Everybody’s, by who made them. Lay one on a board; on a project board opened from Files it is saved to that person’s project.'
+          : 'The garments you have made on Maps. Lay one on this board.';
+        if (!mineRows.length){ mnList.innerHTML = ''; return; }
+        let who = null, html = '';
+        mineRows.forEach((r, i) => {
+          if (admin && r.owner_email !== who){ who = r.owner_email; html += `<div class="mn-who">${escH(who || 'Unknown')}</div>`; }
+          const there = onBoard(r.id);
+          html += `<button type="button" class="mn-row" data-i="${i}" aria-disabled="${there}">` +
+            `<span class="mn-shot" data-path="${escH(r.photo_path)}"></span>` +
+            `<span class="mn-text"><b>${escH(r.name)}</b><span>${escH([r.nation, r.cat, r.era].filter(Boolean).join(' · '))}</span></span>` +
+            `<span class="mn-act">${there ? 'On the board' : 'Add'}</span></button>`;
+        });
+        mnList.innerHTML = html;
+        mnList.querySelectorAll('.mn-shot').forEach(el => {
+          mnThumb(el.dataset.path).then(t => { if (el.isConnected) el.innerHTML = `<img src="${t.url}" alt="" draggable="false">`; }).catch(() => {});
+        });
+      }
+      async function openMine(){
+        addMenu.hidden = true; closeMake();
+        mineEl.hidden = false;
+        mnList.innerHTML = ''; mnSay('Loading…');
+        paintMine();
+        if (!(await token())){
+          mnSay('');
+          document.getElementById('mnWho').innerHTML = 'Sign in on <a href="/files">Files</a> to keep the garments you create, and to see them here.';
+          return;
+        }
+        try {
+          await checkAdmin();
+          const rows = await (await sb('/rest/v1/bmu_garments?select=id,owner_email,name,nation,cat,era,mat,ref,photo_path,created_at&order=owner_email.asc,created_at.desc')).json();
+          mineRows = Array.isArray(rows) ? rows : [];
+          if (!admin) mineRows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+          paintMine();
+          mnSay(mineRows.length ? '' : (admin ? 'Nobody has created a garment yet' : 'Nothing yet — Create a garment keeps it here'));
+          const first = mnList.querySelector('.mn-row');
+          (first || document.getElementById('mnClose')).focus();
+        } catch (err){
+          console.warn('[BMU] created garments', err);
+          mnSay(/bmu_garments|relation|schema cache|404/i.test(err.message)
+            ? 'Created garments are not switched on yet' : 'Could not load them — try again in a moment');
+        }
+      }
+      async function placeMine(r){
+        if (onBoard(r.id)){ say('Already on this board'); return; }
+        mnSay('Adding…');
+        try {
+          const t = await mnThumb(r.photo_path);
+          const own = cleanOwn({ ...r, cloud:r.id });
+          const res = await addEntries([{ blob:t.blob, name:`${r.name}.${picExt(t.blob)}`, own,
+                                          garment:'own:' + uid(), at:toWorld(W() / 2, H() / 2 - 40) }]);
+          if (!res.added) throw new Error('unreadable');
+          const it = items[items.length - 1];
+          if (it && it.own){ setMode(it, 3); select(it); }
+          mnSay(''); paintMine();
+          say('Garment added');
+        } catch (err){
+          console.warn('[BMU] place created garment', err);
+          mnSay('That garment could not be added');
+        }
+      }
+      mnList.addEventListener('click', e => {
+        const b = e.target.closest('.mn-row');
+        if (b && mineRows[+b.dataset.i]) placeMine(mineRows[+b.dataset.i]);
+      });
+      document.getElementById('mnClose').addEventListener('click', () => { mineEl.hidden = true; });
+      mineEl.addEventListener('keydown', e => {
+        if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); mineEl.hidden = true; }
+      }, true);
+      document.addEventListener('pointerdown', e => {
+        if (!mineEl.hidden && !e.target.closest('#refsMine, #refsAddMenu, [data-act="add"], #refsAddBig')) mineEl.hidden = true;
+      }, true);
       addMenu.addEventListener('click', e => {
         const b = e.target.closest('[data-add]');
         if (!b) return;
         addMenu.hidden = true;
         if (b.dataset.add === 'file') fileIn.click();
         else if (b.dataset.add === 'make') openMake();
+        else if (b.dataset.add === 'mine') openMine();
         else {
           if (savedIds.map(savedGarment).filter(Boolean).length){ shelfOpen = true; drawTray(); }
           else say('Nothing saved yet — the + on any garment in the archive keeps it for here');

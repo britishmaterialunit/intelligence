@@ -52,6 +52,22 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   and travels with it (IndexedDB, copy/paste, `row.own` in `references.json`,
   photograph always packed since it has no archive `src`). Its tab's foot reads
   "Own garment · not in the archive".
+  **Created garments**: signed in, a created garment is also kept in the
+  maker's account (`keepCreated`): photograph in the private bucket
+  `bmu-garments` under `<user id>/`, record in `bmu_garments`, and the board
+  piece carries `it.own.cloud` = that row's id. Add → **Your created
+  garments** (`#refsMine`, `openMine`/`placeMine`) lists them to lay on the
+  board. RLS (`setup/collections.sql`, CREATED GARMENTS): a person reads and
+  adds only their own; an admin reads everybody's (grouped by maker), so an
+  admin adds them to anyone's project by opening that project board from
+  Files and laying them on it (saved back as shared boards are). Signed out,
+  or before that SQL is run, a created garment stays on its board only.
+  **Cluster by nation**: with fewer than two picked, Cluster opens
+  `#refsNations` above the bar (on mouse hover, or press): a flag per
+  nation on the board, each a switch (`natOn`) gathering that nation into
+  its own round cluster beside the rest; the empty flag (`natAll`) makes
+  one cluster of everything. The first press remembers the board
+  (`natBase`), every press re-lays from it, all flags up restores it.
   **Yes / no** on a garment: a picked garment has one square on its right
   edge (`.rf-out-btn`). A cross greys it out (`it.out`, `.rf-out`: picture,
   header, panel and dots fade to .28 opacity and grayscale over .45s); on a

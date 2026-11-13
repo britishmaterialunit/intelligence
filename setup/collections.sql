@@ -214,6 +214,74 @@ revoke all on function public.bmu_board_claim(uuid, timestamptz) from public, an
 grant execute on function public.bmu_board_claim(uuid, timestamptz) to authenticated;
 
 -- ============================================================
+-- CREATED GARMENTS
+-- A garment made on Maps ("Create a garment") is kept in its maker's
+-- account: the photograph in the private bucket bmu-garments, under a
+-- folder named by the maker's user id, and the record in bmu_garments.
+-- A person reads, adds and removes only their own. An admin reads
+-- everybody's, so an admin can lay anyone's garment on any board or
+-- project; nobody else can see another person's. Safe to run again.
+-- ============================================================
+create table if not exists public.bmu_garments (
+  id          uuid primary key default gen_random_uuid(),
+  owner_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  owner_email text not null default '',
+  name        text not null,
+  nation      text not null default '',
+  cat         text not null default '',
+  era         text not null default '',
+  mat         text not null default '',
+  ref         text not null default '',
+  photo_path  text not null,
+  created_at  timestamptz not null default now()
+);
+alter table public.bmu_garments enable row level security;
+
+drop policy if exists "created garments read"   on public.bmu_garments;
+drop policy if exists "created garments add"    on public.bmu_garments;
+drop policy if exists "created garments edit"   on public.bmu_garments;
+drop policy if exists "created garments remove" on public.bmu_garments;
+
+create policy "created garments read" on public.bmu_garments
+  for select to authenticated
+  using (owner_id = auth.uid() or public.bmu_is_admin());
+-- only as yourself, with your own email, and a photograph in your own folder
+create policy "created garments add" on public.bmu_garments
+  for insert to authenticated
+  with check (owner_id = auth.uid()
+              and lower(owner_email) = public.bmu_email()
+              and photo_path like auth.uid()::text || '/%');
+create policy "created garments edit" on public.bmu_garments
+  for update to authenticated
+  using (owner_id = auth.uid() or public.bmu_is_admin())
+  with check (public.bmu_is_admin()
+              or (owner_id = auth.uid() and photo_path like auth.uid()::text || '/%'));
+create policy "created garments remove" on public.bmu_garments
+  for delete to authenticated
+  using (owner_id = auth.uid() or public.bmu_is_admin());
+
+insert into storage.buckets (id, name, public)
+  values ('bmu-garments', 'bmu-garments', false)
+  on conflict (id) do nothing;
+
+drop policy if exists "bmu garments read"   on storage.objects;
+drop policy if exists "bmu garments add"    on storage.objects;
+drop policy if exists "bmu garments remove" on storage.objects;
+
+create policy "bmu garments read" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'bmu-garments'
+         and ((storage.foldername(name))[1] = auth.uid()::text or public.bmu_is_admin()));
+create policy "bmu garments add" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'bmu-garments'
+              and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "bmu garments remove" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'bmu-garments'
+         and ((storage.foldername(name))[1] = auth.uid()::text or public.bmu_is_admin()));
+
+-- ============================================================
 -- MAKE YOURSELF THE ADMIN — run once, after you have created your own
 -- login (Authentication → Users → Add user). Put your email in the quotes.
 -- ============================================================
