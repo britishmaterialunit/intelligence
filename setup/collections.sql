@@ -288,3 +288,57 @@ create policy "bmu garments remove" on storage.objects
 -- insert into public.bmu_admins (user_id)
 --   select id from auth.users where lower(email) = lower('you@example.com')
 --   on conflict do nothing;
+
+-- ============================================================
+-- SHARED BOARDS (PHASE 2) — A DESIGNER'S OWN BOARDS
+-- Any signed-in designer can send their board to BMU from Maps (Send →
+-- "Send board to BMU") and update it a version on, exactly as an admin
+-- updates a sent board. Their rows are addressed to themselves
+-- (reviewer_email = their email) and born board_edit, so the board saves
+-- itself while they have it open and an admin reads it like any other;
+-- their .zips live under u/<their uid>/ in the bucket, which is what the
+-- policies below key on. Run after the sections above.
+-- ============================================================
+
+-- the row: a designer makes and updates board rows of their own only
+drop policy if exists "designer creates own board" on public.bmu_collections;
+create policy "designer creates own board" on public.bmu_collections
+  for insert to authenticated
+  with check (
+    lower(reviewer_email) = public.bmu_email()
+    and board_path like 'u/' || auth.uid()::text || '/%'
+    and board_edit
+    and garments = '{}'
+  );
+drop policy if exists "designer updates own board" on public.bmu_collections;
+create policy "designer updates own board" on public.bmu_collections
+  for update to authenticated
+  using (
+    lower(reviewer_email) = public.bmu_email()
+    and board_path like 'u/' || auth.uid()::text || '/%'
+  )
+  with check (
+    lower(reviewer_email) = public.bmu_email()
+    and board_path like 'u/' || auth.uid()::text || '/%'
+    and board_edit
+    and garments = '{}'
+  );
+
+-- the zip: a designer writes only inside their own folder of the bucket
+drop policy if exists "bmu boards designer adds own"     on storage.objects;
+drop policy if exists "bmu boards designer replaces own" on storage.objects;
+drop policy if exists "bmu boards designer removes own"  on storage.objects;
+drop policy if exists "bmu boards designer reads own"    on storage.objects;
+create policy "bmu boards designer adds own" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'bmu-boards' and name like 'u/' || auth.uid()::text || '/%');
+create policy "bmu boards designer replaces own" on storage.objects
+  for update to authenticated
+  using     (bucket_id = 'bmu-boards' and name like 'u/' || auth.uid()::text || '/%')
+  with check (bucket_id = 'bmu-boards' and name like 'u/' || auth.uid()::text || '/%');
+create policy "bmu boards designer removes own" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'bmu-boards' and name like 'u/' || auth.uid()::text || '/%');
+create policy "bmu boards designer reads own" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'bmu-boards' and name like 'u/' || auth.uid()::text || '/%');

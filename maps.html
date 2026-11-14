@@ -4330,6 +4330,8 @@
     .sd-go{ background:var(--line); color:#fff; }
     .sd-go:hover{ background:var(--line); opacity:.85; }
     .sd-btn:disabled{ opacity:.4; cursor:default; }
+    /* a designer's Send: always to BMU, as themselves, always theirs to change */
+    #refsSend.mine #sdEmailRow, #refsSend.mine .sd-check{ display:none; }
     @media (max-width:640px){ #refsSend{ bottom:88px; } }
     #refsSheet{
       position:absolute;
@@ -14809,19 +14811,27 @@
         return r;
       }
 
-      // the Send tool is shown to an admin and nobody else
+      /* The Send tool: an admin sends to anyone; any other signed-in
+         reader sends their board to BMU, as themselves, and updates the
+         boards they have sent (setup/collections.sql, phase 2). */
       let admin = false;
       const signedInAs = () => {
         const got = storedSession();
         return (got && got.ses.user && got.ses.user.email) || '';
       };
+      const userId = () => {
+        const got = storedSession();
+        return (got && got.ses.user && got.ses.user.id) || '';
+      };
+      // a board the reader made themselves lives under u/<their id>/ in the bucket
+      const ownPath = path => String(path || '').startsWith('u/' + userId() + '/');
       async function checkAdmin(){
         admin = false;
         try {
           const rows = await (await sb('/rest/v1/bmu_admins?select=user_id')).json();
           admin = Array.isArray(rows) && rows.length > 0;
         } catch {}
-        T('send').hidden = !admin;
+        T('send').hidden = !admin && !signedInAs();
         // the prices lock or open to match
         items.forEach(it => { if (it.garment) paintPrice(it); });
         if (!sheetEl.hidden) paintSheet();
@@ -14844,7 +14854,7 @@
          board goes as a plain sent board did. */
       let shareReady = true;
       const shareFields = now => shareReady
-        ? { board_edit:sdEdit.checked, board_saved_at:now, board_saved_by:signedInAs().toLowerCase() } : {};
+        ? { board_edit:admin ? sdEdit.checked : true, board_saved_at:now, board_saved_by:signedInAs().toLowerCase() } : {};
       function toggleSend(on){
         on = on == null ? sendEl.hidden : on;
         sendEl.hidden = !on;
@@ -14858,13 +14868,30 @@
           ? `Signed in as ${who.replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c])} · <a href="/files">Files</a>`
           : '';
         sdGo.disabled = false;
-        sdFile.innerHTML = '<option value="">Someone new…</option>';
+        sendEl.classList.toggle('mine', !admin);
+        sendEl.querySelector('.sd-head').textContent = admin ? 'Send board to file' : 'Send board to BMU';
+        sdFile.innerHTML = `<option value="">${admin ? 'Someone new…' : 'New project board…'}</option>`;
         sdNew.hidden = false;
         sdGo.textContent = 'Send';
         sdEdit.checked = false;
         rowsWith('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path,garments&order=created_at.desc', 'board_edit')
           .then(rows => {
             fileRows = Array.isArray(rows) ? rows : [];
+            if (!admin){
+              /* The reader's own project boards, each updatable a version
+                 on; a new one goes up addressed to themselves, which is
+                 what BMU reads. Boards BMU sent them are not listed — an
+                 open one already saves itself when they may change it. */
+              fileRows.filter(c => isBoard(c) && ownPath(c.board_path)).forEach(c => {
+                const o = document.createElement('option');
+                o.value = c.id;
+                o.textContent = `Update “${c.title}” · ${verName(c.board_path)} → V${verOf(c.board_path) + 1}`;
+                sdFile.appendChild(o);
+              });
+              if (sentBoard != null && fileRows.some(c => c.id === sentBoard && ownPath(c.board_path))) sdFile.value = sentBoard;
+              paintNew(); paintGo();
+              return;
+            }
             /* Grouped by person. A person can have any number of boards, one
                per project — a consultant with several clients, a designer
                with several lines — and each is updated on its own, the same
@@ -14894,6 +14921,7 @@
             });
             // the board open is one already sent: it goes back to the same file
             if (sentBoard != null && fileRows.some(c => c.id === sentBoard)) sdFile.value = sentBoard;
+            // (admins only from here)
             paintNew();
             paintGo();
             paintEdit();
@@ -14928,7 +14956,8 @@
         const first = v.startsWith('new:') ? fileRows.find(c => c.id === v.slice(4)) : null;
         const chosen = first ? null : fileRows.find(c => c.id === v);
         const title = chosen ? chosen.title : sdTitle.value.trim();
-        const email = (first || chosen ? String((first || chosen).reviewer_email) : sdEmail.value.trim()).toLowerCase();
+        const email = !admin ? me()
+                    : (first || chosen ? String((first || chosen).reviewer_email) : sdEmail.value.trim()).toLowerCase();
         if (!chosen && !title){ sdSay('The project’s name, please.'); sdTitle.focus(); return; }
         if (!first && !chosen && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
           sdSay('The designer’s email, please.'); return;
@@ -14952,7 +14981,7 @@
           sdSay(prev ? `Sending V${ver} (${mb(blob.size)})…` : `Sending (${mb(blob.size)})…`);
           // the same name a version on, so the file in Files is the one it always was
           const stem = prev ? String(prev.board_path).replace(/(-v\d+)?\.zip$/, '')
-                            : ((crypto.randomUUID && crypto.randomUUID()) || uid());
+                            : (admin ? '' : 'u/' + userId() + '/') + ((crypto.randomUUID && crypto.randomUUID()) || uid());
           const path = `${stem}-v${ver}.zip`;
           await sb(`/storage/v1/object/${BUCKET}/${path}`, {
             method:'POST', headers:{ 'Content-Type':'application/zip' }, body:blob });
@@ -14971,7 +15000,9 @@
           toggleSend(false);
           sdTitle.value = ''; sdEmail.value = '';
           if (sentBoard != null && prev && prev.id === sentBoard){ sentVer = ver; refreshShared(); }
-          say(prev ? `Sent V${ver} to “${prev.title}”` : `Sent ${String(count).padStart(2, '0')} to “${title}”`);
+          say(prev ? `Sent V${ver} to “${prev.title}”`
+             : admin ? `Sent ${String(count).padStart(2, '0')} to “${title}”`
+                     : `Sent “${title}” to BMU — it saves itself while you have it open`);
         } catch (err){
           sdGo.disabled = false;
           // the database not yet set up for boards is the one cause worth naming
@@ -14980,6 +15011,8 @@
                 ? 'This board is too large to send (the limit is 50 MB). Take a few pictures off, or Export it instead.'
               : /board_path|board_edit|board_saved|bucket not found|Bucket not found|404/i.test(err.message)
                 ? 'Boards are not switched on in the database yet: run setup/collections.sql in Supabase’s SQL Editor once.'
+              : !admin && /row.level security|violates|403/i.test(err.message)
+                ? 'Sending your own board is not switched on yet: BMU needs to run setup/collections.sql once.'
                 : 'That did not send. Try again in a moment.');
         }
       });
@@ -15083,7 +15116,8 @@
         shareEl.hidden = !s;
         if (!s) return;
         const mine = s.by && s.by === me();
-        const who = admin ? `Shared with ${s.email}` : 'Shared with you by BMU';
+        const who = admin ? `Shared with ${s.email}`
+                  : ownPath(s.path) ? 'Shared with BMU' : 'Shared with you by BMU';
         const role = !s.sharing ? 'as sent' : canEdit() ? (admin ? (s.edit ? 'they can change it' : 'view only for them') : 'you can change it')
                    : 'view only';
         let state = '';

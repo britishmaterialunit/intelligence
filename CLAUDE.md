@@ -175,14 +175,14 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   (`#dockShelf`, beside play, with its own count) opens the saved garments in
   `#refsSaved`, just above the bar; placing one leaves it saved. The board is kept in IndexedDB and exported as
   `BMU-References-NNN.zip` (images + `references.json`, locks included),
-  which the plus reads back. **Send** (`#refsSend`, admins only, checked
-  against `bmu_admins`) puts that zip in the private Supabase bucket
+  which the plus reads back. **Send** (`#refsSend`) puts that zip in the private Supabase bucket
   `bmu-boards` and names it in a file's `board_path`; `/archive?board=<file
   id>` (Files' "Open reference board") lays it down. A person can have any number of
   **project boards** (one file each, titled by the project). Send groups its
   list by person: Update a board (same file, `board_path` → `<stem>-v<n+1>.zip`,
   the old zip deleted — the version lives in the name, `verOf`), or New project
   board (asks the project's name; a name that person already has is refused).
+  **Send for designers (phase 2)**: any signed-in non-admin has Send too — "Send board to BMU": a new project board addressed to themselves (`reviewer_email` = their email, `board_edit` true, zip under `u/<their uid>/` in the bucket, which is what the phase-2 policies in `setup/collections.sql` key on) or Update V<n>→V<n+1> of a board they sent; no email field, no edit checkbox, boards BMU sent them are not listed (an open one saves itself). Admin keeps the full panel.
   **Shared boards (phase 1)**: a sent board is one board both sides open; whoever may change it (admin always, the designer when `board_edit`) has changes saved into the same zip (`sharedSave`: claim via `bmu_board_claim`, then PUT), label `#refsShare` top left. Send and shared saves are light: garments are named (`row.remote`, `row.src`) and fetched from the archive by `readBoard`, not packed. An admin opening a sent board can add to it and Send it back as the next
   version; Files shows `V<n> · sent <date>` and New version until looked at. Files' **Open Archive** (`#cvArchive`, a
   step under the others, compass in its well, an arrow `#cvArchiveMark` that
