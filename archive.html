@@ -14644,7 +14644,7 @@
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        say(`Exported ${String(count).padStart(2, '0')}`);
+        say(`Exported ${String(count).padStart(2, '0')} pieces`);
       }
       /* A picture made smaller for sending: at most `max` pixels on its long
          side, as WebP (which keeps a cut-out's transparency), else PNG where
