@@ -3512,6 +3512,20 @@
          rides alongside. */
       const boardOnly = c => !!c.board_path && !(c.garments && c.garments.length);
 
+      /* A shared board saves itself as either side works on it
+         (board_saved_at / board_saved_by on the row). A save by somebody
+         else, not yet looked at from this browser, is news: the list says
+         "Changed by <them>" until the file is opened here. */
+      let seenSaves = {};
+      try { seenSaves = JSON.parse(localStorage.getItem('bmu-board-seen') || '{}') || {}; } catch {}
+      const keepSeen = () => { try { localStorage.setItem('bmu-board-seen', JSON.stringify(seenSaves)); } catch {} };
+      const savedBy = c => String(c.board_saved_by || '').toLowerCase();
+      const changedBy = c => {
+        if (!boardOnly(c) || !c.board_saved_at || !savedBy(c)) return '';
+        if (savedBy(c) === String(me && me.email || '').toLowerCase()) return '';
+        return seenSaves[c.id] === c.board_saved_at ? '' : savedBy(c);
+      };
+
       async function refresh(){
         list = await api.collections();
         if (me && me.admin && await unmerge(list)) list = await api.collections();
@@ -3631,9 +3645,10 @@
             const r = replyOf(c);
             const n = boardOnly(c) ? 'Reference board · V' + verOf(c.board_path)
               : plural(c.garments.length, 'garment', 'garments') + (c.board_path ? ' · Reference board' : '');
-            const label = person
+            const ch = changedBy(c);
+            const label = (person
               ? `${String(i + 1).padStart(2, '0')} · ${n} · ${stateOf(r, c)}`
-              : `${n} · ${stateOf(r, c)}`;
+              : `${n} · ${stateOf(r, c)}`) + (ch ? ` · Changed by ${esc(ch)}` : '');
             return `<button type="button" class="news-item" data-id="${esc(c.id)}">` +
                      `<span class="ni-date">${label}</span>` +
                      `<span class="ni-title">${esc(c.title)}</span>` +
@@ -3777,6 +3792,7 @@
         const c = list.find(x => x.id === id);
         if (!c){ openHome(); return; }
         current = c;
+        if (boardOnly(c) && c.board_saved_at){ seenSaves[c.id] = c.board_saved_at; keepSeen(); }
         // back from a file goes to that person's files
         if (me.admin) person = String(c.reviewer_email).toLowerCase();
         history.replaceState(null, '', '#c=' + c.id);
