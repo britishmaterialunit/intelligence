@@ -2457,6 +2457,7 @@
           </div>
           <span class="cl-label cv-file" id="cvLabel" style="margin-top:22px"></span>
           <h2 class="cl-title" id="cvTitle"></h2>
+          <button type="button" class="cl-link" id="cvRename" hidden>Rename</button>
           <span class="cl-sub cv-for" id="cvFor" hidden></span>
           <p class="cl-lede" id="cvNote"></p>
           <p class="cl-lede" id="cvMissing" hidden></p>
@@ -2477,19 +2478,6 @@
                  arrival would be a claim with nothing behind it. -->
             <div class="cv-steps">
               <!-- a board file: the zip in place of Verify File -->
-              <div class="cv-step" id="cvZipStep" hidden>
-                <span class="cv-stepmain">
-                  <button type="button" class="cv-talk" id="cvZip">
-                    <span>Download Zip</span>
-                    <span class="talk-well">
-                      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                        <g class="talk-arrow"><path d="M8 3 V11.5"/><path d="M4.6 8.2 L8 11.6 L11.4 8.2"/></g>
-                      </svg>
-                    </span>
-                  </button>
-                </span>
-                <span class="cv-mark" id="cvZipMark" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><g class="cm-x"><path d="M4.6 4.6 L11.4 11.4"/><path d="M11.4 4.6 L4.6 11.4"/></g><g class="cm-tick"><path d="M3.6 8.5 L6.6 11.5 L12.4 5.2"/></g></svg></span>
-              </div>
               <div class="cv-step" id="cvVerifyStep">
                 <span class="cv-stepmain">
                   <!-- No arrow on this one: it does not lead anywhere, it
@@ -2520,6 +2508,19 @@
                           data-mail="hello@britishmaterialunit.com">hello@britishmaterialunit.com</button>
                 </span>
                 <span class="cv-mark" id="cvBookMark" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><g class="cm-x"><path d="M4.6 4.6 L11.4 11.4"/><path d="M11.4 4.6 L4.6 11.4"/></g><g class="cm-tick"><path d="M3.6 8.5 L6.6 11.5 L12.4 5.2"/></g></svg></span>
+              </div>
+              <div class="cv-step" id="cvZipStep" hidden>
+                <span class="cv-stepmain">
+                  <button type="button" class="cv-talk" id="cvZip">
+                    <span>Download Zip</span>
+                    <span class="talk-well">
+                      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <g class="talk-arrow"><path d="M8 3 V11.5"/><path d="M4.6 8.2 L8 11.6 L11.4 8.2"/></g>
+                      </svg>
+                    </span>
+                  </button>
+                </span>
+                <span class="cv-mark" id="cvZipMark" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><g class="cm-x"><path d="M4.6 4.6 L11.4 11.4"/><path d="M11.4 4.6 L4.6 11.4"/></g><g class="cm-tick"><path d="M3.6 8.5 L6.6 11.5 L12.4 5.2"/></g></svg></span>
               </div>
               <!-- Into the archive with the file: its garments kept on the
                    reader's shelf and gathered on the field the moment it
@@ -3806,6 +3807,8 @@
         $('cvFor').textContent = me.admin ? 'For ' + c.reviewer_email : '';
         $('cvFor').hidden = !me.admin;
         $('cvTitle').textContent = c.title;
+        // its name is the owner's to change: an admin's always, a designer's on their boards
+        $('cvRename').hidden = !(me && me.admin) && !boardOnly(c);
         // by first name, the way you would actually ask somebody
         const who = String(c.title || '').trim().split(/\s+/)[0] || 'there';
         $('cvReply').placeholder = `What’s worthwhile mentioning, ${who}?`;
@@ -3887,6 +3890,32 @@
         if (!boards.has(c.id)) boards.set(c.id, api.boardZip(c.board_path).catch(err => { boards.delete(c.id); throw err; }));
         return boards.get(c.id);
       };
+      $('cvRename').addEventListener('click', () => {
+        const c = current, h = $('cvTitle');
+        if (!c || h.isContentEditable) return;
+        const was = c.title;
+        try { h.contentEditable = 'plaintext-only'; } catch { h.contentEditable = 'true'; }
+        h.focus();
+        const r = document.createRange(); r.selectNodeContents(h);
+        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        let done = false;
+        const finish = async keep => {
+          if (done) return; done = true;
+          h.contentEditable = 'false';
+          const t = h.textContent.replace(/\s+/g, ' ').trim();
+          if (!keep || !t || t === was){ h.textContent = was; return; }
+          const { error } = await sb.from('bmu_collections').update({ title:t }).eq('id', c.id);
+          if (error){ h.textContent = was; $('cvMsg').textContent = 'That rename did not save.'; return; }
+          c.title = t;
+          h.textContent = t;
+        };
+        h.addEventListener('blur', () => finish(true), { once:true });
+        h.addEventListener('keydown', function key(e){
+          if (e.key === 'Enter'){ e.preventDefault(); h.removeEventListener('keydown', key); h.blur(); }
+          if (e.key === 'Escape'){ e.preventDefault(); h.removeEventListener('keydown', key); finish(false); h.blur(); }
+        });
+      });
+
       $('cvZip').addEventListener('click', async () => {
         const c = current;
         if (!c || !c.board_path) return;

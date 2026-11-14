@@ -15003,11 +15003,14 @@
         const c = fileRows.find(o => o.id === sdFile.value);
         sdGo.textContent = c && isBoard(c) ? `Send V${verOf(c.board_path) + 1}` : 'Send';
       }
-      // a new board asks its project's name; someone new, their email too
+      // a new board asks its project's name; someone new, their email too.
+      // An update shows the name it has — typed different, the project is renamed with it.
       function paintNew(){
         const v = sdFile.value, fresh = v.startsWith('new:');
-        sdNew.hidden = !!v && !fresh;
-        document.getElementById('sdEmailRow').hidden = fresh;
+        const chosen = v && !fresh ? fileRows.find(c => c.id === v) : null;
+        sdNew.hidden = false;
+        sdTitle.value = chosen ? chosen.title : '';
+        document.getElementById('sdEmailRow').hidden = fresh || !!chosen;
         if (fresh) sdTitle.focus();
       }
       sdFile.addEventListener('change', () => { paintNew(); sdSay(''); paintGo(); });
@@ -15017,7 +15020,8 @@
         // a new project board for somebody already in Files: a file of its own, beside theirs
         const first = v.startsWith('new:') ? fileRows.find(c => c.id === v.slice(4)) : null;
         const chosen = first ? null : fileRows.find(c => c.id === v);
-        const title = chosen ? chosen.title : sdTitle.value.trim();
+        const typed = sdTitle.value.trim();
+        const title = chosen ? (typed || chosen.title) : typed;
         const email = !admin ? me()
                     : (first || chosen ? String((first || chosen).reviewer_email) : sdEmail.value.trim()).toLowerCase();
         if (!chosen && !title){ sdSay('The project’s name, please.'); sdTitle.focus(); return; }
@@ -15025,7 +15029,7 @@
           sdSay('The designer’s email, please.'); return;
         }
         // one person's boards are told apart by their projects' names
-        if (!chosen && fileRows.some(c => isBoard(c) && String(c.reviewer_email).toLowerCase() === email &&
+        if (fileRows.some(c => c !== chosen && isBoard(c) && String(c.reviewer_email).toLowerCase() === email &&
                                       String(c.title).trim().toLowerCase() === title.toLowerCase())){
           sdSay(`They already have a board called “${title}”: pick it above to update it, or name this one differently.`); return;
         }
@@ -15051,7 +15055,8 @@
           if (id){
             await sb(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}`, {
               method:'PATCH', headers:{ 'Content-Type':'application/json' },
-              body:JSON.stringify({ board_path:path, updated_at:now, ...shareFields(now) }) });
+              body:JSON.stringify({ board_path:path, updated_at:now,
+                                    ...(prev && title !== prev.title ? { title } : {}), ...shareFields(now) }) });
             // the board it replaced is not left behind in the bucket
             if (prev && prev.board_path) sb(`/storage/v1/object/${BUCKET}/${prev.board_path}`, { method:'DELETE' }).catch(() => {});
           } else {
@@ -15062,7 +15067,7 @@
           toggleSend(false);
           sdTitle.value = ''; sdEmail.value = '';
           if (sentBoard != null && prev && prev.id === sentBoard){ sentVer = ver; refreshShared(); }
-          say(prev ? `Sent V${ver} to “${prev.title}”`
+          say(prev ? `Sent V${ver} to “${title}”`
              : admin ? `Sent ${String(count).padStart(2, '0')} to “${title}”`
                      : `Sent “${title}” to BMU — it saves itself while you have it open`);
         } catch (err){
@@ -15192,10 +15197,13 @@
         else if (s.at) state = `Saved ${whenOf(s.at)}${s.by ? ` by ${mine ? 'you' : s.by}` : ''}`;
         shareEl.className = !canEdit() ? 'view' : s.stale ? 'stale' : s.err ? 'err' : '';
         shareEl.innerHTML = `<div class="rs-who"><i class="rs-dot"></i><span>${escH(who)}</span></div>` +
-          `<div>${escH(role)}${state ? ` · ${escH(state)}` : ''}${s.stale ? '<button type="button" data-act="reload">Reload</button>' : ''}</div>`;
+          `<div>${escH(role)}${state ? ` · ${escH(state)}` : ''}${s.stale ? '<button type="button" data-act="reload">Reload</button>'
+            : canEdit() ? '<button type="button" data-act="update">Update</button>' : ''}</div>`;
       }
       shareEl.addEventListener('click', e => {
         if (e.target.closest('[data-act="reload"]') && shared){ shareDirty = false; openSent(shared.id, true); }
+        // straight to Send, with this board picked: a new version, renamed there if wanted
+        if (e.target.closest('[data-act="update"]') && shared) toggleSend(true);
       });
       shareEl.addEventListener('pointerdown', e => e.stopPropagation());
       // a change on the shared board: saved a moment after the last of them

@@ -193,6 +193,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   list by person: Update a board (same file, `board_path` → `<stem>-v<n+1>.zip`,
   the old zip deleted — the version lives in the name, `verOf`), or New project
   board (asks the project's name; a name that person already has is refused).
+  An update's title field is prefilled and live — typed different, the
+  project is renamed with the send. The open shared board's label carries
+  an Update button straight into Send with itself picked; on Files the
+  title has Rename (`#cvRename`, contenteditable, admin always, designer on
+  their boards) and a board file's Download Zip sits below Book Meeting.
   **Send for designers (phase 2)**: any signed-in non-admin has Send too — "Send board to BMU": a new project board addressed to themselves (`reviewer_email` = their email, `board_edit` true, zip under `u/<their uid>/` in the bucket, which is what the phase-2 policies in `setup/collections.sql` key on) or Update V<n>→V<n+1> of any board addressed to them — their own or one BMU sent (storage policies match the zip by stem); no email field. Admin keeps the full panel.
   **Shared boards (phase 1)**: a sent board is one board both sides open; view only is gone — admin and designer may both change it (`board_edit` is a dead column, kept; policies no longer read it), and changes are saved into the same zip (`sharedSave`: claim via `bmu_board_claim`, then PUT), label `#refsShare` top left. Send and shared saves are light: garments are named (`row.remote`, `row.src`) and fetched from the archive by `readBoard`, not packed. An admin opening a sent board can add to it and Send it back as the next
   version; Files shows `V<n> · sent <date>` and New version until looked at. Files' **Open Archive** (`#cvArchive`, a
