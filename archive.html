@@ -14740,7 +14740,9 @@
           const g = light && it.garment && !isText && !isDraw && !isLink && !isSheet ? garmentInfo(it.garment) : null;
           const src = g && g.shots[0];
           const pic = isText || isDraw || isLink || isSheet || src ? null : shrink ? await shrink(it.blob) : it.blob;
-          const file = `${String(i + 1).padStart(pad, '0')}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url'
+          // a garment's yes or no travels in its file's own name: 03 (Y).png, 07 (N).png
+          const yn = it.garment && !isText && !isDraw && !isLink && !isSheet ? (it.out ? ' (N)' : ' (Y)') : '';
+          const file = `${String(i + 1).padStart(pad, '0')}${yn}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url'
                         : src ? (extOfName(src) || 'png') : extOf({ ...it, blob:pic })}`;
           fileOf[it.id] = file;
           if (!src) files.push({ name:file, data:isSheet ? enc.encode(sheetCsv(it.sheet.rows.map(byId).filter(isGarment)))

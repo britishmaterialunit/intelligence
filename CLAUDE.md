@@ -79,7 +79,8 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   greyed one it reads Y and brings it back (`paintOut`; letters, not icons —
   the cross is the delete button's). `out` is
   saved, copied, and `row.out` in `references.json`. It does not change the
-  costing sheet.
+  costing sheet. In the exported zip a garment's file name carries it:
+  `03 (Y).png` / `07 (N).png`.
   Board garments have three views (squares 1/2/3 down the left edge: photo,
   header, landscape tab); geometry goes through `wOf`/`hOf`. The board's
   Search (`#refsSearch`) asks Wikimedia Commons and Openverse in parallel —
