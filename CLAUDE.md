@@ -66,7 +66,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   `bmu-garments` under `<user id>/`, record in `bmu_garments`, and the board
   piece carries `it.own.cloud` = that row's id. Add → **Your created
   garments** (`#refsMine`, `openMine`/`placeMine`) lists them to lay on the
-  board. RLS (`setup/collections.sql`, CREATED GARMENTS): a person reads and
+  board — **its menu button is removed for now** (the feature misbehaved;
+  the panel and code are kept whole, restore the `data-add="mine"` button
+  in `#refsAddMenu` to bring it back). RLS (`setup/collections.sql`, CREATED GARMENTS): a person reads and
   adds only their own; an admin reads everybody's (grouped by maker), so an
   admin adds them to anyone's project by opening that project board from
   Files and laying them on it (saved back as shared boards are). Signed out,
