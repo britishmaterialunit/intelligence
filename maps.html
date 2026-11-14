@@ -4337,7 +4337,6 @@
     #refsShare[hidden]{ display:none; }
     #refsShare .rs-who{ display:flex; align-items:center; gap:7px; color:var(--ink); }
     #refsShare .rs-dot{ width:7px; height:7px; border-radius:50%; background:#2e9d5b; flex:none; }
-    #refsShare.view .rs-dot{ background:#b5b5b5; }
     #refsShare.stale .rs-dot, #refsShare.err .rs-dot{ background:#d0752e; }
     #refsShare .rs-who span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     #refsShare button{ margin-left:6px; padding:0; border:0; background:none; font:inherit; color:var(--ink); text-decoration:underline; cursor:pointer; }
@@ -15125,14 +15124,13 @@
           const s = shared = { id, title:c.title, email:String(c.reviewer_email || ''), path:c.board_path,
                                edit:!!c.board_edit, seen:c.board_saved_at || null,
                                by:c.board_saved_by || '', at:c.board_saved_at || c.updated_at,
-                               sharing:'board_edit' in c, ready:false, stale:false, err:'' };
+                               ready:false, stale:false, err:'' };
           shareDirty = false;
           // what settles in the moments after it is laid down is not an edit
           setTimeout(() => { if (shared === s) s.ready = true; }, 900);
           paintShare();
           watchShared();
-          if (!quiet) say(canEdit() ? `“${c.title}” — changes save for everyone on it`
-                                    : `“${c.title}” ${verName(c.board_path)} — view only`);
+          if (!quiet) say(`“${c.title}” — changes save for everyone on it`);
         } catch (err){
           say(/signed out/.test(err.message) ? 'Sign in to Files to open this board' : 'That board could not be opened');
         }
@@ -15169,9 +15167,8 @@
          open and the page is in view, it looks for a newer save every 20s
          and takes it in when this reader has nothing unsaved. */
       let shared = null, shareT = null, shareBusy = false, shareAgain = false, shareDirty = false, shareWatch = null;
-      /* Whoever a shared board is for may change it — view only is gone;
-         only a board sent before the database knew about sharing is fixed. */
-      const canEdit = () => !!shared && shared.sharing;
+      // Whoever a shared board is for may change it — view only is gone.
+      const canEdit = () => !!shared;
       const shareEl = document.getElementById('refsShare');
       const sameAt = (a, b) => (a || null) === (b || null) || (!!a && !!b && Date.parse(a) === Date.parse(b));
       const me = () => signedInAs().toLowerCase();
@@ -15189,15 +15186,14 @@
         const mine = s.by && s.by === me();
         const who = admin ? `Shared with ${s.email}`
                   : ownPath(s.path) ? 'Shared with BMU' : 'Shared with you by BMU';
-        const role = !s.sharing ? 'as sent' : admin ? 'they can change it' : 'you can change it';
+        const role = admin ? 'they can change it' : 'you can change it';
         let state = '';
         if (s.stale) state = `Changed by ${s.by && s.by !== me() ? s.by : 'someone else'} since you opened it`;
         else if (s.err) state = s.err;
         else if (shareBusy) state = 'Saving…';
         else if (shareDirty) state = 'Not saved yet';
-        else if (s.at && !s.sharing) state = `Sent ${whenOf(s.at)}`;
         else if (s.at) state = `Saved ${whenOf(s.at)}${s.by ? ` by ${mine ? 'you' : s.by}` : ''}`;
-        shareEl.className = !canEdit() ? 'view' : s.stale ? 'stale' : s.err ? 'err' : '';
+        shareEl.className = s.stale ? 'stale' : s.err ? 'err' : '';
         shareEl.innerHTML = `<div class="rs-who"><i class="rs-dot"></i><span>${escH(who)}</span></div>` +
           `<div>${escH(role)}${state ? ` · ${escH(state)}` : ''}${s.stale ? '<button type="button" data-act="reload">Reload</button>'
             : canEdit() ? '<button type="button" data-act="update">Update</button>' : ''}</div>`;
@@ -15279,7 +15275,7 @@
       }
       function watchShared(){
         clearInterval(shareWatch);
-        shareWatch = shared && shared.sharing ? setInterval(() => {
+        shareWatch = shared ? setInterval(() => {
           if (shared && !document.hidden) sharedCheck(shared, true);
         }, 20000) : null;
       }
