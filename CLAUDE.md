@@ -60,7 +60,12 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   `NATIONS`). It is never in `ITEMS` or the archive: it lives on that board only
   and travels with it (IndexedDB, copy/paste, `row.own` in `references.json`,
   photograph always packed since it has no archive `src`). Its tab's foot reads
-  "Own garment · not in the archive".
+  "Own garment · not in the archive" with an **Edit** button (`openEdit`/`keepEdit`):
+  the Create panel opens filled in and every field — name, nation, type, era,
+  material — can be changed; only the photograph stays. The garment is redrawn
+  (`dressGarment` again, `fits` dropped), the board saved, and its `bmu_garments`
+  row PATCHed when it has one (`own.cloud`). Archive garments have no Edit —
+  their record is the archive's.
   **Created garments**: signed in, a created garment is also kept in the
   maker's account (`keepCreated`): photograph in the private bucket
   `bmu-garments` under `<user id>/`, record in `bmu_garments`, and the board

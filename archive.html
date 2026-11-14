@@ -3735,7 +3735,8 @@
     }
     .rp-facts dt{ color:#9a9a9a; }
     .rp-facts dd{ margin:0; }
-    .rp-foot{ margin-top:auto; display:flex; }
+    .rp-foot{ margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    button.rp-open{ background:none; font:inherit; cursor:pointer; }
     /* Three sizes, each its name and a circle holding how many — filled once
        it holds any. Over a row the name says what it stands for (Small,
        Medium, Large). Under them their sum, then the price per unit and the
@@ -12019,9 +12020,12 @@
           `<div class="rp-price" role="button" tabindex="0"></div>` +
           `<div class="rp-total none">\u00a0</div></div></div>` +
           (g.no ? `<div class="rp-foot"><a class="rp-open" href="/archive/${g.no}">Open in the archive</a></div>`
-                : g.own ? `<div class="rp-foot"><span class="rp-own">Own garment · not in the archive</span></div>` : '');
+                : g.own ? `<div class="rp-foot"><span class="rp-own">Own garment · not in the archive</span>` +
+                          `<button type="button" class="rp-open rp-edit">Edit</button></div>` : '');
         it.el.insertBefore(head, it.el.firstChild);
         it.el.insertBefore(panel, it.el.querySelector('.rf-del'));
+        const edit = panel.querySelector('.rp-edit');
+        if (edit) edit.addEventListener('click', e => { e.stopPropagation(); openEdit(it); });
         const price = panel.querySelector('.rp-price');
         paintPrice(it);
         price.addEventListener('click', e => { e.stopPropagation(); editPrice(it); });
@@ -17041,6 +17045,11 @@
         (mkBlob ? mk('mkName') : mk('mkPick')).focus();
       }
       function closeMake(clear){
+        // leaving the panel mid-edit lets the edit go, and it reads as Create again
+        if (mkEdit){ mkEdit = null; clear = true; }
+        makeEl.querySelector('.sd-head').textContent = 'Create a garment';
+        mk('mkGo').textContent = 'Add to board';
+        mk('mkPick').disabled = false;
         makeEl.hidden = true;
         if (clear){
           ['mkName', 'mkNation', 'mkCat', 'mkEra', 'mkMat'].forEach(id => { mk(id).value = ''; });
@@ -17167,6 +17176,7 @@
       mkcEl().querySelector('.mkc-ok').addEventListener('click', mkCropApply);
       mk('mkCrop').addEventListener('click', mkCropOpen);
       function mkTake(f){
+        if (mkEdit){ mk('mkMsg').textContent = 'The photograph stays — make a new garment for a new one'; return; }
         if (!f || !isImage(f)){ mk('mkMsg').textContent = 'That is not a photograph this can read'; return; }
         if (mkUrl) URL.revokeObjectURL(mkUrl);
         mkBlob = f; mkUrl = URL.createObjectURL(f);
@@ -17180,6 +17190,7 @@
         mk('mkName').focus();
       }
       async function mkGo(){
+        if (mkEdit) return keepEdit();
         if (!mkcEl().hidden) await mkCropApply();
         const own = cleanOwn({ name:mk('mkName').value, nation:mk('mkNation').value, cat:mk('mkCat').value,
                                era:mk('mkEra').value, mat:mk('mkMat').value });
@@ -17194,6 +17205,55 @@
         if (it && it.own){ setMode(it, 3); select(it); }
         say('Garment added');
         if (it && it.own) keepCreated(it, blob);
+      }
+
+      /* ---------- EDITING A CREATED GARMENT ----------
+         A garment made here is the reader's to change: Edit on its tab's
+         foot opens the Create panel filled in with its record — name,
+         nation, type, era, material, all of it. Only the photograph stays.
+         An archive garment has no Edit: its record is the archive's. */
+      let mkEdit = null;          // the board garment being edited
+      function openEdit(it){
+        if (!it.own) return;
+        closeMake(true);          // a half-made creation is let go
+        openMake();
+        mkEdit = it;
+        const o = it.own;
+        mk('mkName').value = o.name; mk('mkNation').value = o.nation; mk('mkCat').value = o.cat;
+        mk('mkEra').value = o.era; mk('mkMat').value = o.mat;
+        mk('mkShot').src = it.url; mk('mkShot').hidden = false;
+        mk('mkCrop').hidden = true;
+        mk('mkPick').disabled = true;
+        makeEl.querySelector('.sd-head').textContent = 'Edit the garment';
+        mk('mkGo').textContent = 'Keep changes';
+        mk('mkName').focus();
+      }
+      async function keepEdit(){
+        const it = mkEdit;
+        const was = it.own || {};
+        const own = cleanOwn({ name:mk('mkName').value, nation:mk('mkNation').value, cat:mk('mkCat').value,
+                               era:mk('mkEra').value, mat:mk('mkMat').value, ref:was.ref, cloud:was.cloud });
+        if (!own){ mk('mkMsg').textContent = 'Give it a name'; mk('mkName').focus(); return; }
+        closeMake(true);
+        if (!byId(it.id) || !it.own) return;      // taken off the board meanwhile
+        it.own = own;
+        OWN.set(it.garment, own);
+        // its faces are drawn again from the record, sized afresh
+        it.el.querySelectorAll('.rf-head, .rf-panel, .rf-dots, .rf-mode').forEach(el => el.remove());
+        fits.delete(it.garment);
+        dressGarment(it);
+        place(it); relay(it);
+        save();
+        select(it);
+        say('Garment changed');
+        // its row in the maker's created garments follows it, when it has one
+        if (own.cloud && (await token())){
+          try {
+            await sb(`/rest/v1/bmu_garments?id=eq.${encodeURIComponent(own.cloud)}`, { method:'PATCH',
+              headers:{ 'Content-Type':'application/json', Prefer:'return=minimal' },
+              body:JSON.stringify({ name:own.name, nation:own.nation, cat:own.cat, era:own.era, mat:own.mat }) });
+          } catch (err){ console.warn('[BMU] created garment row not changed', err); }
+        }
       }
 
       /* ---------- CREATED GARMENTS ----------
