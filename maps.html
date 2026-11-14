@@ -14189,7 +14189,10 @@
          something else, beside the board instead. Whatever they were locked
          to lets them go, and Reverse puts everything back. */
       function clusterPicked(){
-        const list = [...picked].map(byId).filter(Boolean);
+        // a costing sheet is a page, not a picture: it keeps its place
+        const all = [...picked].map(byId).filter(Boolean);
+        const list = all.filter(it => !it.sheet);
+        if (all.length >= 2 && list.length < 2){ say('Costing sheets stay out of clusters'); return true; }
         if (list.length < 2) return false;
         if (!clustered) before = snap();
         const ids = new Set(list.map(it => it.id));
@@ -14236,14 +14239,16 @@
           const key = it.gid || it.id;
           if (!unitOf[key]){ unitOf[key] = groupOf(it); units.push(unitOf[key]); }
         });
-        // the pieces just worked on, newest first, never every piece
-        const kept = [];
+        // costing sheets keep their place and are clustered around,
+        // and so do the pieces just worked on, newest first — never every piece
+        const sheets = units.filter(u => u.some(it => it.sheet));
+        const kept = sheets.slice();
         touched.slice().reverse().forEach(id => {
           const it = byId(id);
           const u = it && unitOf[it.gid || it.id];
-          if (u && !kept.includes(u) && kept.length < KEEP) kept.push(u);
+          if (u && !kept.includes(u) && kept.length < sheets.length + KEEP) kept.push(u);
         });
-        if (kept.length >= units.length) kept.length = Math.max(0, units.length - 1);
+        if (kept.length >= units.length) kept.length = Math.max(sheets.length, units.length - 1);
         const deal = shuffle(units.filter(u => !kept.includes(u)));
 
         settle(() => {
@@ -14382,7 +14387,7 @@
           // one cluster, nation by nation, then anything that is not a garment
           const rank = new Map(nats.map((n, i) => [n.nation, i]));
           const key = it => { const g = nationOf(it); return g ? rank.get(g.nation) : 1e4; };
-          groups = [items.slice().sort((a, b) => key(a) - key(b) || order(a) - order(b))];
+          groups = [items.filter(it => !it.sheet).sort((a, b) => key(a) - key(b) || order(a) - order(b))];
         } else {
           groups = nats.filter(n => natOn.has(n.nation)).map(n => n.list.slice().sort((a, b) => order(a) - order(b)));
         }
