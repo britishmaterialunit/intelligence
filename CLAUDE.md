@@ -45,7 +45,12 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   **Add** on the board (bar button, and the empty board's big plus) opens
   `#refsAddMenu`: Add a file, Add a garment from the archive (opens the saved
   shelf), or **Create a garment** (`#refsMake`): the reader's own photograph
-  with name, nation, type, era, material. It becomes a board garment keyed
+  with name, nation, type, era, material. Once a photograph is chosen, a quiet
+  viewfinder-corners mark (`#mkCrop`) in the well opens a square-locked crop
+  (`#mkCropper`: drag to move, corners to size, tick keeps, Escape leaves);
+  what it keeps is drawn at 1080×1080 at most, never upscaled, and the
+  original is held (`mkOrig`) so cropping again starts from the whole
+  photograph. It becomes a board garment keyed
   `own:<id>` with its record in `it.own` (`cleanOwn`, registered in `OWN` by
   `mountPicture`; `garmentInfo` answers for it via `ownInfo`, flag matched from
   `NATIONS`). It is never in `ITEMS` or the archive: it lives on that board only

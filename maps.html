@@ -4246,10 +4246,43 @@
     .am-opt:hover, .am-opt:focus-visible{ border-color:var(--line); outline:none; }
     .am-opt b{ font-weight:400; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; }
     .am-opt span{ font-size:11px; line-height:1.4; color:#8a8a8a; }
+    .mk-well{ position:relative; margin-top:12px; }
     .mk-pick{
-      margin-top:12px; height:150px; display:flex; align-items:center; justify-content:center;
+      width:100%; height:150px; display:flex; align-items:center; justify-content:center;
       border:1.5px dashed #cfcfcf; background:var(--faint); cursor:pointer; padding:8px;
-      font-family:var(--font); font-size:11px; color:#8a8a8a;
+      font-family:var(--font); font-size:11px; color:#8a8a8a; box-sizing:border-box;
+    }
+    /* The crop mark: a viewfinder's corners, quiet in the well's corner.
+       Pressed, the square frame opens — it is always square, and what it
+       keeps is written out at 1080 × 1080 at most. */
+    #mkCrop{
+      position:absolute; right:8px; bottom:8px; width:26px; height:26px; padding:5px;
+      border:none; background:var(--line); color:#fff; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; z-index:2;
+    }
+    #mkCrop[hidden]{ display:none; }
+    #mkCrop svg{ width:100%; height:100%; display:block; }
+    #mkCropper{
+      position:absolute; inset:0; background:var(--bg); overflow:hidden;
+      z-index:3; touch-action:none; cursor:default;
+    }
+    #mkCropper[hidden]{ display:none; }
+    #mkCropper img{ position:absolute; max-width:none; user-select:none; -webkit-user-select:none; }
+    .mkc-box{
+      position:absolute; box-sizing:border-box; border:1.5px solid var(--line);
+      box-shadow:0 0 0 9999px rgba(255,255,255,.72); cursor:move;
+    }
+    .mkc-h{
+      position:absolute; width:11px; height:11px; box-sizing:border-box;
+      background:var(--bg); border:1.5px solid var(--line);
+    }
+    .mkc-h[data-c="nw"]{ left:-6px; top:-6px; cursor:nwse-resize; }
+    .mkc-h[data-c="ne"]{ right:-6px; top:-6px; cursor:nesw-resize; }
+    .mkc-h[data-c="se"]{ right:-6px; bottom:-6px; cursor:nwse-resize; }
+    .mkc-h[data-c="sw"]{ left:-6px; bottom:-6px; cursor:nesw-resize; }
+    .mkc-ok{
+      position:absolute; right:8px; bottom:8px; width:26px; height:26px; border:none;
+      background:var(--line) url('/tick-white.svg') center / 62% no-repeat; cursor:pointer; z-index:4;
     }
     .mk-pick:hover{ border-color:var(--line); }
     .mk-pick img{ max-width:100%; max-height:100%; object-fit:contain; }
@@ -4762,9 +4795,24 @@
     <aside id="refsMake" hidden aria-label="Create a garment">
       <span class="sd-head">Create a garment</span>
       <p class="sd-who">One you have found, or one of your own. It stays on this board, and goes wherever the board goes; it is not added to the archive.</p>
-      <button type="button" id="mkPick" class="mk-pick" aria-label="Choose a photograph">
-        <img id="mkShot" alt="" hidden><span id="mkPickSay">Choose a photograph · PNG or JPEG</span>
-      </button>
+      <div class="mk-well">
+        <button type="button" id="mkPick" class="mk-pick" aria-label="Choose a photograph">
+          <img id="mkShot" alt="" hidden><span id="mkPickSay">Choose a photograph · PNG or JPEG</span>
+        </button>
+        <button type="button" id="mkCrop" hidden aria-label="Crop to a square">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 9V4h5"/><path d="M15 4h5v5"/><path d="M20 15v5h-5"/><path d="M9 20H4v-5"/>
+          </svg>
+        </button>
+        <div id="mkCropper" hidden>
+          <img id="mkCropImg" alt="" draggable="false">
+          <div class="mkc-box">
+            <span class="mkc-h" data-c="nw"></span><span class="mkc-h" data-c="ne"></span>
+            <span class="mkc-h" data-c="se"></span><span class="mkc-h" data-c="sw"></span>
+          </div>
+          <button type="button" class="mkc-ok" aria-label="Keep the crop"></button>
+        </div>
+      </div>
       <input type="file" id="mkFile" hidden accept="image/*">
       <label class="sd-lab" for="mkName">Name</label>
       <input id="mkName" class="sd-field" type="text" autocomplete="off" placeholder="e.g. Swiss Army 1970s Alpenflage Smock">
@@ -16982,13 +17030,118 @@
           ['mkName', 'mkNation', 'mkCat', 'mkEra', 'mkMat'].forEach(id => { mk(id).value = ''; });
           if (mkUrl) URL.revokeObjectURL(mkUrl);
           mkBlob = mkUrl = null;
+          mkOrigTake(null);
           mk('mkShot').hidden = true; mk('mkShot').removeAttribute('src');
         }
+        mkCropClose();
       }
+
+      /* ---------- CROPPING THE PHOTOGRAPH SQUARE ----------
+         The viewfinder corners in the well open a frame over the chosen
+         photograph. The frame is always square — a garment's photograph is
+         square in everything this page does — dragged to move, pulled at a
+         corner to size, the tick keeps it, Escape leaves it. What it keeps
+         is drawn out at 1080 × 1080 at most, never scaled up. The original
+         is held, so cropping again starts from the whole photograph. */
+      let mkOrig = null, mkOrigUrl = null, mkFr = null;   // the uncropped file, and the kept square {x, y, s} in fractions of it
+      function mkOrigTake(f){
+        if (mkOrigUrl) URL.revokeObjectURL(mkOrigUrl);
+        mkOrig = f; mkOrigUrl = f ? URL.createObjectURL(f) : null; mkFr = null;
+        mk('mkCrop').hidden = !f;
+      }
+      const mkcEl = () => mk('mkCropper');
+      let mkcLay = null;      // where the photograph sits in the cropper, in pixels
+      function mkcPlace(){
+        const box = mkcEl().querySelector('.mkc-box');
+        const { ox, oy, dw, dh } = mkcLay;
+        const side = mkFr.s * Math.min(dw, dh);
+        Object.assign(box.style, { left:(ox + mkFr.x * dw) + 'px', top:(oy + mkFr.y * dh) + 'px',
+                                   width:side + 'px', height:side + 'px' });
+      }
+      function mkCropOpen(){
+        const well = mkcEl(), img = mk('mkCropImg');
+        img.onload = () => {
+          const W = well.clientWidth, H = well.clientHeight;
+          const nw = img.naturalWidth, nh = img.naturalHeight;
+          if (!nw || !nh) return;
+          const k = Math.min(W / nw, H / nh);
+          const dw = nw * k, dh = nh * k, ox = (W - dw) / 2, oy = (H - dh) / 2;
+          Object.assign(img.style, { left:ox + 'px', top:oy + 'px', width:dw + 'px', height:dh + 'px' });
+          mkcLay = { ox, oy, dw, dh, k };
+          const side = Math.min(dw, dh);
+          if (!mkFr) mkFr = { x:(dw - side) / 2 / dw, y:(dh - side) / 2 / dh, s:1 };
+          mkcPlace();
+        };
+        img.src = mkOrigUrl;
+        well.hidden = false;
+        mk('mkCrop').hidden = true;
+        if (img.complete && img.naturalWidth) img.onload();
+      }
+      function mkCropClose(){
+        mkcEl().hidden = true;
+        mk('mkCrop').hidden = !mkOrig;
+        mkcG = null;
+      }
+      async function mkCropApply(){
+        if (!mkcLay || !mkFr) { mkCropClose(); return; }
+        const img = mk('mkCropImg');
+        const { dw, dh, k } = mkcLay;
+        const side = mkFr.s * Math.min(dw, dh) / k;                  // the kept square, in the photograph's own pixels
+        const sx = mkFr.x * dw / k, sy = mkFr.y * dh / k;
+        const out = Math.max(1, Math.min(1080, Math.round(side)));
+        const c = document.createElement('canvas');
+        c.width = out; c.height = out;
+        c.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, out, out);
+        const blob = await new Promise(ok => c.toBlob(ok, 'image/png'));
+        if (!blob){ mk('mkMsg').textContent = 'That crop could not be kept'; mkCropClose(); return; }
+        if (mkUrl) URL.revokeObjectURL(mkUrl);
+        mkBlob = new File([blob], (mkOrig && mkOrig.name) || 'garment.png', { type:'image/png' });
+        mkUrl = URL.createObjectURL(mkBlob);
+        mk('mkShot').src = mkUrl;
+        mkCropClose();
+      }
+      // the frame under the finger: moved from inside, sized from a corner, square always
+      let mkcG = null;
+      mkcEl().addEventListener('pointerdown', e => {
+        if (e.target.closest('.mkc-ok')) return;
+        const h = e.target.closest('.mkc-h');
+        const box = e.target.closest('.mkc-box');
+        if (!h && !box) return;
+        e.preventDefault();
+        mkcEl().setPointerCapture(e.pointerId);
+        mkcG = { c:h ? h.dataset.c : null, sx:e.clientX, sy:e.clientY, f0:{ ...mkFr } };
+      });
+      mkcEl().addEventListener('pointermove', e => {
+        if (!mkcG || !mkcLay) return;
+        const { dw, dh } = mkcLay, m = Math.min(dw, dh);
+        const dx = (e.clientX - mkcG.sx), dy = (e.clientY - mkcG.sy);
+        const f0 = mkcG.f0, MIN = Math.min(0.999, 24 / m);
+        let { x, y, s } = f0;
+        if (!mkcG.c){
+          x = f0.x + dx / dw; y = f0.y + dy / dh;
+        } else {
+          // the corner follows the finger along its own diagonal; the opposite corner holds
+          const sgn = { nw:[-1, -1], ne:[1, -1], se:[1, 1], sw:[-1, 1] }[mkcG.c];
+          const d = (sgn[0] * dx + sgn[1] * dy) / 2;
+          s = clamp(f0.s + d / m, MIN, 1);
+          if (sgn[0] < 0) x = f0.x + (f0.s - s) * m / dw;
+          if (sgn[1] < 0) y = f0.y + (f0.s - s) * m / dh;
+        }
+        const side = s * m;
+        x = clamp(x, 0, (dw - side) / dw); y = clamp(y, 0, (dh - side) / dh);
+        mkFr = { x, y, s };
+        mkcPlace();
+      });
+      const mkcUp = () => { mkcG = null; };
+      mkcEl().addEventListener('pointerup', mkcUp);
+      mkcEl().addEventListener('pointercancel', mkcUp);
+      mkcEl().querySelector('.mkc-ok').addEventListener('click', mkCropApply);
+      mk('mkCrop').addEventListener('click', mkCropOpen);
       function mkTake(f){
         if (!f || !isImage(f)){ mk('mkMsg').textContent = 'That is not a photograph this can read'; return; }
         if (mkUrl) URL.revokeObjectURL(mkUrl);
         mkBlob = f; mkUrl = URL.createObjectURL(f);
+        mkOrigTake(f);
         mk('mkShot').src = mkUrl; mk('mkShot').hidden = false;
         mk('mkMsg').textContent = '';
         // a photograph named as its garment names the garment too
@@ -16997,6 +17150,7 @@
         mk('mkName').focus();
       }
       async function mkGo(){
+        if (!mkcEl().hidden) await mkCropApply();
         const own = cleanOwn({ name:mk('mkName').value, nation:mk('mkNation').value, cat:mk('mkCat').value,
                                era:mk('mkEra').value, mat:mk('mkMat').value });
         if (!mkBlob){ mk('mkMsg').textContent = 'Choose a photograph first'; return; }
@@ -17157,6 +17311,7 @@
       mk('mkCancel').addEventListener('click', () => closeMake(true));
       mk('mkGo').addEventListener('click', mkGo);
       makeEl.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !mkcEl().hidden){ e.stopPropagation(); mkCropClose(); return; }
         if (e.key === 'Enter' && e.target.tagName === 'INPUT'){ e.preventDefault(); mkGo(); }
       });
       [addMenu, makeEl].forEach(p => p.addEventListener('keydown', e => {
