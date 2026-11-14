@@ -44,7 +44,9 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   On a phone the open search bar takes its own row under the squares.
   **Add** on the board (bar button, and the empty board's big plus) opens
   `#refsAddMenu`: Add a file, Add a garment from the archive (opens the saved
-  shelf), or **Create a garment** (`#refsMake`): the reader's own photograph
+  shelf), **Your files** (`#refsFiles`, `openFilesPanel`: the board rows the
+  signed-in reader can see, grouped by person for an admin, each opened in
+  place via `openSent` — the `?board=<id>` path), or **Create a garment** (`#refsMake`): the reader's own photograph
   with name, nation, type, era, material. Once a photograph is chosen, a quiet
   viewfinder-corners mark (`#mkCrop`) in the well opens a square-locked crop
   (`#mkCropper`: drag to move, corners to size, tick keeps, Escape leaves);
