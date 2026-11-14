@@ -158,8 +158,9 @@ create policy "bmu boards remove" on storage.objects
 -- SHARED BOARDS (phase 1)
 -- A sent board is one board that the admin and its designer both open,
 -- not a copy. Whoever may change it saves back into the same .zip:
---   board_edit      the designer may change it (the admin always can).
---                   Off by default: a board goes out view only.
+--   board_edit      kept from when a board could go out view only;
+--                   every shared board is its designer's to change now,
+--                   and the policies below no longer read it.
 --   board_saved_at  when it was last saved, and
 --   board_saved_by  by whom (their email).
 -- A save first claims the board with bmu_board_claim, which goes through
@@ -171,20 +172,20 @@ alter table public.bmu_collections
   add column if not exists board_saved_at timestamptz,
   add column if not exists board_saved_by text;
 
--- the designer may write over their own board's .zip, when they may change it
+-- the designer may write over the .zip of any board addressed to them
 drop policy if exists "bmu boards designer saves" on storage.objects;
 create policy "bmu boards designer saves" on storage.objects
   for update to authenticated
   using (
     bucket_id = 'bmu-boards'
     and exists (select 1 from public.bmu_collections c
-                where c.board_path = objects.name and c.board_edit
+                where c.board_path = objects.name
                   and lower(c.reviewer_email) = public.bmu_email())
   )
   with check (
     bucket_id = 'bmu-boards'
     and exists (select 1 from public.bmu_collections c
-                where c.board_path = objects.name and c.board_edit
+                where c.board_path = objects.name
                   and lower(c.reviewer_email) = public.bmu_email())
   );
 
@@ -205,7 +206,7 @@ begin
    where id = fid
      and board_path is not null
      and (public.bmu_is_admin()
-          or (board_edit and lower(reviewer_email) = public.bmu_email()))
+          or lower(reviewer_email) = public.bmu_email())
      and board_saved_at is not distinct from seen;
   get diagnostics n = row_count;
   return case when n = 1 then stamp else null end;
@@ -307,20 +308,19 @@ create policy "designer creates own board" on public.bmu_collections
   with check (
     lower(reviewer_email) = public.bmu_email()
     and board_path like 'u/' || auth.uid()::text || '/%'
-    and board_edit
     and garments = '{}'
   );
+-- and updates any board addressed to them: their own, or one BMU sent
 drop policy if exists "designer updates own board" on public.bmu_collections;
 create policy "designer updates own board" on public.bmu_collections
   for update to authenticated
   using (
     lower(reviewer_email) = public.bmu_email()
-    and board_path like 'u/' || auth.uid()::text || '/%'
+    and board_path is not null
   )
   with check (
     lower(reviewer_email) = public.bmu_email()
-    and board_path like 'u/' || auth.uid()::text || '/%'
-    and board_edit
+    and board_path is not null
     and garments = '{}'
   );
 
@@ -342,3 +342,29 @@ create policy "bmu boards designer removes own" on storage.objects
 create policy "bmu boards designer reads own" on storage.objects
   for select to authenticated
   using (bucket_id = 'bmu-boards' and name like 'u/' || auth.uid()::text || '/%');
+
+-- Sending a board back a version on writes a new .zip whose name is the
+-- row's own stem with the next version — <stem>-v<n+1>.zip — and deletes
+-- the one it replaced. A designer may do both for any board addressed to
+-- them, matched by stem so the policy holds before the row is repointed.
+drop policy if exists "bmu boards designer versions" on storage.objects;
+drop policy if exists "bmu boards designer unversions" on storage.objects;
+create policy "bmu boards designer versions" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'bmu-boards'
+    and name ~ '-v\d+\.zip$'
+    and exists (select 1 from public.bmu_collections c
+                where lower(c.reviewer_email) = public.bmu_email()
+                  and regexp_replace(c.board_path, '(-v\d+)?\.zip$', '')
+                    = regexp_replace(objects.name, '(-v\d+)?\.zip$', ''))
+  );
+create policy "bmu boards designer unversions" on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'bmu-boards'
+    and exists (select 1 from public.bmu_collections c
+                where lower(c.reviewer_email) = public.bmu_email()
+                  and regexp_replace(c.board_path, '(-v\d+)?\.zip$', '')
+                    = regexp_replace(objects.name, '(-v\d+)?\.zip$', ''))
+  );

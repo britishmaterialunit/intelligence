@@ -4283,8 +4283,6 @@
     .nt-sep{ width:1.5px; align-self:stretch; background:#e4e4e4; margin:4px 4px; }
     .nt-say{ margin:8px 0 0; font-size:11px; color:#8a8a8a; text-align:center; }
     @media (max-width:640px){ #refsNations{ bottom:88px; } }
-    .sd-check{ display:flex; align-items:center; gap:8px; margin:12px 0 0; font-size:11px; color:var(--ink); cursor:pointer; }
-    .sd-check input{ margin:0; accent-color:var(--line); }
     /* A shared board says so, top left: who it is shared with, whether
        this reader can change it, and when it was last saved and by whom. */
     #refsShare{
@@ -4328,7 +4326,7 @@
     .sd-go:hover{ background:var(--line); opacity:.85; }
     .sd-btn:disabled{ opacity:.4; cursor:default; }
     /* a designer's Send: always to BMU, as themselves, always theirs to change */
-    #refsSend.mine #sdEmailRow, #refsSend.mine .sd-check{ display:none; }
+    #refsSend.mine #sdEmailRow{ display:none; }
     @media (max-width:640px){ #refsSend{ bottom:88px; } }
     #refsSheet{
       position:absolute;
@@ -4726,7 +4724,6 @@
           <input id="sdEmail" class="sd-field" type="email" autocomplete="off" spellcheck="false" placeholder="name@studio.com">
         </div>
       </div>
-      <label class="sd-check" for="sdEdit"><input type="checkbox" id="sdEdit"> They can change the board (otherwise view only)</label>
       <p class="sd-msg" id="sdMsg" role="status" aria-live="polite"></p>
       <div class="sd-row">
         <button type="button" class="sd-btn" id="sdCancel">Cancel</button>
@@ -14843,7 +14840,6 @@
       const sdEmail = document.getElementById('sdEmail');
       const sdMsg = document.getElementById('sdMsg');
       const sdGo = document.getElementById('sdGo');
-      const sdEdit = document.getElementById('sdEdit');
       let fileRows = [];
       const sdSay = t => { sdMsg.textContent = t || ''; };
       /* Who may change the board, and the save it now is. Sent to a
@@ -14851,7 +14847,7 @@
          board goes as a plain sent board did. */
       let shareReady = true;
       const shareFields = now => shareReady
-        ? { board_edit:admin ? sdEdit.checked : true, board_saved_at:now, board_saved_by:signedInAs().toLowerCase() } : {};
+        ? { board_edit:true, board_saved_at:now, board_saved_by:signedInAs().toLowerCase() } : {};
       function toggleSend(on){
         on = on == null ? sendEl.hidden : on;
         sendEl.hidden = !on;
@@ -14870,22 +14866,20 @@
         sdFile.innerHTML = `<option value="">${admin ? 'Someone new…' : 'New project board…'}</option>`;
         sdNew.hidden = false;
         sdGo.textContent = 'Send';
-        sdEdit.checked = false;
         rowsWith('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path,garments&order=created_at.desc', 'board_edit')
           .then(rows => {
             fileRows = Array.isArray(rows) ? rows : [];
             if (!admin){
-              /* The reader's own project boards, each updatable a version
-                 on; a new one goes up addressed to themselves, which is
-                 what BMU reads. Boards BMU sent them are not listed — an
-                 open one already saves itself when they may change it. */
-              fileRows.filter(c => isBoard(c) && ownPath(c.board_path)).forEach(c => {
+              /* Every board of theirs — sent by them or to them — each
+                 updatable a version on; a new one goes up addressed to
+                 themselves, which is what BMU reads. */
+              fileRows.filter(isBoard).forEach(c => {
                 const o = document.createElement('option');
                 o.value = c.id;
                 o.textContent = `Update “${c.title}” · ${verName(c.board_path)} → V${verOf(c.board_path) + 1}`;
                 sdFile.appendChild(o);
               });
-              if (sentBoard != null && fileRows.some(c => c.id === sentBoard && ownPath(c.board_path))) sdFile.value = sentBoard;
+              if (sentBoard != null && fileRows.some(c => c.id === sentBoard)) sdFile.value = sentBoard;
               paintNew(); paintGo();
               return;
             }
@@ -14921,7 +14915,6 @@
             // (admins only from here)
             paintNew();
             paintGo();
-            paintEdit();
           })
           .catch(() => sdSay('Could not reach Files. Sign in again from the person icon.'));
       }
@@ -14943,9 +14936,7 @@
         document.getElementById('sdEmailRow').hidden = fresh;
         if (fresh) sdTitle.focus();
       }
-      // an existing board shows who may change it now; a new one starts view only
-      const paintEdit = () => { const c = fileRows.find(o => o.id === sdFile.value); sdEdit.checked = !!(c && isBoard(c) && c.board_edit); };
-      sdFile.addEventListener('change', () => { paintNew(); sdSay(''); paintGo(); paintEdit(); });
+      sdFile.addEventListener('change', () => { paintNew(); sdSay(''); paintGo(); });
       document.getElementById('sdCancel').addEventListener('click', () => toggleSend(false));
       sdGo.addEventListener('click', async () => {
         const v = sdFile.value;
@@ -15097,7 +15088,9 @@
          open and the page is in view, it looks for a newer save every 20s
          and takes it in when this reader has nothing unsaved. */
       let shared = null, shareT = null, shareBusy = false, shareAgain = false, shareDirty = false, shareWatch = null;
-      const canEdit = () => !!shared && shared.sharing && (admin || shared.edit);
+      /* Whoever a shared board is for may change it — view only is gone;
+         only a board sent before the database knew about sharing is fixed. */
+      const canEdit = () => !!shared && shared.sharing;
       const shareEl = document.getElementById('refsShare');
       const sameAt = (a, b) => (a || null) === (b || null) || (!!a && !!b && Date.parse(a) === Date.parse(b));
       const me = () => signedInAs().toLowerCase();
@@ -15115,8 +15108,7 @@
         const mine = s.by && s.by === me();
         const who = admin ? `Shared with ${s.email}`
                   : ownPath(s.path) ? 'Shared with BMU' : 'Shared with you by BMU';
-        const role = !s.sharing ? 'as sent' : canEdit() ? (admin ? (s.edit ? 'they can change it' : 'view only for them') : 'you can change it')
-                   : 'view only';
+        const role = !s.sharing ? 'as sent' : admin ? 'they can change it' : 'you can change it';
         let state = '';
         if (s.stale) state = `Changed by ${s.by && s.by !== me() ? s.by : 'someone else'} since you opened it`;
         else if (s.err) state = s.err;
