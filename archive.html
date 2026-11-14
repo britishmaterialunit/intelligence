@@ -17029,25 +17029,25 @@
           ['mkName', 'mkNation', 'mkCat', 'mkEra', 'mkMat'].forEach(id => { mk(id).value = ''; });
           if (mkUrl) URL.revokeObjectURL(mkUrl);
           mkBlob = mkUrl = null;
-          mkOrigTake(null);
+          mkFr = null;
+          mk('mkCrop').hidden = true;
           mk('mkShot').hidden = true; mk('mkShot').removeAttribute('src');
         }
         mkCropClose();
       }
 
       /* ---------- CROPPING THE PHOTOGRAPH SQUARE ----------
-         The viewfinder corners in the well open a frame over the chosen
-         photograph. The frame is always square — a garment's photograph is
+         The viewfinder corners in the well open a frame over the photograph
+         as it stands. The frame is always square — a garment's photograph is
          square in everything this page does — dragged to move, pulled at a
-         corner to size, the tick keeps it, Escape leaves it. What it keeps
-         is drawn out at 1080 × 1080 at most, never scaled up. The original
-         is held, so cropping again starts from the whole photograph. */
-      let mkOrig = null, mkOrigUrl = null, mkFr = null;   // the uncropped file, and the kept square {x, y, s} in fractions of it
-      function mkOrigTake(f){
-        if (mkOrigUrl) URL.revokeObjectURL(mkOrigUrl);
-        mkOrig = f; mkOrigUrl = f ? URL.createObjectURL(f) : null; mkFr = null;
-        mk('mkCrop').hidden = !f;
-      }
+         corner to size, the tick keeps it, Escape leaves it. Pulled wider
+         than the photograph, what it takes in beyond the edges is plain
+         white: crop a product shot tight first, then open the frame again
+         and pull it out, and the product sits smaller on a continuous white
+         ground — the border a supplier's photo gets once its logo is cut
+         off. What it keeps is drawn out at 1080 × 1080 at most, never
+         scaled up. */
+      let mkFr = null;         // the kept square {x, y, s}, in fractions of the shown photograph
       const mkcEl = () => mk('mkCropper');
       let mkcLay = null;      // where the photograph sits in the cropper, in pixels
       function mkcPlace(){
@@ -17063,40 +17063,51 @@
           const W = well.clientWidth, H = well.clientHeight;
           const nw = img.naturalWidth, nh = img.naturalHeight;
           if (!nw || !nh) return;
-          const k = Math.min(W / nw, H / nh);
+          // shown a little small, so the frame has white room on every side
+          const k = Math.min(W / nw, H / nh) * 0.7;
           const dw = nw * k, dh = nh * k, ox = (W - dw) / 2, oy = (H - dh) / 2;
           Object.assign(img.style, { left:ox + 'px', top:oy + 'px', width:dw + 'px', height:dh + 'px' });
-          mkcLay = { ox, oy, dw, dh, k };
+          mkcLay = { W, H, ox, oy, dw, dh, k };
           const side = Math.min(dw, dh);
-          if (!mkFr) mkFr = { x:(dw - side) / 2 / dw, y:(dh - side) / 2 / dh, s:1 };
+          mkFr = { x:(dw - side) / 2 / dw, y:(dh - side) / 2 / dh, s:1 };
           mkcPlace();
         };
-        img.src = mkOrigUrl;
+        img.src = mkUrl;
         well.hidden = false;
         mk('mkCrop').hidden = true;
         if (img.complete && img.naturalWidth) img.onload();
       }
       function mkCropClose(){
         mkcEl().hidden = true;
-        mk('mkCrop').hidden = !mkOrig;
+        mk('mkCrop').hidden = !mkBlob;
         mkcG = null;
       }
       async function mkCropApply(){
         if (!mkcLay || !mkFr) { mkCropClose(); return; }
         const img = mk('mkCropImg');
         const { dw, dh, k } = mkcLay;
+        const nw = img.naturalWidth, nh = img.naturalHeight;
         const side = mkFr.s * Math.min(dw, dh) / k;                  // the kept square, in the photograph's own pixels
         const sx = mkFr.x * dw / k, sy = mkFr.y * dh / k;
         const out = Math.max(1, Math.min(1080, Math.round(side)));
         const c = document.createElement('canvas');
         c.width = out; c.height = out;
-        c.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, out, out);
+        const ctx = c.getContext('2d');
+        // whatever the frame holds beyond the photograph is white ground
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, out, out);
+        const ix = Math.max(0, sx), iy = Math.max(0, sy);
+        const iw = Math.min(nw, sx + side) - ix, ih = Math.min(nh, sy + side) - iy;
+        if (iw > 0 && ih > 0)
+          ctx.drawImage(img, ix, iy, iw, ih,
+                        (ix - sx) * out / side, (iy - sy) * out / side, iw * out / side, ih * out / side);
         const blob = await new Promise(ok => c.toBlob(ok, 'image/png'));
         if (!blob){ mk('mkMsg').textContent = 'That crop could not be kept'; mkCropClose(); return; }
         if (mkUrl) URL.revokeObjectURL(mkUrl);
-        mkBlob = new File([blob], (mkOrig && mkOrig.name) || 'garment.png', { type:'image/png' });
+        mkBlob = new File([blob], (mkBlob && mkBlob.name) || 'garment.png', { type:'image/png' });
         mkUrl = URL.createObjectURL(mkBlob);
         mk('mkShot').src = mkUrl;
+        mkFr = null;
         mkCropClose();
       }
       // the frame under the finger: moved from inside, sized from a corner, square always
@@ -17112,9 +17123,9 @@
       });
       mkcEl().addEventListener('pointermove', e => {
         if (!mkcG || !mkcLay) return;
-        const { dw, dh } = mkcLay, m = Math.min(dw, dh);
+        const { W, H, ox, oy, dw, dh } = mkcLay, m = Math.min(dw, dh);
         const dx = (e.clientX - mkcG.sx), dy = (e.clientY - mkcG.sy);
-        const f0 = mkcG.f0, MIN = Math.min(0.999, 24 / m);
+        const f0 = mkcG.f0, MIN = Math.min(0.999, 24 / m), MAX = Math.min(W, H) / m;
         let { x, y, s } = f0;
         if (!mkcG.c){
           x = f0.x + dx / dw; y = f0.y + dy / dh;
@@ -17122,12 +17133,14 @@
           // the corner follows the finger along its own diagonal; the opposite corner holds
           const sgn = { nw:[-1, -1], ne:[1, -1], se:[1, 1], sw:[-1, 1] }[mkcG.c];
           const d = (sgn[0] * dx + sgn[1] * dy) / 2;
-          s = clamp(f0.s + d / m, MIN, 1);
+          s = clamp(f0.s + d / m, MIN, MAX);
           if (sgn[0] < 0) x = f0.x + (f0.s - s) * m / dw;
           if (sgn[1] < 0) y = f0.y + (f0.s - s) * m / dh;
         }
+        // held inside the well — the white beyond the photograph is croppable ground
         const side = s * m;
-        x = clamp(x, 0, (dw - side) / dw); y = clamp(y, 0, (dh - side) / dh);
+        x = clamp(x, -ox / dw, (W - side - ox) / dw);
+        y = clamp(y, -oy / dh, (H - side - oy) / dh);
         mkFr = { x, y, s };
         mkcPlace();
       });
@@ -17140,7 +17153,8 @@
         if (!f || !isImage(f)){ mk('mkMsg').textContent = 'That is not a photograph this can read'; return; }
         if (mkUrl) URL.revokeObjectURL(mkUrl);
         mkBlob = f; mkUrl = URL.createObjectURL(f);
-        mkOrigTake(f);
+        mkFr = null;
+        mk('mkCrop').hidden = false;
         mk('mkShot').src = mkUrl; mk('mkShot').hidden = false;
         mk('mkMsg').textContent = '';
         // a photograph named as its garment names the garment too
