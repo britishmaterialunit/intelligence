@@ -4205,7 +4205,7 @@
       font-family:var(--font);
     }
     #refsSend[hidden], #sdNew[hidden]{ display:none; }
-    #refsAddMenu, #refsMake, #refsMine{
+    #refsAddMenu, #refsMake, #refsMine, #refsFiles{
       position:absolute; left:50%; bottom:96px; transform:translateX(-50%);
       width:min(400px, calc(100vw - 32px)); box-sizing:border-box;
       max-height:calc(100% - 120px); overflow:auto;
@@ -4213,9 +4213,10 @@
       background:var(--bg); border:1.5px solid var(--line);
       z-index:5; cursor:default; font-family:var(--font);
     }
-    #refsAddMenu[hidden], #refsMake[hidden], #refsMine[hidden]{ display:none; }
+    #refsAddMenu[hidden], #refsMake[hidden], #refsMine[hidden], #refsFiles[hidden]{ display:none; }
     /* the garments made on Maps, kept in the reader's account (an admin sees everybody's) */
-    #refsMine{ width:min(460px, calc(100vw - 32px)); }
+    #refsMine, #refsFiles{ width:min(460px, calc(100vw - 32px)); }
+    .fl-row{ grid-template-columns:1fr auto; }
     .mn-list{ display:flex; flex-direction:column; margin-top:6px; }
     .mn-who{ margin:14px 0 2px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#9a9a9a; }
     .mn-who:first-child{ margin-top:4px; }
@@ -4287,7 +4288,7 @@
     .mk-two{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .mk-two > div{ display:flex; flex-direction:column; min-width:0; }
     .rp-own{ font-size:calc(var(--t) * .034); letter-spacing:.16em; text-transform:uppercase; color:#9a9a9a; }
-    @media (max-width:640px){ #refsAddMenu, #refsMake, #refsMine{ bottom:88px; } .mk-pick{ height:110px; } }
+    @media (max-width:640px){ #refsAddMenu, #refsMake, #refsMine, #refsFiles{ bottom:88px; } .mk-pick{ height:110px; } }
     /* ---------- CLUSTER BY NATION ----------
        Over Cluster (pointed at, or pressed) a row of the flags on the board.
        Each is a switch: down, that nation's garments gather into a cluster
@@ -4774,8 +4775,16 @@
       <span class="sd-head">Add</span>
       <button type="button" class="am-opt" data-add="file"><b>Add a file</b><span>Images, or a board’s .zip</span></button>
       <button type="button" class="am-opt" data-add="archive"><b>Add a garment from the archive</b><span>From your saved garments</span></button>
+      <button type="button" class="am-opt" data-add="boards"><b>Your files</b><span>Open a board from your Files, right here</span></button>
       <button type="button" class="am-opt" data-add="make"><b>Create a garment</b><span>Your own photograph, named as a garment — kept in your created garments, not in the archive</span></button>
       <button type="button" class="am-opt" data-add="mine"><b id="amMineHead">Your created garments</b><span id="amMineSay">The garments you have made on Maps, for any of your boards</span></button>
+    </aside>
+    <aside id="refsFiles" hidden aria-label="Your files">
+      <span class="sd-head" id="flHead">Your files</span>
+      <p class="sd-who" id="flWho"></p>
+      <div id="flList" class="mn-list"></div>
+      <p id="flMsg" class="sd-msg" role="status" aria-live="polite"></p>
+      <div class="sd-row"><button type="button" id="flClose" class="sd-btn">Close</button></div>
     </aside>
     <aside id="refsMine" hidden aria-label="Created garments">
       <span class="sd-head" id="mnHead">Your created garments</span>
@@ -16388,7 +16397,7 @@
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
         if (drawing){
-          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine')) return;
+          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine, #refsFiles')) return;
           drawDown(e);
           return;
         }
@@ -16404,7 +16413,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine, #refsFiles')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -17250,6 +17259,7 @@
       }
       async function openMine(){
         addMenu.hidden = true; closeMake();
+        filesEl.hidden = true;
         mineEl.hidden = false;
         mnList.innerHTML = ''; mnSay('Loading…');
         paintMine();
@@ -17302,11 +17312,78 @@
       document.addEventListener('pointerdown', e => {
         if (!mineEl.hidden && !e.target.closest('#refsMine, #refsAddMenu, [data-act="add"], #refsAddBig')) mineEl.hidden = true;
       }, true);
+      /* ---------- YOUR FILES, FROM THE BOARD ----------
+         The boards in the reader's Files — sent to them, or sent by them —
+         opened here without going to /files. The same opening a file's
+         "Open reference board" does (openSent), so the label, saving and
+         versions all behave as they do there. */
+      const filesEl = document.getElementById('refsFiles');
+      const flList = document.getElementById('flList');
+      const flSay = t => { document.getElementById('flMsg').textContent = t || ''; };
+      let flRows = [];
+      async function openFilesPanel(){
+        addMenu.hidden = true; closeMake();
+        document.getElementById('refsMine').hidden = true;
+        filesEl.hidden = false;
+        flList.innerHTML = ''; flSay('Loading…');
+        document.getElementById('flWho').textContent = '';
+        if (!(await token())){
+          flSay('');
+          document.getElementById('flWho').innerHTML = 'Sign in on <a href="/files">Files</a> to see your files here.';
+          return;
+        }
+        try {
+          await checkAdmin();
+          document.getElementById('flHead').textContent = admin ? 'Files' : 'Your files';
+          document.getElementById('flWho').textContent = admin
+            ? 'Every file with a board, by who it is for. Open one to work on it here.'
+            : 'The boards in your Files. Open one to work on it here; it saves itself as you go.';
+          const rows = await rowsWith('/rest/v1/bmu_collections?select=id,title,reviewer_email,board_path,garments,updated_at&order=updated_at.desc', SHARE_COLS);
+          flRows = (Array.isArray(rows) ? rows : []).filter(isBoard);
+          if (admin) flRows.sort((a, b) => String(a.reviewer_email).localeCompare(String(b.reviewer_email)) ||
+                                           String(b.updated_at).localeCompare(String(a.updated_at)));
+          let who = null, html = '';
+          flRows.forEach((c, i) => {
+            const email = String(c.reviewer_email).toLowerCase();
+            if (admin && email !== who){ who = email; html += `<div class="mn-who">${escH(who)}</div>`; }
+            const here = sentBoard === c.id;
+            const when = new Date(c.board_saved_at || c.updated_at);
+            html += `<button type="button" class="mn-row fl-row" data-i="${i}" aria-disabled="${here}">` +
+              `<span class="mn-text"><b>${escH(c.title)}</b><span>${escH(verName(c.board_path))}` +
+              ` · ${escH(isNaN(when) ? '' : when.toLocaleDateString('en-GB', { day:'numeric', month:'short' }))}</span></span>` +
+              `<span class="mn-act">${here ? 'Open now' : 'Open'}</span></button>`;
+          });
+          flList.innerHTML = html;
+          flSay(flRows.length ? '' : 'No boards in your files yet');
+          const first = flList.querySelector('.mn-row');
+          (first || document.getElementById('flClose')).focus();
+        } catch (err){
+          console.warn('[BMU] files', err);
+          flSay('Could not load your files — try again in a moment');
+        }
+      }
+      flList.addEventListener('click', e => {
+        const b = e.target.closest('.mn-row');
+        const c = b && flRows[+b.dataset.i];
+        if (!c || sentBoard === c.id) return;
+        filesEl.hidden = true;
+        openSent(c.id);
+      });
+      document.getElementById('flClose').addEventListener('click', () => { filesEl.hidden = true; });
+      document.addEventListener('keydown', e => {
+        if (filesEl.hidden) return;
+        if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); filesEl.hidden = true; }
+      }, true);
+      document.addEventListener('pointerdown', e => {
+        if (!filesEl.hidden && !e.target.closest('#refsFiles, #refsAddMenu, [data-act="add"], #refsAddBig')) filesEl.hidden = true;
+      }, true);
+
       addMenu.addEventListener('click', e => {
         const b = e.target.closest('[data-add]');
         if (!b) return;
         addMenu.hidden = true;
         if (b.dataset.add === 'file') fileIn.click();
+        else if (b.dataset.add === 'boards') openFilesPanel();
         else if (b.dataset.add === 'make') openMake();
         else if (b.dataset.add === 'mine') openMine();
         else {
