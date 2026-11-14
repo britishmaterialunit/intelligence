@@ -17021,8 +17021,10 @@
       function toggleAddMenu(on){
         on = on == null ? addMenu.hidden : on;
         if (on){ closeMake(); document.getElementById('refsMine').hidden = true; }
-        document.getElementById('amMineHead').textContent = admin ? 'Created garments' : 'Your created garments';
-        document.getElementById('amMineSay').textContent = admin
+        // the Your created garments button is off the menu for now — word it only when it is back
+        const mineHead = document.getElementById('amMineHead'), mineSay = document.getElementById('amMineSay');
+        if (mineHead) mineHead.textContent = admin ? 'Created garments' : 'Your created garments';
+        if (mineSay) mineSay.textContent = admin
           ? 'Everybody’s, by who made them — add one to any board or project'
           : 'The garments you have made on Maps, for any of your boards';
         addMenu.hidden = !on;
