@@ -69,9 +69,10 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   one cluster of everything. The first press remembers the board
   (`natBase`), every press re-lays from it, all flags up restores it.
   **Yes / no** on a garment: a picked garment has one square on its right
-  edge (`.rf-out-btn`). A cross greys it out (`it.out`, `.rf-out`: picture,
+  edge (`.rf-out-btn`). The square reads N and greys it out (`it.out`, `.rf-out`: picture,
   header, panel and dots fade to .28 opacity and grayscale over .45s); on a
-  greyed one the square is a tick that brings it back (`paintOut`). `out` is
+  greyed one it reads Y and brings it back (`paintOut`; letters, not icons —
+  the cross is the delete button's). `out` is
   saved, copied, and `row.out` in `references.json`. It does not change the
   costing sheet.
   Board garments have three views (squares 1/2/3 down the left edge: photo,
