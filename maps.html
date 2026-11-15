@@ -4450,6 +4450,46 @@
     }
     .rf-sheet .rf-lk-open{ width:calc(var(--w) * .052); height:calc(var(--w) * .052); }
     #refsSheet{ touch-action:pan-x pan-y; -webkit-user-select:text; user-select:text; }
+    /* The bibliography: picked links written up as numbered sources, each
+       with a note under it saying what it is and where it is referenced. */
+    #refsBib{
+      position:absolute;
+      left:50%; top:24px; bottom:96px;
+      transform:translateX(-50%);
+      width:min(680px, calc(100vw - 32px));
+      box-sizing:border-box;
+      display:flex; flex-direction:column;
+      background:var(--bg);
+      border:1.5px solid var(--line);
+      z-index:4;
+      cursor:default;
+      font-family:var(--font);
+      touch-action:pan-x pan-y; -webkit-user-select:text; user-select:text;
+    }
+    #refsBib[hidden]{ display:none; }
+    @media (max-width:640px){ #refsBib{ top:12px; bottom:88px; } }
+    .bb-scroll{ flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+    .bb-row{ display:flex; gap:12px; padding:14px 16px; border-bottom:1.5px solid #ececec; }
+    .bb-no{ flex:none; width:34px; font-variant-numeric:tabular-nums; color:#9a9a9a; padding-top:7px; }
+    .bb-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:6px; }
+    .bb-main input, .bb-main textarea{
+      width:100%; box-sizing:border-box; padding:6px 8px;
+      border:1.5px solid var(--line); background:var(--bg);
+      font:inherit; color:var(--ink);
+    }
+    .bb-main textarea{ min-height:52px; resize:vertical; }
+    .bb-url{ color:#9a9a9a; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bb-url:hover{ text-decoration:underline; color:var(--ink); }
+    /* A bibliography kept on the board: a portrait page, numbered sources,
+       the note in quieter type under each. */
+    .rb-rows{ flex:1 1 auto; min-height:0; overflow:hidden; }
+    .rb-ent{ display:flex; gap:calc(var(--w) * .02); padding:calc(var(--w) * .014) 0; border-bottom:calc(1px * var(--inv)) solid #ececec; }
+    .rb-no{ flex:none; width:calc(var(--w) * .06); color:#9a9a9a; }
+    .rb-body{ flex:1 1 auto; min-width:0; }
+    .rb-body > div{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .rb-t{ font-weight:bold; }
+    .rb-u{ color:#9a9a9a; }
+    .rb-n{ font-style:italic; white-space:normal; }
     .sh-scroll{ flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
     .sh-table{ width:100%; border-collapse:collapse; font-size:12px; color:var(--ink); font-variant-numeric:tabular-nums; }
     .sh-table th{
@@ -4873,6 +4913,20 @@
         </table>
       </div>
     </aside>
+    <!-- The bibliography: the picked links (or every link on the board)
+         written up as numbered sources, a note under each. The tick keeps
+         it on the board as a page of its own. -->
+    <aside id="refsBib" hidden aria-label="Bibliography">
+      <div class="sh-top">
+        <span class="sd-head">Bibliography · <span id="bbCount">00</span></span>
+        <span class="sh-acts">
+          <button type="button" class="sd-btn" id="bbTxt">Download .txt</button>
+          <button type="button" class="sd-btn" id="bbClose">Close</button>
+          <button type="button" class="sd-btn sd-go sh-ok" id="bbOk" aria-label="Done — put the bibliography on the board"></button>
+        </span>
+      </div>
+      <div class="bb-scroll"><div id="bbBody"></div></div>
+    </aside>
     <!-- Draw: the paper's own panel, in the corner. Formulate reads the
          strokes by their shapes and makes a graph of them. -->
     <aside id="refsDraw" hidden aria-label="Drawing">
@@ -4967,6 +5021,9 @@
       </button>
       <button type="button" data-act="sheet" aria-label="Make a costing sheet of the garments">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M2.8 3.2 H13.2 V12.8 H2.8 Z M2.8 6.4 H13.2 M2.8 9.6 H13.2 M6.4 3.2 V12.8"/></svg><span>Sheet</span>
+      </button>
+      <button type="button" data-act="bib" aria-label="Make a bibliography of the links">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M8 3.6 C6.9 2.8 4.7 2.7 3 3.2 V12.6 C4.7 12.1 6.9 12.2 8 13 C9.1 12.2 11.3 12.1 13 12.6 V3.2 C11.3 2.7 9.1 2.8 8 3.6 Z M8 3.6 V13"/></svg><span>Cite</span>
       </button>
       <button type="button" data-act="reverse" aria-label="Put them back as they were">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path class="st" d="M3.6 6.4 A5 5 0 1 1 3.3 9.8 M3.2 2.9 V6.5 H6.8"/></svg><span>Reverse</span>
@@ -12275,6 +12332,7 @@
         else if (it.draw) mountDraw(it);
         else if (it.link) mountLink(it);
         else if (it.sheet) mountSheet(it);
+        else if (it.bib) mountBib(it);
         else mountPicture(it);
         const up = Object.assign(document.createElement('button'), { type:'button', className:'rf-up' });
         up.setAttribute('aria-label', 'Bring forward (Shift: to the front)');
@@ -13579,6 +13637,12 @@
           sh.querySelector('span').textContent = g ? `Sheet ${String(g).padStart(2, '0')}` : 'Sheet';
           sh.setAttribute('aria-label', g ? `Make a costing sheet of the ${g} picked garments` : 'Make a costing sheet of the garments');
         }
+        const bb = T('bib');
+        if (bb){
+          const l = [...picked].map(byId).filter(it => it && it.link).length;
+          bb.querySelector('span').textContent = l ? `Cite ${String(l).padStart(2, '0')}` : 'Cite';
+          bb.setAttribute('aria-label', l ? `Make a bibliography of the ${l} picked links` : 'Make a bibliography of the links');
+        }
       }
       function pickNone(){ if (!picked.size) return; picked.clear(); paintPicked(); }
       function unitOf(list){
@@ -13666,6 +13730,7 @@
         locks = locks.filter(l => l.p !== it.id && l.c !== it.id);
         regroup();
         if (it.garment) paintSheetsOf(it);
+        if (it.link) paintBibsOf(it);
         joints(); sync(); save(); paintGarments(); repaint();
       }
 
@@ -14124,7 +14189,7 @@
         const wasEmpty = !items.length;
         const ok = [];
         for (const en of entries){
-          try { ok.push({ ...en, ar: en.sheet ? SHEET_AR : en.link ? linkAr(en.link) : en.draw ? en.draw.h0 / en.draw.w0
+          try { ok.push({ ...en, ar: en.sheet ? SHEET_AR : en.bib ? BIB_AR : en.link ? linkAr(en.link) : en.draw ? en.draw.h0 / en.draw.w0
                                    : en.text != null ? (en.ar > 0 ? en.ar : 0.25) : await measure(en.blob) }); } catch {}
         }
         if (!ok.length) return { added:0, refused:entries.length };
@@ -14143,6 +14208,8 @@
           if (en.draw) it.draw = en.draw;
           if (en.link) it.link = en.link;
           if (en.sheet) it.sheet = { rows:en.sheet.rows.slice() };   // files for now; ids once all are made
+          if (en.bib) it.bib = { rows:en.bib.rows.slice() };         // the same
+          if (en.note) it.note = cleanNote(en.note);
           if (en.own) it.own = en.own;
           if (en.out) it.out = true;
           items.push(it); mount(it); made.push(it);
@@ -14174,11 +14241,16 @@
             make(en, c.x + pts[i][0] * k, c.y + pts[i][1] * k, boxW(en.ar, BOX), ++zTop));
         }
 
-        // a sheet names its garments by their files in the .zip: now they have ids
+        // a sheet or bibliography names its pieces by their files in the .zip: now they have ids
         made.forEach(it => {
-          if (!it.sheet) return;
-          it.sheet.rows = it.sheet.rows.map(f => byKey[f] && byKey[f].id).filter(Boolean);
-          paintSheetCard(it);
+          if (it.sheet){
+            it.sheet.rows = it.sheet.rows.map(f => byKey[f] && byKey[f].id).filter(Boolean);
+            paintSheetCard(it);
+          }
+          if (it.bib){
+            it.bib.rows = it.bib.rows.map(f => byKey[f] && byKey[f].id).filter(Boolean);
+            paintBibCard(it);
+          }
         });
         if (lockSpec && lockSpec.length){
           lockSpec.forEach(l => {
@@ -14258,10 +14330,10 @@
          something else, beside the board instead. Whatever they were locked
          to lets them go, and Reverse puts everything back. */
       function clusterPicked(){
-        // a costing sheet is a page, not a picture: it keeps its place
+        // a costing sheet or bibliography is a page, not a picture: it keeps its place
         const all = [...picked].map(byId).filter(Boolean);
-        const list = all.filter(it => !it.sheet);
-        if (all.length >= 2 && list.length < 2){ say('Costing sheets stay out of clusters'); return true; }
+        const list = all.filter(it => !it.sheet && !it.bib);
+        if (all.length >= 2 && list.length < 2){ say('Sheets and bibliographies stay out of clusters'); return true; }
         if (list.length < 2) return false;
         if (!clustered) before = snap();
         const ids = new Set(list.map(it => it.id));
@@ -14310,7 +14382,7 @@
         });
         // costing sheets keep their place and are clustered around,
         // and so do the pieces just worked on, newest first — never every piece
-        const sheets = units.filter(u => u.some(it => it.sheet));
+        const sheets = units.filter(u => u.some(it => it.sheet || it.bib));
         const kept = sheets.slice();
         touched.slice().reverse().forEach(id => {
           const it = byId(id);
@@ -14456,7 +14528,7 @@
           // one cluster, nation by nation, then anything that is not a garment
           const rank = new Map(nats.map((n, i) => [n.nation, i]));
           const key = it => { const g = nationOf(it); return g ? rank.get(g.nation) : 1e4; };
-          groups = [items.filter(it => !it.sheet).sort((a, b) => key(a) - key(b) || order(a) - order(b))];
+          groups = [items.filter(it => !it.sheet && !it.bib).sort((a, b) => key(a) - key(b) || order(a) - order(b))];
         } else {
           groups = nats.filter(n => natOn.has(n.nation)).map(n => n.list.slice().sort((a, b) => order(a) - order(b)));
         }
@@ -14672,6 +14744,8 @@
         const links = Object.values(lay).filter(r => r.link && relink(r.link));
         // and sheets, by the files of the garments they hold; their .csv is for a spreadsheet
         const sheets = Object.values(lay).filter(r => r.sheet && Array.isArray(r.sheet.rows));
+        // and bibliographies, by the files of the links they hold; their .txt is for reading outside
+        const bibs = Object.values(lay).filter(r => r.bib && Array.isArray(r.bib.rows));
         if (!imgs.length && !texts.length && !draws.length && !links.length) throw new Error('no images');
         const layOf = r => r && [r.x, r.y, r.w].every(Number.isFinite) && r.w > 0
           ? { x:r.x, y:r.y, w:r.w, z:r.z || 0, mode:[1, 2, 3].includes(r.mode) ? r.mode : 1,
@@ -14689,9 +14763,11 @@
          .concat(draws.filter(layOf).map(r => ({ key:r.file, draw:cleanDraw(r.draw), name:'Drawing',
                    stamp:r.stamp || null, lay:layOf(r) })))
          .concat(links.filter(layOf).map(r => ({ key:r.file, link:relink(r.link), name:'Link',
-                   stamp:r.stamp || null, lay:layOf(r) })))
+                   note:cleanNote(r.note), stamp:r.stamp || null, lay:layOf(r) })))
          .concat(sheets.filter(layOf).map(r => ({ key:r.file, sheet:{ rows:r.sheet.rows.filter(f => typeof f === 'string') },
-                   name:'Costing sheet', stamp:r.stamp || null, lay:layOf(r) })));
+                   name:'Costing sheet', stamp:r.stamp || null, lay:layOf(r) })))
+         .concat(bibs.filter(layOf).map(r => ({ key:r.file, bib:{ rows:r.bib.rows.filter(f => typeof f === 'string') },
+                   name:'Bibliography', stamp:r.stamp || null, lay:layOf(r) })));
         // in the order they were laid down, so the stacking comes back too
         got.sort((a, b) => ((a.lay || {}).z || 0) - ((b.lay || {}).z || 0));
         return { locks: lockSpec, entries: got };
@@ -14753,16 +14829,18 @@
         };
         for (let i = 0; i < order.length; i++){
           const it = order[i];
-          const isText = it.text != null, isDraw = !!it.draw, isLink = !!it.link, isSheet = !!it.sheet;
-          const g = light && it.garment && !isText && !isDraw && !isLink && !isSheet ? garmentInfo(it.garment) : null;
+          const isText = it.text != null, isDraw = !!it.draw, isLink = !!it.link, isSheet = !!it.sheet, isBib = !!it.bib;
+          const flat = isText || isDraw || isLink || isSheet || isBib;   // no photograph of its own
+          const g = light && it.garment && !flat ? garmentInfo(it.garment) : null;
           const src = g && g.shots[0];
-          const pic = isText || isDraw || isLink || isSheet || src ? null : shrink ? await shrink(it.blob) : it.blob;
+          const pic = flat || src ? null : shrink ? await shrink(it.blob) : it.blob;
           // a garment's yes or no travels in its file's own name: 03 (Y).png, 07 (N).png
-          const yn = it.garment && !isText && !isDraw && !isLink && !isSheet ? (it.out ? ' (N)' : ' (Y)') : '';
-          const file = `${String(i + 1).padStart(pad, '0')}${yn}.${isSheet ? 'csv' : isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url'
+          const yn = it.garment && !flat ? (it.out ? ' (N)' : ' (Y)') : '';
+          const file = `${String(i + 1).padStart(pad, '0')}${yn}.${isSheet ? 'csv' : isBib || isText ? 'txt' : isDraw ? 'svg' : isLink ? 'url'
                         : src ? (extOfName(src) || 'png') : extOf({ ...it, blob:pic })}`;
           fileOf[it.id] = file;
           if (!src) files.push({ name:file, data:isSheet ? enc.encode(sheetCsv(it.sheet.rows.map(byId).filter(isGarment)))
+                                     : isBib ? enc.encode(bibText(it.bib.rows.map(byId).filter(o => o && o.link)))
                                      : isLink ? enc.encode(`[InternetShortcut]\r\nURL=${it.link.url}\r\n`)
                                      : isText ? enc.encode(plainOf(it.text))
                                      : isDraw ? enc.encode(drawSvg(it.draw, true))
@@ -14776,7 +14854,9 @@
           }
           if (isDraw) row.draw = it.draw;
           if (isLink) row.link = { url:it.link.url, title:it.link.title || '', thumb:it.link.thumb || '' };
+          if (isLink && cleanNote(it.note)) row.note = cleanNote(it.note);
           if (isSheet) row.sheet = { rows:it.sheet.rows };      // board ids, named by file below
+          if (isBib) row.bib = { rows:it.bib.rows };            // the same
           if (it.stamp) row.stamp = it.stamp;
           if (it.rot) row.rot = it.rot;
           if (it.garment) row.garment = it.garment;
@@ -14791,7 +14871,10 @@
           if (it.garment && cleanCode(it.code)) row.code = cleanCode(it.code);
           man.items.push(row);
         }
-        man.items.forEach(r => { if (r.sheet) r.sheet = { rows:r.sheet.rows.map(id => fileOf[id]).filter(Boolean) }; });
+        man.items.forEach(r => {
+          if (r.sheet) r.sheet = { rows:r.sheet.rows.map(id => fileOf[id]).filter(Boolean) };
+          if (r.bib) r.bib = { rows:r.bib.rows.map(id => fileOf[id]).filter(Boolean) };
+        });
         man.locks = locks.map(l => ({ p:fileOf[l.p], c:fileOf[l.c], side:l.side }))
                          .filter(l => l.p && l.c);
         files.unshift({ name:'references.json', data:enc.encode(JSON.stringify(man, null, 2)) });
@@ -16357,8 +16440,8 @@
             d.transaction(STORE, 'readwrite').objectStore(STORE).put({
               // one being cropped is kept as it was until the crop is kept
               items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
-                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, rot, tk, hk }) =>
-                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, rot, tk, hk })),
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, bib, note, rot, tk, hk }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, bib, note, rot, tk, hk })),
               locks, before, clustered,
             }, 'mine');
           } catch {}
@@ -16375,7 +16458,7 @@
           if (!got || !Array.isArray(got.items) || items.length) return;
           got.items.forEach(s => {
             if (!(s.blob instanceof Blob) && typeof s.text !== 'string' && !s.draw && !s.link
-                && !(s.sheet && Array.isArray(s.sheet.rows))) return;
+                && !(s.sheet && Array.isArray(s.sheet.rows)) && !(s.bib && Array.isArray(s.bib.rows))) return;
             const it = { ...s };
             if (it.link && !(it.link = relink(it.link))) return;
             if (it.draw) it.draw = cleanDraw(it.draw);
@@ -16410,7 +16493,7 @@
       root.addEventListener('pointerdown', e => {
         if (e.button > 0) return;
         if (drawing){
-          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine, #refsFiles')) return;
+          if (e.button > 1 || e.target.closest('#refsDraw, .rf-label-in, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsBib, #refsAddMenu, #refsMake, #refsNations, #refsMine, #refsFiles')) return;
           drawDown(e);
           return;
         }
@@ -16426,7 +16509,7 @@
           if (e.target.closest('.rf-crop') || e.target.closest('.rf-item') === cropping.it.el) return;
           endCrop(true);          // a press anywhere else keeps the frame
         }
-        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsAddMenu, #refsMake, #refsNations, #refsMine, #refsFiles')) return;
+        if (e.target.closest('.rf-del, .rf-cut, .rf-crop, .rf-stamp, .rf-pen, .rw-x, .rf-fmt, .rf-dot, .rf-joint, .rf-mode, .rf-out-btn, .rf-up, .rf-down, .rp-open, .rp-price, .rp-calc, #refsEmpty button, #refsTray, #refsSaved, #refsSearch, #refsSend, #refsSheet, #refsBib, #refsAddMenu, #refsMake, #refsNations, #refsMine, #refsFiles')) return;
         // in the words being written: the caret and the selection are theirs
         if (e.target.closest('.rf-txt[contenteditable="true"]')) return;
         root.setPointerCapture(e.pointerId);
@@ -16837,7 +16920,7 @@
       });
 
       root.addEventListener('wheel', e => {
-        if (e.target.closest('#refsSearch, #refsSheet')){ e.stopPropagation(); return; }   // the results scroll
+        if (e.target.closest('#refsSearch, #refsSheet, #refsBib')){ e.stopPropagation(); return; }   // the results scroll
         e.preventDefault();
         e.stopPropagation();          // the list underneath must not hear it
         const cx = e.clientX - W() / 2, cy = e.clientY - H() / 2;
@@ -16870,7 +16953,7 @@
          computer's clipboard as a picture, to paste into anything else; the
          board knows its own by a mark carried with it, so pasting it back
          here is a copy of the piece, not a new file. */
-      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'own', 'out', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'code', 'sheet', 'rot', 'tk', 'hk'];
+      const COPIED = ['blob', 'text', 'draw', 'link', 'name', 'ar', 'w', 'garment', 'own', 'out', 'mode', 'credit', 'orig', 'shot', 'stamp', 'full', 'crop', 'price', 'sizes', 'code', 'sheet', 'bib', 'note', 'rot', 'tk', 'hk'];
       let clip = null, lastAt = null, pastedAt = null;
       root.addEventListener('pointermove', e => { lastAt = { x:e.clientX, y:e.clientY }; });
       const writingIn = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
@@ -16927,6 +17010,7 @@
                        x:o.x - mid.x + to.x, y:o.y - mid.y + to.y };
           if (o.link) it.link = relink(o.link);
           if (o.sheet) it.sheet = { rows:o.sheet.rows.slice() };
+          if (o.bib) it.bib = { rows:o.bib.rows.slice() };
           if (o.draw) it.draw = cleanDraw(JSON.parse(JSON.stringify(o.draw)));
           items.push(it); mount(it);
           return it;
@@ -16964,6 +17048,11 @@
         // the sheet's keys are its own: Escape closes it, nothing reaches the board
         if (!sheetEl.hidden){
           if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); toggleSheet(false); }
+          return;
+        }
+        // and the bibliography's the same
+        if (!bibEl.hidden){
+          if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); toggleBib(false); }
           return;
         }
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
@@ -17489,7 +17578,7 @@
         if (!b || b.disabled) return;
         if (drawing && b.dataset.act !== 'draw') endDraw();
         ({ add:() => toggleAddMenu(), search:toggleSearch, text:addText, link:askLink, draw:() => drawing ? endDraw() : startDraw(), cluster:clusterPress, reverse, export:exportBoard, clear:clearBoard,
-           send:() => toggleSend(), sheet:() => toggleSheet() })[b.dataset.act]();
+           send:() => toggleSend(), sheet:() => toggleSheet(), bib:() => toggleBib() })[b.dataset.act]();
       });
       (function scrollTools(){
         const sc = document.getElementById('refsToolsScroll');
@@ -17673,6 +17762,7 @@
         if (!sheetList.length){ say('Put garments on the board first'); return; }
         toggleSearch(false);
         toggleSend(false);
+        toggleBib(false);
         paintSheet();
         sheetEl.hidden = false;
       }
@@ -17838,6 +17928,193 @@
         a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         say('Sheet downloaded');
+      });
+
+      /* ---------- THE BIBLIOGRAPHY ----------
+         The board is pictures; the bibliography is where it remembers what
+         they are. Pick links and press Cite — or press it with none picked
+         for every link on the board. Each source is numbered, its name can
+         be put right, and a note under it says what it shows and where it
+         is referenced. Name and note live on the link itself (l.title,
+         it.note), so the panel, the card and the link always agree. The
+         tick keeps it on the board as a portrait page — it.bib =
+         { rows:[board ids] } — drawn from the links themselves every time,
+         so it never disagrees with them. */
+      const BIB_AR = 297 / 210;
+      const cleanNote = v => { const t = String(v == null ? '' : v).replace(/\r/g, '').trim().slice(0, 600); return t || null; };
+      const isLinkIt = it => it && it.link;
+      const linkName = l => l.title || l.url.replace(/^https?:\/\/(www\.)?/, '');
+      function mountBib(it){
+        it.ar = BIB_AR;
+        const el = document.createElement('div');
+        el.className = 'rf-item rf-sheet rf-bib';
+        el.dataset.id = it.id;
+        const page = Object.assign(document.createElement('div'), { className:'rs-page' });
+        const bar = Object.assign(document.createElement('div'), { className:'rf-lk-bar' });
+        bar.appendChild(Object.assign(document.createElement('span'), { className:'rf-lk-kind', textContent:'Sources' }));
+        bar.appendChild(Object.assign(document.createElement('span'), { className:'rf-lk-title' }));
+        const open = Object.assign(document.createElement('button'), { type:'button', className:'rf-lk-open rs-open' });
+        open.setAttribute('aria-label', 'Open the bibliography');
+        open.innerHTML = svgIcon('M10.6 2.9 L13.1 5.4 L5.6 12.9 L2.6 13.4 L3.1 10.4 Z M9.1 4.4 L11.6 6.9');
+        open.addEventListener('click', e => { e.stopPropagation(); toggleBib(true, it); });
+        bar.appendChild(open);
+        el.addEventListener('dblclick', e => { e.stopPropagation(); toggleBib(true, it); });
+        const del = Object.assign(document.createElement('button'), { type:'button', className:'rf-del' });
+        del.setAttribute('aria-label', 'Remove this bibliography');
+        const size = Object.assign(document.createElement('span'), { className:'rf-size' });
+        const stamp = Object.assign(document.createElement('button'), { type:'button', className:'rf-stamp' });
+        el.append(page, bar, del, size, stamp);
+        it.el = el;
+        paintBibCard(it);
+        paintStamp(it);
+        place(it);
+        stage.appendChild(el);
+      }
+      function paintBibCard(it){
+        const page = it.el && it.el.querySelector('.rs-page');
+        if (!page) return;
+        const list = it.bib.rows.map(byId).filter(isLinkIt);
+        const rows = list.map((o, i) => {
+          const n = cleanNote(o.note);
+          return `<div class="rb-ent"><span class="rb-no">[${i + 1}]</span><div class="rb-body">` +
+            `<div class="rb-t">${escH(linkName(o.link))}</div>` +
+            `<div class="rb-u">${escH(o.link.url.replace(/^https?:\/\//, ''))}</div>` +
+            (n ? `<div class="rb-n">${escH(n).replace(/\n/g, '<br>')}</div>` : '') + `</div></div>`;
+        });
+        page.innerHTML =
+          `<div class="rs-head"><span>Bibliography</span><span>${String(list.length).padStart(2, '0')} sources</span></div>` +
+          `<div class="rb-rows">${rows.join('') || '<div class="rs-more">No links left on the board</div>'}</div>`;
+        const t = it.el.querySelector('.rf-lk-title');
+        t.textContent = `${list.length} source${list.length === 1 ? '' : 's'}`;
+        // more sources than the page holds: say how many are under the fold
+        requestAnimationFrame(() => {
+          const box = page.querySelector('.rb-rows');
+          if (!box) return;
+          const hidden = [...box.children].filter(r => r.offsetTop + r.offsetHeight > box.offsetTop + box.clientHeight + 1).length;
+          if (hidden && hidden < list.length){
+            const last = [...box.children].filter(r => r.offsetTop + r.offsetHeight <= box.offsetTop + box.clientHeight + 1);
+            const keep = Math.max(0, last.length - 1);
+            [...box.children].slice(keep).forEach(r => r.remove());
+            box.insertAdjacentHTML('beforeend', `<div class="rs-more">+ ${list.length - keep} more — open the bibliography</div>`);
+          }
+        });
+      }
+      // a link's name or note changed, or it left: every bibliography holding it is drawn again
+      function paintBibsOf(l){
+        items.forEach(o => { if (o.bib && o.el && o.bib.rows.includes(l.id)) paintBibCard(o); });
+      }
+      const bibEl = document.getElementById('refsBib');
+      const bbBody = document.getElementById('bbBody');
+      let bibList = [], bibCard = null;     // bibCard: the board's bibliography this panel is showing, if any
+      function bibItems(){
+        const pickedL = [...picked].map(byId).filter(isLinkIt);
+        const list = pickedL.length ? pickedL : items.filter(isLinkIt);
+        return list.sort((a, b) => (Math.round(a.y / 40) - Math.round(b.y / 40)) || (a.x - b.x));
+      }
+      function toggleBib(on, card){
+        on = on == null ? bibEl.hidden : on;
+        if (!on){ bibEl.hidden = true; bibCard = null; return; }
+        bibCard = card || null;
+        bibList = card ? card.bib.rows.map(byId).filter(isLinkIt) : bibItems();
+        if (!bibList.length){ say('Put links on the board first — paste one, or press Link'); return; }
+        toggleSearch(false);
+        toggleSend(false);
+        toggleSheet(false);
+        paintBib();
+        bibEl.hidden = false;
+      }
+      function paintBib(){
+        bbBody.innerHTML = bibList.map((it, r) => {
+          const l = it.link;
+          return `<div class="bb-row" data-r="${r}">` +
+            `<span class="bb-no">[${r + 1}]</span><div class="bb-main">` +
+            `<input type="text" data-f="title" autocomplete="off" spellcheck="false" maxlength="300" ` +
+              `placeholder="Name this source" value="${escH(l.title || '')}" aria-label="Source name">` +
+            `<a class="bb-url" href="${escH(l.url)}" target="_blank" rel="noopener noreferrer">${escH(l.url.replace(/^https?:\/\//, ''))}</a>` +
+            `<textarea data-f="note" maxlength="600" placeholder="What it shows, and where it is referenced" ` +
+              `aria-label="Note">${escH(cleanNote(it.note) || '')}</textarea></div></div>`;
+        }).join('');
+        document.getElementById('bbCount').textContent = String(bibList.length).padStart(2, '0');
+      }
+      function bibEdit(e){
+        const f = e.target.dataset && e.target.dataset.f;
+        const row = f && e.target.closest('.bb-row');
+        const it = row && bibList[Number(row.dataset.r)];
+        if (!it) return;
+        if (f === 'title'){
+          it.link.title = e.target.value.replace(/\s+/g, ' ').trim().slice(0, 300);
+          // the link's own card wears the name too
+          const t = it.el && it.el.querySelector('.rf-lk-title');
+          if (t) t.textContent = linkName(it.link);
+        } else it.note = cleanNote(e.target.value);
+        paintBibsOf(it);
+        save();
+      }
+      bibEl.addEventListener('input', bibEdit);
+      bibEl.addEventListener('change', bibEdit);
+      bibEl.addEventListener('click', e => e.stopPropagation());
+      // Enter on a name goes down to the next, the way the sheet does; Escape closes
+      bibEl.addEventListener('keydown', e => {
+        if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); toggleBib(false); return; }
+        if (e.key === 'Enter' && e.target.dataset && e.target.dataset.f === 'title'){
+          e.preventDefault();
+          const row = e.target.closest('.bb-row');
+          const next = row.nextElementSibling && row.nextElementSibling.querySelector('[data-f="title"]');
+          if (next) next.focus(); else e.target.blur();
+        }
+        e.stopPropagation();
+      });
+      document.getElementById('bbClose').addEventListener('click', () => toggleBib(false));
+      // the tick keeps it: on the board as a page of its own, to be moved,
+      // sized and opened again — the one it came from, or a new one
+      document.getElementById('bbOk').addEventListener('click', () => {
+        const rows = bibList.map(o => o.id);
+        let it = bibCard && items.includes(bibCard) ? bibCard : null;
+        toggleBib(false);
+        if (it){
+          it.bib = { rows };
+          paintBibCard(it);
+        } else {
+          const list = bibList.slice(), b = list.length ? boundsOf(list) : null;
+          const w = clamp(360 / vs, 40, 6000);
+          const c = toWorld(W() / 2, H() / 2 - 20);
+          it = { id:uid(), bib:{ rows }, name:'Bibliography', ar:BIB_AR, x:c.x, y:c.y, w, z:++zTop,
+                 gid:null, garment:null, mode:1, credit:null, shot:0, stamp:null };
+          // beside the links it is made of, where there is room
+          if (b){ it.x = b.r + CSPACE / 2 + w / 2; it.y = (b.t + b.b) / 2; }
+          const r0 = rect(it);
+          if (items.some(o => { const r = rect(o); return r.l < r0.r && r.r > r0.l && r.t < r0.b && r.b > r0.t; }))
+            it.x = Math.max(...items.map(o => rect(o).r)) + CSPACE / 2 + w / 2;
+          items.push(it); mount(it);
+          clustered = false;
+          settle(fit);
+        }
+        pickNone(); select(it);
+        sync(); save();
+        say('Bibliography kept on the board');
+      });
+      function bibText(list){
+        const when = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+        const lines = [`BIBLIOGRAPHY — ${String(list.length).padStart(2, '0')} source${list.length === 1 ? '' : 's'}`,
+                       `BMU Maps · ${when}`, ''];
+        list.forEach((o, i) => {
+          lines.push(`[${i + 1}] ${linkName(o.link)}`);
+          lines.push(`    ${o.link.url}`);
+          const n = cleanNote(o.note);
+          if (n) n.split('\n').forEach(t => lines.push(`    ${t}`));
+          lines.push('');
+        });
+        return lines.join('\r\n');
+      }
+      document.getElementById('bbTxt').addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([bibText(bibList)], { type:'text/plain;charset=utf-8' }));
+        a.download = `BMU-Bibliography-${new Date().toISOString().slice(0, 10)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        say('Bibliography downloaded');
       });
 
       function close(){
