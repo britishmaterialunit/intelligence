@@ -344,7 +344,8 @@ create policy "bmu boards designer reads own" on storage.objects
   using (bucket_id = 'bmu-boards' and name like 'u/' || auth.uid()::text || '/%');
 
 -- Sending a board back a version on writes a new .zip whose name is the
--- row's own stem with the next version — <stem>-v<n+1>.zip — and deletes
+-- row's own stem with the next version — <stem>-v<n+1>.zip, or a quick
+-- step from the open board, <stem>-v5.1.zip — and deletes
 -- the one it replaced. A designer may do both for any board addressed to
 -- them, matched by stem so the policy holds before the row is repointed.
 drop policy if exists "bmu boards designer versions" on storage.objects;
@@ -353,11 +354,11 @@ create policy "bmu boards designer versions" on storage.objects
   for insert to authenticated
   with check (
     bucket_id = 'bmu-boards'
-    and name ~ '-v\d+\.zip$'
+    and name ~ '-v\d+(\.\d+)?\.zip$'
     and exists (select 1 from public.bmu_collections c
                 where lower(c.reviewer_email) = public.bmu_email()
-                  and regexp_replace(c.board_path, '(-v\d+)?\.zip$', '')
-                    = regexp_replace(objects.name, '(-v\d+)?\.zip$', ''))
+                  and regexp_replace(c.board_path, '(-v\d+(\.\d+)?)?\.zip$', '')
+                    = regexp_replace(objects.name, '(-v\d+(\.\d+)?)?\.zip$', ''))
   );
 create policy "bmu boards designer unversions" on storage.objects
   for delete to authenticated
@@ -365,6 +366,6 @@ create policy "bmu boards designer unversions" on storage.objects
     bucket_id = 'bmu-boards'
     and exists (select 1 from public.bmu_collections c
                 where lower(c.reviewer_email) = public.bmu_email()
-                  and regexp_replace(c.board_path, '(-v\d+)?\.zip$', '')
-                    = regexp_replace(objects.name, '(-v\d+)?\.zip$', ''))
+                  and regexp_replace(c.board_path, '(-v\d+(\.\d+)?)?\.zip$', '')
+                    = regexp_replace(objects.name, '(-v\d+(\.\d+)?)?\.zip$', ''))
   );

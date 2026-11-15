@@ -213,6 +213,11 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   list by person: Update a board (same file, `board_path` → `<stem>-v<n+1>.zip`,
   the old zip deleted — the version lives in the name, `verOf`), or New project
   board (asks the project's name; a name that person already has is refused).
+  **Updating the board that is open** (the label's Update, or Send with it
+  picked) is a quick update: a step, V5 → V5.1 → V5.2 (`nextVer`/`quickFor`;
+  ten steps roll into V6); sending a board over one from outside stays the
+  next whole version. Decimal versions need the widened name patterns in
+  `setup/collections.sql` (designer policies) run in Supabase.
   An update's title field is prefilled and live — typed different, the
   project is renamed with the send. The open shared board's label carries
   an Update button straight into Send with itself picked; on Files the

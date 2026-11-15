@@ -3503,7 +3503,7 @@
       /* A board sent again goes to the same file, a version on: the version
          is in the stored zip's name (<id>-v3.zip), and the file's
          updated_at is when that version went. */
-      const verOf = path => Number((String(path || '').match(/-v(\d+)\.zip$/) || [])[1]) || 1;
+      const verOf = path => Number((String(path || '').match(/-v(\d+(?:\.\d+)?)\.zip$/) || [])[1]) || 1;
       const sentLine = c => `V${verOf(c.board_path)} · sent ${new Date(c.updated_at).toLocaleString('en-GB',
         { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}`;
 

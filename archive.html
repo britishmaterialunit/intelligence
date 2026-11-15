@@ -15035,7 +15035,7 @@
               fileRows.filter(isBoard).forEach(c => {
                 const o = document.createElement('option');
                 o.value = c.id;
-                o.textContent = `Update “${c.title}” · ${verName(c.board_path)} → V${verOf(c.board_path) + 1}`;
+                o.textContent = `Update “${c.title}” · ${verName(c.board_path)} → V${nextVer(c.board_path, quickFor(c))}`;
                 sdFile.appendChild(o);
               });
               if (sentBoard != null && fileRows.some(c => c.id === sentBoard)) sdFile.value = sentBoard;
@@ -15060,7 +15060,7 @@
               fs.filter(isBoard).forEach(c => {
                 const o = document.createElement('option');
                 o.value = c.id;
-                o.textContent = `Update “${c.title}” · ${verName(c.board_path)} → V${verOf(c.board_path) + 1}`;
+                o.textContent = `Update “${c.title}” · ${verName(c.board_path)} → V${nextVer(c.board_path, quickFor(c))}`;
                 g.appendChild(o);
               });
               const o = document.createElement('option');
@@ -15081,12 +15081,18 @@
       const isBoard = c => !!(c && c.board_path && !hasGarments(c));
       /* The version lives in the stored zip's own name — <id>-v3.zip — so
          Files can say V3 without a column of its own. A board sent before
-         versions is V1. */
-      const verOf = path => Number((String(path || '').match(/-v(\d+)\.zip$/) || [])[1]) || 1;
+         versions is V1. Updating the board that is open is a quick update,
+         a step — V5 → V5.1, V5.2 — not a whole big rejig; sending a board
+         over one from outside is the next whole version. Ten steps roll
+         into it naturally (V5.9 → V6). */
+      const verOf = path => Number((String(path || '').match(/-v(\d+(?:\.\d+)?)\.zip$/) || [])[1]) || 1;
       const verName = path => 'V' + verOf(path);
+      const nextVer = (path, quick) => quick ? Math.round((verOf(path) + 0.1) * 10) / 10
+                                             : Math.floor(verOf(path)) + 1;
+      const quickFor = c => sentBoard != null && !!c && c.id === sentBoard;
       function paintGo(){
         const c = fileRows.find(o => o.id === sdFile.value);
-        sdGo.textContent = c && isBoard(c) ? `Send V${verOf(c.board_path) + 1}` : 'Send';
+        sdGo.textContent = c && isBoard(c) ? `Send V${nextVer(c.board_path, quickFor(c))}` : 'Send';
       }
       // a new board asks its project's name; someone new, their email too.
       // An update shows the name it has — typed different, the project is renamed with it.
@@ -15120,7 +15126,7 @@
         }
         const prev = chosen && isBoard(chosen) ? chosen : null;
         const id = prev ? prev.id : '';
-        const ver = prev ? verOf(prev.board_path) + 1 : 1;
+        const ver = prev ? nextVer(prev.board_path, quickFor(prev)) : 1;
         sdGo.disabled = true;
         sdSay(prev ? `Sending V${ver}…` : 'Sending…');
         try {
@@ -15131,7 +15137,7 @@
           const { blob, count } = await sendableZip(sdSay);
           sdSay(prev ? `Sending V${ver} (${mb(blob.size)})…` : `Sending (${mb(blob.size)})…`);
           // the same name a version on, so the file in Files is the one it always was
-          const stem = prev ? String(prev.board_path).replace(/(-v\d+)?\.zip$/, '')
+          const stem = prev ? String(prev.board_path).replace(/(-v[\d.]+)?\.zip$/, '')
                             : (admin ? '' : 'u/' + userId() + '/') + ((crypto.randomUUID && crypto.randomUUID()) || uid());
           const path = `${stem}-v${ver}.zip`;
           await sb(`/storage/v1/object/${BUCKET}/${path}`, {
