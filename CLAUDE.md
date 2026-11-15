@@ -225,7 +225,14 @@ Other `*.html` at root (`*_1`, `test*`, `home`, `mtpdemo*`, `*_greenscreen`,
   their boards) and a board file's Download Zip sits below Book Meeting.
   **Send for designers (phase 2)**: any signed-in non-admin has Send too — "Send board to BMU": a new project board addressed to themselves (`reviewer_email` = their email, `board_edit` true, zip under `u/<their uid>/` in the bucket, which is what the phase-2 policies in `setup/collections.sql` key on) or Update V<n>→V<n+1> of any board addressed to them — their own or one BMU sent (storage policies match the zip by stem); no email field. Admin keeps the full panel.
   **Shared boards (phase 1)**: a sent board is one board both sides open; view only is gone — admin and designer may both change it (`board_edit` is a dead column, kept; policies no longer read it), and changes are saved into the same zip (`sharedSave`: claim via `bmu_board_claim`, then PUT), label `#refsShare` top left. Send and shared saves are light: garments are named (`row.remote`, `row.src`) and fetched from the archive by `readBoard`, not packed. An admin opening a sent board can add to it and Send it back as the next
-  version; Files shows `V<n> · sent <date>` and New version until looked at. Files' **Open Archive** (`#cvArchive`, a
+  version; Files shows `V<n> · sent <date>` and New version until looked at.
+  **A refresh keeps the sent board**: the tab remembers which board it has
+  open (sessionStorage `bmu-sent`) and stashes the working state, unsaved
+  changes included, in IndexedDB record `sent` (`stashSent`/`heldSent`/
+  `layHeld`); on reload it is laid back down and the unsaved part saved up
+  — unless somebody else saved meanwhile, when their version is taken.
+  Closing the tab, or the board itself (`leaveSent` → `dropSentKeep`),
+  lets it go. Files' **Open Archive** (`#cvArchive`, a
   step under the others, compass in its well, an arrow `#cvArchiveMark` that
   turns -45° on press) writes the archive's keys itself (same origin,
   `keepShelf`): the file's garments onto `bmu.archive.saved` (once verified:

@@ -15180,11 +15180,74 @@
          makes. The designer it is for (or the admin) is signed in already;
          the board is fetched and shown as it was sent — on its own, not
          laid over the reader's own board, which is left as it is in the
-         browser and comes back when the sent board is closed. Changes to a
-         sent board are not kept in the browser: the admin keeps them by
-         sending it again, which updates the same file a version on, and
-         anybody can Export them. */
-      let sentBoard = null, sentVer = 0;
+         browser and comes back when the sent board is closed. The tab
+         remembers the sent board it has open (sessionStorage) and what was
+         not yet saved up (the 'sent' stash in IndexedDB), so a refresh lays
+         it back down as it was; closing the tab, or the board itself, lets
+         it go. */
+      let sentBoard = null, sentVer = 0, stashT = null;
+      const keepSentKeep = id => { try { sessionStorage.setItem('bmu-sent', String(id)); } catch {} };
+      function dropSentKeep(){
+        try { sessionStorage.removeItem('bmu-sent'); } catch {}
+        clearTimeout(stashT);
+        db().then(d => d.transaction(STORE, 'readwrite').objectStore(STORE).delete('sent')).catch(() => {});
+      }
+      // the open sent board, as it stands, kept beside the reader's own
+      function stashSent(dirty){
+        if (sentBoard == null) return;
+        const bid = sentBoard;
+        clearTimeout(stashT);
+        stashT = setTimeout(async () => {
+          try {
+            if (sentBoard !== bid) return;
+            const d = await db();
+            d.transaction(STORE, 'readwrite').objectStore(STORE).put({
+              id:bid, dirty:!!dirty, seen:(shared && shared.seen) || null,
+              items: items.map(o => cropping && cropping.it === o ? { ...o, ...cropping.was } : o)
+                .map(({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, bib, note, rot, tk, hk }) =>
+                    ({ id, blob, text, draw, link, name, ar, x, y, w, z, gid, garment, own, out, mode, credit, orig, shot, stamp, full, crop, price, sizes, code, sheet, bib, note, rot, tk, hk })),
+              locks,
+            }, 'sent');
+          } catch {}
+        }, 350);
+      }
+      /* What this tab had of the board when it was refreshed — only its own
+         (the sessionStorage marker), only with changes still unsaved, and
+         only when nobody else has saved meanwhile. */
+      async function heldSent(id, c){
+        try {
+          let keep = null;
+          try { keep = sessionStorage.getItem('bmu-sent'); } catch {}
+          if (keep !== String(id)) return null;
+          const d = await db();
+          const got = await new Promise((ok, no) => {
+            const r = d.transaction(STORE).objectStore(STORE).get('sent');
+            r.onsuccess = () => ok(r.result);
+            r.onerror = () => no(r.error);
+          });
+          if (!got || got.id !== id || !got.dirty || !Array.isArray(got.items) || !got.items.length) return null;
+          // somebody else saved while this tab was away: their version is the board now
+          if (!sameAt(c.board_saved_at, got.seen) && String(c.board_saved_by || '').toLowerCase() !== me()) return null;
+          return got;
+        } catch { return null; }
+      }
+      // laid down the way the reader's own board is read back
+      function layHeld(got){
+        got.items.forEach(sr => {
+          if (!(sr.blob instanceof Blob) && typeof sr.text !== 'string' && !sr.draw && !sr.link
+              && !(sr.sheet && Array.isArray(sr.sheet.rows)) && !(sr.bib && Array.isArray(sr.bib.rows))) return;
+          const it = { ...sr };
+          if (it.link && !(it.link = relink(it.link))) return;
+          if (it.draw) it.draw = cleanDraw(it.draw);
+          items.push(it); mount(it);
+        });
+        locks = (got.locks || []).filter(l => byId(l.p) && byId(l.c));
+        locks.forEach(l => { if (l.d == null || !l.at) measureLock(l); });
+        regroup();
+        const laid = new Set();
+        items.forEach(it => { if (it.gid && !laid.has(it.gid)){ laid.add(it.gid); relay(it); } });
+        zTop = Math.max(1, ...items.map(it => it.z || 0));
+      }
       function emptyBoard(){
         select(null);
         items.forEach(it => { URL.revokeObjectURL(it.url); it.el.remove(); });
@@ -15197,30 +15260,39 @@
         // the reader's own board is not read: the sent one is shown alone
         loaded = true;
         sentBoard = id;
+        keepSentKeep(id);
         open();
         try {
           const rows = await rowsWith(`/rest/v1/bmu_collections?id=eq.${encodeURIComponent(id)}&select=title,reviewer_email,board_path,updated_at`, SHARE_COLS);
           const c = rows && rows[0];
-          if (!c || !c.board_path){ say('That board could not be found'); return; }
-          const blob = await (await sb(`/storage/v1/object/authenticated/${BUCKET}/${c.board_path}`)).blob();
-          const board = await readBoard(blob);
+          if (!c || !c.board_path){ dropSentKeep(); say('That board could not be found'); return; }
+          // a refresh mid-work: what this tab had, unsaved changes and all
+          const held = await heldSent(id, c);
+          let board = null;
+          if (!held){
+            const blob = await (await sb(`/storage/v1/object/authenticated/${BUCKET}/${c.board_path}`)).blob();
+            board = await readBoard(blob);
+          }
           if (sentBoard !== id) return;
           clearTimeout(shareT);
           shared = null;                    // nothing laid down from here on is a change of the reader's
           emptyBoard();
-          await addEntries(board.entries, board.locks);
+          if (held) layHeld(held); else await addEntries(board.entries, board.locks);
           fit(); sync();
           sentVer = verOf(c.board_path);
           const s = shared = { id, title:c.title, email:String(c.reviewer_email || ''), path:c.board_path,
                                edit:!!c.board_edit, seen:c.board_saved_at || null,
                                by:c.board_saved_by || '', at:c.board_saved_at || c.updated_at,
                                ready:false, stale:false, err:'' };
-          shareDirty = false;
+          shareDirty = !!held;
           // what settles in the moments after it is laid down is not an edit
           setTimeout(() => { if (shared === s) s.ready = true; }, 900);
           paintShare();
           watchShared();
-          if (!quiet) say(`“${c.title}” — changes save for everyone on it`);
+          // what was unsaved when the tab refreshed goes up now
+          if (held){ clearTimeout(shareT); shareT = setTimeout(sharedSave, 1600); }
+          if (!quiet) say(held ? `“${c.title}” — back as you left it`
+                               : `“${c.title}” — changes save for everyone on it`);
         } catch (err){
           say(/signed out/.test(err.message) ? 'Sign in to Files to open this board' : 'That board could not be opened');
         }
@@ -15237,6 +15309,7 @@
         }
         sentBoard = null;
         shared = null;
+        dropSentKeep();        // closed on purpose: the tab lets it go
         paintShare();
         watchShared();
         emptyBoard();
@@ -15320,6 +15393,7 @@
           await sb(`/storage/v1/object/${BUCKET}/${s.path}`, {
             method:'PUT', headers:{ 'Content-Type':'application/zip' }, body:blob });
           s.at = stamp; s.by = me(); s.err = '';
+          stashSent(false);        // saved up: the stash is only a memory of the board
         } catch (err){
           shareDirty = true;
           s.err = /too large/.test(err.message) ? 'Too large to save — take a few pictures off'
@@ -16434,8 +16508,9 @@
       }
       let saveT = null;
       function save(){
-        // a sent board is never written over the reader's own: a shared one saves to itself
-        if (sentBoard != null){ sharedSoon(); return; }
+        // a sent board is never written over the reader's own: a shared one
+        // saves to itself, and the tab keeps it meanwhile for a refresh
+        if (sentBoard != null){ stashSent(true); sharedSoon(); return; }
         clearTimeout(saveT);
         saveT = setTimeout(async () => {
           try {
@@ -18143,9 +18218,15 @@
       sync();
       const q = new URLSearchParams(location.search);
       const sentId = q.get('board');
+      let sentKept = null;
+      try { sentKept = sessionStorage.getItem('bmu-sent'); } catch {}
       if (sentId){
         history.replaceState(history.state, '', location.pathname + location.hash);
         openSent(sentId);
+      } else if (sentKept){
+        // the tab was refreshed with a sent board open: it comes back
+        // (closing the tab, or the board itself, is what lets it go)
+        openSent(sentKept);
       } else if (location.pathname === MAPS){
         // this is maps.html: the archive, addressed as /maps — the board is up
         open();
