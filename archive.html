@@ -15187,8 +15187,10 @@
          it go. */
       let sentBoard = null, sentVer = 0, stashT = null;
       const keepSentKeep = id => { try { sessionStorage.setItem('bmu-sent', String(id)); } catch {} };
-      function dropSentKeep(){
+      // keepStash: the last change never reached the database, so this browser holds on to it
+      function dropSentKeep(keepStash){
         try { sessionStorage.removeItem('bmu-sent'); } catch {}
+        if (keepStash) return;
         clearTimeout(stashT);
         db().then(d => d.transaction(STORE, 'readwrite').objectStore(STORE).delete('sent')).catch(() => {});
       }
@@ -15211,14 +15213,12 @@
           } catch {}
         }, 350);
       }
-      /* What this tab had of the board when it was refreshed — only its own
-         (the sessionStorage marker), only with changes still unsaved, and
-         only when nobody else has saved meanwhile. */
+      /* What this browser had of the board that never reached the database —
+         a refresh, a tab closed mid-save, a save that failed — only with
+         changes still unsaved, and only when nobody else has saved meanwhile.
+         Opening the file again lays it down and saves it up. */
       async function heldSent(id, c){
         try {
-          let keep = null;
-          try { keep = sessionStorage.getItem('bmu-sent'); } catch {}
-          if (keep !== String(id)) return null;
           const d = await db();
           const got = await new Promise((ok, no) => {
             const r = d.transaction(STORE).objectStore(STORE).get('sent');
@@ -15309,9 +15309,11 @@
           await sharedSave();
           if (sentBoard !== id) return;    // another file was opened meanwhile
         }
+        const unsaved = shareDirty;
         sentBoard = null;
         shared = null;
-        dropSentKeep();
+        shareDirty = false;
+        dropSentKeep(unsaved);
         paintShare();
         watchShared();
         emptyBoard();
@@ -15360,7 +15362,7 @@
         else if (s.err) state = s.err;
         else if (shareBusy) state = 'Saving…';
         else if (shareDirty) state = 'Not saved yet';
-        else if (s.at) state = `Saved ${whenOf(s.at)}${s.by ? ` by ${mine ? 'you' : s.by}` : ''}`;
+        else if (s.at) state = `Autosaved ${whenOf(s.at)}${s.by ? ` by ${mine ? 'you' : s.by}` : ''}`;
         shareEl.className = s.stale ? 'stale' : s.err ? 'err' : '';
         shareEl.innerHTML = `<div class="rs-who"><i class="rs-dot"></i><span>${escH(who)}</span></div>` +
           `<div>${escH(role)}${state ? ` · ${escH(state)}` : ''}${s.stale ? '<button type="button" data-act="reload">Reload</button>'
@@ -15454,6 +15456,13 @@
         if (!shared) return;
         if (document.hidden){ if (shareDirty) sharedSave(); }
         else sharedCheck(shared, true);
+      });
+      // closing the tab with a change not yet saved: the browser asks first, and the save goes up meanwhile
+      window.addEventListener('beforeunload', e => {
+        if (!shared || !(shareDirty || shareBusy)) return;
+        if (shareDirty && !shareBusy){ clearTimeout(shareT); sharedSave(); }
+        e.preventDefault();
+        e.returnValue = '';
       });
 
       /* ---------- FROM THE ARCHIVE ----------
