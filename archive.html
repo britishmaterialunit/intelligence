@@ -15297,7 +15297,9 @@
           say(/signed out/.test(err.message) ? 'Sign in to Files to open this board' : 'That board could not be opened');
         }
       }
-      // closing a sent board puts the reader's own back for the next opening
+      /* Close file on the label: the file is let go and the reader's own
+         board comes back. Putting Maps away (its cross, Back) does not do
+         this — the file stays open behind the archive for the next opening. */
       async function leaveSent(){
         if (sentBoard == null) return;
         // a last change goes up before the board is cleared, from the board as it is
@@ -15305,17 +15307,20 @@
           clearTimeout(shareT);
           const id = sentBoard;
           await sharedSave();
-          if (sentBoard !== id || isOpen) return;    // opened again meanwhile: it is still in use
+          if (sentBoard !== id) return;    // another file was opened meanwhile
         }
         sentBoard = null;
         shared = null;
-        dropSentKeep();        // closed on purpose: the tab lets it go
+        dropSentKeep();
         paintShare();
         watchShared();
         emptyBoard();
         loaded = false;
+        if (isOpen){ loaded = true; load(); }
         sync();
       }
+      // a file open when this page loaded somewhere other than /maps: laid down when Maps opens
+      let pendingSent = null;
 
       /* ---------- A SHARED BOARD ----------
          One board, in the database, that the admin and the designer it is
@@ -15359,9 +15364,11 @@
         shareEl.className = s.stale ? 'stale' : s.err ? 'err' : '';
         shareEl.innerHTML = `<div class="rs-who"><i class="rs-dot"></i><span>${escH(who)}</span></div>` +
           `<div>${escH(role)}${state ? ` · ${escH(state)}` : ''}${s.stale ? '<button type="button" data-act="reload">Reload</button>'
-            : canEdit() ? '<button type="button" data-act="update">Update</button>' : ''}</div>`;
+            : canEdit() ? '<button type="button" data-act="update">Update</button>' : ''}` +
+          `<button type="button" data-act="leave">Close file</button></div>`;
       }
       shareEl.addEventListener('click', e => {
+        if (e.target.closest('[data-act="leave"]') && shared){ leaveSent().then(() => say('File closed — back to your own board')); return; }
         if (e.target.closest('[data-act="reload"]') && shared){ shareDirty = false; openSent(shared.id, true); }
         // straight to Send, with this board picked: a new version, renamed there if wanted
         if (e.target.closest('[data-act="update"]') && shared) toggleSend(true);
@@ -17735,7 +17742,11 @@
         wearFace(true);
         paintGarments();
         checkAdmin();
-        if (!loaded){ loaded = true; load(); }
+        if (!loaded){
+          loaded = true;
+          if (pendingSent){ const id = pendingSent; pendingSent = null; openSent(id); }
+          else load();
+        }
         applyView();
         sync();
       }
@@ -18211,7 +18222,12 @@
         root.setAttribute('aria-hidden', 'true');
         wearFace(false);
         paintGarments();
-        setTimeout(() => { if (!isOpen){ root.hidden = true; leaveSent(); } }, 320);
+        // an open file stays open behind the archive; only its last change goes up now
+        setTimeout(() => {
+          if (isOpen) return;
+          root.hidden = true;
+          if (sentBoard != null && shareDirty && canEdit()){ clearTimeout(shareT); sharedSave(); }
+        }, 320);
       }
 
       paintGarments();
@@ -18223,9 +18239,15 @@
       if (sentId){
         history.replaceState(history.state, '', location.pathname + location.hash);
         openSent(sentId);
+      } else if (sentKept && location.pathname === MAPS){
+        // the tab was refreshed with a file open on Maps: it comes back
+        // (closing the tab, or Close file, is what lets it go)
+        openSent(sentKept);
+      } else if (sentKept && !q.has('maps')){
+        // a file is open in this tab but the reader is on the archive: it waits for Maps
+        pendingSent = sentKept;
       } else if (sentKept){
-        // the tab was refreshed with a sent board open: it comes back
-        // (closing the tab, or the board itself, is what lets it go)
+        history.replaceState(null, '', '/archive');
         openSent(sentKept);
       } else if (location.pathname === MAPS){
         // this is maps.html: the archive, addressed as /maps — the board is up
